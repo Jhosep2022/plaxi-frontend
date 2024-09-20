@@ -1,0 +1,109 @@
+/* Estilos generales del navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--text-light); /* Fondo blanco */
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Parte izquierda del navbar (logo y menú) */
+  .navbar-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-left .logo {
+    width: 40px;
+    height: auto;
+    margin-right: 20px;
+  }
+  
+  .navbar-left .menu-icon {
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--dark-blue); /* Color del ícono de menú */
+  }
+  
+  /* Parte central del navbar (título) */
+  .navbar-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--dark-blue); /* Color del texto del título */
+  }
+  
+  /* Parte derecha del navbar (botones e íconos) */
+  .navbar-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-right .new-quiz-btn {
+    background-color: var(--text-light);
+    border: 2px solid var(--lime-green); /* Borde verde lima */
+    border-radius: 20px;
+    padding: 8px 15px;
+    margin-right: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: var(--dark-blue); /* Texto oscuro */
+  }
+  
+  .navbar-right .new-quiz-btn:hover {
+    background-color: var(--light-cream); /* Cambio de fondo al pasar el mouse */
+  }
+  
+  .navbar-right .new-quiz-btn .icon {
+    margin-right: 5px;
+    font-size: 16px;
+  }
+  
+  /* Íconos de mensajes y notificaciones */
+  .navbar-right .icon-container {
+    position: relative;
+    margin-right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--dark-blue); /* Color de los íconos */
+  }
+  
+  .navbar-right .icon-container .notification-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: #ff0000; /* Fondo rojo para el contador */
+    color: var(--text-light); /* Texto blanco para el contador */
+    border-radius: 50%;
+    font-size: 12px;
+    padding: 2px 5px;
+  }
+  
+  /* Información del usuario */
+  .navbar-right .user-info {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+  }
+  
+  .navbar-right .user-info .username {
+    font-weight: bold;
+    color: var(--dark-blue); /* Color del nombre del usuario */
+  }
+  
+  .navbar-right .user-info .role {
+    color: var(--lime-green); /* Color verde lima para el rol */
+    font-size: 12px;
+  }
+  
+  /* Flecha para el menú desplegable */
+  .navbar-right .dropdown-arrow {
+    font-size: 16px;
+    margin-left: 10px;
+    cursor: pointer;
+    color: var(--dark-blue); /* Color de la flecha */
+  }
+  

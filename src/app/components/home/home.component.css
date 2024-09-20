@@ -1,0 +1,13 @@
+.content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 60px); /* 100% del alto de la pantalla menos la altura del navbar */
+    background-color: var(--light-cream);
+  }
+  
+  p {
+    font-size: 24px;
+    color: var(--dark-blue);
+  }
+  

@@ -1,0 +1,85 @@
+<div class="update-container">
+    <h1>Actualizar Perfil</h1>
+  
+    <form class="update-form" (ngSubmit)="actualizarPerfil()">
+      <!-- Nombre de Usuario -->
+      <div class="form-group">
+        <label for="username">Nombre de Usuario</label>
+        <div class="input-container">
+          <span class="icon">👤</span>
+          <input type="text" id="username" [(ngModel)]="perfilDto.username" name="username" placeholder="Introduce tu nombre de usuario" class="form-control" />
+        </div>
+      </div>
+  
+      <!-- Correo Electrónico -->
+      <div class="form-group">
+        <label for="gmail">Correo Electrónico (Gmail)</label>
+        <div class="input-container">
+          <span class="icon">📧</span>
+          <input type="email" id="gmail" [(ngModel)]="perfilDto.gmail" name="gmail" placeholder="Introduce tu correo Gmail" class="form-control" />
+        </div>
+      </div>
+  
+      <!-- Nombre -->
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <div class="input-container">
+          <span class="icon">👤</span>
+          <input type="text" id="nombre" [(ngModel)]="perfilDto.nombre" name="nombre" placeholder="Introduce tu nombre" class="form-control" />
+        </div>
+      </div>
+  
+      <!-- Primer Apellido y Segundo Apellido en una fila -->
+      <div class="form-row">
+        <div class="form-group form-half">
+          <label for="primer_apellido">Primer Apellido</label>
+          <div class="input-container">
+            <span class="icon">📝</span>
+            <input type="text" id="primer_apellido" [(ngModel)]="perfilDto.primerApellido" name="primerApellido" placeholder="Introduce tu primer apellido" class="form-control" />
+          </div>
+        </div>
+  
+        <div class="form-group form-half">
+          <label for="segundo_apellido">Segundo Apellido</label>
+          <div class="input-container">
+            <span class="icon">📝</span>
+            <input type="text" id="segundo_apellido" [(ngModel)]="perfilDto.segundoApellido" name="segundoApellido" placeholder="Introduce tu segundo apellido" class="form-control" />
+          </div>
+        </div>
+      </div>
+  
+      <!-- Teléfono y CI en una fila -->
+      <div class="form-row">
+        <div class="form-group form-half">
+          <label for="telefono">Teléfono</label>
+          <div class="input-container">
+            <span class="icon">📞</span>
+            <input type="text" id="telefono" [(ngModel)]="perfilDto.telefono" name="telefono" placeholder="Introduce tu número de teléfono" class="form-control" />
+          </div>
+        </div>
+  
+        <div class="form-group form-half">
+          <label for="ci">Cédula de Identidad (CI)</label>
+          <div class="input-container">
+            <span class="icon">🆔</span>
+            <input type="text" id="ci" [(ngModel)]="perfilDto.ci" name="ci" placeholder="Introduce tu CI" class="form-control" />
+          </div>
+        </div>
+      </div>
+  
+      <!-- Imagen de Perfil -->
+      <div class="form-group">
+        <label for="imagen">Imagen de Perfil</label>
+        <div class="input-container">
+          <span class="icon">🖼️</span>
+          <input type="file" id="imagen" (change)="onFileSelected($event)" class="form-control" />
+        </div>
+      </div>
+  
+      <!-- Botones de Actualizar y Cancelar -->
+      <div class="form-buttons">
+        <button type="submit" class="update-btn">Actualizar Perfil <span class="icon">✔️</span></button>
+        <button type="button" class="cancel-btn" (click)="cancelar()">Cancelar</button>
+      </div>
+    </form>
+</div>

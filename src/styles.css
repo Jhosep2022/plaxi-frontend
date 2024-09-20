@@ -1,1 +1,33 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --dark-blue: #0a0a23;
+  --light-cream: #f6e7d8;
+  --lime-green: #bccf4e;
+  --text-light: #ffffff;
+  --text-dark: #0a0a23;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: var(--text-light);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar-container {
+  width: 100%;
+  background-color: var(--dark-blue);
+}
+
+.content {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--light-cream);
+  width: 100%;
+}
+

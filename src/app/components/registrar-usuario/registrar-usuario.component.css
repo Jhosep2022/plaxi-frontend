@@ -1,0 +1,208 @@
+/* Centrar verticalmente todo el contenedor */
+html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--text-light); /* Fondo general */
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Altura completa de la pantalla */
+}
+
+/* Estilo para el contenedor de registro */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dark-blue);
+  color: var(--text-light);
+  width: 90%;
+  max-width: 1200px;
+  margin: auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 20px;
+}
+
+/* Header y logo */
+.login-header {
+  text-align: left;
+  margin-bottom: 20px;
+  flex-basis: 100%;
+}
+
+.logo {
+  width: 80px;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-top: 10px;
+}
+
+/* Opciones de registro: tutor o estudiante */
+.login-options {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Contenedor para los formularios y la ilustración */
+.form-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 20px;
+}
+
+/* Estilos para las filas de formularios */
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-half {
+  flex: 1;
+}
+
+.login-form, .personal-form {
+  flex-basis: 45%;
+}
+
+/* Ilustración */
+.illustration {
+  flex-basis: 30%;
+  background-color: var(--light-cream);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.illustration img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Estilos generales para el formulario */
+.form-group {
+  margin-bottom: 10px;
+}
+
+label {
+  margin-bottom: 5px;
+  display: block;
+}
+
+.input-container {
+  position: relative;
+  width: 100%;
+}
+
+.input-container .icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 1.2rem;
+}
+
+/* Estilos para los inputs */
+.form-control {
+  width: 100%;
+  padding: 10px 40px;
+  border-radius: 5px;
+  border: 2px solid var(--text-light);
+  margin-top: 5px;
+  background-color: var(--dark-blue);
+  color: var(--text-light);
+}
+
+.form-control::placeholder {
+  color: var(--text-light);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--lime-green);
+}
+
+/* Botones de acción */
+.login-btn {
+  width: 100%;
+  background-color: var(--lime-green);
+  color: var(--text-dark);
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.forgot-password {
+  margin-top: 10px;
+}
+
+.forgot-password a {
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.forgot-password .highlight {
+  color: var(--lime-green);
+  font-weight: bold;
+}
+
+/* Estilo para los botones de opción: tutor o estudiante */
+.option-button {
+  background-color: var(--dark-blue);
+  border: 2px solid var(--text-light);
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.option-button.active {
+  border-color: var(--lime-green);
+  color: var(--lime-green);
+  background-color: transparent;
+}
+
+.option-button:not(.active) {
+  border-color: var(--text-light);
+  color: var(--text-light);
+}
+
+.option-button:hover {
+  background-color: transparent;
+  border-color: var(--lime-green);
+  color: var(--lime-green);
+}
+
+/* Ajuste responsivo */
+@media (max-width: 768px) {
+  .form-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .login-form, .personal-form {
+    flex-basis: 100%;
+  }
+
+  .illustration {
+    display: none;
+  }
+}
