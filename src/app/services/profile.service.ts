@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PerfilDto, ActualizarPerfilDto } from '../models/PerfilDto';
-import { environment } from '../../environments/environment'; 
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PerfilService {
-  private apiUrl = `${environment.API_URL}/perfil`;  
+  private apiUrl = `${environment.API_URL}/perfil`;
 
   constructor(private http: HttpClient) {}
 
@@ -22,7 +22,6 @@ export class PerfilService {
     return this.http.get<PerfilDto>(`${this.apiUrl}/${idUsuario}`);
   }
 
-  // Actualizar un perfil
   updateProfile(idUsuario: number, perfilDto: ActualizarPerfilDto): Observable<any> {
     const formData = new FormData();
     formData.append('username', perfilDto.username);
@@ -37,8 +36,12 @@ export class PerfilService {
       formData.append('file', perfilDto.file);
     }
 
-    return this.http.put(`${this.apiUrl}/${idUsuario}`, formData);
+    return this.http.put(`${this.apiUrl}/${idUsuario}`, formData, {
+      reportProgress: true, // Esto ayudará a capturar más detalles en caso de error
+      observe: 'events', // Para obtener eventos de progreso si lo necesitas
+    });
   }
+
 
 
   // Borrado lógico del perfil

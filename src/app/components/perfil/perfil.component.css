@@ -6,7 +6,7 @@
     height: 100vh;
     background-color: var(--text-light);
   }
-  
+
   /* Contenedor del perfil que da estilo a la tarjeta */
   .perfil-container {
     background-color: var(--text-light);
@@ -18,7 +18,7 @@
     margin: 0 auto;
     border: 1px solid rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Título principal del perfil */
   .perfil-titulo {
     text-align: left;
@@ -26,13 +26,13 @@
     color: var(--dark-blue);
     margin-bottom: 15px;
   }
-  
+
   /* Encabezado de la imagen y nombre */
   .perfil-header {
     text-align: center;
     margin-bottom: 20px;
   }
-  
+
   .perfil-imagen {
     width: 100px;
     height: 100px;
@@ -41,19 +41,19 @@
     margin-bottom: 10px;
     border: 2px solid var(--lime-green);
   }
-  
+
   .perfil-header h2 {
     font-size: 22px;
     color: var(--dark-blue);
     margin: 0;
   }
-  
+
   .perfil-username {
     font-size: 14px;
     color: var(--lime-green);
     margin: 5px 0;
   }
-  
+
   .perfil-status {
     display: inline-block;
     padding: 5px 12px;
@@ -61,17 +61,17 @@
     font-size: 12px;
     margin-top: 10px;
   }
-  
+
   .activo {
     background-color: var(--lime-green);
     color: var(--text-light);
   }
-  
+
   .inactivo {
     background-color: var(--dark-blue);
     color: var(--text-light);
   }
-  
+
   /* Información de los detalles del usuario */
   .perfil-info {
     background-color: var(--light-cream);
@@ -79,29 +79,29 @@
     border-radius: 8px;
     margin-bottom: 20px;
   }
-  
+
   .perfil-info-item {
     display: flex;
     justify-content: space-between;
     font-size: 16px;
     margin-bottom: 10px;
   }
-  
+
   .perfil-info-item strong {
     color: var(--dark-blue);
   }
-  
+
   .perfil-info-item span {
     color: var(--dark-blue);
   }
-  
+
   /* Contenedor de los botones */
 .perfil-buttons {
     display: flex;
     justify-content: space-between;
     gap: 10px;
   }
-  
+
   /* Botón de edición del perfil */
   .perfil-edit-btn {
     background-color: var(--dark-blue);
@@ -115,11 +115,11 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .perfil-edit-btn fa-icon {
     margin-right: 5px;
   }
-  
+
   /* Botón para dar de baja la cuenta */
   .perfil-delete-btn {
     background-color: var(--lime-green);
@@ -133,8 +133,27 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .perfil-delete-btn fa-icon {
     margin-right: 5px;
   }
+
+
+  .perfil-logout-btn {
+    background-color: var(--lime-green);
+    color: var(--dark-blue);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .perfil-logout-btn fa-icon {
+    margin-right: 5px;
+  }
+
   

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PerfilService } from '../../services/profile.service';  // Ruta correcta al servicio
-import { faEdit, faTrash  } from '@fortawesome/free-solid-svg-icons';  // Importar icono de edición
+import { faEdit, faTrash, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';  // Importar icono de edición y cerrar sesión
 
 @Component({
   selector: 'app-perfil',
@@ -10,8 +10,9 @@ import { faEdit, faTrash  } from '@fortawesome/free-solid-svg-icons';  // Import
 })
 export class PerfilComponent implements OnInit {
 
-  faEdit = faEdit;  // Asignar el icono a una variable
-  faTrash = faTrash;
+  faEdit = faEdit;  // Icono de edición
+  faTrash = faTrash;  // Icono de eliminación
+  faSignOut = faSignOutAlt;  // Icono de cerrar sesión
   user = {
     idUsuario: 2,
     username: 'johndoe',
@@ -24,6 +25,8 @@ export class PerfilComponent implements OnInit {
     ci: '12345678',
     imagenUrl: 'http://localhost:9000/fotoperfil/Imagen%20de%20WhatsApp%202024-01-05%20a%20las%2018.37.11_b0fdf273.jpg'
   };
+
+  isDialogOpen = false;  // Controla si el diálogo está abierto
 
   constructor(private perfilService: PerfilService, private router: Router) {}
 
@@ -47,8 +50,34 @@ export class PerfilComponent implements OnInit {
     this.router.navigate(['/updateperfil']);  // Redirige al formulario de actualización de perfil
   }
 
-  darDeBaja() {
-    // Lógica para dar de baja la cuenta
-    console.log("Cuenta dada de baja");
+  abrirDialogoConfirmacion() {
+    this.isDialogOpen = true;  // Abre el diálogo de confirmación
+  }
+
+  manejarConfirmacion(isConfirmed: boolean) {
+    this.isDialogOpen = false;  // Cierra el diálogo
+
+    if (isConfirmed) {
+      this.eliminarUsuario();  // Elimina el usuario si se confirma
+    } else {
+      console.log('Operación cancelada');
+    }
+  }
+
+  eliminarUsuario() {
+    this.perfilService.deleteProfile(this.user.idUsuario).subscribe({
+      next: () => {
+        console.log("Usuario eliminado exitosamente");
+        this.router.navigate(['/login']);  // Redirige al login después de eliminar la cuenta
+      },
+      error: (err) => {
+        console.error("Error al eliminar el usuario:", err);
+      }
+    });
+  }
+
+  cerrarSesion() {
+    localStorage.removeItem('idUsuario');  // Eliminar el ID de usuario de localStorage
+    this.router.navigate(['/login']);  // Redirige al login
   }
 }

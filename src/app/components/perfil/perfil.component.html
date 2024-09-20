@@ -1,39 +1,46 @@
 <div class="perfil-wrapper">
-    <div class="perfil-container">
-      <h2 class="perfil-titulo">Perfil del Usuario</h2>
-      <div class="perfil-header">
-        <img [src]="user.imagenUrl" alt="{{ user.nombre }} {{ user.primerApellido }}" class="perfil-imagen" />
-        <h2>{{ user.nombre }} {{ user.primerApellido }} {{ user.segundoApellido }}</h2>
-        <p class="perfil-username">@{{ user.username }}</p>
-        <span class="perfil-status" [ngClass]="user.status ? 'activo' : 'inactivo'">
-          {{ user.status ? 'Activo' : 'Inactivo' }}
-        </span>
+  <div class="perfil-container">
+    <h2 class="perfil-titulo">Perfil del Usuario</h2>
+    <div class="perfil-header">
+      <img [src]="user.imagenUrl ? user.imagenUrl : 'assets/perfil.jpeg'" alt="{{ user.nombre }} {{ user.primerApellido }}" class="perfil-imagen" />
+      <h2>{{ user.nombre }} {{ user.primerApellido }} {{ user.segundoApellido }}</h2>
+      <p class="perfil-username">&#64; {{ user.username }}</p>
+      <span class="perfil-status" [ngClass]="user.status ? 'activo' : 'inactivo'">
+        {{ user.status ? 'Activo' : 'Inactivo' }}
+      </span>
+    </div>
+
+    <div class="perfil-info">
+      <div class="perfil-info-item">
+        <strong>Correo:</strong>
+        <span>{{ user.gmail }}</span>
       </div>
-  
-      <div class="perfil-info">
-        <div class="perfil-info-item">
-          <strong>Correo:</strong>
-          <span>{{ user.gmail }}</span>
-        </div>
-        <div class="perfil-info-item">
-          <strong>Teléfono:</strong>
-          <span>{{ user.telefono }}</span>
-        </div>
-        <div class="perfil-info-item">
-          <strong>CI:</strong>
-          <span>{{ user.ci }}</span>
-        </div>
+      <div class="perfil-info-item">
+        <strong>Teléfono:</strong>
+        <span>{{ user.telefono }}</span>
       </div>
-  
-      <div class="perfil-buttons">
-        <button class="perfil-edit-btn" (click)="editarPerfil()">
-          <fa-icon [icon]="faEdit"></fa-icon> Editar Perfil
-        </button>
-  
-        <button class="perfil-delete-btn" (click)="darDeBaja()">
-          <fa-icon [icon]="faTrash"></fa-icon> Dar de baja mi cuenta
-        </button>
+      <div class="perfil-info-item">
+        <strong>CI:</strong>
+        <span>{{ user.ci }}</span>
       </div>
     </div>
+
+    <div class="perfil-buttons">
+      <button class="perfil-edit-btn" (click)="editarPerfil()">
+        <fa-icon [icon]="faEdit"></fa-icon> Editar Perfil
+      </button>
+
+      <button class="perfil-delete-btn" (click)="abrirDialogoConfirmacion()">
+        <fa-icon [icon]="faTrash"></fa-icon> Dar de baja mi cuenta
+      </button>
+
+      <!-- Botón de cerrar sesión -->
+      <button class="perfil-logout-btn" (click)="cerrarSesion()">
+        <fa-icon [icon]="faSignOut"></fa-icon> Cerrar Sesión
+      </button>
+    </div>
   </div>
-  
+
+  <!-- Mostrar el diálogo de confirmación si isDialogOpen es verdadero -->
+  <app-confirm-dialog (confirmed)="manejarConfirmacion($event)" *ngIf="isDialogOpen"></app-confirm-dialog>
+</div>

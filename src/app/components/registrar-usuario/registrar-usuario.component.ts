@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../services/auth.service';  // Asegúrate de tener la ruta correcta a tu servicio
-import { Router } from '@angular/router';  // Para redirigir al login después del registro
+import { AuthService } from '../../services/auth.service';  // Ruta correcta al servicio
+import { Router } from '@angular/router';  // Para redirigir al login
 
 @Component({
   selector: 'app-registrar-usuario',
@@ -10,9 +10,10 @@ import { Router } from '@angular/router';  // Para redirigir al login después d
 export class RegistrarUsuarioComponent {
   isTutorSelected: boolean = true;
 
-  // Definir las propiedades para los datos del formulario
+  // Propiedades para los datos del formulario
   username: string = '';
   password: string = '';
+  confirmPassword: string = ''; // Campo para confirmar contraseña
   gmail: string = '';
   nombre: string = '';
   primerApellido: string = '';
@@ -30,8 +31,21 @@ export class RegistrarUsuarioComponent {
 
   // Método para registrar usuario
   onRegister() {
-    if (!this.username || !this.password || !this.gmail || !this.nombre || !this.primerApellido || !this.telefono || !this.ci) {
+    // Validación de campos vacíos y formato de correo
+    if (!this.username || !this.password || !this.confirmPassword || !this.gmail || !this.nombre || !this.primerApellido || !this.telefono || !this.ci) {
       this.errorMessage = 'Por favor, completa todos los campos.';
+      return;
+    }
+
+    // Validación del formato del correo
+    if (!this.isValidEmail(this.gmail)) {
+      this.errorMessage = 'El formato del correo no es válido.';
+      return;
+    }
+
+    // Validación para comprobar si las contraseñas coinciden
+    if (this.password !== this.confirmPassword) {
+      this.errorMessage = 'Las contraseñas no coinciden. Por favor, intenta de nuevo.';
       return;
     }
 
@@ -61,6 +75,12 @@ export class RegistrarUsuarioComponent {
         this.errorMessage = 'Error al registrar. Por favor, inténtalo nuevamente.';
       }
     });
+  }
+
+  // Validación del formato del correo electrónico
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 
   // Método para redirigir al login
