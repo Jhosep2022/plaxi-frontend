@@ -14,6 +14,7 @@ import { ForgotPasswordComponent } from './components/forgot-password/forgot-pas
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { UpdateperfilComponent } from './components/updateperfil/updateperfil.component';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
+import { HomeComponent } from './components/home/home.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dial
     ForgotPasswordComponent,
     PerfilComponent,
     UpdateperfilComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -38,6 +40,6 @@ import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dial
   ],
   providers: [],
   bootstrap: [AppComponent],
-  schemas: [NO_ERRORS_SCHEMA] 
+  schemas: [NO_ERRORS_SCHEMA]
 })
 export class AppModule { }

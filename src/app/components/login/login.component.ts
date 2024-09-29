@@ -8,25 +8,25 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  username: string = '';  // Definir la propiedad username
-  password: string = '';  // Definir la propiedad password
-  errorMessage: string = '';  // Para almacenar mensajes de error
+  username: string = '';
+  password: string = '';
+  errorMessage: string = '';
 
   constructor(private router: Router, private authService: AuthService) {}
 
   onLogin() {
-    // Validación básica
+
     if (!this.username || !this.password) {
       this.errorMessage = 'Por favor, ingresa tu nombre de usuario y tu contraseña.';
       return;
     }
 
-    // Llama al servicio de autenticación con el username y contraseña
     this.authService.loginUser(this.username, this.password).subscribe({
       next: (response) => {
         if (response.success) {
-          localStorage.setItem('idUsuario', response.data.id_usuario);  // Guarda el ID del usuario en localStorage
-          this.router.navigate(['/perfil']);  // Redirigir al perfil después de iniciar sesión
+          localStorage.setItem('idUsuario', response.data.id_usuario.toString());
+          localStorage.setItem('userRole', response.data.id_rol.toString());
+          this.router.navigate(['/home']);
         } else {
           this.errorMessage = 'Inicio de sesión fallido. Usuario no encontrado.';
         }

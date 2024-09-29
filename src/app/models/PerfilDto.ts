@@ -8,7 +8,8 @@ export interface PerfilDto {
   segundoApellido: string;
   telefono: string;
   ci: string;
-  imagenUrl?: string;  // URL de la imagen de perfil
+  imagenUrl?: string;
+  id_rol: string;
 }
 
 export interface ActualizarPerfilDto {
@@ -19,5 +20,5 @@ export interface ActualizarPerfilDto {
   segundoApellido: string;
   telefono: string;
   ci: string;
-  file?: File;  // Archivo opcional para la imagen de perfil
+  file?: File;
 }

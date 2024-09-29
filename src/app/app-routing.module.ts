@@ -6,12 +6,14 @@ import { RegistrarUsuarioComponent } from './components/registrar-usuario/regist
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { UpdateperfilComponent } from './components/updateperfil/updateperfil.component';
+import { HomeComponent } from './components/home/home.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'home', component: HomeComponent },
   { path: 'perfil', component: PerfilComponent },
-  { path: 'updateperfil', component: UpdateperfilComponent }, // Agrega esta ruta
+  { path: 'updateperfil', component: UpdateperfilComponent },
   { path: 'registrar', component: RegistrarUsuarioComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent }
 ];

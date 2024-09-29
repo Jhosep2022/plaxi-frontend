@@ -1,35 +1,174 @@
 <div class="navbar-container">
   <div class="navbar-left">
-    <button class="menu-button">
-      <fa-icon [icon]="faBars"></fa-icon>
+    <button class="menu-button" (click)="toggleSidebar()">
+      <fa-icon [icon]="faBars" class="menu-icon"></fa-icon>
     </button>
-    <img src="assets/Logo-white.png" alt="QuizWiz Logo" class="logo" />
+    <img src="assets/Logo_icon.png" alt="QuizWiz Logo" class="logo" />
   </div>
 
   <div class="navbar-center">
-    <h1>Dashboard</h1>
+    <h1 class="navbar-title">{{ title }}</h1>
   </div>
 
   <div class="navbar-right">
-    <button class="new-quiz-btn">
-      <fa-icon [icon]="faPlusCircle"></fa-icon> New quiz
+    <button class="join-quiz-btn">
+      <fa-icon [icon]="faPlusCircle" class="icon"></fa-icon> Join Quiz
     </button>
 
     <div class="icon-container">
       <fa-icon [icon]="faEnvelope"></fa-icon>
-      <span class="badge">10</span>
+      <span class="notification-count">10</span>
     </div>
-
     <div class="icon-container">
       <fa-icon [icon]="faBell"></fa-icon>
-      <span class="badge">10</span>
+      <span class="notification-count">10</span>
     </div>
 
-    <div class="user-info">
-      <fa-icon [icon]="faUser"></fa-icon>
-      <span class="user-name">Nwabuikwu Chizuruoke</span>
-      <span class="user-role">Tutor</span>
-      <span class="dropdown-icon">▼</span>
+    <div class="user-info-container" (click)="toggleDropdown()">
+      <img *ngIf="userProfile?.imagenUrl; else defaultImage" [src]="userProfile?.imagenUrl" class="user-image" alt="User Image" />
+
+      <ng-template #defaultImage>
+        <img src="assets/perfil.jpeg" class="user-image" alt="Default User Image" />
+      </ng-template>
+
+      <div class="user-info">
+        <span class="username">{{ userProfile?.nombre }} {{ userProfile?.primerApellido }}</span>
+        <span class="role">{{ userProfile?.status ? 'Learner' : 'Inactive' }}</span>
+      </div>
+
+      <fa-icon [icon]="faChevronDown" class="dropdown-arrow"></fa-icon>
+    </div>
+
+    <div class="profile-dropdown" [class.show]="isDropdownOpen">
+      <ul>
+        <li (click)="viewProfile()">
+          <fa-icon [icon]="faUserCircle" class="dropdown-icon"></fa-icon> View Profile
+        </li>
+        <li (click)="editProfile()">
+          <fa-icon [icon]="faEdit" class="dropdown-icon"></fa-icon> Edit Profile
+        </li>
+        <li (click)="openSettings()">
+          <fa-icon [icon]="faCog" class="dropdown-icon"></fa-icon> Settings
+        </li>
+        <li (click)="logout()">
+          <fa-icon [icon]="faSignOutAlt" class="dropdown-icon"></fa-icon> Logout
+        </li>
+      </ul>
     </div>
   </div>
 </div>
+
+<div class="sidebar" [class.sidebar-open]="isSidebarOpen">
+  <!-- Pestañas comunes -->
+  <ul class="sidebar-list">
+    <li class="sidebar-item" [class.active]="currentRoute === '/home'" (click)="navigateTo('home')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faHome" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Dashboard</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/quizzes'" (click)="navigateTo('quizzes')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faClipboard" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Quizzes</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/courses'" (click)="navigateTo('courses')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faBookOpen" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Cursos</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/forum'" (click)="navigateTo('forum')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faComments" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Foro</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/help'" (click)="navigateTo('help')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faQuestionCircle" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Ayuda</span>
+    </li>
+  </ul>
+
+  <!-- Pestañas para Administradores -->
+  <ul class="sidebar-list" *ngIf="userRole === 'Administrador'">
+    <li class="sidebar-item" [class.active]="currentRoute === '/user-management'" (click)="navigateTo('user-management')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faUsers" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Gestión de Usuarios</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/course-management'" (click)="navigateTo('course-management')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Gestión de Cursos</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/reports'" (click)="navigateTo('reports')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faChartLine" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Reportes</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/settings'" (click)="navigateTo('settings')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faCog" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Configuraciones</span>
+    </li>
+  </ul>
+
+  <!-- Pestañas para Tutores -->
+  <ul class="sidebar-list" *ngIf="userRole === 'Tutor'">
+    <li class="sidebar-item" [class.active]="currentRoute === '/my-courses'" (click)="navigateTo('my-courses')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faChalkboardTeacher" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Mis Cursos</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/students'" (click)="navigateTo('students')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faUserGraduate" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Estudiantes</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faClipboardCheck" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Evaluaciones</span>
+    </li>
+  </ul>
+
+  <!-- Pestañas para Estudiantes -->
+  <ul class="sidebar-list" *ngIf="userRole === 'Estudiante'">
+    <li class="sidebar-item" [class.active]="currentRoute === '/my-courses'" (click)="navigateTo('my-courses')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Mis Cursos</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/progress'" (click)="navigateTo('progress')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faChartPie" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Progreso</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/tasks'" (click)="navigateTo('tasks')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faTasks" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Tareas</span>
+    </li>
+    <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
+      <div class="sidebar-icon-container">
+        <fa-icon [icon]="faClipboardList" class="sidebar-icon"></fa-icon>
+      </div>
+      <span class="sidebar-text">Evaluaciones</span>
+    </li>
+  </ul>
+</div>
+

@@ -1,109 +1,352 @@
-/* Estilos generales del navbar */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--text-light); /* Fondo blanco */
-    padding: 10px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    font-family: Arial, sans-serif;
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 97%;
+  margin: 0 auto;
+  background-color: var(--text-light);
+  padding: 10px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+  z-index: 1001;
+  position: relative;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.menu-button {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  margin-right: 15px;
+}
+
+.menu-icon {
+  font-size: 24px;
+  color: var(--dark-blue);
+  margin-right: 20px;
+}
+
+.logo {
+  width: 50px;
+  height: auto;
+  margin-right: 20px;
+}
+
+.navbar-center {
+  flex: 1;
+  text-align: center;
+}
+
+.navbar-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--dark-blue);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-right .join-quiz-btn {
+  background-color: var(--text-light);
+  border: 2px solid var(--lime-green);
+  border-radius: 20px;
+  padding: 8px 15px;
+  margin-right: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--dark-blue);
+}
+
+.navbar-right .join-quiz-btn:hover {
+  background-color: var(--light-cream);
+}
+
+.navbar-right .join-quiz-btn .icon {
+  margin-right: 5px;
+  font-size: 16px;
+}
+
+.icon-container {
+  position: relative;
+  margin-right: 20px;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--dark-blue);
+}
+
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background-color: var(--lime-green);
+  color: var(--text-light);
+  border-radius: 50%;
+  font-size: 12px;
+  padding: 2px 5px;
+}
+
+.user-info-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-info .username {
+  font-weight: bold;
+  margin-left: 0;
+  color: var(--dark-blue);
+}
+
+.user-info .role {
+  color: var(--lime-green);
+  font-size: 12px;
+  margin-left: 0;
+}
+
+.user-info-container .user-image {
+  margin-right: 10px;
+}
+
+.user-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--lime-green);
+}
+
+.dropdown-arrow {
+  font-size: 16px;
+  margin-left: 10px;
+  color: var(--dark-blue);
+}
+
+.profile-dropdown {
+  position: absolute;
+  right: 0px;
+  top: 50px;
+  width: 150px;
+  background-color: var(--text-light);
+  border: 1px solid var(--light-cream);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.profile-dropdown.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.profile-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.profile-dropdown ul li {
+  padding: 10px 15px;
+  cursor: pointer;
+  color: var(--dark-blue);
+  display: flex;
+  align-items: center;
+  background-color: var(--text-light);
+  transition: background-color 0.2s ease;
+}
+
+.profile-dropdown ul li .dropdown-icon {
+  margin-right: 10px;
+  color: var(--lime-green);
+}
+
+.profile-dropdown ul li:hover {
+  background-color: var(--light-cream);
+}
+
+/* Estilo principal del sidebar */
+.sidebar {
+  position: fixed;
+  left: -250px; /* Valor inicial para el desplazamiento fuera de la pantalla */
+  top: 60px; /* Separación desde la parte superior */
+  width: 250px; /* Ancho del sidebar */
+  height: calc(100vh - 60px); /* Altura total menos el tamaño de la barra superior */
+  background-color: var(--text-light); /* Color de fondo */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); /* Sombra para darle profundidad */
+  padding: 0;
+  transition: left 0.3s ease; /* Transición suave al desplegar */
+  z-index: 1000; /* Prioridad de visualización */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto; /* Habilitar scroll vertical */
+  scrollbar-width: thin; /* Ancho de la barra de desplazamiento (para navegadores compatibles) */
+  scrollbar-color: var(--lime-green) var(--text-light); /* Colores para la barra y el fondo */
+}
+
+/* Cuando el sidebar está abierto */
+.sidebar-open {
+  left: 0; /* Mostrar el sidebar */
+}
+
+/* Lista de elementos en el sidebar */
+.sidebar-list {
+  list-style: none; /* Sin estilo de lista */
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilo para cada item del sidebar */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  cursor: pointer;
+  color: var(--dark-blue);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-weight: bold;
+}
+
+/* Item activo */
+.sidebar-item.active {
+  background-color: var(--lime-green);
+  color: var(--text-light);
+}
+
+/* Hover para los items */
+.sidebar-item:hover {
+  background-color: var(--light-cream);
+}
+
+/* Icono del sidebar */
+.sidebar-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+  background-color: var(--light-cream);
+  border-radius: 10px;
+}
+
+/* Estilo del contenedor del icono cuando el item es activo */
+.sidebar-item.active .sidebar-icon-container {
+  background-color: var(--dark-blue);
+}
+
+/* Estilo del icono cuando el item es activo */
+.sidebar-item.active .sidebar-icon {
+  color: var(--text-light);
+}
+
+/* Estilo del icono */
+.sidebar-icon {
+  font-size: 24px;
+  color: var(--dark-blue);
+}
+
+/* Texto del sidebar */
+.sidebar-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Separador flexible */
+.sidebar-separator {
+  flex-grow: 1;
+}
+
+/* Estilo de la sección de ayuda */
+.sidebar-help {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--dark-blue);
+  transition: background-color 0.2s ease;
+}
+
+/* Hover en la sección de ayuda */
+.sidebar-help:hover {
+  background-color: var(--light-cream);
+}
+
+/* Contenedor del icono de ayuda */
+.sidebar-help .sidebar-icon-container {
+  background-color: var(--light-cream);
+  border-radius: 10px;
+}
+
+/* Estilo del icono de ayuda */
+.sidebar-help .sidebar-icon {
+  color: var(--lime-green);
+}
+
+/* Contenido principal */
+.main-content {
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
+}
+
+/* Cuando el sidebar está expandido */
+.main-content.sidebar-expanded {
+  margin-left: 250px; /* Ajuste para dar espacio al sidebar */
+}
+
+/* Personalización de la barra de scroll */
+.sidebar::-webkit-scrollbar {
+  width: 8px; /* Ancho de la barra de scroll */
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--lime-green); /* Color del "thumb" (la parte que se arrastra) */
+  border-radius: 10px; /* Bordes redondeados */
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background-color: var(--text-light); /* Fondo de la barra de scroll */
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dark-blue); /* Color del "thumb" al pasar el cursor */
+}
+
+@media screen and (max-width: 768px) {
+  .sidebar {
+    width: 200px;
   }
-  
-  /* Parte izquierda del navbar (logo y menú) */
-  .navbar-left {
-    display: flex;
-    align-items: center;
+
+  .main-content.sidebar-expanded {
+    margin-left: 200px;
   }
-  
-  .navbar-left .logo {
-    width: 40px;
-    height: auto;
-    margin-right: 20px;
+
+  .user-image {
+    width: 30px;
+    height: 30px;
   }
-  
-  .navbar-left .menu-icon {
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--dark-blue); /* Color del ícono de menú */
-  }
-  
-  /* Parte central del navbar (título) */
-  .navbar-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: var(--dark-blue); /* Color del texto del título */
-  }
-  
-  /* Parte derecha del navbar (botones e íconos) */
-  .navbar-right {
-    display: flex;
-    align-items: center;
-  }
-  
-  .navbar-right .new-quiz-btn {
-    background-color: var(--text-light);
-    border: 2px solid var(--lime-green); /* Borde verde lima */
-    border-radius: 20px;
-    padding: 8px 15px;
-    margin-right: 20px;
+
+  .user-info .username {
     font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    color: var(--dark-blue); /* Texto oscuro */
   }
-  
-  .navbar-right .new-quiz-btn:hover {
-    background-color: var(--light-cream); /* Cambio de fondo al pasar el mouse */
-  }
-  
-  .navbar-right .new-quiz-btn .icon {
-    margin-right: 5px;
-    font-size: 16px;
-  }
-  
-  /* Íconos de mensajes y notificaciones */
-  .navbar-right .icon-container {
-    position: relative;
-    margin-right: 20px;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--dark-blue); /* Color de los íconos */
-  }
-  
-  .navbar-right .icon-container .notification-count {
-    position: absolute;
-    top: -5px;
-    right: -10px;
-    background-color: #ff0000; /* Fondo rojo para el contador */
-    color: var(--text-light); /* Texto blanco para el contador */
-    border-radius: 50%;
-    font-size: 12px;
-    padding: 2px 5px;
-  }
-  
-  /* Información del usuario */
-  .navbar-right .user-info {
-    display: flex;
-    flex-direction: column;
-    text-align: right;
-  }
-  
-  .navbar-right .user-info .username {
-    font-weight: bold;
-    color: var(--dark-blue); /* Color del nombre del usuario */
-  }
-  
-  .navbar-right .user-info .role {
-    color: var(--lime-green); /* Color verde lima para el rol */
-    font-size: 12px;
-  }
-  
-  /* Flecha para el menú desplegable */
-  .navbar-right .dropdown-arrow {
-    font-size: 16px;
-    margin-left: 10px;
-    cursor: pointer;
-    color: var(--dark-blue); /* Color de la flecha */
-  }
-  
+}

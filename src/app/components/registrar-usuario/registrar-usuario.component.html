@@ -5,7 +5,6 @@
       <h1>Regístrate y comienza tu aprendizaje en QuizWiz!</h1>
     </div>
 
-    <!-- Opciones para elegir entre Tutor o Estudiante -->
     <div class="login-options">
       <button class="option-button tutor" [ngClass]="{'active': isTutorSelected}" (click)="selectOption('tutor')">
         <span class="icon">👨‍🏫</span>
@@ -18,7 +17,6 @@
     </div>
 
     <div class="form-container">
-      <!-- Información de Usuario -->
       <form class="login-form" (ngSubmit)="onRegister()">
         <h2>Información de Usuario</h2>
 
