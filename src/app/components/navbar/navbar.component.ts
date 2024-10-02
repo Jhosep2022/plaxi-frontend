@@ -69,10 +69,9 @@ export class NavbarComponent implements OnInit {
       this.perfilService.getProfile(Number(userId)).subscribe(
         (response) => {
           this.userProfile = response;
-          // Asignar el rol del usuario si no está almacenado
           if (!localStorage.getItem('userRole') && this.userProfile) {
             localStorage.setItem('userRole', this.userProfile.id_rol.toString());
-            this.obtenerRolUsuario(); // Obtener rol actualizado
+            this.obtenerRolUsuario();
           }
         },
         (error) => {
@@ -86,19 +85,18 @@ export class NavbarComponent implements OnInit {
   obtenerRolUsuario() {
     const storedUserRole = localStorage.getItem('userRole');
     if (storedUserRole) {
-      // Convertir el `id_rol` a un nombre legible para los *ngIf
       switch (storedUserRole) {
         case '1':
           this.userRole = 'Administrador';
           break;
         case '2':
-          this.userRole = 'Tutor';
-          break;
-        case '3':
           this.userRole = 'Estudiante';
           break;
+        case '3':
+          this.userRole = 'Tutor';
+          break;
         default:
-          this.userRole = 'Estudiante'; // Rol por defecto
+          this.userRole = 'Estudiante';
       }
     } else {
       this.userRole = 'Estudiante';

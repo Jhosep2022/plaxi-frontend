@@ -7,6 +7,8 @@ import { ForgotPasswordComponent } from './components/forgot-password/forgot-pas
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { UpdateperfilComponent } from './components/updateperfil/updateperfil.component';
 import { HomeComponent } from './components/home/home.component';
+import { CourseListComponent } from './components/course-list/course-list.component';
+import { CourseFormComponent } from './components/course-form/course-form.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -15,7 +17,9 @@ const routes: Routes = [
   { path: 'perfil', component: PerfilComponent },
   { path: 'updateperfil', component: UpdateperfilComponent },
   { path: 'registrar', component: RegistrarUsuarioComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent }
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'my-courses', component: CourseListComponent },
+  { path: 'create-course', component: CourseFormComponent }
 ];
 
 @NgModule({

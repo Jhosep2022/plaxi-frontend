@@ -15,6 +15,9 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { UpdateperfilComponent } from './components/updateperfil/updateperfil.component';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 import { HomeComponent } from './components/home/home.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { CourseFormComponent } from './components/course-form/course-form.component';
+import { CourseListComponent } from './components/course-list/course-list.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +29,9 @@ import { HomeComponent } from './components/home/home.component';
     PerfilComponent,
     UpdateperfilComponent,
     ConfirmDialogComponent,
-    HomeComponent
+    HomeComponent,
+    CourseFormComponent,
+    CourseListComponent,
   ],
   imports: [
     BrowserModule,
@@ -37,6 +42,7 @@ import { HomeComponent } from './components/home/home.component';
     RouterModule,
     FontAwesomeModule,
     CommonModule,
+    MatDialogModule 
   ],
   providers: [],
   bootstrap: [AppComponent],
