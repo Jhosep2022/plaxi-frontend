@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-course-form',
-  templateUrl: './course-form.component.html',
-  styleUrls: ['./course-form.component.css']
+  selector: 'app-course-edit-tutor',
+  templateUrl: './course-edit-tutor.component.html',
+  styleUrls: ['./course-edit-tutor.component.css']
 })
-export class CourseFormComponent implements OnInit {
+export class CourseEditTutorComponent implements OnInit {
   courseForm!: FormGroup;
   selectedFile: File | null = null; // Archivo seleccionado
   fileError: string | null = null; // Error relacionado con el archivo
@@ -16,6 +16,7 @@ export class CourseFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
+    private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar // Se inyecta MatSnackBar
   ) {}
@@ -28,6 +29,19 @@ export class CourseFormComponent implements OnInit {
       dificultad: ['Beginner', Validators.required],
       estado: [true, Validators.required],
       Categoria_id_categoria: [0, [Validators.required, Validators.min(1)]],
+    });
+
+    // Obtener los datos del curso de los parámetros
+    this.route.queryParams.subscribe(params => {
+      this.courseForm.patchValue({
+        nombre: params['name'],
+        descripcion: `Descripción del curso ${params['name']}`, // Valor simulado para la descripción
+        dificultad: 'Beginner',
+        estado: true,
+        Categoria_id_categoria: 1, // Valor simulado de categoría
+      });
+
+      this.previewUrl = params['image']; // Mostrar la imagen actual del curso
     });
   }
 
@@ -56,13 +70,11 @@ export class CourseFormComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.courseForm.valid && this.selectedFile) {
-      // Simulamos una creación exitosa del curso
-      console.log('Course Created:', this.courseForm.value);
-      console.log('Selected File:', this.selectedFile);
+    if (this.courseForm.valid) {
+      console.log('Course Updated:', this.courseForm.value);
 
       // Mostramos el snackbar con el mensaje de éxito
-      this.snackBar.open('¡El curso se ha creado exitosamente!', 'Cerrar', {
+      this.snackBar.open('¡El curso se ha actualizado exitosamente!', 'Cerrar', {
         duration: 3000, // Duración del snackbar en milisegundos
         horizontalPosition: 'center', // Posición horizontal
         verticalPosition: 'top', // Posición vertical
@@ -80,7 +92,7 @@ export class CourseFormComponent implements OnInit {
       this.courseForm.markAllAsTouched();
 
       // Mostramos un snackbar con mensaje de error
-      this.snackBar.open('Error al crear el curso. Por favor, revisa los campos.', 'Cerrar', {
+      this.snackBar.open('Error al actualizar el curso. Por favor, revisa los campos.', 'Cerrar', {
         duration: 3000,
         horizontalPosition: 'center',
         verticalPosition: 'top',
@@ -90,7 +102,7 @@ export class CourseFormComponent implements OnInit {
   }
 
   onCancel() {
-    this.router.navigate(['/my-courses']);
+    this.router.navigate(['/course-details-tutor']);
   }
 
   getErrorMessage(field: string): string {

@@ -18,6 +18,14 @@ import { HomeComponent } from './components/home/home.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { CourseFormComponent } from './components/course-form/course-form.component';
 import { CourseListComponent } from './components/course-list/course-list.component';
+import { CourseCategoryListComponent } from './components/course-category-list/course-category-list.component';
+import { CourseDetailsComponent } from './components/course-details/course-details.component';
+import { MyCoursesStudentComponent } from './components/my-courses-student/my-courses-student.component';
+import { SuccessDialogComponent } from './components/success-dialog/success-dialog.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
+import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +40,12 @@ import { CourseListComponent } from './components/course-list/course-list.compon
     HomeComponent,
     CourseFormComponent,
     CourseListComponent,
+    CourseCategoryListComponent,
+    CourseDetailsComponent,
+    MyCoursesStudentComponent,
+    SuccessDialogComponent,
+    CourseDetailsTutorComponent,
+    CourseEditTutorComponent,
   ],
   imports: [
     BrowserModule,
@@ -42,7 +56,9 @@ import { CourseListComponent } from './components/course-list/course-list.compon
     RouterModule,
     FontAwesomeModule,
     CommonModule,
-    MatDialogModule 
+    MatDialogModule,
+    BrowserAnimationsModule,
+    MatSnackBarModule
   ],
   providers: [],
   bootstrap: [AppComponent],

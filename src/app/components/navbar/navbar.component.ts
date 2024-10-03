@@ -109,7 +109,7 @@ export class NavbarComponent implements OnInit {
     const routeTitleMap = new Map<string, string>([
       ['/home', 'Dashboard'],
       ['/quizzes', 'Quizzes'],
-      ['/courses', 'Cursos'],
+      ['/course-categories', 'Cursos'],
       ['/forum', 'Foro'],
       ['/profile', 'Perfil'],
       ['/help', 'Ayuda'],
@@ -118,10 +118,12 @@ export class NavbarComponent implements OnInit {
       ['/reports', 'Reportes'],
       ['/settings', 'Configuraciones'],
       ['/my-courses', 'Mis Cursos'],
+      ['/my-courses-student', 'Mis Cursos'],
       ['/students', 'Estudiantes'],
       ['/evaluations', 'Evaluaciones'],
       ['/progress', 'Progreso'],
       ['/tasks', 'Tareas'],
+
     ]);
 
     for (let [route, title] of routeTitleMap.entries()) {

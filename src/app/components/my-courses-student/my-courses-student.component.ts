@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router'; // Importar Router
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 interface Course {
   id: number;
@@ -10,12 +10,13 @@ interface Course {
   image: string;
 }
 
+
 @Component({
-  selector: 'app-course-list',
-  templateUrl: './course-list.component.html',
-  styleUrls: ['./course-list.component.css']
+  selector: 'app-my-courses-student',
+  templateUrl: './my-courses-student.component.html',
+  styleUrls: ['./my-courses-student.component.css']
 })
-export class CourseListComponent implements OnInit {
+export class MyCoursesStudentComponent {
   // Datos ficticios para los cursos
   courses: Course[] = [
     { id: 1, name: 'Introduction to computer programming', date: '2023-12-03', time: '09:00 AM', studentsEnrolled: 32, image: 'assets/curso.png' },
@@ -31,23 +32,12 @@ export class CourseListComponent implements OnInit {
   }
 
   openCourse(course: Course) {
-    this.router.navigate(['/course-details-tutor'], {
-      queryParams: {
-        id: course.id,
-        name: course.name,
-        date: course.date,
-        time: course.time,
-        studentsEnrolled: course.studentsEnrolled,
-        image: course.image
-      }
-    });
+    console.log('Opening course:', course);
+    // Aquí iría la lógica para abrir el curso, por ejemplo, navegar a otra página
   }
-
 
   openCourseForm(): void {
     // Navegar a la nueva ruta para crear curso
     this.router.navigate(['/create-course']);
   }
-
-
 }

@@ -1,7 +1,6 @@
 <div class="course-form">
-  <!-- Encabezado con iconos y título en la misma fila -->
   <div class="header-container">
-    <h2 class="header-title">Configurar un nuevo curso</h2>
+    <h2 class="header-title">Editar Curso</h2>
     <div class="header-icons">
       <button type="button" class="icon-btn check-btn" (click)="onSubmit()">
         <svg height="28" width="28" fill="currentColor" viewBox="0 0 24 24">
@@ -17,50 +16,41 @@
   </div>
 
   <form [formGroup]="courseForm" (ngSubmit)="onSubmit()">
-    <!-- Sección de detalles del curso -->
     <div class="details-section">
-      <!-- Campo de Título del curso -->
       <div class="form-group input-group">
         <label for="nombre">Título del curso</label>
         <div class="input-wrapper">
           <input id="nombre" type="text" formControlName="nombre" placeholder="Título del curso">
         </div>
-        <!-- Mensaje de error para el campo de título -->
         <span *ngIf="courseForm.get('nombre')?.touched && courseForm.get('nombre')?.invalid" class="error-message">
           {{ getErrorMessage('nombre') }}
         </span>
       </div>
 
-      <!-- Campo de Descripción del curso -->
       <div class="form-group input-group">
         <label for="descripcion">Descripción</label>
         <div class="input-wrapper">
           <textarea id="descripcion" formControlName="descripcion" rows="2" placeholder="Breve descripción del curso"></textarea>
         </div>
-        <!-- Mensaje de error para el campo de descripción -->
         <span *ngIf="courseForm.get('descripcion')?.touched && courseForm.get('descripcion')?.invalid" class="error-message">
           {{ getErrorMessage('descripcion') }}
         </span>
       </div>
 
-      <!-- Campo para subir la imagen de portada -->
       <div class="form-group input-group">
         <label for="portada">Imagen de la Portada</label>
         <div class="input-wrapper">
           <input id="portada" type="file" (change)="onFileSelected($event)" accept=".jpg, .jpeg, .png" />
         </div>
-        <!-- Mensaje de error para el campo de portada -->
         <span *ngIf="fileError" class="error-message">
           {{ fileError }}
         </span>
       </div>
 
-      <!-- Mostrar la imagen de vista previa si existe -->
       <div *ngIf="previewUrl" class="image-preview">
         <img [src]="previewUrl" alt="Vista previa de la imagen" class="preview-image" />
       </div>
 
-      <!-- Fila con Dificultad y Estado del Curso -->
       <div class="form-row">
         <div class="form-group input-group">
           <label for="dificultad">Dificultad</label>
@@ -84,13 +74,11 @@
         </div>
       </div>
 
-      <!-- Campo de Categoría -->
       <div class="form-group input-group">
         <label for="Categoria_id_categoria">ID de la Categoría</label>
         <div class="input-wrapper">
           <input id="Categoria_id_categoria" type="number" formControlName="Categoria_id_categoria" placeholder="ID de la categoría">
         </div>
-        <!-- Mensaje de error para el campo de categoría -->
         <span *ngIf="courseForm.get('Categoria_id_categoria')?.touched && courseForm.get('Categoria_id_categoria')?.invalid" class="error-message">
           {{ getErrorMessage('Categoria_id_categoria') }}
         </span>

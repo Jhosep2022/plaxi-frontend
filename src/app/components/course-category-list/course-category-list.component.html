@@ -1,0 +1,47 @@
+<div class="course-category-list">
+  <!-- Encabezado de la página -->
+  <h2 class="page-title">Cursos por Categoría</h2>
+
+  <!-- Sección de Categorías -->
+  <div class="category-list">
+    <!-- Agrega un "ng-container" para asegurar el ciclo *ngFor está encapsulado correctamente -->
+    <ng-container *ngFor="let category of categories">
+      <button
+        class="category-item"
+        [class.active]="selectedCategory?.id === category.id"
+        (click)="selectCategory(category)">
+        {{ category.nombre }}
+      </button>
+    </ng-container>
+  </div>
+
+  <!-- Lista de Cursos filtrados -->
+  <div class="course-list">
+    <div *ngFor="let course of pagedCourses" class="course-card">
+      <img [src]="course.portada" alt="{{ course.nombre }}" class="course-image" />
+      <div class="course-details">
+        <h3 class="course-title">{{ course.nombre }}</h3>
+        <p class="course-description">{{ course.descripcion }}</p>
+        <p class="course-difficulty">Dificultad: {{ course.dificultad }}</p>
+        <button class="view-course-btn" (click)="viewCourse(course)">Ver Curso</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button
+      class="pagination-btn"
+      [disabled]="currentPage === 1"
+      (click)="changePage(currentPage - 1)">
+      Anterior
+    </button>
+    <span class="page-number">Página {{ currentPage }} de {{ totalPages }}</span>
+    <button
+      class="pagination-btn"
+      [disabled]="currentPage === totalPages"
+      (click)="changePage(currentPage + 1)">
+      Siguiente
+    </button>
+  </div>
+</div>

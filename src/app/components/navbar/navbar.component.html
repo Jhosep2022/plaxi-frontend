@@ -73,7 +73,7 @@
       </div>
       <span class="sidebar-text">Quizzes</span>
     </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/courses'" (click)="navigateTo('courses')">
+    <li class="sidebar-item" [class.active]="currentRoute === '/course-categories'" (click)="navigateTo('course-categories')">
       <div class="sidebar-icon-container">
         <fa-icon [icon]="faBookOpen" class="sidebar-icon"></fa-icon>
       </div>
@@ -145,7 +145,7 @@
 
   <!-- Pestañas para Estudiantes -->
   <ul class="sidebar-list" *ngIf="userRole === 'Estudiante'">
-    <li class="sidebar-item" [class.active]="currentRoute === '/my-courses'" (click)="navigateTo('my-courses')">
+    <li class="sidebar-item" [class.active]="currentRoute === '/my-courses-student'" (click)="navigateTo('my-courses-student')">
       <div class="sidebar-icon-container">
         <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
       </div>

@@ -9,6 +9,13 @@ import { UpdateperfilComponent } from './components/updateperfil/updateperfil.co
 import { HomeComponent } from './components/home/home.component';
 import { CourseListComponent } from './components/course-list/course-list.component';
 import { CourseFormComponent } from './components/course-form/course-form.component';
+import { CourseCategoryListComponent } from './components/course-category-list/course-category-list.component';
+import { CourseDetailsComponent } from './components/course-details/course-details.component';
+import { MyCoursesStudentComponent } from './components/my-courses-student/my-courses-student.component';
+import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
+import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
+
+
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -19,7 +26,12 @@ const routes: Routes = [
   { path: 'registrar', component: RegistrarUsuarioComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'my-courses', component: CourseListComponent },
-  { path: 'create-course', component: CourseFormComponent }
+  { path: 'create-course', component: CourseFormComponent },
+  { path: 'course-categories', component: CourseCategoryListComponent },
+  { path: 'course-details/:id', component: CourseDetailsComponent },
+  { path: 'my-courses-student', component: MyCoursesStudentComponent },
+  { path: 'course-details-tutor', component: CourseDetailsTutorComponent },
+  { path: 'course-edit-tutor', component: CourseEditTutorComponent },
 ];
 
 @NgModule({

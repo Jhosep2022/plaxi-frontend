@@ -1,0 +1,23 @@
+<div class="course-details-container">
+  <h2 class="course-title">{{ course.name }}</h2>
+  <img [src]="course.image" alt="Course Image" class="course-image" />
+
+  <div class="course-info">
+    <p><strong>Descripción:</strong> Curso sobre {{ course.name }}.</p>
+    <p><strong>Fecha:</strong> {{ course.date | date: 'dd/MM/yyyy' }} a las {{ course.time }}</p>
+    <p><strong>No. de estudiantes inscritos:</strong> {{ course.studentsEnrolled }}</p>
+  </div>
+
+  <div class="button-container">
+    <!-- Botón para redirigir a la página de edición del curso -->
+    <button class="enroll-btn" (click)="editCourse()">
+      Editar Mi Curso
+    </button>
+
+    <!-- Botón para volver -->
+    <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
+
+    <!-- Nuevo botón para eliminar el curso -->
+    <button class="enroll-btn" (click)="deleteCourse()">Eliminar Curso</button>
+  </div>
+</div>

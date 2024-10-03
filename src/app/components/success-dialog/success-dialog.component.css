@@ -1,0 +1,80 @@
+.success-dialog {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed; /* Mantener posición fija */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centramos con transform */
+  z-index: 1500; /* Un z-index mayor que el contenido principal */
+  padding: 20px;
+  max-width: 80vw; /* Evitar desbordamiento horizontal */
+  max-height: 80vh; /* Evitar desbordamiento vertical */
+  overflow: auto; /* Habilitar scroll en caso de contenido excesivo */
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para el fondo del diálogo */
+.dialog-backdrop {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+  z-index: 1400; /* Menor que el z-index del diálogo */
+}
+
+/* Contenedor del overlay del diálogo */
+.cdk-overlay-container {
+  z-index: 1300 !important; /* Z-index alto para superponer correctamente */
+}
+
+/* Pane del diálogo con z-index mayor que el contenedor */
+.cdk-overlay-pane {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1400 !important;
+}
+
+/* Estilos específicos para el contenido del diálogo */
+.dialog-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+}
+
+.dialog-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: var(--dark-blue); /* Color definido en las variables */
+}
+
+.dialog-message {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: var(--dark-blue);
+}
+
+.close-btn {
+  background-color: var(--lime-green);
+  color: var(--text-dark);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #9abb4e;
+}

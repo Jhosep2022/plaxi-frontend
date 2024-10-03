@@ -31,3 +31,48 @@ body {
   width: 100%;
 }
 
+/* Estilo global para los diálogos */
+.success-dialog {
+  position: fixed; /* Posición fija para centrarlo */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centramos con transform */
+  z-index: 1500; /* Un z-index mayor que el fondo y contenido principal */
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 80vw; /* Limitar el ancho para evitar desbordamiento */
+  max-height: 80vh; /* Limitar el alto para evitar desbordamiento */
+  overflow: auto; /* Habilitar scroll si el contenido es demasiado grande */
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Elimina los estilos conflictivos para el contenedor del overlay */
+.cdk-overlay-container {
+  position: static; /* No necesitamos modificar esta propiedad */
+}
+
+/* Estilo para alinear el contenido del diálogo */
+.cdk-overlay-pane {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1400 !important;
+}
+
+
+/* Estilo para el snackbar de éxito */
+.success-snackbar {
+  background-color: #4caf50; /* Color verde de éxito */
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Estilo para el snackbar de error */
+.error-snackbar {
+  background-color: #f44336; /* Color rojo de error */
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}

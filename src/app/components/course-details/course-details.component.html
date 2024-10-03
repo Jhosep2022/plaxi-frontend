@@ -1,0 +1,24 @@
+<div class="course-details-container">
+  <h2 class="course-title">Detalles del Curso</h2>
+
+  <img src="assets/Login_Image.png" alt="Course Image" class="course-image" />
+
+  <div class="course-info">
+    <p><strong>Descripción:</strong> Este es un curso básico de programación.</p>
+    <p><strong>Dificultad:</strong> Beginner</p>
+  </div>
+
+  <!-- Contenedor de los botones -->
+  <div class="button-container">
+    <!-- Botón para inscribirse en el curso -->
+    <button class="enroll-btn" (click)="enrollInCourse()" *ngIf="!isEnrolled">
+      Inscribirse en el Curso
+    </button>
+
+    <!-- Mensaje de inscripción -->
+    <p *ngIf="isEnrolled" class="enrolled-message">Ya estás inscrito en este curso</p>
+
+    <!-- Botón para volver -->
+    <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
+  </div>
+</div>
