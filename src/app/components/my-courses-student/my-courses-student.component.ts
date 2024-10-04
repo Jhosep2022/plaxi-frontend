@@ -20,7 +20,7 @@ interface Course {
 })
 export class MyCoursesStudentComponent implements OnInit {
   courses: Course[] = []; // Cursos inscritos por el usuario
-  userId: number = 1; // ID del usuario logueado (puedes reemplazarlo con el ID real del usuario)
+  userId: number = 1002; // ID del usuario logueado (asegúrate de usar el ID correcto aquí)
 
   constructor(
     private router: Router,
@@ -37,15 +37,20 @@ export class MyCoursesStudentComponent implements OnInit {
   loadUserCourses(): void {
     this.inscripcionService.getInscripcionesByUsuarioId(this.userId).subscribe({
       next: (inscripciones) => {
+        console.log('Inscripciones obtenidas del backend:', inscripciones);
+
         // Convertir las inscripciones en el formato de Course para mostrar en la vista
         this.courses = inscripciones.map((inscripcion) => ({
-          id: inscripcion.cursoId,
-          name: inscripcion.cursoNombre,
-          date: inscripcion.fechaInscripcion,
+          id: inscripcion.cursoId, // Asegúrate de que cursoId exista en la respuesta de la API
+          name: inscripcion.cursoNombre, // Verifica que cursoNombre exista en la respuesta de la API
+          date: inscripcion.fechaInscripcion, // Verifica que fechaInscripcion esté presente y en el formato correcto
           time: '10:00 AM', // Puedes agregar una propiedad de hora si está disponible
           studentsEnrolled: 0, // No tenemos la cantidad de inscritos en la inscripción, puedes ajustarlo según tu API
           image: 'assets/curso.png' // Agregar la imagen por defecto o usar inscripcion.cursoImagen si está disponible
         }));
+
+        // Mostrar en consola los cursos mapeados para verificar la estructura
+        console.log('Cursos mapeados:', this.courses);
       },
       error: (error) => {
         console.error('Error al cargar los cursos del usuario:', error);
