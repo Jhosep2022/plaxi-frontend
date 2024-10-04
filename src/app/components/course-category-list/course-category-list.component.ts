@@ -94,6 +94,7 @@ export class CourseCategoryListComponent implements OnInit {
 
   // Redirigir a la página de detalles del curso
   viewCourse(course: CursoDto): void {
-    this.router.navigate(['/course-details', course.idCurso]);
+    this.router.navigate(['/course-details', course.idCurso]); // Navegar a la vista de detalles del curso con el ID del curso
   }
+
 }

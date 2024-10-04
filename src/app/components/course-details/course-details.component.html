@@ -1,11 +1,12 @@
-<div class="course-details-container">
-  <h2 class="course-title">Detalles del Curso</h2>
+<div *ngIf="course" class="course-details-container">
+  <h2 class="course-title">{{ course.nombre }}</h2>
 
-  <img src="assets/Login_Image.png" alt="Course Image" class="course-image" />
+  <img [src]="course.portada || 'assets/default-image.png'" alt="Course Image" class="course-image" />
 
   <div class="course-info">
-    <p><strong>Descripción:</strong> Este es un curso básico de programación.</p>
-    <p><strong>Dificultad:</strong> Beginner</p>
+    <p><strong>Descripción:</strong> {{ course.descripcion }}</p>
+    <p><strong>Dificultad:</strong> {{ course.dificultad }}</p>
+    <p><strong>Categoria:</strong> {{ course.categoriaId }} </p>
   </div>
 
   <!-- Contenedor de los botones -->
@@ -21,4 +22,10 @@
     <!-- Botón para volver -->
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
   </div>
+</div>
+
+<!-- Mostrar mensaje si no se encontró el curso -->
+<div *ngIf="!course" class="no-course-message">
+  <p>Curso no encontrado.</p>
+  <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
 </div>
