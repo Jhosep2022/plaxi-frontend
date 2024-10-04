@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { PerfilService } from '../../services/profile.service';  // Importa el servicio
-import { ActualizarPerfilDto } from '../../models/PerfilDto';  // Importa el modelo
-import { HttpClient } from '@angular/common/http';  // Para manejar las solicitudes HTTP
+import { PerfilService } from '../../services/profile.service';
+import { ActualizarPerfilDto } from '../../models/PerfilDto';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-updateperfil',
@@ -18,20 +18,20 @@ export class UpdateperfilComponent implements OnInit {
     segundoApellido: '',
     telefono: '',
     ci: '',
-    file: undefined  // Cambiar null a undefined para cumplir con el tipo esperado
+    file: undefined
   };
 
   selectedFile: File | null = null;
+  fileError: string | null = null; // Mensaje de error para el archivo
 
-  constructor(private router: Router, private perfilService: PerfilService) {}  // Inyecta el servicio
+  constructor(private router: Router, private perfilService: PerfilService) {}
 
   ngOnInit(): void {
-    const idUsuario = localStorage.getItem('idUsuario');  // Obtiene el ID del usuario desde localStorage
+    const idUsuario = localStorage.getItem('idUsuario');
     if (idUsuario) {
       // Cargar los datos del perfil y asignarlos a perfilDto para mostrar en el formulario
       this.perfilService.getProfile(Number(idUsuario)).subscribe({
         next: (response: any) => {
-          // Rellenar el perfilDto con los datos del perfil
           this.perfilDto = {
             username: response.username,
             gmail: response.gmail,
@@ -40,7 +40,7 @@ export class UpdateperfilComponent implements OnInit {
             segundoApellido: response.segundoApellido,
             telefono: response.telefono,
             ci: response.ci,
-            file: undefined  // Dejar vacío hasta que el usuario seleccione un archivo
+            file: undefined
           };
         },
         error: (err: any) => {
@@ -48,26 +48,41 @@ export class UpdateperfilComponent implements OnInit {
         }
       });
     } else {
-      this.router.navigate(['/login']);  // Redirige al login si no hay idUsuario
+      this.router.navigate(['/login']);
     }
   }
 
   onFileSelected(event: any) {
-    this.selectedFile = event.target.files[0];  // Obtiene el archivo seleccionado
+    const file: File = event.target.files[0];
+
+    // Validar que sea un archivo de imagen con extensión válida
+    const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (file && validExtensions.includes(file.type)) {
+      this.selectedFile = file;
+      this.fileError = null; // Limpiar mensaje de error si la validación es correcta
+    } else {
+      this.fileError = 'Por favor, selecciona un archivo con formato .jpg, .jpeg o .png';
+      this.selectedFile = null; // Si no es válido, no se guarda el archivo
+    }
   }
 
   actualizarPerfil() {
-    if (this.selectedFile) {
-      this.perfilDto.file = this.selectedFile;  // Si hay archivo, asigna al perfilDto
+    // Validar que todos los campos estén llenos antes de enviar la solicitud
+    if (!this.perfilDto.username || !this.perfilDto.gmail || !this.perfilDto.nombre || !this.perfilDto.primerApellido || !this.perfilDto.segundoApellido || !this.perfilDto.telefono || !this.perfilDto.ci) {
+      console.error('Por favor, completa todos los campos.');
+      return;
     }
-  
-    const idUsuario = localStorage.getItem('idUsuario');  // Asegúrate de tener el ID del usuario
-  
+
+    if (this.selectedFile) {
+      this.perfilDto.file = this.selectedFile;
+    }
+
+    const idUsuario = localStorage.getItem('idUsuario');
     if (idUsuario) {
       this.perfilService.updateProfile(Number(idUsuario), this.perfilDto).subscribe({
         next: (response) => {
           console.log('Perfil actualizado:', response);
-          this.router.navigate(['/perfil']);  // Redirige de nuevo al perfil
+          this.router.navigate(['/perfil']);
         },
         error: (err) => {
           console.error('Error al actualizar el perfil:', err);
@@ -75,9 +90,8 @@ export class UpdateperfilComponent implements OnInit {
       });
     }
   }
-  
 
   cancelar() {
-    this.router.navigate(['/perfil']);  // Redirige de vuelta a la página de perfil
+    this.router.navigate(['/perfil']);
   }
 }

@@ -1,14 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router'; // Importar Router
-
-interface Course {
-  id: number;
-  name: string;
-  date: string;
-  time: string;
-  studentsEnrolled: number;
-  image: string;
-}
+import { Router } from '@angular/router';
+import { CursoService } from 'src/app/services/course.service'; // Importar el servicio de cursos
+import { AuthService } from 'src/app/services/auth.service'; // Importar el servicio de autenticación para obtener el ID del usuario
+import { CursoDto } from 'src/app/models/CursoDto'; // Importar el modelo de curso
 
 @Component({
   selector: 'app-course-list',
@@ -16,38 +10,57 @@ interface Course {
   styleUrls: ['./course-list.component.css']
 })
 export class CourseListComponent implements OnInit {
-  // Datos ficticios para los cursos
-  courses: Course[] = [
-    { id: 1, name: 'Introduction to computer programming', date: '2023-12-03', time: '09:00 AM', studentsEnrolled: 32, image: 'assets/curso.png' },
-    { id: 2, name: 'Psychology 101', date: '2023-03-27', time: '12:00 PM', studentsEnrolled: 17, image: 'assets/curso.png' },
-    { id: 3, name: 'Data Science Fundamentals', date: '2024-01-15', time: '10:00 AM', studentsEnrolled: 25, image: 'assets/curso.png' },
-    { id: 4, name: 'Machine Learning Basics', date: '2024-02-10', time: '02:00 PM', studentsEnrolled: 19, image: 'assets/curso.png' },
-  ];
+  courses: CursoDto[] = []; // Almacenar los cursos obtenidos de la API
+  userId: number | null = null; // ID del usuario logueado
 
-  constructor(private router: Router) {} // Inyectar el Router
+  constructor(
+    private router: Router,
+    private cursoService: CursoService, // Inyectar el servicio de cursos
+    private authService: AuthService // Inyectar el servicio de autenticación
+  ) {}
 
   ngOnInit(): void {
-    // No se realiza ninguna llamada al backend, se usan los datos ficticios directamente
+    // Intentar obtener el ID del usuario logueado desde localStorage
+    const storedUserId = localStorage.getItem('idUsuario');
+    if (storedUserId) {
+      this.userId = Number(storedUserId);
+      console.log('ID del usuario logueado recuperado desde localStorage:', this.userId);
+      // Cargar los cursos creados por el usuario logueado
+      this.loadCoursesByUser(this.userId);
+    } else {
+      console.error('No se encontró el ID del usuario logueado en localStorage. Redirigiendo al login.');
+      this.router.navigate(['/login']); // Redirigir a la página de login si no hay ID de usuario
+    }
   }
 
-  openCourse(course: Course) {
-    this.router.navigate(['/course-details-tutor'], {
-      queryParams: {
-        id: course.id,
-        name: course.name,
-        date: course.date,
-        time: course.time,
-        studentsEnrolled: course.studentsEnrolled,
-        image: course.image
+  // Cargar los cursos creados por un usuario específico
+  loadCoursesByUser(userId: number): void {
+    this.cursoService.getCursosByUsuario(userId).subscribe({
+      next: (data) => {
+        this.courses = data;
+        console.log('Cursos obtenidos para el usuario:', this.courses);
+      },
+      error: (error) => {
+        console.error('Error al cargar los cursos del usuario:', error);
       }
     });
   }
 
-
-  openCourseForm(): void {
-    // Navegar a la nueva ruta para crear curso
-    this.router.navigate(['/create-course']);
+  // Redirigir a la vista de detalles del curso
+  openCourse(course: CursoDto) {
+    this.router.navigate(['/course-details-tutor'], {
+      queryParams: {
+        id: course.idCurso,
+        name: course.nombre,
+        description: course.descripcion,
+        difficulty: course.dificultad,
+        image: course.portada
+      }
+    });
   }
 
-
+  // Redirigir al formulario de creación de curso
+  openCourseForm(): void {
+    this.router.navigate(['/create-course']);
+  }
 }

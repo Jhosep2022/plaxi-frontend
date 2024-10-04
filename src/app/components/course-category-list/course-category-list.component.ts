@@ -1,15 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-
-// Interfaz para el curso
-interface Course {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  portada: string;
-  dificultad: string;
-  Categoria_id_categoria: number;
-}
+import { CursoService } from '../../services/course.service'; // Importar el servicio de cursos
+import { CursoDto } from '../../models/CursoDto'; // Importar el modelo de curso
 
 // Interfaz para la categoría
 interface Category {
@@ -23,81 +15,77 @@ interface Category {
   styleUrls: ['./course-category-list.component.css']
 })
 export class CourseCategoryListComponent implements OnInit {
-  // Lista de categorías simulada
+  // Lista de categorías simulada (puedes ajustar esto según necesites)
   categories: Category[] = [
     { id: 1, nombre: 'Programación' },
     { id: 2, nombre: 'Psicología' },
     { id: 3, nombre: 'Data Science' }
   ];
 
-  // Lista de cursos simulada
-  courses: Course[] = [
-    { id: 1, nombre: 'Introduction to computer programming', descripcion: 'Curso básico de programación.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 1 },
-    { id: 2, nombre: 'Psychology 101', descripcion: 'Curso de introducción a la psicología.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 2 },
-    { id: 3, nombre: 'Data Science Fundamentals', descripcion: 'Curso de fundamentos de Data Science.', portada: 'assets/Login_Image.png', dificultad: 'Intermediate', Categoria_id_categoria: 3 },
-    { id: 4, nombre: 'Advanced Programming Techniques', descripcion: 'Curso avanzado de técnicas de programación.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 1 },
-    { id: 5, nombre: 'Clinical Psychology', descripcion: 'Curso de psicología clínica.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 2 },
-    { id: 1, nombre: 'Introduction to computer programming', descripcion: 'Curso básico de programación.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 1 },
-    { id: 2, nombre: 'Psychology 101', descripcion: 'Curso de introducción a la psicología.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 2 },
-    { id: 3, nombre: 'Data Science Fundamentals', descripcion: 'Curso de fundamentos de Data Science.', portada: 'assets/Login_Image.png', dificultad: 'Intermediate', Categoria_id_categoria: 3 },
-    { id: 4, nombre: 'Advanced Programming Techniques', descripcion: 'Curso avanzado de técnicas de programación.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 1 },
-    { id: 5, nombre: 'Clinical Psychology', descripcion: 'Curso de psicología clínica.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 2 },
-    { id: 1, nombre: 'Introduction to computer programming', descripcion: 'Curso básico de programación.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 1 },
-    { id: 2, nombre: 'Psychology 101', descripcion: 'Curso de introducción a la psicología.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 2 },
-    { id: 3, nombre: 'Data Science Fundamentals', descripcion: 'Curso de fundamentos de Data Science.', portada: 'assets/Login_Image.png', dificultad: 'Intermediate', Categoria_id_categoria: 3 },
-    { id: 4, nombre: 'Advanced Programming Techniques', descripcion: 'Curso avanzado de técnicas de programación.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 1 },
-    { id: 5, nombre: 'Clinical Psychology', descripcion: 'Curso de psicología clínica.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 2 },
-    { id: 1, nombre: 'Introduction to computer programming', descripcion: 'Curso básico de programación.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 1 },
-    { id: 2, nombre: 'Psychology 101', descripcion: 'Curso de introducción a la psicología.', portada: 'assets/Login_Image.png', dificultad: 'Beginner', Categoria_id_categoria: 2 },
-    { id: 3, nombre: 'Data Science Fundamentals', descripcion: 'Curso de fundamentos de Data Science.', portada: 'assets/Login_Image.png', dificultad: 'Intermediate', Categoria_id_categoria: 3 },
-    { id: 4, nombre: 'Advanced Programming Techniques', descripcion: 'Curso avanzado de técnicas de programación.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 1 },
-    { id: 5, nombre: 'Clinical Psychology', descripcion: 'Curso de psicología clínica.', portada: 'assets/Login_Image.png', dificultad: 'Advanced', Categoria_id_categoria: 2 }
-  ];
-
-  // Cursos filtrados por categoría
-  filteredCourses: Course[] = [];
-  pagedCourses: Course[] = []; // Cursos mostrados en la página actual
-  selectedCategory: Category | null = null;
+  // Lista de cursos obtenida de la API
+  courses: CursoDto[] = []; // Inicializa como un array vacío para almacenar cursos desde la API
+  filteredCourses: CursoDto[] = []; // Cursos filtrados por categoría
+  pagedCourses: CursoDto[] = []; // Cursos mostrados en la página actual
+  selectedCategory: Category | null = null; // Categoría seleccionada
   currentPage: number = 1;
   itemsPerPage: number = 6; // Número de cursos por página
   totalPages: number = 1;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private cursoService: CursoService) {}
 
   ngOnInit(): void {
-    // Seleccionar la primera categoría por defecto y filtrar los cursos
-    this.selectCategory(this.categories[0]);
+    // Obtener todos los cursos desde la API cuando el componente se inicie
+    this.getCoursesFromApi();
+
+    // Seleccionar la primera categoría por defecto
+    this.selectedCategory = this.categories[0];
+  }
+
+  // Obtener todos los cursos desde la API
+  getCoursesFromApi(): void {
+    this.cursoService.getAllCursos().subscribe({
+      next: (data) => {
+        this.courses = data; // Actualiza la lista de cursos con la respuesta de la API
+        console.log('Cursos obtenidos de la API:', this.courses);
+        this.filterCoursesByCategory(); // Filtrar los cursos por la categoría seleccionada (si hay alguna)
+      },
+      error: (err) => {
+        console.error('Error al obtener cursos desde la API:', err);
+      }
+    });
   }
 
   // Filtrar cursos por categoría seleccionada
-  selectCategory(category: Category) {
+  selectCategory(category: Category): void {
     this.selectedCategory = category;
     this.filterCoursesByCategory();
   }
 
   // Filtrar los cursos según la categoría seleccionada y actualizar la paginación
-  filterCoursesByCategory() {
+  filterCoursesByCategory(): void {
     if (this.selectedCategory) {
-      this.filteredCourses = this.courses.filter(course => this.selectedCategory && course.Categoria_id_categoria === this.selectedCategory.id);
+      // Filtrar los cursos según la categoría seleccionada
+      this.filteredCourses = this.courses.filter(course => course.categoriaId === this.selectedCategory?.id);
     } else {
-      this.filteredCourses = this.courses; // Mostrar todos los cursos si no hay categoría seleccionada
+      // Mostrar todos los cursos si no hay categoría seleccionada
+      this.filteredCourses = this.courses;
     }
 
-    // Actualizar el número de páginas y los cursos a mostrar
+    // Actualizar la paginación con la lista filtrada
     this.currentPage = 1;
     this.totalPages = Math.ceil(this.filteredCourses.length / this.itemsPerPage);
     this.updatePagedCourses();
   }
 
   // Actualizar los cursos mostrados en la página actual
-  updatePagedCourses() {
+  updatePagedCourses(): void {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     this.pagedCourses = this.filteredCourses.slice(startIndex, endIndex);
   }
 
   // Cambiar de página
-  changePage(page: number) {
+  changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
       this.updatePagedCourses();
@@ -105,7 +93,7 @@ export class CourseCategoryListComponent implements OnInit {
   }
 
   // Redirigir a la página de detalles del curso
-  viewCourse(course: Course): void {
-    this.router.navigate(['/course-details', course.id]);
+  viewCourse(course: CursoDto): void {
+    this.router.navigate(['/course-details', course.idCurso]);
   }
 }
