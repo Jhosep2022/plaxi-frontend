@@ -3,11 +3,7 @@
   <div class="header-container">
     <h2 class="header-title">Configurar un nuevo curso</h2>
     <div class="header-icons">
-      <button type="button" class="icon-btn check-btn" (click)="onSubmit()">
-        <svg height="28" width="28" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M9 19L4 12l1.4-1.4L9 16.2l9.6-9.6L20 8l-11 11z"></path>
-        </svg>
-      </button>
+      <!-- Botón para cancelar -->
       <button type="button" class="icon-btn close-btn" (click)="onCancel()">
         <svg height="28" width="28" fill="currentColor" viewBox="0 0 24 24">
           <path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"></path>
@@ -16,6 +12,7 @@
     </div>
   </div>
 
+  <!-- Asociar el evento ngSubmit al formulario en lugar del botón -->
   <form [formGroup]="courseForm" (ngSubmit)="onSubmit()">
     <!-- Sección de detalles del curso -->
     <div class="details-section">
@@ -84,17 +81,28 @@
         </div>
       </div>
 
-      <!-- Campo de Categoría -->
+      <!-- Campo de Categoría (cambiado a select) -->
       <div class="form-group input-group">
-        <label for="Categoria_id_categoria">ID de la Categoría</label>
+        <label for="Categoria_id_categoria">Categoría</label>
         <div class="input-wrapper">
-          <input id="Categoria_id_categoria" type="number" formControlName="Categoria_id_categoria" placeholder="ID de la categoría">
+          <select id="Categoria_id_categoria" formControlName="Categoria_id_categoria" (change)="onCategoryChange($event)">
+            <option value="" disabled selected>Selecciona una categoría</option>
+            <!-- Modificado para utilizar idCategoria -->
+            <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
+          </select>
         </div>
         <!-- Mensaje de error para el campo de categoría -->
         <span *ngIf="courseForm.get('Categoria_id_categoria')?.touched && courseForm.get('Categoria_id_categoria')?.invalid" class="error-message">
           {{ getErrorMessage('Categoria_id_categoria') }}
         </span>
       </div>
+    </div>
+
+    <!-- Nuevo botón de enviar debajo del formulario -->
+    <div class="form-group submit-group">
+      <button type="submit" class="submit-btn">
+        Enviar Curso
+      </button>
     </div>
   </form>
 </div>
