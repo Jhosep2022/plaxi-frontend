@@ -1,11 +1,12 @@
+// src/app/services/curso.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CursoDto, ActualizarCursoDto } from '../models/CursoDto';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CursoService {
   private apiUrl = `${environment.API_URL}/curso`;
@@ -18,48 +19,27 @@ export class CursoService {
   }
 
   // Obtener un curso por ID
-  getCurso(idCurso: number): Observable<CursoDto> {
+  getCursoById(idCurso: number): Observable<CursoDto> {
     return this.http.get<CursoDto>(`${this.apiUrl}/${idCurso}`);
   }
 
+  // Obtener cursos por ID del usuario creador
+  getCursosByUsuario(usuarioId: number): Observable<CursoDto[]> {
+    return this.http.get<CursoDto[]>(`${this.apiUrl}/usuario/${usuarioId}`);
+  }
+
   // Crear un nuevo curso
-  createCurso(cursoDto: ActualizarCursoDto): Observable<any> {
-    const formData = new FormData();
-    formData.append('nombre', cursoDto.nombre);
-    formData.append('descripcion', cursoDto.descripcion);
-    formData.append('dificultad', cursoDto.dificultad);
-    formData.append('categoriaId', cursoDto.categoriaId.toString());
-
-    if (cursoDto.portada) {
-      formData.append('portada', cursoDto.portada);
-    }
-
-    return this.http.post(`${this.apiUrl}/create`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    });
+  createCurso(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/create`, formData);
   }
 
-  // Actualizar un curso
-  updateCurso(idCurso: number, cursoDto: ActualizarCursoDto): Observable<any> {
-    const formData = new FormData();
-    formData.append('nombre', cursoDto.nombre);
-    formData.append('descripcion', cursoDto.descripcion);
-    formData.append('dificultad', cursoDto.dificultad);
-    formData.append('categoriaId', cursoDto.categoriaId.toString());
-
-    if (cursoDto.portada) {
-      formData.append('portada', cursoDto.portada);
-    }
-
-    return this.http.put(`${this.apiUrl}/${idCurso}`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    });
+  // Actualizar un curso por ID
+  updateCurso(idCurso: number, curso: ActualizarCursoDto): Observable<ActualizarCursoDto> {
+    return this.http.put<ActualizarCursoDto>(`${this.apiUrl}/${idCurso}`, curso);
   }
 
-  // Borrado lógico del curso
-  deleteCurso(idCurso: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${idCurso}`);
+  // Borrar lógicamente un curso
+  deleteCurso(idCurso: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${idCurso}`);
   }
 }

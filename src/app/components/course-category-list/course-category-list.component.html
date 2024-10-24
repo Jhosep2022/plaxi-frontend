@@ -23,7 +23,7 @@
         <h3 class="course-title">{{ course.nombre }}</h3>
         <p class="course-description">{{ course.descripcion }}</p>
         <p class="course-difficulty">Dificultad: {{ course.dificultad }}</p>
-        <button class="view-course-btn" (click)="viewCourse(course)">Ver Curso</button>
+        <button class="view-course-btn" [routerLink]="['/course-details', course.idCurso]">Ver Curso</button>
       </div>
     </div>
   </div>

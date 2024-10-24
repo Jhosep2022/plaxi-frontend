@@ -6,31 +6,34 @@
   </div>
 
   <!-- Lista de Cursos -->
-  <div *ngFor="let course of courses" class="course-card">
-    <div class="course-info">
-      <!-- Imagen del curso -->
-      <img [src]="course.image" alt="{{course.name}} image" class="course-image" />
+  <div *ngIf="courses.length > 0; else noCourses" class="course-list">
+    <div *ngFor="let course of courses" class="course-card">
+      <div class="course-info">
+        <!-- Imagen del curso -->
+        <img [src]="course.portada" alt="{{course.nombre}} image" class="course-image" />
 
-      <!-- Detalles del curso -->
-      <div class="course-details">
-        <h3 class="course-title">{{ course.name }}</h3>
-        <p class="course-date">{{ course.date | date: 'dd/MM/yyyy' }} | {{ course.time }}</p>
-        <p class="course-enrollment">No. of student's enrolled: {{ course.studentsEnrolled }}</p>
+        <!-- Detalles del curso -->
+        <div class="course-details">
+          <h3 class="course-title">{{ course.nombre }}</h3>
+          <p class="course-description">{{ course.descripcion }}</p> <!-- Mostrar descripción del curso -->
+          <p class="course-difficulty">Dificultad: {{ course.dificultad }}</p> <!-- Mostrar dificultad del curso -->
+          <p class="course-status">Estado: {{ course.estado ? 'Activo' : 'Inactivo' }}</p> <!-- Mostrar estado del curso -->
+        </div>
       </div>
-    </div>
 
-    <!-- Contenedor del botón de apertura del curso -->
-    <div class="open-btn-container">
-      <!-- Botón de apertura del curso (Texto) -->
-      <button class="open-btn" (click)="openCourse(course)">
-        Abrir
-      </button>
-      <!-- Botón de apertura del curso (Flecha) -->
-      <div class="open-btn-icon">
-        <svg height="20" width="20" viewBox="0 0 20 20"> <!-- Ajustar tamaño del SVG -->
-          <path fill-rule="evenodd" d="M6 10a1 1 0 0 1 1-1h5.586l-2.293-2.293a1 1 0 0 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L12.586 11H7a1 1 0 0 1-1-1z" clip-rule="evenodd"/>
-        </svg>
+      <!-- Contenedor del botón de apertura del curso -->
+      <div class="open-btn-container">
+        <button class="open-btn" (click)="openCourse(course)">
+          Abrir
+        </button>
       </div>
     </div>
   </div>
+
+  <!-- Mostrar mensaje cuando no hay cursos -->
+  <ng-template #noCourses>
+    <div class="no-courses-message">
+      <p>No has creado ningún curso aún. ¡Empieza creando uno nuevo!</p>
+    </div>
+  </ng-template>
 </div>
