@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PerfilService } from '../../services/profile.service';
-import { ActualizarPerfilDto } from '../../models/PerfilDto';
+import { ActualizarPerfilDto } from '../../models/perfilDto';
 import { HttpClient } from '@angular/common/http';
 
 @Component({

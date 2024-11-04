@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CursoService } from '../../services/course.service';
-import { CursoDto } from '../../models/CursoDto';
+import { CursoDto } from '../../models/cursoDto';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { PerfilDto, ActualizarPerfilDto } from '../models/PerfilDto';
+import { PerfilDto, ActualizarPerfilDto } from '../models/PerfilDto'; //src\app\models\perfilDto.ts
 import { environment } from '../../environments/environment';
 
 @Injectable({
