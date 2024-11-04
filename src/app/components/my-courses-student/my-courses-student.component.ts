@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service'; // Importar el servicio de inscripciones
-import { InscripcionResponseDto } from '../../models/inscripcion.model'; // Importar el modelo de la inscripción
+import { InscripcionResponseDto } from '../../models/inscripcionDto'; // Importar el modelo de la inscripción
 import { MatSnackBar } from '@angular/material/snack-bar'; // Importar MatSnackBar para notificaciones
 
 interface Course {

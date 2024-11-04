@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { UsuarioDto, PersonaDto } from '../models/PersonaDto'; // Importa los modelos que creaste
+import { UsuarioDto, PersonaDto } from '../models/personaDto'; // Importa los modelos que creaste
 import { environment } from '../../environments/environment'; // Importa el environment
 
 @Injectable({

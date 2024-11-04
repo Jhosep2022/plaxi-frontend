@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoService } from '../../services/course.service'; // Importar el servicio de cursos
-import { CursoDto } from '../../models/CursoDto'; // Importar el modelo de curso
+import { CursoDto } from '../../models/cursoDto'; // Importar el modelo de curso
 
 // Interfaz para la categoría
 interface Category {
