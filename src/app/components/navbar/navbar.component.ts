@@ -3,7 +3,7 @@ import { faBars, faBell, faEnvelope, faChevronDown, faUserCircle, faEdit, faCog,
 import { Router, NavigationEnd } from '@angular/router';
 import { PerfilService } from '../../services/profile.service';
 import { AuthService } from '../../services/auth.service';
-import { PerfilDto } from '../../models/perfilDto';
+import { PerfilDto } from '../../models/PerfilDto';
 
 @Component({
   selector: 'app-navbar',
