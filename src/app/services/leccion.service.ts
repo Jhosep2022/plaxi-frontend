@@ -1,31 +1,43 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { LeccionDto } from '../models/LeccionDto';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { PaginadoDto } from '../models/PaginadoDto';
+import { LeccionDto } from '../models/LeccionDto'; //src\app\models\leccionDto.ts
+import { PaginadoDto } from '../models/PaginadoDto'; //src\app\models\paginadoDto.ts
+import { Page } from '../models/page';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LeccionService {
-  private apiUrl = `${environment.API_URL}/leccion`;
+
+  private apiUrl = `${environment.API_URL}/api/leccion`;
 
   constructor(private http: HttpClient) {}
 
-  // Obtener todas las lecciones (paginado)
-  getAllLecciones(paginadoDto: PaginadoDto): Observable<any> {
-    return this.http.post(`${this.apiUrl}/all`, paginadoDto);
+  // Obtener todas las lecciones con paginación
+  getAllLecciones(paginadoDto: PaginadoDto): Observable<Page<LeccionDto>> {
+    return this.http.post<Page<LeccionDto>>(`${this.apiUrl}/all`, paginadoDto, this.httpOptions())
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  // Obtener lección específica por ID
-  getLeccion(idLeccion: number): Observable<LeccionDto> {
-    return this.http.get<LeccionDto>(`${this.apiUrl}/${idLeccion}`);
+  // Obtener lección por ID
+  getLeccionById(idLeccion: number): Observable<LeccionDto> {
+    return this.http.get<LeccionDto>(`${this.apiUrl}/${idLeccion}`)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  // Obtener lecciones por curso (paginado)
-  getLeccionesByCurso(cursoId: number, paginadoDto: PaginadoDto): Observable<any> {
-    return this.http.post(`${this.apiUrl}/curso/${cursoId}`, paginadoDto);
+  // Obtener lecciones por curso con paginación
+  getLeccionesByCurso(cursoId: number, paginadoDto: PaginadoDto): Observable<Page<LeccionDto>> {
+    return this.http.post<Page<LeccionDto>>(`${this.apiUrl}/curso/${cursoId}`, paginadoDto, this.httpOptions())
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
   // Crear nueva lección
@@ -39,8 +51,26 @@ export class LeccionService {
     return this.http.put(`${this.apiUrl}/update`, leccionDto);
   }
 
-  // Eliminar lección
-  deleteLeccion(idLeccion: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/delete/${idLeccion}`);
+  // Eliminar una lección por ID
+  deleteLeccion(idLeccion: number): Observable<string> {
+    return this.http.delete<string>(`${this.apiUrl}/delete/${idLeccion}`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  // Opciones de cabecera para las peticiones
+  private httpOptions() {
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+  }
+
+  // Manejo de errores
+  private handleError(error: any): Observable<never> {
+    console.error('Error en la petición HTTP:', error);
+    throw new Error('Ocurrió un error en la solicitud a la API. Verifica la consola para más detalles.');
   }
 }

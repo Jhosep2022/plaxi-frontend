@@ -1,5 +1,5 @@
 import { Component, OnInit} from '@angular/core';
-import { CursoDto } from 'src/app/models/CursoDto';
+import { CursoDto } from 'src/app/models/cursoDto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { CursoService } from '../../services/course.service';

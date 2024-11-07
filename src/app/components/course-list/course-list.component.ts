@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoService } from 'src/app/services/course.service'; // Importar el servicio de cursos
 import { AuthService } from 'src/app/services/auth.service'; // Importar el servicio de autenticación para obtener el ID del usuario
-import { CursoDto } from 'src/app/models/CursoDto'; // Importar el modelo de curso
+import { CursoDto } from 'src/app/models/cursoDto'; // Importar el modelo de curso
 
 @Component({
   selector: 'app-course-list',
