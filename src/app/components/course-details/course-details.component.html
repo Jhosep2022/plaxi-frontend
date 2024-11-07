@@ -16,6 +16,8 @@
       Inscribirse en el Curso
     </button>
 
+    <button class="enroll-btn" [routerLink]="['/lesson-form', course.idCurso]">Agregar lección</button>
+
     <!-- Mensaje de inscripción -->
     <p *ngIf="isEnrolled" class="enrolled-message">Ya estás inscrito en este curso</p>
 
@@ -29,3 +31,5 @@
   <p>Curso no encontrado.</p>
   <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
 </div>
+
+<h1>A</h1>

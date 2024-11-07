@@ -1,0 +1,88 @@
+<div class="course-form">
+    <!-- Encabezado con iconos y título en la misma fila -->
+    <div class="header-container">
+      <h2 class="header-title">Configurar una nueva lección</h2>
+      <div class="header-icons">
+        <!-- Botón para cancelar -->
+        <button type="button" class="icon-btn close-btn" (click)="onCancel()">
+          <svg height="28" width="28" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  
+    <!-- Asociar el evento ngSubmit al formulario en lugar del botón -->
+    <form [formGroup]="lessonForm" (ngSubmit)="onSubmit()">
+      <!-- Sección de detalles del lección -->
+      <div class="details-section">
+        <!-- Campo de Título del lección -->
+        <div class="form-group input-group">
+          <label for="nombre">Título de la lección</label>
+          <div class="input-wrapper">
+            <input id="nombre" type="text" formControlName="nombre" placeholder="Título del lección">
+          </div>
+          <!-- Mensaje de error para el campo de título -->
+          <span *ngIf="lessonForm.get('nombre')?.touched && lessonForm.get('nombre')?.invalid" class="error-message">
+            {{ getErrorMessage('nombre') }}
+          </span>
+        </div>
+
+        <!-- Campo de orden del lección -->
+        <div class="form-group input-group">
+            <label for="nombre">Orden</label>
+            <div class="input-wrapper">
+              <input id="orden" type="number" formControlName="orden" placeholder="1">
+            </div>
+            <!-- Mensaje de error para el campo de título -->
+            <span *ngIf="lessonForm.get('orden')?.touched && lessonForm.get('orden')?.invalid" class="error-message">
+              {{ getErrorMessage('orden') }}
+            </span>
+        </div>
+        
+        <!-- Campo de Duracion del lección -->
+        <div class="form-group input-group">
+            <label for="nombre">Duración</label>
+            <div class="input-wrapper">
+              <input id="duracion" type="number" formControlName="duracion" placeholder="60">
+            </div>
+            <!-- Mensaje de error para el campo de título -->
+            <span *ngIf="lessonForm.get('duracion')?.touched && lessonForm.get('duracion')?.invalid" class="error-message">
+              {{ getErrorMessage('duración') }}
+            </span>
+        </div>
+
+        <!-- Campo de Contenido del curso -->
+        <div class="form-group input-group">
+          <label for="contenido">Contenido</label>
+          <div class="input-wrapper">
+            <textarea id="contenido" formControlName="contenido" rows="2" placeholder="Contenido de la lección"></textarea>
+          </div>
+          <!-- Mensaje de error para el campo de descripción -->
+          <span *ngIf="lessonForm.get('contenido')?.touched && lessonForm.get('contenido')?.invalid" class="error-message">
+            {{ getErrorMessage('contenido') }}
+          </span>
+        </div>    
+  
+        <!-- Fila con Estado del Curso -->
+    
+        <div class="form-group input-group">
+            <label for="estado">Estado de la lección</label>
+            <div class="input-wrapper">
+                <select id="estado" formControlName="estado">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+                </select>
+            </div>
+        </div>
+      </div>
+  
+      <!-- Nuevo botón de enviar debajo del formulario -->
+      <div class="form-group submit-group">
+        <button type="submit" class="submit-btn">
+          Enviar lección
+        </button>
+      </div>
+    </form>
+  </div>
+  

@@ -26,6 +26,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
 import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
+import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +47,7 @@ import { CourseEditTutorComponent } from './components/course-edit-tutor/course-
     SuccessDialogComponent,
     CourseDetailsTutorComponent,
     CourseEditTutorComponent,
+    LessonFormComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,5 +1,5 @@
 export interface LeccionDto {
-    idLeccion: number;
+    idLeccion?: number;
     titulo: string;
     orden: number;
     duracionEstimada: number;

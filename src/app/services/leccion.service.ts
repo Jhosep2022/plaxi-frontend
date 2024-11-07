@@ -30,9 +30,10 @@ export class LeccionService {
 
   // Crear nueva lección
   createLeccion(leccionDto: LeccionDto): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, leccionDto);
+    return this.http.post(`${this.apiUrl}/create`, leccionDto, { responseType: 'text' });
   }
-
+  
+  
   // Actualizar lección
   updateLeccion(leccionDto: LeccionDto): Observable<any> {
     return this.http.put(`${this.apiUrl}/update`, leccionDto);

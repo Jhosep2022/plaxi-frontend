@@ -14,7 +14,7 @@ import { CourseDetailsComponent } from './components/course-details/course-detai
 import { MyCoursesStudentComponent } from './components/my-courses-student/my-courses-student.component';
 import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
 import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
-
+import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
 
 
 const routes: Routes = [
@@ -32,6 +32,7 @@ const routes: Routes = [
   { path: 'my-courses-student', component: MyCoursesStudentComponent },
   { path: 'course-details-tutor', component: CourseDetailsTutorComponent },
   { path: 'course-edit-tutor', component: CourseEditTutorComponent },
+  { path: 'lesson-form/:id', component: LessonFormComponent },
 ];
 
 @NgModule({
