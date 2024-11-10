@@ -1,35 +1,37 @@
 <div *ngIf="course" class="course-details-container">
   <h2 class="course-title">{{ course.nombre }}</h2>
-
   <img [src]="course.portada || 'assets/default-image.png'" alt="Course Image" class="course-image" />
 
   <div class="course-info">
     <p><strong>Descripción:</strong> {{ course.descripcion }}</p>
     <p><strong>Dificultad:</strong> {{ course.dificultad }}</p>
-    <p><strong>Categoria:</strong> {{ course.categoriaId }} </p>
+    <p><strong>Categoría:</strong> {{ course.categoriaId }}</p>
   </div>
 
-  <!-- Contenedor de los botones -->
   <div class="button-container">
-    <!-- Botón para inscribirse en el curso -->
-    <button class="enroll-btn" (click)="enrollInCourse()" *ngIf="!isEnrolled">
-      Inscribirse en el Curso
-    </button>
-
+    <button class="enroll-btn" (click)="enrollInCourse()" *ngIf="!isEnrolled">Inscribirse en el Curso</button>
     <button class="enroll-btn" [routerLink]="['/lesson-form', course.idCurso]">Agregar lección</button>
-
-    <!-- Mensaje de inscripción -->
     <p *ngIf="isEnrolled" class="enrolled-message">Ya estás inscrito en este curso</p>
-
-    <!-- Botón para volver -->
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
   </div>
+
+  <!-- Lista de lecciones -->
+  <div *ngIf="lecciones.length > 0" class="lessons-list">
+    <h3>Lecciones:</h3>
+    <ul>
+      <li *ngFor="let leccion of lecciones">
+        <h4>{{ leccion.titulo }}</h4>
+        <p><strong>Orden:</strong> {{ leccion.orden }}</p>
+        <p><strong>Duración:</strong> {{ leccion.duracionEstimada }} minutos</p>
+        <p><strong>Contenido:</strong> {{ leccion.contenido }}</p>
+        <button class="enroll-btn">Ver lección</button>
+      </li>
+    </ul>
+  </div>
+  <p *ngIf="lecciones.length === 0">No hay lecciones disponibles para este curso.</p>
 </div>
 
-<!-- Mostrar mensaje si no se encontró el curso -->
 <div *ngIf="!course" class="no-course-message">
   <p>Curso no encontrado.</p>
   <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
 </div>
-
-<h1>A</h1>

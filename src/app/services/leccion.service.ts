@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -12,7 +12,7 @@ import { Page } from '../models/page';
 })
 export class LeccionService {
 
-  private apiUrl = `${environment.API_URL}/api/leccion`;
+  private apiUrl = `${environment.API_URL}/leccion`;
 
   constructor(private http: HttpClient) {}
 
@@ -33,13 +33,19 @@ export class LeccionService {
   }
 
   // Obtener lecciones por curso con paginación
-  getLeccionesByCurso(cursoId: number, paginadoDto: PaginadoDto): Observable<Page<LeccionDto>> {
-    return this.http.post<Page<LeccionDto>>(`${this.apiUrl}/curso/${cursoId}`, paginadoDto, this.httpOptions())
-      .pipe(
-        catchError(this.handleError)
-      );
+  getLeccionesByCurso(courseId: number, paginadoDto: any): Observable<any> {
+    // Configura los parámetros
+    const params = new HttpParams()
+      .set('page', paginadoDto.page.toString())
+      .set('size', paginadoDto.size.toString())
+      .set('sortBy', paginadoDto.sortBy)
+      .set('sortDir', paginadoDto.sortDir);
+
+    // Construye la URL completa con los parámetros de consulta
+    return this.http.get(`${this.apiUrl}/curso/${courseId}`, { params });
   }
 
+  
   // Crear nueva lección
   createLeccion(leccionDto: LeccionDto): Observable<any> {
     return this.http.post(`${this.apiUrl}/create`, leccionDto, { responseType: 'text' });
