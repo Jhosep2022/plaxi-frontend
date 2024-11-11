@@ -4,6 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { FormsModule } from '@angular/forms';  // Importación de FormsModule para ngModel
 
 describe('ForgotPasswordComponent', () => {
   let component: ForgotPasswordComponent;
@@ -12,19 +13,22 @@ describe('ForgotPasswordComponent', () => {
   let mockRouter: any;
 
   beforeEach(async () => {
-    // Mock del AuthService
+    // Mock de AuthService
     mockAuthService = {
       resetPassword: jasmine.createSpy('resetPassword').and.returnValue(of({}))
     };
 
-    // Mock del Router
+    // Mock de Router
     mockRouter = {
       navigate: jasmine.createSpy('navigate')
     };
 
     await TestBed.configureTestingModule({
       declarations: [ForgotPasswordComponent],
-      imports: [HttpClientTestingModule],
+      imports: [
+        HttpClientTestingModule,
+        FormsModule // Agregamos FormsModule para permitir el uso de ngModel
+      ],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter }
