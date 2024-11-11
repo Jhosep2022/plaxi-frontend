@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { UsuarioDto, PersonaDto } from '../models/personaDto'; // Importa los modelos que creaste
-import { environment } from '../../environments/environment'; // Importa el environment
+import { environment } from '../../environments/environment';
+import { PersonaDto, UsuarioDto } from '../models/PersonaDto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = `${environment.API_URL}/auth`; // Utiliza la URL desde el environment
-  private userId: number | null = null; // Variable para almacenar el ID del usuario logueado
-  private isLoggedInSubject = new BehaviorSubject<boolean>(false); // BehaviorSubject para mantener el estado de inicio de sesión
+  private apiUrl = `${environment.API_URL}/auth`;
+  private userId: number | null = null;
+  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient) {}
 
@@ -38,7 +38,7 @@ export class AuthService {
   // Obtener el ID del usuario almacenado en localStorage
   getCurrentUserId(): number | null {
     const storedUserId = localStorage.getItem('userId');
-    console.log('Recuperando userId de localStorage:', storedUserId); // Log para ver el valor recuperado
+    console.log('Recuperando userId de localStorage:', storedUserId);
     return storedUserId ? parseInt(storedUserId, 10) : null;
   }
 
@@ -46,7 +46,7 @@ export class AuthService {
   setCurrentUserId(userId: number): void {
     this.userId = userId;
     localStorage.setItem('userId', userId.toString());
-    console.log('userId guardado en localStorage:', userId); // Log para verificar que se guardó correctamente
+    console.log('userId guardado en localStorage:', userId);
     this.isLoggedInSubject.next(true);
   }
 
@@ -54,7 +54,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('userId');
     this.userId = null;
-    console.log('Sesión cerrada, userId eliminado'); // Log para confirmar que se eliminó el userId
+    console.log('Sesión cerrada, userId eliminado');
     this.isLoggedInSubject.next(false);
   }
 
