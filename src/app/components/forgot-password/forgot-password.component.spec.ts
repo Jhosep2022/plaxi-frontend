@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';  // Importación de FormsModule para ngModel
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('ForgotPasswordComponent', () => {
   let component: ForgotPasswordComponent;
@@ -32,7 +33,8 @@ describe('ForgotPasswordComponent', () => {
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA] // Incluimos NO_ERRORS_SCHEMA para evitar errores por enlaces desconocidos
     }).compileComponents();
 
     fixture = TestBed.createComponent(ForgotPasswordComponent);

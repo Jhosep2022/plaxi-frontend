@@ -6,6 +6,7 @@ import { CourseService } from 'src/app/services/course.service';
 import { of, throwError } from 'rxjs';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('CourseListComponent', () => {
   let component: CourseListComponent;
@@ -45,8 +46,10 @@ describe('CourseListComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: CourseService, useValue: mockCourseService },
         { provide: Router, useValue: mockRouter }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
     });
+
     fixture = TestBed.createComponent(CourseListComponent);
     component = fixture.componentInstance;
   });

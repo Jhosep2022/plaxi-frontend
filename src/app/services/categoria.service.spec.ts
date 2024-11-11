@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { CategoriaService } from './categoria.service';
 import { environment } from '../../environments/environment';
 import { Categoria } from '../models/categoriaDto';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('CategoriaService', () => {
   let service: CategoriaService;
@@ -12,6 +13,7 @@ describe('CategoriaService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [CategoriaService],
+      schemas: [NO_ERRORS_SCHEMA] // Añadido para ignorar errores de elementos desconocidos
     });
     service = TestBed.inject(CategoriaService);
     httpMock = TestBed.inject(HttpTestingController);

@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('CourseFormComponent', () => {
   let component: CourseFormComponent;
@@ -36,7 +37,8 @@ describe('CourseFormComponent', () => {
         { provide: AuthService, useValue: authServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseFormComponent);

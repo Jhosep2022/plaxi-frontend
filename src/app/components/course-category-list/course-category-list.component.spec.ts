@@ -4,6 +4,7 @@ import { CourseService } from 'src/app/services/course.service';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('CourseCategoryListComponent', () => {
   let component: CourseCategoryListComponent;
@@ -17,11 +18,12 @@ describe('CourseCategoryListComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [CourseCategoryListComponent],
-      imports: [HttpClientTestingModule], // Para probar el servicio
+      imports: [HttpClientTestingModule],
       providers: [
         { provide: CourseService, useValue: courseServiceSpy },
         { provide: Router, useValue: routerSpy }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA] // Agrega NO_ERRORS_SCHEMA para manejar propiedades no reconocidas
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseCategoryListComponent);

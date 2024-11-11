@@ -39,7 +39,7 @@ describe('CourseDetailsComponent', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
       ],
-      schemas: [NO_ERRORS_SCHEMA]
+      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseDetailsComponent);
@@ -73,15 +73,12 @@ describe('CourseDetailsComponent', () => {
   });
 
   it('should load course details on init', () => {
-    // Llama a ngOnInit manualmente
     component.ngOnInit();
-
-    // Verifica que se haya llamado a getCursoById con el ID 1
     expect(courseService.getCursoById).toHaveBeenCalledWith(1);
   });
 
   it('should enroll in the course', () => {
-    component.course = { idCurso: 1 } as any; // Ajusta según la estructura de CursoDto
+    component.course = { idCurso: 1 } as any;
     component.userId = 1;
     component.enrollInCourse();
     expect(inscripcionService.createInscripcion).toHaveBeenCalled();

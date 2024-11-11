@@ -4,6 +4,7 @@ import { TemaService } from './tema.service';
 import { environment } from '../../environments/environment';
 import { TemaDto } from '../models/TemaDto';
 import { PaginadoDto } from '../models/PaginadoDto';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('TemaService', () => {
   let service: TemaService;
@@ -14,6 +15,7 @@ describe('TemaService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [TemaService],
+      schemas: [NO_ERRORS_SCHEMA]
     });
     service = TestBed.inject(TemaService);
     httpMock = TestBed.inject(HttpTestingController);

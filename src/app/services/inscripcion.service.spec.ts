@@ -3,7 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { InscripcionService } from './inscripcion.service';
 import { environment } from '../../environments/environment';
 import { InscripcionDto, InscripcionResponseDto } from '../models/inscripcionDto';
-
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 describe('InscripcionService', () => {
   let service: InscripcionService;
   let httpMock: HttpTestingController;
@@ -13,6 +13,7 @@ describe('InscripcionService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [InscripcionService],
+      schemas: [NO_ERRORS_SCHEMA]
     });
     service = TestBed.inject(InscripcionService);
     httpMock = TestBed.inject(HttpTestingController);

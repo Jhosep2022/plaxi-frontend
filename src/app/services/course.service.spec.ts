@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { CourseService } from './course.service';
 import { CursoDto, ActualizarCursoDto } from '../models/CursoDto';
 import { environment } from '../../environments/environment';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('CourseService', () => {
   let service: CourseService;
@@ -13,6 +14,7 @@ describe('CourseService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [CourseService],
+      schemas: [NO_ERRORS_SCHEMA] // Añadido para ignorar errores de elementos desconocidos
     });
     service = TestBed.inject(CourseService);
     httpMock = TestBed.inject(HttpTestingController);

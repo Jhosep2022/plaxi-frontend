@@ -5,23 +5,20 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';  // Importación de FormsModule para ngModel
+import { NO_ERRORS_SCHEMA } from '@angular/core'; 
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
-  let mockAuthService: any;
-  let mockRouter: any;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
+  let mockRouter: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
     // Mock de AuthService
-    mockAuthService = {
-      loginUser: jasmine.createSpy('loginUser')
-    };
+    mockAuthService = jasmine.createSpyObj('AuthService', ['loginUser']);
 
     // Mock de Router
-    mockRouter = {
-      navigate: jasmine.createSpy('navigate')
-    };
+    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       declarations: [LoginComponent],
@@ -32,7 +29,8 @@ describe('LoginComponent', () => {
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA] // Añadido NO_ERRORS_SCHEMA
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);

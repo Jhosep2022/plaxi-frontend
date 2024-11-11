@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 import { PersonaDto, UsuarioDto } from '../models/PersonaDto';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -13,6 +14,7 @@ describe('AuthService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [AuthService],
+      schemas: [NO_ERRORS_SCHEMA] // Ignora errores de propiedades desconocidas en el DOM
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);

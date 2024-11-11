@@ -3,7 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ProfileService } from './profile.service';
 import { environment } from '../../environments/environment';
 import { PerfilDto, ActualizarPerfilDto } from '../models/PerfilDto';
-
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 describe('ProfileService', () => {
   let service: ProfileService;
   let httpMock: HttpTestingController;
@@ -13,6 +13,7 @@ describe('ProfileService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [ProfileService],
+      schemas: [NO_ERRORS_SCHEMA]
     });
     service = TestBed.inject(ProfileService);
     httpMock = TestBed.inject(HttpTestingController);

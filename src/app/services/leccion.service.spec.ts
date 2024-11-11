@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 import { LeccionDto } from '../models/LeccionDto';
 import { PaginadoDto } from '../models/PaginadoDto';
 import { Page } from '../models/page';
-
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 describe('LeccionService', () => {
   let service: LeccionService;
   let httpMock: HttpTestingController;
@@ -15,6 +15,7 @@ describe('LeccionService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [LeccionService],
+      schemas: [NO_ERRORS_SCHEMA]
     });
     service = TestBed.inject(LeccionService);
     httpMock = TestBed.inject(HttpTestingController);

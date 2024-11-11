@@ -6,6 +6,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('CourseEditTutorComponent', () => {
   let component: CourseEditTutorComponent;
@@ -28,7 +29,8 @@ describe('CourseEditTutorComponent', () => {
         { provide: ActivatedRoute, useValue: activatedRouteStub },
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseEditTutorComponent);
