@@ -4,8 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { CourseService } from '../../services/course.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder } from '@angular/forms';
-import { of, throwError } from 'rxjs';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('LessonFormComponent', () => {
@@ -39,7 +39,7 @@ describe('LessonFormComponent', () => {
 
     TestBed.configureTestingModule({
       declarations: [LessonFormComponent],
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, ReactiveFormsModule],
       providers: [
         FormBuilder,
         { provide: Router, useValue: mockRouter },

@@ -26,9 +26,9 @@ import { CourseEditTutorComponent } from './components/course-edit-tutor/course-
 import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatToolbarModule } from '@angular/material/toolbar'; // Añadido
-import { MatButtonModule } from '@angular/material/button'; // Añadido
-import { MatInputModule } from '@angular/material/input'; // Añadido
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
 import { NavbarComponent } from './components/navbar/navbar.component';
 
 @NgModule({
@@ -64,9 +64,9 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     MatDialogModule,
     BrowserAnimationsModule,
     MatSnackBarModule,
-    MatToolbarModule, // Añadido
-    MatButtonModule, // Añadido
-    MatInputModule // Añadido
+    MatToolbarModule,
+    MatButtonModule,
+    MatInputModule
   ],
   providers: [],
   bootstrap: [AppComponent],

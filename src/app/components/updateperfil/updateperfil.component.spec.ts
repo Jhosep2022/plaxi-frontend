@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('UpdateperfilComponent', () => {
   let component: UpdateperfilComponent;
@@ -33,12 +34,16 @@ describe('UpdateperfilComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [ UpdateperfilComponent ],
-      imports: [HttpClientTestingModule],
+      imports: [
+        HttpClientTestingModule,
+        FormsModule,
+        ReactiveFormsModule // Añade FormsModule y ReactiveFormsModule
+      ],
       providers: [
         { provide: ProfileService, useValue: mockProfileService },
         { provide: Router, useValue: mockRouter }
       ],
-      schemas: [NO_ERRORS_SCHEMA] // Ignora errores de plantillas externas
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   });

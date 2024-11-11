@@ -3,7 +3,7 @@ import { NavbarComponent } from './navbar.component';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../services/profile.service';
 import { AuthService } from '../../services/auth.service';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { PerfilDto } from '../../models/PerfilDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -48,6 +48,15 @@ describe('NavbarComponent', () => {
     fixture = TestBed.createComponent(NavbarComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+
+    // Mock de localStorage
+    spyOn(localStorage, 'getItem').and.callFake((key: string) => {
+      if (key === 'idUsuario') return '123';
+      if (key === 'userRole') return '1';
+      return null;
+    });
+    spyOn(localStorage, 'setItem').and.callFake(() => {});
+    spyOn(localStorage, 'removeItem').and.callFake(() => {});
   });
 
   it('should create', () => {
@@ -60,5 +69,51 @@ describe('NavbarComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
     expect(localStorage.getItem('userRole')).toBeNull();
     expect(localStorage.getItem('idUsuario')).toBeNull();
+  });
+
+  it('should call cargarPerfil and obtenerRolUsuario on init', () => {
+    spyOn(component, 'cargarPerfil').and.callThrough();
+    spyOn(component, 'obtenerRolUsuario').and.callThrough();
+
+    component.ngOnInit();
+
+    expect(component.cargarPerfil).toHaveBeenCalled();
+    expect(component.obtenerRolUsuario).toHaveBeenCalled();
+  });
+
+  it('should load user profile and set userRole from localStorage', () => {
+    component.cargarPerfil();
+    expect(mockProfileService.getProfile).toHaveBeenCalledWith(123); // Verifica que se llama con el ID correcto
+    expect(localStorage.setItem).toHaveBeenCalledWith('userRole', '1');
+  });
+
+  it('should set default userRole if no role found in localStorage', () => {
+    spyOn(localStorage, 'getItem').and.returnValue(null); // Mock para no tener `userRole`
+    component.obtenerRolUsuario();
+    expect(component.userRole).toBe('Estudiante');
+  });
+
+  it('should update title based on route', () => {
+    component.updateTitleBasedOnRoute('/quizzes');
+    expect(component.title).toBe('Quizzes');
+  });
+
+  it('should toggle dropdown state', () => {
+    component.isDropdownOpen = false;
+    component.toggleDropdown();
+    expect(component.isDropdownOpen).toBe(true);
+  });
+
+  it('should toggle sidebar state', () => {
+    component.isSidebarOpen = false;
+    component.toggleSidebar();
+    expect(component.isSidebarOpen).toBe(true);
+  });
+
+  it('should navigate to specific route and close sidebar', () => {
+    component.isSidebarOpen = true;
+    component.navigateTo('/home');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
+    expect(component.isSidebarOpen).toBe(false);
   });
 });

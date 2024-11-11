@@ -7,6 +7,7 @@ import { LeccionService } from 'src/app/services/leccion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('CourseDetailsComponent', () => {
   let component: CourseDetailsComponent;
@@ -23,6 +24,8 @@ describe('CourseDetailsComponent', () => {
     const leccionServiceSpy = jasmine.createSpyObj('LeccionService', ['getLeccionesByCurso']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
+
+    // Stub para ActivatedRoute que devuelve el id '1'
     const activatedRouteStub = { snapshot: { paramMap: { get: () => '1' } } };
 
     await TestBed.configureTestingModule({
@@ -35,7 +38,8 @@ describe('CourseDetailsComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseDetailsComponent);
@@ -46,7 +50,7 @@ describe('CourseDetailsComponent', () => {
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     snackBar = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
 
-    // Mocks para datos simulados
+    // Configuración de los mocks para datos simulados
     courseService.getCursoById.and.returnValue(of({ idCurso: 1, nombre: 'Curso de Prueba' } as any));
     leccionService.getLeccionesByCurso.and.returnValue(of({ content: [] }));
     inscripcionService.createInscripcion.and.returnValue(of({
@@ -60,6 +64,7 @@ describe('CourseDetailsComponent', () => {
       cursoNombre: 'Curso 1',
       usuarioCreadorId: 5,
     }));
+
     fixture.detectChanges();
   });
 
@@ -68,7 +73,10 @@ describe('CourseDetailsComponent', () => {
   });
 
   it('should load course details on init', () => {
+    // Llama a ngOnInit manualmente
     component.ngOnInit();
+
+    // Verifica que se haya llamado a getCursoById con el ID 1
     expect(courseService.getCursoById).toHaveBeenCalledWith(1);
   });
 
