@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CursoService } from '../../services/course.service'; // Importar el servicio de cursos
-import { CursoDto } from '../../models/cursoDto'; // Importar el modelo de curso
+import { CursoDto } from 'src/app/models/CursoDto';
+import { CourseService } from 'src/app/services/course.service';
 
 // Interfaz para la categoría
 interface Category {
@@ -31,7 +31,7 @@ export class CourseCategoryListComponent implements OnInit {
   itemsPerPage: number = 6; // Número de cursos por página
   totalPages: number = 1;
 
-  constructor(private router: Router, private cursoService: CursoService) {}
+  constructor(private router: Router, private cursoService: CourseService) {}
 
   ngOnInit(): void {
     // Obtener todos los cursos desde la API cuando el componente se inicie

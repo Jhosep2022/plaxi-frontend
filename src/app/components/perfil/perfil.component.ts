@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { PerfilService } from '../../services/profile.service';  // Ruta correcta al servicio
+import { ProfileService } from '../../services/profile.service';  // Ruta correcta al servicio
 import { faEdit, faTrash, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';  // Importar icono de edición y cerrar sesión
 
 @Component({
@@ -17,7 +17,7 @@ export class PerfilComponent implements OnInit {
 
   isDialogOpen = false;  // Controla si el diálogo está abierto
 
-  constructor(private perfilService: PerfilService, private router: Router) {}
+  constructor(private perfilService: ProfileService, private router: Router) {}
 
   ngOnInit(): void {
     const idUsuario = localStorage.getItem('idUsuario');  // Obtiene el ID del usuario desde localStorage

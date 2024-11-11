@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CategoriaService } from 'src/app/services/categoria.service';
-import { CursoService } from 'src/app/services/course.service';
+import { CourseService } from 'src/app/services/course.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { Categoria } from 'src/app/models/categoriaDto';
 
@@ -25,7 +25,7 @@ export class CourseFormComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar,
     private categoriaService: CategoriaService,
-    private cursoService: CursoService,
+    private cursoService: CourseService,
     private authService: AuthService
   ) {}
 

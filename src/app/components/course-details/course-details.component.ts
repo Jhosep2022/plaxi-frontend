@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CursoService } from '../../services/course.service';
-import { CursoDto } from '../../models/cursoDto';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
 import { PaginadoDto } from 'src/app/models/PaginadoDto';
 import { LeccionService } from '../../services/leccion.service';
+import { CursoDto } from 'src/app/models/CursoDto';
+import { CourseService } from 'src/app/services/course.service';
 
 @Component({
   selector: 'app-course-details',
@@ -22,7 +22,7 @@ export class CourseDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private cursoService: CursoService,
+    private cursoService: CourseService,
     private inscripcionService: InscripcionService,
     private leccionService: LeccionService, // Agrega el servicio de lecciones
     private snackBar: MatSnackBar
@@ -64,7 +64,7 @@ export class CourseDetailsComponent implements OnInit {
       }
     );
   }
-  
+
 
   // Lógica para inscribirse en el curso
   enrollInCourse(): void {
@@ -107,9 +107,9 @@ export class CourseDetailsComponent implements OnInit {
   lessonDetails(leccionId: number): void {
     // Aquí puedes implementar la lógica para redirigir al usuario a una pantalla de creación de tema
     // o abrir un modal para que ingrese los datos del nuevo tema.
-  
+
     console.log('Creando tema para la lección con ID:', leccionId);
-  
+
     // Ejemplo de redirección:
     this.router.navigate(['/crear-tema', leccionId]); // Dependiendo de tu ruta y configuración.
   }

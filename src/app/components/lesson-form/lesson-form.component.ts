@@ -1,13 +1,13 @@
 import { Component, OnInit} from '@angular/core';
-import { CursoDto } from 'src/app/models/cursoDto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
-import { CursoService } from '../../services/course.service';
+import { CourseService } from '../../services/course.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Categoria } from 'src/app/models/categoriaDto';
 import { CategoriaService } from 'src/app/services/categoria.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { CursoDto } from 'src/app/models/CursoDto';
 
 @Component({
   selector: 'app-lesson-form',
@@ -24,7 +24,7 @@ export class LessonFormComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private cursoService: CursoService,
+    private cursoService: CourseService,
     private leccionService: LeccionService,
     private snackBar: MatSnackBar,
     private fb: FormBuilder,
@@ -84,9 +84,9 @@ export class LessonFormComponent implements OnInit {
   // Método para enviar el formulario
   onSubmit() {
     console.log('Botón de enviar presionado.');
-  
+
     const courseId = Number(this.route.snapshot.paramMap.get('id'));
-  
+
     if (this.lessonForm.valid && this.userId !== null && courseId) {
       // Crear el objeto de datos en formato JSON
       const leccionDto = {
@@ -97,9 +97,9 @@ export class LessonFormComponent implements OnInit {
         cursoId: courseId,
         estado: this.lessonForm.value.estado
       };
-  
+
       console.log('Datos enviados en JSON:', leccionDto);
-  
+
       // Llamar al servicio para crear la lección con JSON
       this.leccionService.createLeccion(leccionDto).subscribe({
         next: (response) => {
@@ -131,7 +131,7 @@ export class LessonFormComponent implements OnInit {
       console.log('ID del curso:', courseId);
     }
   }
-  
+
 
   // Cargar las categorías desde el servicio
   loadCategorias(): void {
@@ -150,7 +150,7 @@ export class LessonFormComponent implements OnInit {
   onCancel() {
     // Obtener el ID del curso desde la URL, que ya está cargado en `courseId`
     const courseId = Number(this.route.snapshot.paramMap.get('id'));
-    
+
     // Redirigir al usuario a la página de detalles del curso, pasando el ID dinámicamente
     if (courseId) {
       this.router.navigate([`/course-details/${courseId}`]); // Redirige al curso con el ID correcto

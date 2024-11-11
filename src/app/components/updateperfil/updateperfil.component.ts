@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { PerfilService } from '../../services/profile.service';
 import { ActualizarPerfilDto } from '../../models/PerfilDto';
 import { HttpClient } from '@angular/common/http';
+import { ProfileService } from 'src/app/services/profile.service';
 
 @Component({
   selector: 'app-updateperfil',
@@ -24,7 +24,7 @@ export class UpdateperfilComponent implements OnInit {
   selectedFile: File | null = null;
   fileError: string | null = null; // Mensaje de error para el archivo
 
-  constructor(private router: Router, private perfilService: PerfilService) {}
+  constructor(private router: Router, private perfilService: ProfileService) {}
 
   ngOnInit(): void {
     const idUsuario = localStorage.getItem('idUsuario');

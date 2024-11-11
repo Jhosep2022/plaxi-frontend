@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CursoService } from 'src/app/services/course.service'; // Importar el servicio de cursos
-import { AuthService } from 'src/app/services/auth.service'; // Importar el servicio de autenticación para obtener el ID del usuario
-import { CursoDto } from 'src/app/models/cursoDto'; // Importar el modelo de curso
-
+import { CursoDto } from 'src/app/models/CursoDto';
+import { AuthService } from 'src/app/services/auth.service';
+import { CourseService } from 'src/app/services/course.service';
 @Component({
   selector: 'app-course-list',
   templateUrl: './course-list.component.html',
@@ -15,7 +14,7 @@ export class CourseListComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private cursoService: CursoService, // Inyectar el servicio de cursos
+    private cursoService: CourseService, // Inyectar el servicio de cursos
     private authService: AuthService // Inyectar el servicio de autenticación
   ) {}
 

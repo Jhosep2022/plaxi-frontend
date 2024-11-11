@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { faBars, faBell, faEnvelope, faChevronDown, faUserCircle, faEdit, faCog, faSignOutAlt, faHome, faClipboard, faChartBar, faQuestionCircle, faPlusCircle, faBookOpen, faComments, faUser, faUsers, faBook, faChartLine, faChalkboardTeacher, faUserGraduate, faClipboardCheck, faChartPie, faTasks, faClipboardList } from '@fortawesome/free-solid-svg-icons';
 import { Router, NavigationEnd } from '@angular/router';
-import { PerfilService } from '../../services/profile.service';
+import { ProfileService } from '../../services/profile.service';
 import { AuthService } from '../../services/auth.service';
 import { PerfilDto } from '../../models/PerfilDto';
 
@@ -46,7 +46,7 @@ export class NavbarComponent implements OnInit {
   userProfile: PerfilDto | null = null;
   userRole: string = '';
 
-  constructor(private router: Router, private perfilService: PerfilService, private authService: AuthService) {}
+  constructor(private router: Router, private perfilService: ProfileService, private authService: AuthService) {}
 
   ngOnInit(): void {
     // Actualizar título y ruta según la navegación
