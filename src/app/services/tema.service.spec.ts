@@ -102,11 +102,12 @@ describe('TemaService', () => {
 
   it('should delete a tema by ID', () => {
     service.deleteTema(1).subscribe((res) => {
-      expect(res).toBeUndefined();
+      expect(res).toBeNull(); // Cambiado de `toBeUndefined` a `toBeNull`
     });
 
     const req = httpMock.expectOne(`${apiUrl}/delete/1`);
     expect(req.request.method).toBe('DELETE');
-    req.flush(null);
+    req.flush(null); // `null` es devuelto por la API, por lo que hacemos coincidir `flush(null)`
   });
+
 });

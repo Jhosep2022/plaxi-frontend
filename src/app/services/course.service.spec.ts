@@ -111,12 +111,13 @@ describe('CourseService', () => {
   });
 
   it('should delete a course by ID', () => {
-    service.deleteCurso(1).subscribe((res) => {
-      expect(res).toBeUndefined();
-    });
+      service.deleteCurso(1).subscribe((res) => {
+          expect(res).toBeNull(); // Cambiado de toBeUndefined() a toBeNull()
+      });
 
-    const req = httpMock.expectOne(`${apiUrl}/1`);
-    expect(req.request.method).toBe('DELETE');
-    req.flush(null);
+      const req = httpMock.expectOne(`${apiUrl}/1`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null); // Se envía null como respuesta simulada
   });
+
 });

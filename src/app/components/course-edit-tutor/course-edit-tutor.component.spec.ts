@@ -72,6 +72,7 @@ describe('CourseEditTutorComponent', () => {
   });
 
   it('should show success snackbar and navigate on valid form submission', () => {
+    // Configura valores válidos en el formulario
     component.courseForm.setValue({
       nombre: 'Valid Course',
       descripcion: 'Descripción',
@@ -80,18 +81,27 @@ describe('CourseEditTutorComponent', () => {
       estado: true,
       Categoria_id_categoria: 1
     });
+
+    // Asegúrate de que el archivo esté seleccionado
     component.selectedFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
 
+    // Llama a la función onSubmit para activar la navegación
     component.onSubmit();
 
+    // Verifica que el snackbar haya sido llamado
     expect(snackBar.open).toHaveBeenCalledWith('¡El curso se ha actualizado exitosamente!', 'Cerrar', {
       duration: 3000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
       panelClass: ['success-snackbar']
     });
+
+    jasmine.clock().tick(3001);
+
+    // Verifica que la navegación haya sido llamada correctamente
     expect(router.navigate).toHaveBeenCalledWith(['/my-courses']);
   });
+
 
   it('should show error snackbar and set fileError on invalid form submission', () => {
     component.courseForm.patchValue({
