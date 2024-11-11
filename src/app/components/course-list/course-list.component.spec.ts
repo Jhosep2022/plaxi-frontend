@@ -35,6 +35,9 @@ describe('CourseListComponent', () => {
       navigate: jasmine.createSpy('navigate')
     };
 
+    // Mock para localStorage
+    spyOn(localStorage, 'getItem').and.returnValue('1'); // Simula que 'idUsuario' es '1'
+
     TestBed.configureTestingModule({
       declarations: [CourseListComponent],
       imports: [HttpClientTestingModule],
