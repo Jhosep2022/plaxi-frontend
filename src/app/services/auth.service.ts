@@ -10,35 +10,36 @@ import { PersonaDto, UsuarioDto } from '../models/PersonaDto';
 export class AuthService {
   private apiUrl = `${environment.API_URL}/auth`;
   private userId: number | null = null;
-  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
+  private isLoggedInSubject = new BehaviorSubject<boolean>(this.checkLoginStatus());
 
   constructor(private http: HttpClient) {}
 
   // Registro de usuario
-  registerUser(usuarioDto: UsuarioDto, personaDto: PersonaDto): Observable<any> {
+  registerUser(usuarioDto: UsuarioDto, personaDto: PersonaDto): Observable<{ success: boolean }> {
     const body = {
       usuario: usuarioDto,
       persona: personaDto,
     };
-    return this.http.post(`${this.apiUrl}/register`, body);
+    return this.http.post<{ success: boolean }>(`${this.apiUrl}/register`, body);
   }
 
-  loginUser(username: string, password: string): Observable<any> {
-    const body = {
-      username,
-      password,
-    };
-    return this.http.post(`${this.apiUrl}/login`, body);
+  loginUser(username: string, password: string): Observable<{ token: string }> {
+    const body = { username, password };
+    return this.http.post<{ token: string }>(`${this.apiUrl}/login`, body);
   }
 
-  resetPassword(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password?email=${email}`, {});
+  resetPassword(email: string): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${this.apiUrl}/reset-password?email=${email}`, {});
+  }
+
+  // Verificar si el usuario está autenticado
+  isAuthenticated(): Observable<boolean> {
+    return this.isLoggedInSubject.asObservable();
   }
 
   // Obtener el ID del usuario almacenado en localStorage
   getCurrentUserId(): number | null {
     const storedUserId = localStorage.getItem('userId');
-    console.log('Recuperando userId de localStorage:', storedUserId);
     return storedUserId ? parseInt(storedUserId, 10) : null;
   }
 
@@ -46,7 +47,6 @@ export class AuthService {
   setCurrentUserId(userId: number): void {
     this.userId = userId;
     localStorage.setItem('userId', userId.toString());
-    console.log('userId guardado en localStorage:', userId);
     this.isLoggedInSubject.next(true);
   }
 
@@ -54,13 +54,12 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('userId');
     this.userId = null;
-    console.log('Sesión cerrada, userId eliminado');
     this.isLoggedInSubject.next(false);
   }
 
-  // Verificar si el usuario está autenticado
-  isAuthenticated(): Observable<boolean> {
-    return this.isLoggedInSubject.asObservable();
+  // Verificar el estado de autenticación al inicializar
+  private checkLoginStatus(): boolean {
+    const storedUserId = localStorage.getItem('userId');
+    return storedUserId !== null;
   }
 }
-

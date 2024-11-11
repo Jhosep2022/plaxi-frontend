@@ -3,7 +3,7 @@ name: CI/CD for Angular Project
 on:
   push:
     branches:
-      - main  # Cambia esto si tu rama principal tiene otro nombre
+      - main 
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16 # Asegúrate de usar la versión de Node.js compatible con Angular
+          node-version: 16
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
@@ -42,4 +42,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/plaxi-frontend  # Cambia 'plaxi-frontend' al nombre de tu aplicación en angular.json si es diferente
+          publish_dir: ./dist/plaxi-frontend
