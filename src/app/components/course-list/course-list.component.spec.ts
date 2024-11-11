@@ -24,8 +24,8 @@ describe('CourseListComponent', () => {
     mockCourseService = {
       getCursosByUsuario: jasmine.createSpy('getCursosByUsuario').and.returnValue(
         of([
-          { idCurso: 1, nombre: 'Curso 1', descripcion: 'Descripción 1', dificultad: 'Beginner', estado: true, categoriaId: 1, portada: 'image1.png' },
-          { idCurso: 2, nombre: 'Curso 2', descripcion: 'Descripción 2', dificultad: 'Intermediate', estado: true, categoriaId: 2, portada: 'image2.png' }
+          { idCurso: 1, nombre: 'Curso 1', descripcion: 'Descripción 1', dificultad: 'Beginner', estado: true, categoriaId: 1, portada: '/assets/test-image.jpg' },
+          { idCurso: 2, nombre: 'Curso 2', descripcion: 'Descripción 2', dificultad: 'Intermediate', estado: true, categoriaId: 2, portada: '/assets/test-image.jpg' }
         ] as CursoDto[])
       )
     };

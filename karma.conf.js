@@ -1,4 +1,3 @@
-// karma.conf.js
 module.exports = function (config) {
   config.set({
     basePath: '',
@@ -31,6 +30,9 @@ module.exports = function (config) {
       }
     },
     singleRun: true,
-    restartOnFileChange: true
+    restartOnFileChange: true,
+    proxies: {
+      '/assets/': '/base/src/assets/'
+    }
   });
 };

@@ -73,7 +73,7 @@ describe('CourseEditTutorComponent', () => {
     component.courseForm.setValue({
       nombre: 'Valid Course',
       descripcion: 'Descripción',
-      portada: 'test.jpg',
+      portada: '/assets/test-image.jpg',
       dificultad: 'Beginner',
       estado: true,
       Categoria_id_categoria: 1
