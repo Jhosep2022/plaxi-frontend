@@ -1,6 +1,6 @@
 import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Asegúrate de incluir ReactiveFormsModule si es necesario
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -22,11 +22,14 @@ import { CourseCategoryListComponent } from './components/course-category-list/c
 import { CourseDetailsComponent } from './components/course-details/course-details.component';
 import { MyCoursesStudentComponent } from './components/my-courses-student/my-courses-student.component';
 import { SuccessDialogComponent } from './components/success-dialog/success-dialog.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
 import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
 import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatToolbarModule } from '@angular/material/toolbar'; // Añadido
+import { MatButtonModule } from '@angular/material/button'; // Añadido
+import { MatInputModule } from '@angular/material/input'; // Añadido
 
 @NgModule({
   declarations: [
@@ -60,7 +63,10 @@ import { LessonFormComponent } from './components/lesson-form/lesson-form.compon
     CommonModule,
     MatDialogModule,
     BrowserAnimationsModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatToolbarModule, // Añadido
+    MatButtonModule, // Añadido
+    MatInputModule // Añadido
   ],
   providers: [],
   bootstrap: [AppComponent],
