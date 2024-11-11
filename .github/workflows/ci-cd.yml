@@ -19,7 +19,7 @@ jobs:
           node-version: 16 # Asegúrate de usar la versión de Node.js compatible con Angular
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Run tests
         run: npm test -- --watch=false
