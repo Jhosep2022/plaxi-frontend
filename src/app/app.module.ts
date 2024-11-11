@@ -7,7 +7,6 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CommonModule } from '@angular/common';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { NavbarComponent } from './components/navbar/navbar.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegistrarUsuarioComponent } from './components/registrar-usuario/registrar-usuario.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
@@ -30,6 +29,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar'; // Añadido
 import { MatButtonModule } from '@angular/material/button'; // Añadido
 import { MatInputModule } from '@angular/material/input'; // Añadido
+import { NavbarComponent } from './components/navbar/navbar.component';
 
 @NgModule({
   declarations: [
