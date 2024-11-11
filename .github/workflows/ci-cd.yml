@@ -21,7 +21,16 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Start XVFB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          export DISPLAY=:99
+          Xvfb :99 -ac -screen 0 1280x1024x16 &
+
       - name: Run tests
+        env:
+          DISPLAY: :99
         run: npm test -- --watch=false
 
       - name: Build project
