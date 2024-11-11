@@ -3,6 +3,7 @@ import { ForgotPasswordComponent } from './forgot-password.component';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('ForgotPasswordComponent', () => {
   let component: ForgotPasswordComponent;
@@ -23,6 +24,7 @@ describe('ForgotPasswordComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [ForgotPasswordComponent],
+      imports: [HttpClientTestingModule],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter }

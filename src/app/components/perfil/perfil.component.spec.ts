@@ -4,6 +4,7 @@ import { ProfileService } from '../../services/profile.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('PerfilComponent', () => {
   let component: PerfilComponent;
@@ -26,6 +27,7 @@ describe('PerfilComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [PerfilComponent],
+      imports: [HttpClientTestingModule],
       providers: [
         { provide: ProfileService, useValue: mockProfileService },
         { provide: Router, useValue: mockRouter }

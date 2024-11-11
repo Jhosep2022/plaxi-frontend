@@ -5,6 +5,7 @@ import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('MyCoursesStudentComponent', () => {
   let component: MyCoursesStudentComponent;
@@ -33,6 +34,7 @@ describe('MyCoursesStudentComponent', () => {
         { provide: InscripcionService, useValue: mockInscripcionService },
         { provide: MatSnackBar, useValue: mockSnackBar }
       ],
+      imports: [HttpClientTestingModule],
       schemas: [NO_ERRORS_SCHEMA] // Ignorar errores de elementos desconocidos (útil para simplificar el componente en pruebas)
     }).compileComponents();
 

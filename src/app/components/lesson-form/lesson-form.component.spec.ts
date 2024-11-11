@@ -6,6 +6,7 @@ import { CourseService } from '../../services/course.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('LessonFormComponent', () => {
   let component: LessonFormComponent;
@@ -38,6 +39,7 @@ describe('LessonFormComponent', () => {
 
     TestBed.configureTestingModule({
       declarations: [LessonFormComponent],
+      imports: [HttpClientTestingModule],
       providers: [
         FormBuilder,
         { provide: Router, useValue: mockRouter },

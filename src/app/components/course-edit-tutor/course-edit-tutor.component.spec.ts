@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('CourseEditTutorComponent', () => {
   let component: CourseEditTutorComponent;
@@ -21,7 +22,7 @@ describe('CourseEditTutorComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [CourseEditTutorComponent],
-      imports: [ReactiveFormsModule, RouterTestingModule],
+      imports: [ReactiveFormsModule, RouterTestingModule, HttpClientTestingModule ],
       providers: [
         FormBuilder,
         { provide: ActivatedRoute, useValue: activatedRouteStub },

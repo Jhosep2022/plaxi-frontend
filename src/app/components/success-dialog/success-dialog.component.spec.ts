@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SuccessDialogComponent } from './success-dialog.component';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('SuccessDialogComponent', () => {
   let component: SuccessDialogComponent;
@@ -16,6 +17,7 @@ describe('SuccessDialogComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [SuccessDialogComponent],
+      imports: [HttpClientTestingModule],
       providers: [
         { provide: MatDialogRef, useValue: mockDialogRef },
         { provide: MAT_DIALOG_DATA, useValue: { message: 'Operation successful!' } }

@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { of, throwError } from 'rxjs';
 import { PerfilDto } from '../../models/PerfilDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -35,6 +36,7 @@ describe('NavbarComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [NavbarComponent],
+      imports: [HttpClientTestingModule],
       providers: [
         { provide: Router, useValue: mockRouter },
         { provide: ProfileService, useValue: mockProfileService },

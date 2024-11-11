@@ -5,6 +5,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { CourseService } from 'src/app/services/course.service';
 import { of, throwError } from 'rxjs';
 import { CursoDto } from 'src/app/models/CursoDto';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('CourseListComponent', () => {
   let component: CourseListComponent;
@@ -36,6 +37,7 @@ describe('CourseListComponent', () => {
 
     TestBed.configureTestingModule({
       declarations: [CourseListComponent],
+      imports: [HttpClientTestingModule],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: CourseService, useValue: mockCourseService },
