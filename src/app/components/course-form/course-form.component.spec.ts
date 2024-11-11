@@ -53,9 +53,14 @@ describe('CourseFormComponent', () => {
     categoriaService.getAllCategorias.and.returnValue(of([{ idCategoria: 1, nombre: 'Test Category', descripcion: 'Test Description' }]));
 
     // Mock de localStorage para ID de usuario
-    spyOn(localStorage, 'getItem').and.returnValue('123');
+    spyOn(localStorage, 'getItem').and.callFake((key: string) => {
+      if (key === 'idUsuario') return '123'; // Simula el ID de usuario como 123
+      return null;
+    });
+
     fixture.detectChanges();
   });
+
 
   it('should create', () => {
     expect(component).toBeTruthy();

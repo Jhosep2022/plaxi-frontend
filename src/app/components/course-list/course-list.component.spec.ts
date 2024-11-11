@@ -16,12 +16,10 @@ describe('CourseListComponent', () => {
   let mockCourseService: any;
 
   beforeEach(() => {
-    // Mock para el servicio de autenticación
     mockAuthService = {
       getCurrentUserId: jasmine.createSpy('getCurrentUserId').and.returnValue(1)
     };
 
-    // Mock para el servicio de cursos con estructura acorde a CursoDto
     mockCourseService = {
       getCursosByUsuario: jasmine.createSpy('getCursosByUsuario').and.returnValue(
         of([
@@ -31,13 +29,15 @@ describe('CourseListComponent', () => {
       )
     };
 
-    // Mock para el router
     mockRouter = {
       navigate: jasmine.createSpy('navigate')
     };
 
     // Mock para localStorage
-    spyOn(localStorage, 'getItem').and.returnValue('1'); // Simula que 'idUsuario' es '1'
+    spyOn(localStorage, 'getItem').and.callFake((key: string) => {
+      if (key === 'idUsuario') return '1'; // Simula el ID de usuario como 1
+      return null;
+    });
 
     TestBed.configureTestingModule({
       declarations: [CourseListComponent],
@@ -53,6 +53,7 @@ describe('CourseListComponent', () => {
     fixture = TestBed.createComponent(CourseListComponent);
     component = fixture.componentInstance;
   });
+
 
   it('should create', () => {
     expect(component).toBeTruthy();

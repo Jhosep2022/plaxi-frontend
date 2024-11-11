@@ -52,8 +52,16 @@ describe('LessonFormComponent', () => {
 
     fixture = TestBed.createComponent(LessonFormComponent);
     component = fixture.componentInstance;
+
+    // Mock para localStorage
+    spyOn(localStorage, 'getItem').and.callFake((key: string) => {
+      if (key === 'idUsuario') return '123'; // Simula el ID de usuario como 123
+      return null;
+    });
+
     fixture.detectChanges();
   });
+
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
