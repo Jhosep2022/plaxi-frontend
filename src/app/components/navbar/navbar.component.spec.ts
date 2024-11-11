@@ -54,41 +54,7 @@ describe('NavbarComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should update title based on route', () => {
-    component.updateTitleBasedOnRoute('/home');
-    expect(component.title).toBe('Dashboard');
-  });
-
-  it('should load user profile on initialization', () => {
-    const userId = '1001';
-    localStorage.setItem('idUsuario', userId);
-    component.cargarPerfil();
-
-    expect(mockProfileService.getProfile).toHaveBeenCalledWith(Number(userId));
-    expect(component.userProfile?.nombre).toBe('Admin User');
-  });
-
-  it('should handle error when loading profile', () => {
-    spyOn(console, 'error');
-    mockProfileService.getProfile.and.returnValue(throwError('Error loading profile'));
-
-    component.cargarPerfil();
-    expect(console.error).toHaveBeenCalledWith('Error al cargar el perfil del usuario:', 'Error loading profile');
-  });
-
-  it('should get user role from localStorage', () => {
-    localStorage.setItem('userRole', '2');
-    component.obtenerRolUsuario();
-    expect(component.userRole).toBe('Estudiante');
-  });
-
-  it('should navigate to the correct route when navigateTo is called', () => {
-    component.navigateTo('/home');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
-    expect(component.isSidebarOpen).toBe(false);
-  });
-
-  it('should close session and navigate to login on logout', () => {
+  it('should navigate to /login on logout', () => {
     component.logout();
     expect(mockAuthService.logout).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);

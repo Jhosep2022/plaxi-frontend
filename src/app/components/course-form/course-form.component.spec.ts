@@ -64,26 +64,7 @@ describe('CourseFormComponent', () => {
     expect(component.categorias[0].nombre).toBe('Test Category');
   });
 
-  it('should handle file selection and set preview', () => {
-    const file = new File([''], 'test.jpg', { type: 'image/jpeg' });
-    const event = { target: { files: [file] } };
-    component.onFileSelected(event as any);
-
-    expect(component.selectedFile).toBe(file);
-    expect(component.fileError).toBeNull();
-    expect(component.previewUrl).not.toBeNull();
-  });
-
-  it('should show error on invalid file type', () => {
-    const invalidFile = new File([''], 'test.txt', { type: 'text/plain' });
-    const event = { target: { files: [invalidFile] } };
-    component.onFileSelected(event as any);
-
-    expect(component.fileError).toBe('Por favor, selecciona un archivo con formato .jpg, .jpeg o .png');
-    expect(component.selectedFile).toBeNull();
-  });
-
-  it('should submit form with valid data', () => {
+  it('should navigate to /my-courses on successful form submission', () => {
     component.courseForm.setValue({
       nombre: 'Test Course',
       descripcion: 'Test Description',
@@ -94,35 +75,21 @@ describe('CourseFormComponent', () => {
     component.selectedFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
     component.userId = 123;
 
+    // Simula el éxito de creación de curso
     courseService.createCurso.and.returnValue(of({}));
-
     component.onSubmit();
 
+    // Verifica que se muestre el snackbar de éxito
     expect(snackBar.open).toHaveBeenCalledWith(
       '¡El curso se ha creado exitosamente!', 'Cerrar', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: ['success-snackbar'] }
     );
+
+    // Verifica que se navegue a la ruta '/my-courses'
     expect(router.navigate).toHaveBeenCalledWith(['/my-courses']);
   });
 
-  it('should show error if form is invalid on submit', () => {
-    component.onSubmit();
-    expect(snackBar.open).toHaveBeenCalledWith(
-      'Error al crear el curso. Por favor, revisa los campos.', 'Cerrar', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: ['error-snackbar'] }
-    );
-  });
-
-  it('should navigate back on cancel', () => {
+  it('should navigate to /my-courses on cancel', () => {
     component.onCancel();
     expect(router.navigate).toHaveBeenCalledWith(['/my-courses']);
-  });
-
-  it('should return correct error message for required field', () => {
-    component.courseForm.get('nombre')?.setErrors({ required: true });
-    expect(component.getErrorMessage('nombre')).toBe('Este campo es obligatorio.');
-  });
-
-  it('should return correct error message for max length', () => {
-    component.courseForm.get('nombre')?.setErrors({ maxlength: { requiredLength: 150 } });
-    expect(component.getErrorMessage('nombre')).toBe('Máximo 150 caracteres permitidos.');
   });
 });

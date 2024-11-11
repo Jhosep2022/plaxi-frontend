@@ -17,12 +17,12 @@ describe('CourseEditTutorComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
     const activatedRouteStub = {
-      queryParams: of({ name: 'Test Course', image: 'test-image.jpg' })
+      queryParams: of({ name: 'Test Course', image: 'data:image/jpeg;base64,test-image-base64' })
     };
 
     await TestBed.configureTestingModule({
       declarations: [CourseEditTutorComponent],
-      imports: [ReactiveFormsModule, RouterTestingModule, HttpClientTestingModule ],
+      imports: [ReactiveFormsModule, RouterTestingModule, HttpClientTestingModule],
       providers: [
         FormBuilder,
         { provide: ActivatedRoute, useValue: activatedRouteStub },
@@ -44,7 +44,7 @@ describe('CourseEditTutorComponent', () => {
 
   it('should initialize form with query parameters', () => {
     expect(component.courseForm.get('nombre')?.value).toBe('Test Course');
-    expect(component.previewUrl).toBe('test-image.jpg');
+    expect(component.previewUrl).toContain('data:image/jpeg;base64'); // Ahora se espera un valor base64
   });
 
   it('should handle file selection', () => {
@@ -55,7 +55,7 @@ describe('CourseEditTutorComponent', () => {
 
     expect(component.selectedFile).toBe(file);
     expect(component.fileError).toBeNull();
-    expect(component.previewUrl).toContain('data:image/jpeg;base64'); // Verifica que la vista previa esté configurada
+    expect(component.previewUrl).toContain('data:image/jpeg;base64'); // Verifica que la vista previa esté configurada en base64
   });
 
   it('should set fileError on invalid file type', () => {

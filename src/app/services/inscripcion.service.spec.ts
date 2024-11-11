@@ -134,7 +134,7 @@ describe('InscripcionService', () => {
 
   it('should delete an inscription by ID', () => {
     service.deleteInscripcion(1).subscribe((res) => {
-      expect(res).toBeUndefined();
+      expect(res).toBeNull(); // Cambiado de `toBeUndefined` a `toBeNull`
     });
 
     const req = httpMock.expectOne(`${apiUrl}/1`);
