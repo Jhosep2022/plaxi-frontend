@@ -9,13 +9,13 @@ import { CourseService } from 'src/app/services/course.service';
   styleUrls: ['./course-list.component.css']
 })
 export class CourseListComponent implements OnInit {
-  courses: CursoDto[] = []; // Almacenar los cursos obtenidos de la API
-  userId: number | null = null; // ID del usuario logueado
+  courses: CursoDto[] = [];
+  userId: number | null = null;
 
   constructor(
     private router: Router,
-    private cursoService: CourseService, // Inyectar el servicio de cursos
-    private authService: AuthService // Inyectar el servicio de autenticación
+    private cursoService: CourseService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -28,7 +28,7 @@ export class CourseListComponent implements OnInit {
       this.loadCoursesByUser(this.userId);
     } else {
       console.error('No se encontró el ID del usuario logueado en localStorage. Redirigiendo al login.');
-      this.router.navigate(['/login']); // Redirigir a la página de login si no hay ID de usuario
+      this.router.navigate(['/login']);
     }
   }
 
