@@ -7,7 +7,7 @@ import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
-export class PerfilService {
+export class ProfileService {
   private apiUrl = `${environment.API_URL}/perfil`;
 
   constructor(private http: HttpClient) {}
