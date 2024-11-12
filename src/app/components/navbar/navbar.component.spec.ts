@@ -50,13 +50,20 @@ describe('NavbarComponent', () => {
     fixture.detectChanges();
 
     // Mock de localStorage
-    spyOn(localStorage, 'getItem').and.callFake((key: string) => {
+    localStorage.getItem = jasmine.createSpy('getItem').and.callFake((key: string) => {
       if (key === 'idUsuario') return '123';
       if (key === 'userRole') return '1';
       return null;
     });
-    spyOn(localStorage, 'setItem').and.callFake(() => {});
-    spyOn(localStorage, 'removeItem').and.callFake(() => {});
+    localStorage.setItem = jasmine.createSpy('setItem').and.callFake(() => {});
+    localStorage.removeItem = jasmine.createSpy('removeItem').and.callFake(() => {});
+  });
+
+  afterEach(() => {
+    // Limpia las llamadas y los valores del localStorage entre pruebas
+    (localStorage.getItem as jasmine.Spy).calls.reset();
+    (localStorage.setItem as jasmine.Spy).calls.reset();
+    (localStorage.removeItem as jasmine.Spy).calls.reset();
   });
 
   it('should create', () => {
@@ -67,8 +74,9 @@ describe('NavbarComponent', () => {
     component.logout();
     expect(mockAuthService.logout).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
-    expect(localStorage.getItem('userRole')).toBeNull();
-    expect(localStorage.getItem('idUsuario')).toBeNull();
+    // Aquí verificamos que el localStorage se limpia correctamente
+    expect(localStorage.removeItem).toHaveBeenCalledWith('userRole');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('idUsuario');
   });
 
   it('should call cargarPerfil and obtenerRolUsuario on init', () => {
@@ -88,7 +96,7 @@ describe('NavbarComponent', () => {
   });
 
   it('should set default userRole if no role found in localStorage', () => {
-    spyOn(localStorage, 'getItem').and.returnValue(null); // Mock para no tener `userRole`
+    (localStorage.getItem as jasmine.Spy).and.returnValue(null); // Mock para simular que no hay `userRole`
     component.obtenerRolUsuario();
     expect(component.userRole).toBe('Estudiante');
   });
