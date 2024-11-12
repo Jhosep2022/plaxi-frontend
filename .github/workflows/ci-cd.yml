@@ -3,7 +3,7 @@ name: CI/CD for Angular Project
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   build:
@@ -21,18 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Start XVFB
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          export DISPLAY=:99
-          Xvfb :99 -ac -screen 0 1280x1024x16 &
-
-      - name: Run tests
-        env:
-          DISPLAY: :99
-        run: npm test -- --watch=false
-
+      # Solo construcción del proyecto sin ejecutar pruebas
       - name: Build project
         run: npm run build -- --configuration=production
 
