@@ -30,7 +30,7 @@ describe('CourseEditTutorComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy }
       ],
-      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
+      schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseEditTutorComponent);
@@ -40,13 +40,18 @@ describe('CourseEditTutorComponent', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    // Cleanup clock after each test if installed
+    jasmine.clock().uninstall();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
   it('should initialize form with query parameters', () => {
     expect(component.courseForm.get('nombre')?.value).toBe('Test Course');
-    expect(component.previewUrl).toContain('data:image/jpeg;base64'); // Ahora se espera un valor base64
+    expect(component.previewUrl).toContain('data:image/jpeg;base64');
   });
 
   it('should handle file selection', () => {
@@ -57,7 +62,7 @@ describe('CourseEditTutorComponent', () => {
 
     expect(component.selectedFile).toBe(file);
     expect(component.fileError).toBeNull();
-    expect(component.previewUrl).toContain('data:image/jpeg;base64'); // Verifica que la vista previa esté configurada en base64
+    expect(component.previewUrl).toContain('data:image/jpeg;base64');
   });
 
   it('should set fileError on invalid file type', () => {
@@ -72,6 +77,9 @@ describe('CourseEditTutorComponent', () => {
   });
 
   it('should show success snackbar and navigate on valid form submission', () => {
+    // Install clock for this test
+    jasmine.clock().install();
+
     // Configura valores válidos en el formulario
     component.courseForm.setValue({
       nombre: 'Valid Course',
@@ -96,12 +104,15 @@ describe('CourseEditTutorComponent', () => {
       panelClass: ['success-snackbar']
     });
 
+    // Adelanta el tiempo en el mock del reloj
     jasmine.clock().tick(3001);
 
     // Verifica que la navegación haya sido llamada correctamente
     expect(router.navigate).toHaveBeenCalledWith(['/my-courses']);
-  });
 
+    // Uninstall clock after test
+    jasmine.clock().uninstall();
+  });
 
   it('should show error snackbar and set fileError on invalid form submission', () => {
     component.courseForm.patchValue({

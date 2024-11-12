@@ -62,6 +62,9 @@ describe('LessonFormComponent', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    jasmine.clock().uninstall(); // Limpia el reloj simulado después de cada prueba
+  });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
@@ -74,6 +77,8 @@ describe('LessonFormComponent', () => {
   });
 
   it('should call createLeccion on submit when form is valid', () => {
+    jasmine.clock().install(); // Instala el reloj simulado para esta prueba
+
     component.lessonForm.patchValue({
       nombre: 'Lección de Prueba',
       contenido: 'Contenido de la lección',
@@ -89,7 +94,11 @@ describe('LessonFormComponent', () => {
       'Cerrar',
       jasmine.objectContaining({ panelClass: ['success-snackbar'] })
     );
+
+    jasmine.clock().tick(3001); // Avanza el tiempo simulado para activar la redirección
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/my-courses']);
+
+    jasmine.clock().uninstall(); // Desinstala el reloj simulado después de la prueba
   });
 
   it('should show error if form is invalid on submit', () => {

@@ -39,7 +39,7 @@ describe('CourseDetailsComponent', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
       ],
-      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
+      schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseDetailsComponent);
@@ -75,6 +75,13 @@ describe('CourseDetailsComponent', () => {
   it('should load course details on init', () => {
     component.ngOnInit();
     expect(courseService.getCursoById).toHaveBeenCalledWith(1);
+    expect(component.course).toEqual(jasmine.objectContaining({ idCurso: 1, nombre: 'Curso de Prueba' }));
+  });
+
+  it('should load lessons for the course on init', () => {
+    component.ngOnInit();
+    expect(leccionService.getLeccionesByCurso).toHaveBeenCalledWith(1, jasmine.any(Object));
+    expect(component.lecciones).toEqual([]);
   });
 
   it('should enroll in the course', () => {
