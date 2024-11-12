@@ -64,27 +64,27 @@ describe('CourseDetailsComponent', () => {
       cursoNombre: 'Curso 1',
       usuarioCreadorId: 5,
     }));
-
-    fixture.detectChanges();
   });
 
   it('should create', () => {
+    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
   it('should load course details on init', () => {
-    component.ngOnInit();
+    fixture.detectChanges();
     expect(courseService.getCursoById).toHaveBeenCalledWith(1);
     expect(component.course).toEqual(jasmine.objectContaining({ idCurso: 1, nombre: 'Curso de Prueba' }));
   });
 
   it('should load lessons for the course on init', () => {
-    component.ngOnInit();
+    fixture.detectChanges();
     expect(leccionService.getLeccionesByCurso).toHaveBeenCalledWith(1, jasmine.any(Object));
     expect(component.lecciones).toEqual([]);
   });
 
   it('should enroll in the course', () => {
+    fixture.detectChanges();
     component.course = { idCurso: 1 } as any;
     component.userId = 1;
     component.enrollInCourse();
@@ -97,11 +97,13 @@ describe('CourseDetailsComponent', () => {
   });
 
   it('should navigate to lesson details', () => {
+    fixture.detectChanges();
     component.lessonDetails(1);
     expect(router.navigate).toHaveBeenCalledWith(['/crear-tema', 1]);
   });
 
   it('should go back to course categories', () => {
+    fixture.detectChanges();
     component.goBack();
     expect(router.navigate).toHaveBeenCalledWith(['/course-categories']);
   });
