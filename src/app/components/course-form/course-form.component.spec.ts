@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CourseFormComponent } from './course-form.component';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -7,7 +8,6 @@ import { CourseService } from 'src/app/services/course.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 
@@ -23,7 +23,7 @@ describe('CourseFormComponent', () => {
   beforeEach(async () => {
     const categoriaServiceSpy = jasmine.createSpyObj('CategoriaService', ['getAllCategorias']);
     const courseServiceSpy = jasmine.createSpyObj('CourseService', ['createCurso']);
-    const authServiceSpy = jasmine.createSpyObj('AuthService', ['']);
+    const authServiceSpy = jasmine.createSpyObj('AuthService', []);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
@@ -57,16 +57,18 @@ describe('CourseFormComponent', () => {
       if (key === 'idUsuario') return '123'; // Simula el ID de usuario como 123
       return null;
     });
-
-    fixture.detectChanges();
   });
 
+  afterEach(() => {
+    localStorage.clear();
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
   it('should load categories on initialization', () => {
+    fixture.detectChanges();
     expect(component.categorias.length).toBe(1);
     expect(component.categorias[0].nombre).toBe('Test Category');
   });
@@ -80,7 +82,7 @@ describe('CourseFormComponent', () => {
       Categoria_id_categoria: 1,
     });
     component.selectedFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
-    component.userId = 123;
+    component.userId = 1;
 
     // Simula el éxito de creación de curso
     courseService.createCurso.and.returnValue(of({}));

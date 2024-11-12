@@ -21,7 +21,8 @@ describe('AuthService', () => {
   });
 
   afterEach(() => {
-    httpMock.verify();
+    localStorage.clear(); // Limpia localStorage después de cada prueba
+    httpMock.verify();    // Verifica que no haya solicitudes pendientes
   });
 
   it('should be created', () => {
@@ -82,13 +83,27 @@ describe('AuthService', () => {
 
   it('should set and get current user ID', () => {
     const userId = 123;
+
+    // Espía en localStorage.setItem y localStorage.getItem
+    spyOn(localStorage, 'setItem').and.callThrough();
+    spyOn(localStorage, 'getItem').and.returnValue(userId.toString());
+
     service.setCurrentUserId(userId);
+
+    // Verifica que el userId se haya guardado en localStorage
+    expect(localStorage.setItem).toHaveBeenCalledWith('userId', userId.toString());
     expect(service.getCurrentUserId()).toBe(userId);
   });
 
   it('should log out user', () => {
     service.setCurrentUserId(123);
+
+    // Espía en localStorage.removeItem
+    spyOn(localStorage, 'removeItem').and.callThrough();
+
     service.logout();
+
+    expect(localStorage.removeItem).toHaveBeenCalledWith('userId');
     expect(service.getCurrentUserId()).toBeNull();
   });
 

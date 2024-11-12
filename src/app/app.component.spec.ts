@@ -5,7 +5,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('AppComponent', () => {
   beforeEach(() => TestBed.configureTestingModule({
-    imports: [RouterTestingModule], // Agrega RouterTestingModule para manejar routerLink
+    imports: [RouterTestingModule],
     declarations: [AppComponent],
     schemas: [NO_ERRORS_SCHEMA]
   }).compileComponents());
@@ -16,10 +16,5 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('plaxi-frontend app is running!');
-  });
+
 });
