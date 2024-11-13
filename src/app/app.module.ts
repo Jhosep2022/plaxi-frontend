@@ -30,6 +30,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';
 
 @NgModule({
   declarations: [
@@ -51,8 +52,7 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     CourseDetailsTutorComponent,
     CourseEditTutorComponent,
     LessonFormComponent,
-    LessonDetailsTutorComponent,
-    LessonDetailsComponent,
+    LessonDetailsComponent
   ],
   imports: [
     BrowserModule,
