@@ -27,6 +27,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
 import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
 import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
+import { LessonDetailsTutorComponent } from './components/lesson-details-tutor/lesson-details-tutor.component';
+import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';
 
 @NgModule({
   declarations: [
@@ -48,6 +50,8 @@ import { LessonFormComponent } from './components/lesson-form/lesson-form.compon
     CourseDetailsTutorComponent,
     CourseEditTutorComponent,
     LessonFormComponent,
+    LessonDetailsTutorComponent,
+    LessonDetailsComponent,
   ],
   imports: [
     BrowserModule,

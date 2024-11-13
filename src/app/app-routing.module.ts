@@ -15,7 +15,7 @@ import { MyCoursesStudentComponent } from './components/my-courses-student/my-co
 import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
 import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
 import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
-
+import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';  
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -33,10 +33,15 @@ const routes: Routes = [
   { path: 'course-details-tutor', component: CourseDetailsTutorComponent },
   { path: 'course-edit-tutor', component: CourseEditTutorComponent },
   { path: 'lesson-form/:id', component: LessonFormComponent },
+  { path: 'lesson-details/:id', component: LessonDetailsComponent }
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule {
+
+  userId: number | null = null;
+
+}
