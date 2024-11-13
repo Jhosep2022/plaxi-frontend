@@ -31,6 +31,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';
+import { LessonEditComponent } from './components/lesson-edit/lesson-edit.component';
+import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCardModule } from '@angular/material/card';
+import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 import { TemaFormComponent } from './components/tema-form/tema-form.component';
 
 @NgModule({
@@ -54,6 +60,9 @@ import { TemaFormComponent } from './components/tema-form/tema-form.component';
     CourseEditTutorComponent,
     LessonFormComponent,
     LessonDetailsComponent,
+    LessonEditComponent,
+    ConfirmationDialogComponent,
+    ThemeEditComponent,
     TemaFormComponent
   ],
   imports: [
@@ -70,7 +79,10 @@ import { TemaFormComponent } from './components/tema-form/tema-form.component';
     MatSnackBarModule,
     MatToolbarModule,
     MatButtonModule,
-    MatInputModule
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatCardModule
   ],
   providers: [],
   bootstrap: [AppComponent],

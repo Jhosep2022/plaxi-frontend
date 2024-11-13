@@ -54,7 +54,7 @@ export class LeccionService {
   
   // Actualizar lección
   updateLeccion(leccionDto: LeccionDto): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update`, leccionDto);
+    return this.http.put(`${this.apiUrl}/update`, leccionDto, { responseType: 'text' });
   }
 
   // Eliminar una lección por ID

@@ -1,3 +1,5 @@
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
 :root {
   --dark-blue: #0a0a23;
   --light-cream: #f6e7d8;

@@ -1,0 +1,57 @@
+<mat-card class="lesson-edit-card">
+  <mat-card-title>Editar Lección</mat-card-title>
+  <mat-card-content>
+    <form [formGroup]="lessonForm" (ngSubmit)="onSubmit()">
+      <!-- Título -->
+      <mat-form-field appearance="fill">
+        <mat-label>Título de la lección</mat-label>
+        <input matInput formControlName="titulo" />
+        <mat-error *ngIf="lessonForm.get('titulo')?.invalid && lessonForm.get('titulo')?.touched">
+          {{ getErrorMessage('titulo') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Contenido -->
+      <mat-form-field appearance="fill">
+        <mat-label>Contenido</mat-label>
+        <textarea matInput formControlName="contenido" rows="4"></textarea>
+        <mat-error *ngIf="lessonForm.get('contenido')?.invalid && lessonForm.get('contenido')?.touched">
+          {{ getErrorMessage('contenido') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Duración Estimada -->
+      <mat-form-field appearance="fill">
+        <mat-label>Duración Estimada (minutos)</mat-label>
+        <input matInput type="number" formControlName="duracionEstimada" />
+        <mat-error *ngIf="lessonForm.get('duracionEstimada')?.invalid && lessonForm.get('duracionEstimada')?.touched">
+          {{ getErrorMessage('duracionEstimada') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Orden -->
+      <mat-form-field appearance="fill">
+        <mat-label>Orden</mat-label>
+        <input matInput type="number" formControlName="orden" />
+        <mat-error *ngIf="lessonForm.get('orden')?.invalid && lessonForm.get('orden')?.touched">
+          {{ getErrorMessage('orden') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Estado -->
+      <mat-form-field appearance="fill">
+        <mat-label>Estado de la lección</mat-label>
+        <mat-select formControlName="estado">
+          <mat-option [value]="true">Activo</mat-option>
+          <mat-option [value]="false">Inactivo</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Botones -->
+      <div class="button-group">
+        <button mat-raised-button type="submit">Guardar Cambios</button>
+        <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

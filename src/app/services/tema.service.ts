@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { TemaDto } from '../models/TemaDto'; //src\app\models\temaDto.ts
 import { PaginadoDto } from '../models/PaginadoDto'; //src\app\models\paginadoDto.ts
@@ -66,20 +66,24 @@ export class TemaService {
   
 
   // Actualizar un tema existente con archivo
-  updateTema(idTema: number, temaDto: TemaDto, file: File): Observable<any> {
+  updateTema(idTema: number, temaDto: TemaDto, file?: File): Observable<any> {
     const formData: FormData = new FormData();
     formData.append('idTema', idTema.toString());
     formData.append('titulo', temaDto.titulo);
     formData.append('orden', temaDto.orden.toString());
     formData.append('descripcion', temaDto.descripcion);
     formData.append('leccionId', temaDto.leccionId.toString());
-    formData.append('file', file);
-
-    return this.http.put<any>(`${this.apiUrl}/update`, formData)
+    formData.append('estado', temaDto.estado.toString());
+  
+    if (file) {
+      formData.append('file', file);
+    }
+  
+    return this.http.put(`${this.apiUrl}/update`, formData, { responseType: 'text' })
       .pipe(
         catchError(this.handleError)
       );
-  }
+  }  
 
   // Eliminar un tema por ID
   deleteTema(idTema: number): Observable<void> {
@@ -100,8 +104,16 @@ export class TemaService {
   }
 
   // Manejo de errores
-  private handleError(error: any): Observable<never> {
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Ocurrió un error con la API.';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side or network error
+      errorMessage = `Error del lado del cliente: ${error.error.message}`;
+    } else {
+      // Backend error
+      errorMessage = `Error del servidor: ${error.status} ${error.message}`;
+    }
     console.error('Error en la petición HTTP:', error);
-    throw new Error('Ocurrió un error con la API. Por favor, verifica la consola para más detalles.');
-  }
+    return throwError(() => new Error(errorMessage));
+  }  
 }

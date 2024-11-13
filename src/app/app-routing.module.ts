@@ -16,6 +16,8 @@ import { CourseDetailsTutorComponent } from './components/course-details-tutor/c
 import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
 import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
 import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component'; 
+import { LessonEditComponent } from './components/lesson-edit/lesson-edit.component';
+import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 import { TemaFormComponent } from './components/tema-form/tema-form.component'; 
 
 const routes: Routes = [
@@ -35,7 +37,9 @@ const routes: Routes = [
   { path: 'course-edit-tutor', component: CourseEditTutorComponent },
   { path: 'lesson-form/:id', component: LessonFormComponent },
   { path: 'lesson-details/:id', component: LessonDetailsComponent },
-  { path: 'tema-form/:id', component: TemaFormComponent }
+  { path: 'tema-form/:id', component: TemaFormComponent },
+  { path: 'lesson-edit/:id', component: LessonEditComponent },
+  { path: 'theme-edit/:id', component: ThemeEditComponent }
 ];
 
 @NgModule({
