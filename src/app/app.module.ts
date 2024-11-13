@@ -31,6 +31,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';
+import { TemaFormComponent } from './components/tema-form/tema-form.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +53,8 @@ import { LessonDetailsComponent } from './components/lesson-details/lesson-detai
     CourseDetailsTutorComponent,
     CourseEditTutorComponent,
     LessonFormComponent,
-    LessonDetailsComponent
+    LessonDetailsComponent,
+    TemaFormComponent
   ],
   imports: [
     BrowserModule,

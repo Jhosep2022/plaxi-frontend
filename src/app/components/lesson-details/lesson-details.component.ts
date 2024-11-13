@@ -9,6 +9,7 @@ import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
 
 import { TemaService } from 'src/app/services/tema.service';
+import { TemaDto } from 'src/app/models/TemaDto';
 
 @Component({
   selector: 'app-lesson-details',
@@ -19,12 +20,12 @@ export class LessonDetailsComponent implements OnInit {
   course: CursoDto | null = null;
   leccion: LeccionDto | null = null;
   userId: number | null = null;
-  lecciones: LeccionDto[] = []; // Variable para almacenar las lecciones del curso
+  temas: TemaDto[] = []; // Variable para almacenar las lecciones del curso
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private cursoService: CourseService,
+    private temaService: TemaService,
     private leccionService: LeccionService, // Agrega el servicio de lecciones
     private snackBar: MatSnackBar
   ) {}
@@ -43,8 +44,20 @@ export class LessonDetailsComponent implements OnInit {
 
     if (lessonId) {
       this.loadLessonDetails(lessonId);
-      //this.loadLessons(lessonId); // Cargar lecciones del curso
+      this.loadTemas(lessonId); 
     }
+  }
+
+  loadTemas(lessonId: number) {
+    const paginadoDto = { page: 0, size: 10, sortBy: 'orden', sortDir: 'desc' };
+    this.temaService.getTemasByLeccion(lessonId, paginadoDto).subscribe(
+      (response) => {
+        this.temas = response.content; // Ajusta esto según la respuesta
+      },
+      (error) => {
+        console.error('Error al cargar los temas del curso:', error);
+      }
+    );
   }
 
   // Método para cargar los detalles de la lección

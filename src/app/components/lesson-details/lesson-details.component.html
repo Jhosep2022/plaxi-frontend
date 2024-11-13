@@ -11,24 +11,23 @@
   
     <div class="button-container">
       <button class="enroll-btn" [routerLink]="['/lesson-form', leccion.idLeccion]">Editar leccion</button>
-      <button class="enroll-btn" [routerLink]="['/lesson-form', leccion.idLeccion]">Agregar tema</button>
+      <button class="enroll-btn" [routerLink]="['/tema-form', leccion.idLeccion]">Agregar tema</button>
       <button class="back-btn" (click)="goBack()">Volver al curso</button>
     </div>
   
     <!-- Lista de temas -->
-    <div *ngIf="lecciones.length > 0" class="lessons-list">
-      <h3>Lecciones:</h3>
+    <div *ngIf="temas.length > 0" class="lessons-list">
+      <h3>Temas:</h3>
       <ul>
-        <li *ngFor="let leccion of lecciones">
-          <h4>{{ leccion.titulo }}</h4>
-          <p><strong>Orden:</strong> {{ leccion.orden }}</p>
-          <p><strong>Duración:</strong> {{ leccion.duracionEstimada }} minutos</p>
-          <p><strong>Contenido:</strong> {{ leccion.contenido }}</p>
-          <button class="enroll-btn" [routerLink]="['/lesson-details', leccion.idLeccion]">Ver lección</button>
+        <li *ngFor="let tema of temas">
+          <h4>{{ tema.titulo }}</h4>
+          <p><strong>Orden:</strong> {{ tema.orden }}</p>
+          <p><strong>Descripción</strong> {{ tema.descripcion }} minutos</p>
+          <button class="enroll-btn" [routerLink]="['/lesson-details', leccion.idLeccion]">Ver tema</button>
         </li>
       </ul>
     </div>
-    <p *ngIf="lecciones.length === 0">No hay temas disponibles para esta leccion.</p>
+    <p *ngIf="temas.length === 0">No hay temas disponibles para esta leccion.</p>
   </div>
   
   <div *ngIf="!leccion" class="no-course-message">

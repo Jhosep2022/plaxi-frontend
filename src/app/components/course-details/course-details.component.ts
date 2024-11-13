@@ -54,7 +54,7 @@ export class CourseDetailsComponent implements OnInit {
 
   // Método para cargar las lecciones del curso
   loadLessons(courseId: number): void {
-    const paginadoDto = { page: 0, size: 10, sortBy: 'titulo', sortDir: 'desc' };
+    const paginadoDto = { page: 0, size: 10, sortBy: 'orden', sortDir: 'desc' };
     this.leccionService.getLeccionesByCurso(courseId, paginadoDto).subscribe(
       (response) => {
         this.lecciones = response.content; // Ajusta esto según la respuesta

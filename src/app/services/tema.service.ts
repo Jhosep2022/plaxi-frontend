@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { TemaDto } from '../models/TemaDto'; //src\app\models\temaDto.ts
 import { PaginadoDto } from '../models/PaginadoDto'; //src\app\models\paginadoDto.ts
 import { environment } from '../../environments/environment';
@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
 })
 export class TemaService {
 
-  private apiUrl = `${environment.API_URL}/api/tema`;
+  private apiUrl = `${environment.API_URL}/tema`;
 
   constructor(private http: HttpClient) {}
 
@@ -32,9 +32,15 @@ export class TemaService {
       );
   }
 
-  // Obtener temas por lección con paginación
+  // Obtener temas por lección con paginación (método GET)
   getTemasByLeccion(leccionId: number, paginadoDto: PaginadoDto): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/leccion/${leccionId}`, paginadoDto, this.httpOptions())
+    const params = new HttpParams()
+      .set('page', paginadoDto.page.toString())
+      .set('size', paginadoDto.size.toString())
+      .set('sortBy', paginadoDto.sortBy)
+      .set('sortDir', paginadoDto.sortDir);
+
+    return this.http.get<any>(`${this.apiUrl}/leccion/${leccionId}`, { params })
       .pipe(
         catchError(this.handleError)
       );
@@ -48,12 +54,16 @@ export class TemaService {
     formData.append('descripcion', temaDto.descripcion);
     formData.append('leccionId', temaDto.leccionId.toString());
     formData.append('file', file);
-
-    return this.http.post<any>(`${this.apiUrl}/create`, formData)
+  
+    return this.http.post(`${this.apiUrl}/create`, formData, { responseType: 'text' })
       .pipe(
+        tap((response) => {
+          console.log('Respuesta del servidor:', response);
+        }),
         catchError(this.handleError)
       );
   }
+  
 
   // Actualizar un tema existente con archivo
   updateTema(idTema: number, temaDto: TemaDto, file: File): Observable<any> {

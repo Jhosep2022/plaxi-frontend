@@ -1,0 +1,79 @@
+<div class="course-form">
+    <!-- Encabezado con iconos y título en la misma fila -->
+    <div class="header-container">
+      <h2 class="header-title">Configurar un nuevo tema</h2>
+      <div class="header-icons">
+        <!-- Botón para cancelar -->
+        <button type="button" class="icon-btn close-btn" (click)="onCancel()">
+          <svg height="28" width="28" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  
+    <!-- Asociar el evento ngSubmit al formulario en lugar del botón -->
+    <form [formGroup]="temaForm" (ngSubmit)="onSubmit()">
+      <!-- Sección de detalles del lección -->
+      <div class="details-section">
+        <!-- Campo de Título del lección -->
+        <div class="form-group input-group">
+          <label for="titulo">Título del tema</label>
+          <div class="input-wrapper">
+            <input id="titulo" type="text" formControlName="titulo" placeholder="Título del tema">
+          </div>
+          <!-- Mensaje de error para el campo de título -->
+          <span *ngIf="temaForm.get('titulo')?.touched && temaForm.get('titulo')?.invalid" class="error-message">
+            {{ getErrorMessage('titulo') }}
+          </span>
+        </div>
+        
+        <!-- Campo de descripcion del tema -->
+        <div class="form-group input-group">
+          <label for="descripcion">Descripción</label>
+          <div class="input-wrapper">
+            <textarea id="descripcion" formControlName="descripcion" rows="2" placeholder="Descripción del tema"></textarea>
+          </div>
+          <!-- Mensaje de error para el campo de descripción -->
+          <span *ngIf="temaForm.get('descripcion')?.touched && temaForm.get('descripcion')?.invalid" class="error-message">
+            {{ getErrorMessage('descripcion') }}
+          </span>
+        </div>    
+
+        <div class="form-group input-group">
+            <label for="file">Archivo multimedia</label>
+            <div class="input-wrapper">
+              <input id="file" type="file" (change)="onFileSelected($event)" accept=".jpg, .jpeg, .png" />
+            </div>
+            <!-- Mensaje de error para el campo de portada -->
+            <span *ngIf="fileError" class="error-message">
+              {{ fileError }}
+            </span>
+          </div>
+    
+          <!-- Mostrar la imagen de vista previa si existe -->
+          <div *ngIf="previewUrl" class="image-preview">
+            <img [src]="previewUrl" alt="Vista previa de la imagen" class="preview-image" />
+          </div>
+        
+        <!-- Fila con Estado del tema -->
+        <div class="form-group input-group">
+            <label for="estado">Estado del tema</label>
+            <div class="input-wrapper">
+                <select id="estado" formControlName="estado">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+                </select>
+            </div>
+        </div>
+      </div>
+  
+      <!-- Nuevo botón de enviar debajo del formulario -->
+      <div class="form-group submit-group">
+        <button type="submit" class="submit-btn">
+          Enviar tema
+        </button>
+      </div>
+    </form>
+  </div>
+  
