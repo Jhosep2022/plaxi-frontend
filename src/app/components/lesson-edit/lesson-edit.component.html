@@ -1,0 +1,51 @@
+<div class="lesson-edit-form">
+    <h2>Editar Lección</h2>
+    <form [formGroup]="lessonForm" (ngSubmit)="onSubmit()">
+      <!-- Título -->
+      <div>
+        <label for="titulo">Título</label>
+        <input id="titulo" formControlName="titulo" type="text" />
+        <div *ngIf="lessonForm.get('titulo')?.invalid && lessonForm.get('titulo')?.touched">
+          {{ getErrorMessage('titulo') }}
+        </div>
+      </div>
+      <!-- Contenido -->
+      <div>
+        <label for="contenido">Contenido</label>
+        <textarea id="contenido" formControlName="contenido"></textarea>
+        <div *ngIf="lessonForm.get('contenido')?.invalid && lessonForm.get('contenido')?.touched">
+          {{ getErrorMessage('contenido') }}
+        </div>
+      </div>
+      <!-- Duración Estimada -->
+      <div>
+        <label for="duracionEstimada">Duración Estimada</label>
+        <input id="duracionEstimada" formControlName="duracionEstimada" type="number" />
+        <div *ngIf="lessonForm.get('duracionEstimada')?.invalid && lessonForm.get('duracionEstimada')?.touched">
+          {{ getErrorMessage('duracionEstimada') }}
+        </div>
+      </div>
+      <!-- Orden -->
+      <div>
+        <label for="orden">Orden</label>
+        <input id="orden" formControlName="orden" type="number" />
+        <div *ngIf="lessonForm.get('orden')?.invalid && lessonForm.get('orden')?.touched">
+          {{ getErrorMessage('orden') }}
+        </div>
+      </div>
+      <!-- Estado -->
+      <div>
+        <label for="estado">Estado</label>
+        <select id="estado" formControlName="estado">
+          <option [ngValue]="true">Activo</option>
+          <option [ngValue]="false">Inactivo</option>
+        </select>
+      </div>
+      <!-- Botones -->
+      <div class="buttons">
+        <button type="submit">Guardar Cambios</button>
+        <button type="button" (click)="onCancel()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+  

@@ -31,6 +31,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';
+import { LessonEditComponent } from './components/lesson-edit/lesson-edit.component';
+import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +54,9 @@ import { LessonDetailsComponent } from './components/lesson-details/lesson-detai
     CourseDetailsTutorComponent,
     CourseEditTutorComponent,
     LessonFormComponent,
-    LessonDetailsComponent
+    LessonDetailsComponent,
+    LessonEditComponent,
+    ConfirmationDialogComponent
   ],
   imports: [
     BrowserModule,
