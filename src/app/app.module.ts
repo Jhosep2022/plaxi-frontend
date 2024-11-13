@@ -33,6 +33,9 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';
 import { LessonEditComponent } from './components/lesson-edit/lesson-edit.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCardModule } from '@angular/material/card';
 
 @NgModule({
   declarations: [
@@ -72,7 +75,10 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
     MatSnackBarModule,
     MatToolbarModule,
     MatButtonModule,
-    MatInputModule
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatCardModule
   ],
   providers: [],
   bootstrap: [AppComponent],
