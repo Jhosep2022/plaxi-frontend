@@ -83,12 +83,9 @@ export class LessonFormComponent implements OnInit {
 
   // Método para enviar el formulario
   onSubmit() {
-    console.log('Botón de enviar presionado.');
-
     const courseId = Number(this.route.snapshot.paramMap.get('id'));
 
     if (this.lessonForm.valid && this.userId !== null && courseId) {
-      // Crear el objeto de datos en formato JSON
       const leccionDto = {
         titulo: this.lessonForm.value.nombre,
         orden: this.lessonForm.value.orden,
@@ -98,37 +95,34 @@ export class LessonFormComponent implements OnInit {
         estado: this.lessonForm.value.estado
       };
 
-      console.log('Datos enviados en JSON:', leccionDto);
-
-      // Llamar al servicio para crear la lección con JSON
       this.leccionService.createLeccion(leccionDto).subscribe({
-        next: (response) => {
-          console.log('Respuesta del servicio:', response);
+        next: () => {
           this.snackBar.open('¡La lección se ha creado exitosamente!', 'Cerrar', {
             duration: 3000,
             horizontalPosition: 'center',
             verticalPosition: 'top',
-            panelClass: ['success-snackbar'],
+            panelClass: ['success-snackbar']
           });
           setTimeout(() => {
-            this.router.navigate(['/my-courses']); // Redirigir a la lista de cursos
+            this.router.navigate(['/my-courses']);
           }, 3000);
         },
-        error: (error) => {
-          console.error('Error al crear la lección:', error);
+        error: () => {
           this.snackBar.open('Error al crear la lección. Por favor, revisa los campos.', 'Cerrar', {
             duration: 3000,
             horizontalPosition: 'center',
             verticalPosition: 'top',
-            panelClass: ['error-snackbar'],
+            panelClass: ['error-snackbar']
           });
-        },
+        }
       });
     } else {
-      console.error('Formulario no válido o falta información.');
-      console.log('Datos actuales del formulario:', this.lessonForm.value);
-      console.log('ID del usuario actual:', this.userId);
-      console.log('ID del curso:', courseId);
+      this.snackBar.open('Error al crear la lección. Por favor, revisa los campos.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
     }
   }
 

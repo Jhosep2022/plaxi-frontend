@@ -23,12 +23,12 @@ export class CourseCategoryListComponent implements OnInit {
   ];
 
   // Lista de cursos obtenida de la API
-  courses: CursoDto[] = []; // Inicializa como un array vacío para almacenar cursos desde la API
-  filteredCourses: CursoDto[] = []; // Cursos filtrados por categoría
-  pagedCourses: CursoDto[] = []; // Cursos mostrados en la página actual
-  selectedCategory: Category | null = null; // Categoría seleccionada
+  courses: CursoDto[] = [];
+  filteredCourses: CursoDto[] = [];
+  pagedCourses: CursoDto[] = [];
+  selectedCategory: Category | null = null;
   currentPage: number = 1;
-  itemsPerPage: number = 6; // Número de cursos por página
+  itemsPerPage: number = 6;
   totalPages: number = 1;
 
   constructor(private router: Router, private cursoService: CourseService) {}
@@ -45,9 +45,9 @@ export class CourseCategoryListComponent implements OnInit {
   getCoursesFromApi(): void {
     this.cursoService.getAllCursos().subscribe({
       next: (data) => {
-        this.courses = data; // Actualiza la lista de cursos con la respuesta de la API
+        this.courses = data;
         console.log('Cursos obtenidos de la API:', this.courses);
-        this.filterCoursesByCategory(); // Filtrar los cursos por la categoría seleccionada (si hay alguna)
+        this.filterCoursesByCategory();
       },
       error: (err) => {
         console.error('Error al obtener cursos desde la API:', err);
@@ -94,7 +94,7 @@ export class CourseCategoryListComponent implements OnInit {
 
   // Redirigir a la página de detalles del curso
   viewCourse(course: CursoDto): void {
-    this.router.navigate(['/course-details', course.idCurso]); // Navegar a la vista de detalles del curso con el ID del curso
+    this.router.navigate(['/course-details', course.idCurso]); 
   }
 
 }

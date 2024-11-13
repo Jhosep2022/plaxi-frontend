@@ -10,6 +10,7 @@ import { PerfilDto } from '../../models/PerfilDto';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
 })
+
 export class NavbarComponent implements OnInit {
   // Iconos
   faBars = faBars;

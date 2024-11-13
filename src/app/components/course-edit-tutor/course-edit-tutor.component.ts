@@ -56,7 +56,7 @@ export class CourseEditTutorComponent implements OnInit {
 
         const reader = new FileReader();
         reader.onload = () => {
-          this.previewUrl = reader.result;
+          this.previewUrl = reader.result as string; // Convierte a base64
         };
         reader.readAsDataURL(file);
 
@@ -68,6 +68,7 @@ export class CourseEditTutorComponent implements OnInit {
       }
     }
   }
+
 
   onSubmit() {
     if (this.courseForm.valid) {
