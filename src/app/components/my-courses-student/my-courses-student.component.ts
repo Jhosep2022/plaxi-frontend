@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service'; // Importar el servicio de inscripciones
 import { InscripcionResponseDto } from '../../models/inscripcionDto'; // Importar el modelo de la inscripción
 import { MatSnackBar } from '@angular/material/snack-bar'; // Importar MatSnackBar para notificaciones
+import { AuthService } from 'src/app/services/auth.service';
 
 interface Course {
   id: number;
@@ -20,21 +21,33 @@ interface Course {
 })
 export class MyCoursesStudentComponent implements OnInit {
   courses: Course[] = []; // Cursos inscritos por el usuario
-  userId: number = 1002; // ID del usuario logueado (asegúrate de usar el ID correcto aquí)
+  userId: number | null = null; // ID del usuario logueado (asegúrate de usar el ID correcto aquí)
 
   constructor(
     private router: Router,
     private inscripcionService: InscripcionService, // Inyectar el servicio de inscripciones
-    private snackBar: MatSnackBar // Servicio para notificaciones
+    private snackBar: MatSnackBar, // Servicio para notificaciones
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    // Llamar al método para cargar los cursos inscritos al iniciar el componente
-    this.loadUserCourses();
+    // Obtener el ID del usuario actualmente logueado
+    this.userId = this.authService.getCurrentUserId();
+    if(this.userId !== null){
+      this.loadUserCourses();
+    } else{
+      this.snackBar.open('Debes iniciar sesion para ver tus cursos.', 'Cerrar', {
+        duration: 3000
+      });
+    }
   }
 
   // Método para cargar los cursos inscritos del usuario
   loadUserCourses(): void {
+    if(this.userId === null){
+      return;
+    }
+
     this.inscripcionService.getInscripcionesByUsuarioId(this.userId).subscribe({
       next: (inscripciones) => {
         console.log('Inscripciones obtenidas del backend:', inscripciones);
