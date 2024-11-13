@@ -11,7 +11,7 @@
         </button>
       </div>
     </div>
-  
+
     <!-- Asociar el evento ngSubmit al formulario en lugar del botón -->
     <form [formGroup]="lessonForm" (ngSubmit)="onSubmit()">
       <!-- Sección de detalles del lección -->
@@ -39,7 +39,7 @@
               {{ getErrorMessage('orden') }}
             </span>
         </div>
-        
+
         <!-- Campo de Duracion del lección -->
         <div class="form-group input-group">
             <label for="duracion">Duración</label>
@@ -62,10 +62,10 @@
           <span *ngIf="lessonForm.get('contenido')?.touched && lessonForm.get('contenido')?.invalid" class="error-message">
             {{ getErrorMessage('contenido') }}
           </span>
-        </div>    
-  
+        </div>
+
         <!-- Fila con Estado del Curso -->
-    
+
         <div class="form-group input-group">
             <label for="estado">Estado de la lección</label>
             <div class="input-wrapper">
@@ -76,13 +76,12 @@
             </div>
         </div>
       </div>
-  
+
       <!-- Nuevo botón de enviar debajo del formulario -->
       <div class="form-group submit-group">
-        <button type="submit" class="submit-btn">
-          Enviar lección
+        <button class="button-group submit-btn green-btn" type="submit">
+          Crear lección
         </button>
       </div>
     </form>
   </div>
-  
