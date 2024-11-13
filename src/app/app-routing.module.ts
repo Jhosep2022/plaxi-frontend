@@ -17,6 +17,7 @@ import { CourseEditTutorComponent } from './components/course-edit-tutor/course-
 import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
 import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';  
 import { LessonEditComponent } from './components/lesson-edit/lesson-edit.component';
+import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -35,7 +36,8 @@ const routes: Routes = [
   { path: 'course-edit-tutor', component: CourseEditTutorComponent },
   { path: 'lesson-form/:id', component: LessonFormComponent },
   { path: 'lesson-details/:id', component: LessonDetailsComponent },
-  { path: 'lesson-edit/:id', component: LessonEditComponent }
+  { path: 'lesson-edit/:id', component: LessonEditComponent },
+  { path: 'theme-edit/:id', component: ThemeEditComponent }
 ];
 
 @NgModule({

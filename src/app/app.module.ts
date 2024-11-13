@@ -36,6 +36,7 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
+import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 
 @NgModule({
   declarations: [
@@ -59,7 +60,8 @@ import { MatCardModule } from '@angular/material/card';
     LessonFormComponent,
     LessonDetailsComponent,
     LessonEditComponent,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    ThemeEditComponent
   ],
   imports: [
     BrowserModule,
