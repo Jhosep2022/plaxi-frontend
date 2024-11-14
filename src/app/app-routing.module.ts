@@ -15,10 +15,10 @@ import { MyCoursesStudentComponent } from './components/my-courses-student/my-co
 import { CourseDetailsTutorComponent } from './components/course-details-tutor/course-details-tutor.component';
 import { CourseEditTutorComponent } from './components/course-edit-tutor/course-edit-tutor.component';
 import { LessonFormComponent } from './components/lesson-form/lesson-form.component';
-import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component'; 
+import { LessonDetailsComponent } from './components/lesson-details/lesson-details.component';
 import { LessonEditComponent } from './components/lesson-edit/lesson-edit.component';
 import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
-import { TemaFormComponent } from './components/tema-form/tema-form.component'; 
+import { TemaFormComponent } from './components/tema-form/tema-form.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -33,7 +33,7 @@ const routes: Routes = [
   { path: 'course-categories', component: CourseCategoryListComponent },
   { path: 'course-details/:id', component: CourseDetailsComponent },
   { path: 'my-courses-student', component: MyCoursesStudentComponent },
-  { path: 'course-details-tutor', component: CourseDetailsTutorComponent },
+  { path: 'course-details-tutor/:id', component: CourseDetailsTutorComponent },
   { path: 'course-edit-tutor', component: CourseEditTutorComponent },
   { path: 'lesson-form/:id', component: LessonFormComponent },
   { path: 'lesson-details/:id', component: LessonDetailsComponent },

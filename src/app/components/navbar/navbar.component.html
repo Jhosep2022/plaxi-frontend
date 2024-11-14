@@ -33,7 +33,7 @@
 
       <div class="user-info">
         <span class="username">{{ userProfile?.nombre }} {{ userProfile?.primerApellido }}</span>
-        <span class="role">{{ userProfile?.status ? 'Learner' : 'Inactive' }}</span>
+        <span class="role">{{ userRole }}</span>
       </div>
 
       <fa-icon [icon]="faChevronDown" class="dropdown-arrow"></fa-icon>

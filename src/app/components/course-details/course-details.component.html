@@ -1,6 +1,9 @@
 <div *ngIf="course" class="course-details-container">
-  <h2 class="course-title">{{ course.nombre }}</h2>
-  <img [src]="course.portada || 'assets/default-image.png'" alt="Course Image" class="course-image" />
+  <!-- Contenedor para la imagen y el título superpuesto -->
+  <div class="course-image">
+    <img [src]="course.portada || 'assets/default-image.png'" alt="Course Image" class="course-image" />
+    <div class="course-title-overlay">{{ course.nombre }}</div>
+  </div>
 
   <div class="course-info">
     <p><strong>Descripción:</strong> {{ course.descripcion }}</p>
@@ -10,7 +13,6 @@
 
   <div class="button-container">
     <button class="enroll-btn" (click)="enrollInCourse()" *ngIf="!isEnrolled">Inscribirse en el Curso</button>
-    <button class="enroll-btn" [routerLink]="['/lesson-form', course.idCurso]">Agregar lección</button>
     <p *ngIf="isEnrolled" class="enrolled-message">Ya estás inscrito en este curso</p>
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
   </div>

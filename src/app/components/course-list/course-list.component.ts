@@ -47,16 +47,9 @@ export class CourseListComponent implements OnInit {
 
   // Redirigir a la vista de detalles del curso
   openCourse(course: CursoDto) {
-    this.router.navigate(['/course-details-tutor'], {
-      queryParams: {
-        id: course.idCurso,
-        name: course.nombre,
-        description: course.descripcion,
-        difficulty: course.dificultad,
-        image: course.portada
-      }
-    });
+    this.router.navigate(['/course-details-tutor', course.idCurso]);
   }
+
 
   // Redirigir al formulario de creación de curso
   openCourseForm(): void {

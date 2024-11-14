@@ -38,6 +38,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 import { TemaFormComponent } from './components/tema-form/tema-form.component';
+import { SnackBarComponent } from './shared/snack-bar/snack-bar.component';
 
 @NgModule({
   declarations: [
@@ -63,7 +64,8 @@ import { TemaFormComponent } from './components/tema-form/tema-form.component';
     LessonEditComponent,
     ConfirmationDialogComponent,
     ThemeEditComponent,
-    TemaFormComponent
+    TemaFormComponent,
+    SnackBarComponent
   ],
   imports: [
     BrowserModule,

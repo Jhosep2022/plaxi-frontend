@@ -1,0 +1,3 @@
+<!-- snack-bar.component.html -->
+<span>{{ data.message }}</span>
+<button mat-button *ngIf="data.action" (click)="data.action()">{{ data.actionLabel }}</button>

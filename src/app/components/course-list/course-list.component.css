@@ -24,14 +24,13 @@
 /* Tarjetas de curso */
 .course-card {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   background: var(--text-light);
-  padding: 20px;
   border-radius: 12px;
   margin-bottom: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden; /* Asegura que la imagen se ajuste sin bordes adicionales */
 }
 
 .course-card:hover {
@@ -46,15 +45,16 @@
 }
 
 .course-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  margin-right: 20px;
+  width: 200px; /* Ajusta el ancho para que ocupe todo el lado izquierdo */
+  height: 100%;
   object-fit: cover;
   background-color: var(--lime-green);
+  flex-shrink: 0; /* Evita que la imagen se reduzca */
 }
 
 .course-details {
+  flex: 1;
+  padding: 20px; /* Espacio entre la imagen y los detalles */
   display: flex;
   flex-direction: column;
 }
@@ -66,16 +66,19 @@
   color: var(--dark-blue);
 }
 
-.course-date,
-.course-enrollment {
+.course-description,
+.course-difficulty,
+.course-status {
   font-size: 15px;
   color: #444;
+  margin: 5px 0;
 }
 
 /* Botón de apertura del curso */
 .open-btn-container {
   display: flex;
   align-items: center;
+  margin-right: 30px;
 }
 
 .open-btn {
@@ -83,10 +86,9 @@
   color: var(--dark-blue);
   border: none;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
   padding: 0;
-  margin-right: 5px;
   transition: color 0.2s;
 }
 
@@ -94,13 +96,13 @@
   color: var(--lime-green);
 }
 
-/* Fondo de la flecha */
+/* Fondo del botón Abrir */
 .open-btn-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 45px; /* Aumentar el tamaño del contenedor */
-  height: 45px; /* Aumentar el tamaño del contenedor */
+  width: 45px;
+  height: 45px;
   background: var(--lime-green);
   border-radius: 50%;
   transition: background 0.2s;
@@ -111,9 +113,9 @@
 }
 
 .open-btn-icon svg {
-  width: 22px; /* Aumentar el tamaño del icono SVG */
-  height: 22px; /* Aumentar el tamaño del icono SVG */
-  fill: white; /* Color del ícono de la flecha */
+  width: 22px;
+  height: 22px;
+  fill: white;
 }
 
 /* Botón para crear nuevo curso */

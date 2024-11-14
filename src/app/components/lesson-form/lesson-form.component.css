@@ -193,6 +193,28 @@
   }
 
   .submit-btn {
-    background-color: #00FF00;
-    color: var(--dark-blue);
-}
+    background: var(--dark-blue);
+    color: var(--text-light);
+    border: none;
+    border-radius: 50px;
+    padding: 12px 30px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+
+  .submit-btn:hover {
+    background: #080820; /* Color oscuro al pasar el mouse */
+  }
+
+  .success-snackbar {
+    background-color: #4caf50; /* Verde para éxito */
+    color: #ffffff;
+  }
+
+  .error-snackbar {
+    background-color: #f44336; /* Rojo para error */
+    color: #ffffff;
+  }
+

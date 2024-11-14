@@ -1,23 +1,40 @@
-<div class="course-details-container">
-  <h2 class="course-title">{{ course.name }}</h2>
-  <img [src]="course.image" alt="Course Image" class="course-image" />
+<div *ngIf="course" class="course-details-container">
+  <!-- Contenedor para la imagen y el título superpuesto -->
+  <div class="course-image">
+    <img [src]="course.portada || 'assets/default-image.png'" alt="Course Image" class="course-image" />
+    <div class="course-title-overlay">{{ course.nombre }}</div>
+  </div>
 
   <div class="course-info">
-    <p><strong>Descripción:</strong> Curso sobre {{ course.name }}.</p>
-    <p><strong>Fecha:</strong> {{ course.date | date: 'dd/MM/yyyy' }} a las {{ course.time }}</p>
-    <p><strong>No. de estudiantes inscritos:</strong> {{ course.studentsEnrolled }}</p>
+    <p><strong>Descripción:</strong> {{ course.descripcion }}</p>
+    <p><strong>Dificultad:</strong> {{ course.dificultad }}</p>
+    <p><strong>Categoría:</strong> {{ course.categoriaId }}</p>
   </div>
 
   <div class="button-container">
-    <!-- Botón para redirigir a la página de edición del curso -->
-    <button class="enroll-btn" (click)="editCourse()">
-      Editar Mi Curso
-    </button>
-
-    <!-- Botón para volver -->
+    <button class="enroll-btn" (click)="enrollInCourse()" *ngIf="!isEnrolled">Inscribirse en el Curso</button>
+    <button class="enroll-btn" [routerLink]="['/lesson-form', course.idCurso]">Agregar lección</button>
+    <p *ngIf="isEnrolled" class="enrolled-message">Ya estás inscrito en este curso</p>
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
-
-    <!-- Nuevo botón para eliminar el curso -->
-    <button class="enroll-btn" (click)="deleteCourse()">Eliminar Curso</button>
   </div>
+
+  <!-- Lista de lecciones -->
+  <div *ngIf="lecciones.length > 0" class="lessons-list">
+    <h3>Lecciones:</h3>
+    <ul>
+      <li *ngFor="let leccion of lecciones">
+        <h4>{{ leccion.titulo }}</h4>
+        <p><strong>Orden:</strong> {{ leccion.orden }}</p>
+        <p><strong>Duración:</strong> {{ leccion.duracionEstimada }} minutos</p>
+        <p><strong>Contenido:</strong> {{ leccion.contenido }}</p>
+        <button class="enroll-btn" [routerLink]="['/lesson-details', leccion.idLeccion]">Ver lección</button>
+      </li>
+    </ul>
+  </div>
+  <p *ngIf="lecciones.length === 0">No hay lecciones disponibles para este curso.</p>
+</div>
+
+<div *ngIf="!course" class="no-course-message">
+  <p>Curso no encontrado.</p>
+  <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
 </div>
