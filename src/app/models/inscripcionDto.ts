@@ -13,4 +13,6 @@ export interface InscripcionResponseDto {
   cursoId: number;
   cursoNombre: string;
   usuarioCreadorId: number | null;
+  cursoDescripcion: string;
+  cursoPortadaUrl: string | null;
 }

@@ -70,8 +70,8 @@ export class CourseDetailsComponent implements OnInit {
   enrollInCourse(): void {
     if (this.course && this.userId !== null) {
       const inscripcionDto = {
-        usuarioId: this.userId,
-        cursoId: this.course.idCurso
+        usuarioId: this.userId,  // ID del usuario autenticado
+        cursoId: this.course.idCurso  // ID del curso seleccionado
       };
 
       this.inscripcionService.createInscripcion(inscripcionDto).subscribe({
@@ -103,6 +103,7 @@ export class CourseDetailsComponent implements OnInit {
       });
     }
   }
+
 
   lessonDetails(leccionId: number): void {
     // Aquí puedes implementar la lógica para redirigir al usuario a una pantalla de creación de tema

@@ -1,13 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
-import { PaginadoDto } from 'src/app/models/PaginadoDto';
 import { LeccionService } from '../../services/leccion.service';
 import { CursoDto } from 'src/app/models/CursoDto';
-import { CourseService } from 'src/app/services/course.service';
-
 import { TemaService } from 'src/app/services/tema.service';
 import { TemaDto } from 'src/app/models/TemaDto';
 
@@ -32,7 +28,7 @@ export class LessonDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     const storedUserId = localStorage.getItem('idUsuario');
-    
+
     if (storedUserId) {
       this.userId = Number(storedUserId);
     } else {
@@ -44,7 +40,7 @@ export class LessonDetailsComponent implements OnInit {
 
     if (lessonId) {
       this.loadLessonDetails(lessonId);
-      this.loadTemas(lessonId); 
+      this.loadTemas(lessonId);
     }
   }
 

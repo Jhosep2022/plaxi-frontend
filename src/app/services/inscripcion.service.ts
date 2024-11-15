@@ -11,7 +11,7 @@ import { InscripcionResponseDto } from '../models/inscripcionDto';
 })
 export class InscripcionService {
 
-  private apiUrl = `${environment.API_URL}/api/inscripciones`;
+  private apiUrl = `${environment.API_URL}/inscripciones`;
 
   constructor(private http: HttpClient) {}
 
@@ -61,6 +61,15 @@ export class InscripcionService {
   // Obtener inscripciones por ID de usuario
   getInscripcionesByUsuarioId(usuarioId: number): Observable<InscripcionResponseDto[]> {
     const url = `${this.apiUrl}/usuario/${usuarioId}`;
+    return this.http.get<InscripcionResponseDto[]>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  // Obtener inscripciones por ID de curso
+  getInscripcionesByCursoId(cursoId: number): Observable<InscripcionResponseDto[]> {
+    const url = `${this.apiUrl}/curso/${cursoId}`;
     return this.http.get<InscripcionResponseDto[]>(url)
       .pipe(
         catchError(this.handleError)

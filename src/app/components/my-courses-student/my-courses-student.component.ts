@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { InscripcionService } from '../../services/inscripcion.service'; // Importar el servicio de inscripciones
-import { InscripcionResponseDto } from '../../models/inscripcionDto'; // Importar el modelo de la inscripción
-import { MatSnackBar } from '@angular/material/snack-bar'; // Importar MatSnackBar para notificaciones
+import { InscripcionService } from '../../services/inscripcion.service';
+import { InscripcionResponseDto } from '../../models/inscripcionDto';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
 
 interface Course {
@@ -20,23 +20,25 @@ interface Course {
   styleUrls: ['./my-courses-student.component.css']
 })
 export class MyCoursesStudentComponent implements OnInit {
-  courses: Course[] = []; // Cursos inscritos por el usuario
-  userId: number | null = null; // ID del usuario logueado (asegúrate de usar el ID correcto aquí)
+  courses: Course[] = [];
+  userId: number | null = null;
 
   constructor(
     private router: Router,
-    private inscripcionService: InscripcionService, // Inyectar el servicio de inscripciones
-    private snackBar: MatSnackBar, // Servicio para notificaciones
+    private inscripcionService: InscripcionService,
+    private snackBar: MatSnackBar,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    // Obtener el ID del usuario actualmente logueado
+    // Recuperar el ID del usuario actualmente logueado desde AuthService
     this.userId = this.authService.getCurrentUserId();
-    if(this.userId !== null){
+    console.log('User ID recuperado:', this.userId); // Para depuración
+
+    if (this.userId !== null) {
       this.loadUserCourses();
-    } else{
-      this.snackBar.open('Debes iniciar sesion para ver tus cursos.', 'Cerrar', {
+    } else {
+      this.snackBar.open('Debes iniciar sesión para ver tus cursos.', 'Cerrar', {
         duration: 3000
       });
     }
@@ -44,7 +46,7 @@ export class MyCoursesStudentComponent implements OnInit {
 
   // Método para cargar los cursos inscritos del usuario
   loadUserCourses(): void {
-    if(this.userId === null){
+    if (this.userId === null) {
       return;
     }
 
@@ -54,15 +56,14 @@ export class MyCoursesStudentComponent implements OnInit {
 
         // Convertir las inscripciones en el formato de Course para mostrar en la vista
         this.courses = inscripciones.map((inscripcion) => ({
-          id: inscripcion.cursoId, // Asegúrate de que cursoId exista en la respuesta de la API
-          name: inscripcion.cursoNombre, // Verifica que cursoNombre exista en la respuesta de la API
-          date: inscripcion.fechaInscripcion, // Verifica que fechaInscripcion esté presente y en el formato correcto
-          time: '10:00 AM', // Puedes agregar una propiedad de hora si está disponible
-          studentsEnrolled: 0, // No tenemos la cantidad de inscritos en la inscripción, puedes ajustarlo según tu API
-          image: 'assets/curso.png' // Agregar la imagen por defecto o usar inscripcion.cursoImagen si está disponible
+          id: inscripcion.cursoId,
+          name: inscripcion.cursoNombre,
+          date: inscripcion.fechaInscripcion,
+          time: '10:00 AM', // Ajustar esta hora si la API devuelve una
+          studentsEnrolled: 0, // Ajustar según tus necesidades
+          image: inscripcion.cursoPortadaUrl || 'assets/curso.png' // Usar la imagen de portada si está disponible, de lo contrario, imagen predeterminada
         }));
 
-        // Mostrar en consola los cursos mapeados para verificar la estructura
         console.log('Cursos mapeados:', this.courses);
       },
       error: (error) => {
@@ -77,7 +78,7 @@ export class MyCoursesStudentComponent implements OnInit {
     });
   }
 
-  // Abrir un curso (puede redirigir a una vista de detalles del curso)
+  // Abrir un curso (redirigir a una vista de detalles del curso)
   openCourse(course: Course) {
     this.router.navigate(['/course-details', course.id]);
   }

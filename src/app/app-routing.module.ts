@@ -19,6 +19,7 @@ import { LessonDetailsComponent } from './components/lesson-details/lesson-detai
 import { LessonEditComponent } from './components/lesson-edit/lesson-edit.component';
 import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 import { TemaFormComponent } from './components/tema-form/tema-form.component';
+import { LessonDetailsTutorComponent } from './components/lesson-details-tutor/lesson-details-tutor.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -37,6 +38,7 @@ const routes: Routes = [
   { path: 'course-edit-tutor', component: CourseEditTutorComponent },
   { path: 'lesson-form/:id', component: LessonFormComponent },
   { path: 'lesson-details/:id', component: LessonDetailsComponent },
+  { path: 'lesson-details-tutor/:id', component: LessonDetailsTutorComponent },
   { path: 'tema-form/:id', component: TemaFormComponent },
   { path: 'lesson-edit/:id', component: LessonEditComponent },
   { path: 'theme-edit/:id', component: ThemeEditComponent }

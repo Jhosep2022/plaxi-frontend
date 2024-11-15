@@ -39,6 +39,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 import { TemaFormComponent } from './components/tema-form/tema-form.component';
 import { SnackBarComponent } from './shared/snack-bar/snack-bar.component';
+import {LessonDetailsTutorComponent} from './components/lesson-details-tutor/lesson-details-tutor.component';
 
 @NgModule({
   declarations: [
@@ -65,7 +66,8 @@ import { SnackBarComponent } from './shared/snack-bar/snack-bar.component';
     ConfirmationDialogComponent,
     ThemeEditComponent,
     TemaFormComponent,
-    SnackBarComponent
+    SnackBarComponent,
+    LessonDetailsTutorComponent
   ],
   imports: [
     BrowserModule,
