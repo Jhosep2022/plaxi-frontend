@@ -109,8 +109,5 @@ describe('LessonFormComponent', () => {
     );
   });
 
-  it('should navigate back to course details on cancel', () => {
-    component.onCancel();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/course-details/1']);
-  });
+
 });

@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
 import { LeccionService } from '../../services/leccion.service';
-import { CursoDto } from 'src/app/models/CursoDto';
 import { TemaService } from 'src/app/services/tema.service';
 import { TemaDto } from 'src/app/models/TemaDto';
 
@@ -13,60 +12,62 @@ import { TemaDto } from 'src/app/models/TemaDto';
   styleUrls: ['./lesson-details.component.css']
 })
 export class LessonDetailsComponent implements OnInit {
-  course: CursoDto | null = null;
+  courseId: number | null = null; // Captura el ID del curso
   leccion: LeccionDto | null = null;
-  userId: number | null = null;
-  temas: TemaDto[] = []; // Variable para almacenar las lecciones del curso
+  temas: TemaDto[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private temaService: TemaService,
-    private leccionService: LeccionService, // Agrega el servicio de lecciones
+    private leccionService: LeccionService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    const storedUserId = localStorage.getItem('idUsuario');
+    // Captura el `courseId` de los parámetros de consulta
+    const courseIdParam = this.route.snapshot.queryParamMap.get('courseId');
+    this.courseId = courseIdParam ? Number(courseIdParam) : null;
 
-    if (storedUserId) {
-      this.userId = Number(storedUserId);
-    } else {
-      this.router.navigate(['/login']);
-      return;
-    }
-
+    // Captura el `lessonId` de los parámetros de la URL
     const lessonId = Number(this.route.snapshot.paramMap.get('id'));
-
     if (lessonId) {
       this.loadLessonDetails(lessonId);
       this.loadTemas(lessonId);
     }
   }
 
-  loadTemas(lessonId: number) {
+  // Método para cargar los detalles de la lección
+  loadLessonDetails(lessonId: number): void {
+    this.leccionService.getLeccionById(lessonId).subscribe({
+      next: (data) => {
+        this.leccion = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar los detalles de la lección:', error);
+      }
+    });
+  }
+
+  // Método para cargar los temas de la lección
+  loadTemas(lessonId: number): void {
     const paginadoDto = { page: 0, size: 10, sortBy: 'orden', sortDir: 'desc' };
     this.temaService.getTemasByLeccion(lessonId, paginadoDto).subscribe(
       (response) => {
-        this.temas = response.content; // Ajusta esto según la respuesta
+        this.temas = response.content || [];
       },
       (error) => {
-        console.error('Error al cargar los temas del curso:', error);
+        console.error('Error al cargar los temas de la lección:', error);
       }
     );
   }
 
-  // Método para cargar los detalles de la lección
-  loadLessonDetails(lessonId: number): void {
-    this.leccionService.getLeccionById(lessonId).subscribe({
-      next: (data) => this.leccion = data,
-      error: (error) => console.error('Error al cargar los detalles del curso:', error)
-    });
-  }
-
-  // Lógica para volver a la lista de cursos
+  // Método para volver al detalle del curso
   goBack(): void {
-    this.router.navigate(['/course-details', 1]);
+    if (this.courseId !== null) {
+      this.router.navigate(['/course-details', this.courseId]); // Navegar a la pantalla del curso
+    } else {
+      console.error('No se encontró el ID del curso');
+    }
   }
 }
-

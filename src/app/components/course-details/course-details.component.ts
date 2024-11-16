@@ -106,14 +106,14 @@ export class CourseDetailsComponent implements OnInit {
 
 
   lessonDetails(leccionId: number): void {
-    // Aquí puedes implementar la lógica para redirigir al usuario a una pantalla de creación de tema
-    // o abrir un modal para que ingrese los datos del nuevo tema.
-
-    console.log('Creando tema para la lección con ID:', leccionId);
-
-    // Ejemplo de redirección:
-    this.router.navigate(['/crear-tema', leccionId]); // Dependiendo de tu ruta y configuración.
+    const courseId = this.route.snapshot.paramMap.get('id');
+    if (courseId) {
+      this.router.navigate(['/lesson-details', leccionId], {
+        queryParams: { courseId: courseId }
+      });
+    }
   }
+
 
   // Lógica para volver a la lista de cursos
   goBack(): void {

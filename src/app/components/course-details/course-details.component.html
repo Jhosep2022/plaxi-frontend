@@ -26,7 +26,12 @@
         <p><strong>Orden:</strong> {{ leccion.orden }}</p>
         <p><strong>Duración:</strong> {{ leccion.duracionEstimada }} minutos</p>
         <p><strong>Contenido:</strong> {{ leccion.contenido }}</p>
-        <button class="enroll-btn" [routerLink]="['/lesson-details', leccion.idLeccion]">Ver lección</button>
+        <button
+          class="enroll-btn"
+          *ngIf="leccion.idLeccion !== undefined"
+          (click)="lessonDetails(leccion.idLeccion!)">
+          Ver lección
+        </button>
       </li>
     </ul>
   </div>

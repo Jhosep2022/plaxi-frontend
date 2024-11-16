@@ -7,4 +7,3 @@ export interface LeccionDto {
     estado: boolean;
     cursoId: number; // Solo el ID del curso al que pertenece la lección
   }
-  

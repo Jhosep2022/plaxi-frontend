@@ -1,5 +1,5 @@
 <div *ngIf="leccion" class="course-details-container">
-  <h2 class="course-title">{{ leccion?.titulo }}</h2>
+  <h2 class="course-title">{{ leccion.titulo }}</h2>
 
   <div class="course-info">
     <p><strong>Descripción:</strong> {{ leccion.titulo }}</p>
@@ -23,7 +23,7 @@
         <h4>{{ tema.titulo }}</h4>
         <p><strong>Orden:</strong> {{ tema.orden }}</p>
         <p><strong>Descripción</strong> {{ tema.descripcion }} minutos</p>
-        <button class="enroll-btn" [routerLink]="['/lesson-details', leccion?.idLeccion]">Ver tema</button>
+        <button class="enroll-btn" [routerLink]="['/lesson-details', leccion.idLeccion]">Ver tema</button>
       </li>
     </ul>
   </div>

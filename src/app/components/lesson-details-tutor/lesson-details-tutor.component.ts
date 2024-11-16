@@ -6,6 +6,7 @@ import { LeccionService } from '../../services/leccion.service';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { TemaService } from 'src/app/services/tema.service';
 import { TemaDto } from 'src/app/models/TemaDto';
+import { PaginadoDto } from 'src/app/models/PaginadoDto';
 
 @Component({
   selector: 'app-lesson-details-tutor',
@@ -45,16 +46,22 @@ export class LessonDetailsTutorComponent implements OnInit {
     }
   }
 
-  loadTemas(lessonId: number) {
-    const paginadoDto = { page: 0, size: 10, sortBy: 'orden', sortDir: 'desc' };
-    this.temaService.getTemasByLeccion(lessonId, paginadoDto).subscribe(
-      (response) => {
-        this.temas = response.content || []; // Aseguramos que siempre sea un array
+  loadTemas(lessonId: number): void {
+    const paginadoDto: PaginadoDto = {
+      page: 0,
+      size: 10,
+      sortBy: 'idTema',
+      sortDir: 'ASC',
+    };
+
+    this.temaService.getTemasByLeccion(lessonId, paginadoDto).subscribe({
+      next: (response) => {
+        this.temas = response.content || [];
       },
-      (error) => {
-        console.error('Error al cargar los temas del curso:', error);
-      }
-    );
+      error: (error) => {
+        console.error('Error al cargar los temas:', error);
+      },
+    });
   }
 
   // Método para cargar los detalles de la lección y asignar courseId
