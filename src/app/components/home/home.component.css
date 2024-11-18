@@ -1,13 +1,334 @@
-.content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: calc(100vh - 60px); /* 100% del alto de la pantalla menos la altura del navbar */
-    background-color: var(--light-cream);
-  }
-  
-  p {
-    font-size: 24px;
-    color: var(--dark-blue);
-  }
-  
+/* General Styles */
+.home-container {
+  display: grid;
+  grid-template-areas:
+    "upcoming-quizzes students-list"
+    "completed-quizzes completed-quizzes";
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.upcoming-quizzes {
+  grid-area: upcoming-quizzes;
+}
+
+.students-list {
+  grid-area: students-list;
+}
+
+.completed-quizzes {
+  grid-area: completed-quizzes;
+}
+
+.upcoming-quizzes, .completed-quizzes, .students-list {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+/* Header Section */
+.upcoming-quizzes .header,
+.students-list .header,
+.completed-quizzes h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.upcoming-quizzes .header h2,
+.students-list .header h2,
+.completed-quizzes h2 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+.upcoming-quizzes .header .quiz-directory-link,
+.students-list .header .student-directory-link {
+  font-size: 14px;
+  color: var(--lime-green);
+  text-decoration: none;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.upcoming-quizzes .header .quiz-directory-link span,
+.students-list .header .student-directory-link span {
+  margin-left: 5px;
+}
+
+/* Scrollable Container for "Cursos Recientes" */
+.upcoming-quizzes-container {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.upcoming-quizzes-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.upcoming-quizzes-container::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+/* Quiz Cards */
+.quiz {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background-color: #fafafa;
+  transition: background-color 0.3s ease;
+}
+
+.quiz:hover {
+  background-color: #f0f0f0;
+}
+
+.quiz-info {
+  display: flex;
+  align-items: center;
+}
+
+.quiz img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.quiz-info h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.quiz-info p {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+}
+
+.open-link {
+  font-size: 14px;
+  color: var(--lime-green);
+  font-weight: bold;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.open-link span {
+  margin-left: 5px;
+}
+
+.open-link:hover {
+  text-decoration: underline;
+}
+
+/* Students List Section */
+.group-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.group-tabs button {
+  padding: 5px 15px;
+  background-color: #f9f9f9;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.group-tabs button.active {
+  background-color: #333;
+  color: #fff;
+  border-color: #333;
+}
+
+.group-tabs button:hover {
+  background-color: #555;
+  color: #fff;
+}
+
+/* Scrollable Container for "Students List" */
+.student-card-container {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.student-card-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.student-card-container::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+/* Student Cards */
+.student-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background-color: #fafafa;
+  transition: background-color 0.3s ease;
+}
+
+.student-card:hover {
+  background-color: #f0f0f0;
+}
+
+.student-card .student-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.student-card .student-info {
+  flex-grow: 1;
+  margin-left: 15px;
+}
+
+.student-card .student-info h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.student-card .student-info p {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+}
+
+.student-card .student-action-link {
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.student-card .student-action-link:hover {
+  color: var(--dark-blue);
+}
+
+/* Cursos Recomendados Section */
+.course-category-list {
+  padding: 20px;
+  max-width: 97%;
+  margin: auto;
+  overflow-x: auto; /* Habilita scroll horizontal */
+  white-space: nowrap; /* Previene el salto de línea */
+}
+
+/* Estilo para el título */
+.course-category-list h2 {
+  font-size: 26px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* Lista de Cursos */
+.course-list {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto; /* Habilita scroll horizontal */
+  padding: 10px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+}
+
+.course-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.course-list::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+/* Tarjetas de Cursos */
+.course-card {
+  flex: 0 0 250px;
+  display: flex;
+  flex-direction: column;
+  background: var(--dark-blue);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.course-card:hover {
+  box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+}
+
+.course-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-bottom: 2px solid #122335;
+}
+
+.course-details {
+  padding: 15px;
+  color: #fff;
+}
+
+.course-details h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.course-details p {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.course-details .course-difficulty {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.view-course-btn {
+  background: #9abb4e;
+  color: var(--dark-blue);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.view-course-btn:hover {
+  background: #9abb4e;
+}

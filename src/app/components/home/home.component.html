@@ -1,3 +1,62 @@
-<div class="content">
-  <p>Bienvenido a la página de inicio</p>
+<div class="home-container">
+  <!-- Upcoming Quizzes Section -->
+  <div class="upcoming-quizzes">
+    <div class="header">
+      <h2>Cursos Recientes</h2>
+      <a class="quiz-directory-link" href="#">Ver Todos <span>→</span></a>
+    </div>
+    <div class="upcoming-quizzes-container">
+      <div *ngFor="let quiz of upcomingQuizzes" class="quiz">
+        <div class="quiz-info">
+          <img [src]="quiz.image" alt="Quiz Image" class="quiz-image">
+          <div>
+            <h3>{{ quiz.title }}</h3>
+            <p>{{ quiz.date }} | {{ quiz.time }}</p>
+            <p>No. de estudiantes inscritos: {{ quiz.enrolled }}</p>
+          </div>
+        </div>
+        <a class="open-link" href="#">Abrir <span>→</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Students List Section -->
+  <div class="students-list">
+    <div class="header">
+      <h2>Lista de Estudiantes Inscritos</h2>
+      <a class="student-directory-link" href="#">Ver Estudiantes <span>→</span></a>
+    </div>
+    <div class="group-tabs">
+      <button *ngFor="let course of courses" [class.active]="course === activeCourse" (click)="selectCourse(course)">
+        {{ course }}
+      </button>
+    </div>
+    <div class="student-card-container">
+      <div *ngFor="let student of filteredStudents" class="student-card">
+        <img [src]="student.image" alt="Student Photo" class="student-image">
+        <div class="student-info">
+          <h3>{{ student.name }}</h3>
+          <p>Class rank: {{ student.rank }} | Average score: {{ student.score }}%</p>
+        </div>
+        <a href="#" class="student-action-link">></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="completed-quizzes course-category-list">
+    <!-- Encabezado -->
+    <h2>Cursos Recomendados</h2>
+    <!-- Lista de Cursos -->
+    <div class="course-list">
+      <div *ngFor="let course of pagedCourses" class="course-card">
+        <img [src]="course.portada" alt="{{ course.nombre }}" />
+        <div class="course-details">
+          <h3>{{ course.nombre }}</h3>
+          <p>{{ course.descripcion }}</p>
+          <p class="course-difficulty">Dificultad: {{ course.dificultad }}</p>
+          <button class="view-course-btn" [routerLink]="['/course-details', course.idCurso]">Ver Curso</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
