@@ -2,7 +2,7 @@
   <!-- Upcoming Quizzes Section -->
   <div class="upcoming-quizzes">
     <div class="header">
-      <h2>Cursos Recientes</h2>
+      <h2 class="title-card" >Cursos Recientes</h2>
       <a class="quiz-directory-link" href="#">Ver Todos <span>→</span></a>
     </div>
     <div class="upcoming-quizzes-container">
@@ -21,28 +21,59 @@
   </div>
 
 
-  <!-- Students List Section -->
-  <div class="students-list">
+  <!-- Cursos Inscritos (Solo para Estudiantes) -->
+  <div *ngIf="isStudent" class="students-list">
     <div class="header">
-      <h2>Lista de Estudiantes Inscritos</h2>
-      <a class="student-directory-link" href="#">Ver Estudiantes <span>→</span></a>
-    </div>
-    <div class="group-tabs">
-      <button *ngFor="let course of courses" [class.active]="course === activeCourse" (click)="selectCourse(course)">
-        {{ course }}
-      </button>
+      <h2>Mis Cursos Inscritos</h2>
     </div>
     <div class="student-card-container">
-      <div *ngFor="let student of filteredStudents" class="student-card">
-        <img [src]="student.image" alt="Student Photo" class="student-image">
+      <div *ngFor="let curso of enrolledCursos" class="student-card">
+        <img [src]="curso.portada" alt="{{ curso.nombre }}" class="student-image">
         <div class="student-info">
-          <h3>{{ student.name }}</h3>
-          <p>Class rank: {{ student.rank }} | Average score: {{ student.score }}%</p>
+          <h3>{{ curso.nombre }}</h3>
+          <p>{{ curso.descripcion }}</p>
+          <p>Dificultad: {{ curso.dificultad }}</p>
         </div>
-        <a href="#" class="student-action-link">→</a>
+        <a class="student-action-link" [routerLink]="['/course-details', curso.idCurso]">→</a>
       </div>
     </div>
   </div>
+
+  <div class="students-list" *ngIf="userRole === 'Tutor'">
+    <div class="header">
+      <h2>Lista de Estudiantes Inscritos</h2>
+    </div>
+
+    <!-- Cursos creados por el tutor -->
+    <div class="group-tabs">
+      <button
+        *ngFor="let curso of cursosCreados"
+        [class.active]="curso.idCurso === activeCourseId"
+        (click)="loadEstudiantesInscritos(curso.idCurso)"
+      >
+        {{ curso.nombre }}
+      </button>
+    </div>
+
+    <!-- Estudiantes inscritos en el curso seleccionado -->
+    <div class="student-card-container" *ngIf="estudiantesInscritos.length > 0">
+      <div *ngFor="let estudiante of estudiantesInscritos" class="student-card">
+        <img [src]="'assets/perfil.jpeg'" alt="Student Photo" class="student-image" />
+        <div class="student-info">
+          <h3>{{ estudiante.usuarioNombre }}</h3>
+          <p>Email: {{ estudiante.usuarioGmail }}</p>
+          <p>Fecha de Inscripción: {{ estudiante.fechaInscripcion | date }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje si no hay estudiantes -->
+    <div *ngIf="estudiantesInscritos.length === 0 && activeCourseId">
+      <p>No hay estudiantes inscritos en este curso.</p>
+    </div>
+  </div>
+
+
 
   <div class="completed-quizzes course-category-list">
     <!-- Encabezado -->
@@ -59,6 +90,10 @@
         </div>
       </div>
     </div>
+    <div *ngIf="recommendedCursos.length === 0" class="no-recommended-courses">
+      <p>Aún no te has inscrito a un curso para ver sus referencias.</p>
+    </div>
   </div>
+
 
 </div>
