@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { CursoDto } from 'src/app/models/CursoDto';
+import { AuthService } from 'src/app/services/auth.service';
+import { CourseService } from 'src/app/services/course.service';
 
 @Component({
   selector: 'app-home',
@@ -6,37 +9,13 @@ import { Component } from '@angular/core';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
-  // Upcoming quizzes
-  upcomingQuizzes = [
-    {
-      title: 'Introduction to computer programming',
-      date: '12/03/2023',
-      time: '09:00 AM',
-      enrolled: 32,
-      image: 'assets/curso.png'
-    },
-    {
-      title: 'Psychology 101',
-      date: '27/03/2023',
-      time: '12:00 PM',
-      enrolled: 17,
-      image: 'assets/curso.png'
-    },
-    {
-      title: 'Introduction to computer programming',
-      date: '12/03/2023',
-      time: '09:00 AM',
-      enrolled: 32,
-      image: 'assets/curso.png'
-    },
-    {
-      title: 'Psychology 101',
-      date: '27/03/2023',
-      time: '12:00 PM',
-      enrolled: 17,
-      image: 'assets/curso.png'
-    }
-  ];
+
+  // Propiedad para cursos recientes
+  recentCursos: CursoDto[] = [];
+  //
+  recommendedCursos: CursoDto[] = [];
+
+
 
   // Completed quizzes
   completedQuizzes = [
@@ -97,56 +76,48 @@ export class HomeComponent {
     this.activeCourse = course;
   }
 
-  // Paged courses for the recommended courses section
-  pagedCourses = [
-    {
-      idCurso: 1,
-      nombre: 'Programming Basics',
-      descripcion: 'Learn the basics of programming.',
-      dificultad: 'Beginner',
-      portada: 'assets/curso.png'
-    },
-    {
-      idCurso: 2,
-      nombre: 'Advanced Programming',
-      descripcion: 'Master advanced programming techniques.',
-      dificultad: 'Advanced',
-      portada: 'assets/curso.png'
-    },
-    {
-      idCurso: 3,
-      nombre: 'Machine Learning 101',
-      descripcion: 'Introduction to machine learning.',
-      dificultad: 'Intermediate',
-      portada: 'assets/curso.png'
-    },
-    {
-      idCurso: 1,
-      nombre: 'Programming Basics',
-      descripcion: 'Learn the basics of programming.',
-      dificultad: 'Beginner',
-      portada: 'assets/curso.png'
-    },
-    {
-      idCurso: 2,
-      nombre: 'Advanced Programming',
-      descripcion: 'Master advanced programming techniques.',
-      dificultad: 'Advanced',
-      portada: 'assets/curso.png'
-    },
-    {
-      idCurso: 3,
-      nombre: 'Machine Learning 101',
-      descripcion: 'Introduction to machine learning.',
-      dificultad: 'Intermediate',
-      portada: 'assets/curso.png'
-    }
-  ];
-
   // Methods for category selection and course pagination
   selectCategory(category: any) {
     this.selectedCategory = category;
 
+  }
+
+
+  constructor(private courseService: CourseService, private authService: AuthService) {}
+
+  ngOnInit(): void {
+    this.loadRecentCursos();
+    this.loadRecommendedCursos();
+  }
+
+
+  // Método para cargar los cursos recientes desde el servicio
+  loadRecentCursos(): void {
+    this.courseService.getRecentCursos().subscribe({
+      next: (data) => {
+        this.recentCursos = data;
+      },
+      error: (err) => {
+        console.error('Error al cargar los cursos recientes:', err);
+      }
+    });
+  }
+
+  // Método para cargar los cursos recomendados basados en el ID del usuario
+  loadRecommendedCursos(): void {
+    const userId = this.authService.getCurrentUserId();
+    if (userId) {
+      this.courseService.getRecommendedCursosByUserId(userId).subscribe({
+        next: (data) => {
+          this.recommendedCursos = data;
+        },
+        error: (err) => {
+          console.error('Error al cargar los cursos recomendados:', err);
+        }
+      });
+    } else {
+      console.warn('No se pudo obtener el ID del usuario.');
+    }
   }
 
 

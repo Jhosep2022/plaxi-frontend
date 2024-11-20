@@ -42,4 +42,14 @@ export class CourseService {
   deleteCurso(idCurso: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${idCurso}`);
   }
+
+  // Obtener los cursos recientes
+  getRecentCursos(): Observable<CursoDto[]> {
+    return this.http.get<CursoDto[]>(`${this.apiUrl}/recent`);
+  }
+
+  // Obtener cursos recomendados para un usuario
+  getRecommendedCursosByUserId(userId: number): Observable<CursoDto[]> {
+    return this.http.get<CursoDto[]>(`${this.apiUrl}/recomendaciones/${userId}`);
+  }
 }

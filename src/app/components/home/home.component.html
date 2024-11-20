@@ -6,19 +6,20 @@
       <a class="quiz-directory-link" href="#">Ver Todos <span>→</span></a>
     </div>
     <div class="upcoming-quizzes-container">
-      <div *ngFor="let quiz of upcomingQuizzes" class="quiz">
+      <div *ngFor="let curso of recentCursos" class="quiz">
         <div class="quiz-info">
-          <img [src]="quiz.image" alt="Quiz Image" class="quiz-image">
+          <img [src]="curso.portada" alt="{{ curso.nombre }}" class="quiz-image">
           <div>
-            <h3>{{ quiz.title }}</h3>
-            <p>{{ quiz.date }} | {{ quiz.time }}</p>
-            <p>No. de estudiantes inscritos: {{ quiz.enrolled }}</p>
+            <h3>{{ curso.nombre }}</h3>
+            <p>{{ curso.descripcion }}</p>
+            <p>Dificultad: {{ curso.dificultad }}</p>
           </div>
         </div>
-        <a class="open-link" href="#">Abrir <span>→</span></a>
+        <a class="open-link" [routerLink]="['/course-details', curso.idCurso]">Abrir <span>→</span></a>
       </div>
     </div>
   </div>
+
 
   <!-- Students List Section -->
   <div class="students-list">
@@ -38,7 +39,7 @@
           <h3>{{ student.name }}</h3>
           <p>Class rank: {{ student.rank }} | Average score: {{ student.score }}%</p>
         </div>
-        <a href="#" class="student-action-link">></a>
+        <a href="#" class="student-action-link">→</a>
       </div>
     </div>
   </div>
@@ -48,15 +49,16 @@
     <h2>Cursos Recomendados</h2>
     <!-- Lista de Cursos -->
     <div class="course-list">
-      <div *ngFor="let course of pagedCourses" class="course-card">
-        <img [src]="course.portada" alt="{{ course.nombre }}" />
+      <div *ngFor="let curso of recommendedCursos" class="course-card">
+        <img [src]="curso.portada" alt="{{ curso.nombre }}" />
         <div class="course-details">
-          <h3>{{ course.nombre }}</h3>
-          <p>{{ course.descripcion }}</p>
-          <p class="course-difficulty">Dificultad: {{ course.dificultad }}</p>
-          <button class="view-course-btn" [routerLink]="['/course-details', course.idCurso]">Ver Curso</button>
+          <h3>{{ curso.nombre }}</h3>
+          <p>{{ curso.descripcion }}</p>
+          <p class="course-difficulty">Dificultad: {{ curso.dificultad }}</p>
+          <button class="view-course-btn" [routerLink]="['/course-details', curso.idCurso]">Ver Curso</button>
         </div>
       </div>
     </div>
   </div>
+
 </div>
