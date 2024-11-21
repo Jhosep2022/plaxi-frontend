@@ -186,3 +186,11 @@
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
+
+.mat-snack-bar-container {
+  bottom: 0 !important;
+  top: auto !important;
+  position: fixed !important;
+  left: 50%;
+  transform: translateX(-50%);
+}

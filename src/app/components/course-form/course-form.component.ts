@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewChecked } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,13 +12,14 @@ import { Categoria } from 'src/app/models/categoriaDto';
   templateUrl: './course-form.component.html',
   styleUrls: ['./course-form.component.css'],
 })
-export class CourseFormComponent implements OnInit {
+export class CourseFormComponent implements OnInit, AfterViewChecked {
   courseForm!: FormGroup;
   selectedFile: File | null = null; // Archivo seleccionado
   fileError: string | null = null; // Error relacionado con el archivo
   previewUrl: string | ArrayBuffer | null = null; // URL de vista previa de la imagen
   categorias: Categoria[] = []; // Almacenar las categorías obtenidas de la API
   userId: number | null = null; // Almacenar el ID del usuario logueado
+  snackBarRef: any;
 
   constructor(
     private fb: FormBuilder,
@@ -29,7 +30,6 @@ export class CourseFormComponent implements OnInit {
     private authService: AuthService
   ) {}
 
-  // src/app/components/course-form/course-form.component.ts
   ngOnInit(): void {
     // Inicializar el formulario con validaciones
     this.courseForm = this.fb.group({
@@ -48,14 +48,16 @@ export class CourseFormComponent implements OnInit {
       this.userId = Number(storedUserId);
       console.log('User ID cargado desde localStorage:', this.userId);
     } else {
-      console.error('Error: No se encontró el ID del usuario logueado en localStorage.');
       this.snackBar.open('Error al cargar el ID del usuario. Por favor, inicie sesión nuevamente.', 'Cerrar', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['error-snackbar'],
+        duration: 3000
       });
       return;
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.snackBarRef) {
+      this.snackBarRef.instance.snackBarContainer.nativeElement.style.bottom = '0';
     }
   }
 
@@ -65,7 +67,6 @@ export class CourseFormComponent implements OnInit {
     this.courseForm.patchValue({ Categoria_id_categoria: selectedCategoryId });
     console.log('Categoría seleccionada - ID:', selectedCategoryId);
   }
-
 
   // Cargar las categorías desde el servicio
   loadCategorias(): void {
@@ -116,10 +117,7 @@ export class CourseFormComponent implements OnInit {
       if (!this.courseForm.value.Categoria_id_categoria) {
         console.error('No se ha seleccionado una categoría válida');
         this.snackBar.open('Por favor, selecciona una categoría válida.', 'Cerrar', {
-          duration: 3000,
-          horizontalPosition: 'center',
-          verticalPosition: 'top',
-          panelClass: ['error-snackbar'],
+          duration: 3000
         });
         return;
       }
@@ -149,23 +147,17 @@ export class CourseFormComponent implements OnInit {
       this.cursoService.createCurso(formData).subscribe({
         next: (response) => {
           console.log('Respuesta del servicio:', response);
-          this.snackBar.open('¡El curso se ha creado exitosamente!', 'Cerrar', {
-            duration: 3000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['success-snackbar'],
+          this.snackBarRef = this.snackBar.open('¡El curso se ha creado exitosamente!', 'Cerrar', {
+            duration: 3000
           });
           setTimeout(() => {
             this.router.navigate(['/my-courses']); // Redirigir a la lista de cursos
-          }, 3000);
+          }, 500);
         },
         error: (error) => {
           console.error('Error al crear el curso:', error);
           this.snackBar.open('Error al crear el curso. Por favor, revisa los campos.', 'Cerrar', {
-            duration: 3000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['error-snackbar'],
+            duration: 3000
           });
         },
       });
@@ -176,8 +168,6 @@ export class CourseFormComponent implements OnInit {
       console.log('Archivo seleccionado:', this.selectedFile);
     }
   }
-
-
 
   // Método para cancelar la creación del curso y redirigir
   onCancel() {

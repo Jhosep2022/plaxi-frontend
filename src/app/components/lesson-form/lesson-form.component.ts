@@ -1,4 +1,3 @@
-import { SnackBarService } from './../../services/snack-bar.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
@@ -8,6 +7,7 @@ import { Categoria } from 'src/app/models/categoriaDto';
 import { CategoriaService } from 'src/app/services/categoria.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CursoDto } from 'src/app/models/CursoDto';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-lesson-form',
@@ -28,7 +28,7 @@ export class LessonFormComponent implements OnInit {
     private fb: FormBuilder,
     private categoriaService: CategoriaService,
     private authService: AuthService,
-    private snackBarService: SnackBarService,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -74,7 +74,9 @@ export class LessonFormComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error al acceder a localStorage:', error);
-      this.snackBarService.openSnackBar('Error al cargar el ID del usuario. Por favor, inicie sesión nuevamente.', 'error-snackbar');
+      this.snackBar.open('Error al cargar el ID del usuario. Por favor, inicie sesión nuevamente.', 'Cerrar', {
+        duration: 3000
+      });
     }
   }
 
@@ -116,19 +118,25 @@ export class LessonFormComponent implements OnInit {
       this.leccionService.createLeccion(leccionDto).subscribe({
         next: () => {
           console.log('Lección creada exitosamente');
-          this.snackBarService.openSnackBar('¡La lección se ha creado exitosamente!', 'success-snackbar');
+          this.snackBar.open('¡La lección se ha creado exitosamente!', 'Cerrar', {
+            duration: 3000
+          });
           setTimeout(() => {
             this.router.navigate(['/my-courses']);
           }, 3000);
         },
         error: (error) => {
           console.error('Error en la creación de la lección:', error);
-          this.snackBarService.openSnackBar('Error al crear la lección. Por favor, revisa los campos.', 'error-snackbar');
+          this.snackBar.open('Error al crear la lección. Por favor, revisa los campos.', 'Cerrar', {
+            duration: 3000
+          });
         }
       });
     } else {
       console.log('Formulario inválido o falta de información');
-      this.snackBarService.openSnackBar('Error al crear la lección. Por favor, revisa los campos.', 'error-snackbar');
+      this.snackBar.open('Error al crear la lección. Por favor, revisa los campos.', 'Cerrar', {
+        duration: 3000
+      });
     }
   }
 
@@ -152,9 +160,4 @@ export class LessonFormComponent implements OnInit {
     }
     return '';
   }
-
-  showTestSnackBar() {
-    this.snackBarService.openSnackBar('Este es un mensaje de prueba', 'Cerrar', undefined, 'success-snackbar');
-  }
-
 }

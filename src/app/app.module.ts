@@ -40,6 +40,8 @@ import { ThemeEditComponent } from './components/theme-edit/theme-edit.component
 import { TemaFormComponent } from './components/tema-form/tema-form.component';
 import { SnackBarComponent } from './shared/snack-bar/snack-bar.component';
 import {LessonDetailsTutorComponent} from './components/lesson-details-tutor/lesson-details-tutor.component';
+import { TemaDetailsComponent } from './components/tema-details/tema-details.component';
+import { TemaDetailsTutorComponent } from './components/tema-details-tutor/tema-details-tutor.component';
 
 @NgModule({
   declarations: [
@@ -67,7 +69,9 @@ import {LessonDetailsTutorComponent} from './components/lesson-details-tutor/les
     ThemeEditComponent,
     TemaFormComponent,
     SnackBarComponent,
-    LessonDetailsTutorComponent
+    LessonDetailsTutorComponent,
+    TemaDetailsComponent,
+    TemaDetailsTutorComponent
   ],
   imports: [
     BrowserModule,

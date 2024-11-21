@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, OnInit, AfterViewChecked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { TemaService } from '../../services/tema.service';
@@ -13,8 +13,7 @@ import { TemaDto } from 'src/app/models/TemaDto';
   templateUrl: './tema-form.component.html',
   styleUrls: ['./tema-form.component.css']
 })
-
-export class TemaFormComponent {
+export class TemaFormComponent implements OnInit, AfterViewChecked {
   leccion: LeccionDto | null = null;
   isEnrolled: boolean = false;
   userId: number | null = null;
@@ -22,6 +21,7 @@ export class TemaFormComponent {
   selectedFile: File | null = null; // Archivo seleccionado
   fileError: string | null = null; // Error relacionado con el archivo
   previewUrl: string | ArrayBuffer | null = null; // URL de vista previa de la imagen
+  snackBarRef: any;
 
   constructor(
     private route: ActivatedRoute,
@@ -42,7 +42,6 @@ export class TemaFormComponent {
       estado: [true, Validators.required]
     });
 
-
     // Obtener el ID del usuario logueado directamente desde localStorage
     const storedUserId = localStorage.getItem('idUsuario');
     if (storedUserId) {
@@ -51,10 +50,7 @@ export class TemaFormComponent {
     } else {
       console.error('Error: No se encontró el ID del usuario logueado en localStorage.');
       this.snackBar.open('Error al cargar el ID del usuario. Por favor, inicie sesión nuevamente.', 'Cerrar', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['error-snackbar'],
+        duration: 3000
       });
       return;
     }
@@ -64,6 +60,13 @@ export class TemaFormComponent {
     if (leccionId) {
       // Cargar los detalles del curso usando el servicio
       this.loadLeccionDetails(leccionId);
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    console.log('ngAfterViewChecked ejecutado' ); 
+    if (this.snackBarRef) {
+      this.snackBarRef.instance.snackBarContainer.nativeElement.style.bottom = '0';
     }
   }
 
@@ -84,22 +87,38 @@ export class TemaFormComponent {
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     console.log('Archivo seleccionado:', file);
-
+  
     if (file) {
-      const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
+      const validExtensions = [
+        'image/jpeg', 'image/png', 'image/jpg', // Imágenes
+        'video/mp4',                           // Videos
+        'application/pdf'                      // PDFs
+      ];
+  
       if (validExtensions.includes(file.type)) {
         this.selectedFile = file;
         this.fileError = null;
-
-        // Mostrar vista previa de la imagen seleccionada
+  
         const reader = new FileReader();
-        reader.onload = () => {
-          this.previewUrl = reader.result;
-        };
-        reader.readAsDataURL(file);
-        console.log('Vista previa de la imagen lista');
+  
+        // Verificar si el archivo es una imagen para mostrar la vista previa
+        if (file.type.startsWith('image/')) {
+          reader.onload = () => {
+            this.previewUrl = reader.result; // Mostrar vista previa de la imagen
+          };
+          reader.readAsDataURL(file);
+          console.log('Vista previa de la imagen lista');
+        } else if (file.type === 'application/pdf') {
+          // Puedes agregar una lógica para manejar vistas previas de PDF si es necesario
+          this.previewUrl = null;
+          console.log('Archivo PDF seleccionado');
+        } else if (file.type.startsWith('video/')) {
+          // Para videos, se puede reproducir directamente o manejar como se prefiera
+          this.previewUrl = null; 
+          console.log('Archivo de video seleccionado');
+        }
       } else {
-        this.fileError = 'Por favor, selecciona un archivo con formato .jpg, .jpeg o .png';
+        this.fileError = 'Por favor, selecciona un archivo con formato .jpg, .jpeg, .png, .mp4 o .pdf';
         this.selectedFile = null;
         this.previewUrl = null;
         console.error('Formato de archivo inválido:', file.type);
@@ -131,23 +150,17 @@ export class TemaFormComponent {
       this.temaService.createTema(temaDto, this.selectedFile).subscribe({
         next: (response) => {
           console.log('Respuesta del servicio:', response);
-          this.snackBar.open('¡El tema se ha creado exitosamente!', 'Cerrar', {
-            duration: 3000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['success-snackbar'],
+          this.snackBarRef = this.snackBar.open('¡El tema se ha creado exitosamente!', 'Cerrar', {
+            duration: 3000
           });
           setTimeout(() => {
             this.router.navigate(['/my-courses']); // Redirigir a la lista de cursos
-          }, 3000);
+          }, 500);
         },
         error: (error) => {
           console.error('Error al crear el tema:', error);
-          this.snackBar.open('Error al crear el tema. Por favor, revisa los campos.', 'Cerrar', {
-            duration: 3000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['error-snackbar'],
+          this.snackBarRef = this.snackBar.open('Error al crear el tema. Por favor, revisa los campos.', 'Cerrar', {
+            duration: 3000
           });
         },
       });

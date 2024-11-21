@@ -20,6 +20,8 @@ import { LessonEditComponent } from './components/lesson-edit/lesson-edit.compon
 import { ThemeEditComponent } from './components/theme-edit/theme-edit.component';
 import { TemaFormComponent } from './components/tema-form/tema-form.component';
 import { LessonDetailsTutorComponent } from './components/lesson-details-tutor/lesson-details-tutor.component';
+import { TemaDetailsTutorComponent } from './components/tema-details-tutor/tema-details-tutor.component';
+import { TemaDetailsComponent } from './components/tema-details/tema-details.component'; 
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -41,7 +43,9 @@ const routes: Routes = [
   { path: 'lesson-details-tutor/:id', component: LessonDetailsTutorComponent },
   { path: 'tema-form/:id', component: TemaFormComponent },
   { path: 'lesson-edit/:id', component: LessonEditComponent },
-  { path: 'theme-edit/:id', component: ThemeEditComponent }
+  { path: 'theme-edit/:id', component: ThemeEditComponent },
+  { path: 'tema-details-tutor', component: TemaDetailsTutorComponent },
+  { path: 'tema-details', component: TemaDetailsComponent }
 ];
 
 @NgModule({
