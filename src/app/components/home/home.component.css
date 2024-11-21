@@ -22,11 +22,22 @@
   grid-area: completed-quizzes;
 }
 
-.upcoming-quizzes, .completed-quizzes, .students-list {
+.completed-quizzes, .students-list {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
+}
+
+.upcoming-quizzes {
+  background-color: var(--dark-blue);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.title-card {
+  color: #fff;
 }
 
 /* Header Section */
@@ -39,7 +50,7 @@
   margin-bottom: 20px;
 }
 
-.upcoming-quizzes .header h2,
+
 .students-list .header h2,
 .completed-quizzes h2 {
   font-size: 20px;
@@ -56,6 +67,7 @@
   display: flex;
   align-items: center;
 }
+
 
 .upcoming-quizzes .header .quiz-directory-link span,
 .students-list .header .student-directory-link span {

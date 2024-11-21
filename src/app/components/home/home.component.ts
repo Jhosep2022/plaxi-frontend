@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CursoDto } from 'src/app/models/CursoDto';
+import { InscripcionService } from 'src/app/services/inscripcion.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { InscripcionResponseDto } from 'src/app/models/inscripcionDto';
 import { CourseService } from 'src/app/services/course.service';
 
 @Component({
@@ -8,35 +10,19 @@ import { CourseService } from 'src/app/services/course.service';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent {
-
-  // Propiedad para cursos recientes
+export class HomeComponent implements OnInit {
+  // Propiedades de cursos
+  cursosCreados: CursoDto[] = []; // Cursos creados por el tutor
+  estudiantesInscritos: InscripcionResponseDto[] = []; // Estudiantes inscritos en el curso seleccionado
   recentCursos: CursoDto[] = [];
-  //
   recommendedCursos: CursoDto[] = [];
+  enrolledCursos: CursoDto[] = []; // Cursos inscritos
+  userRole: string = '';
+  isStudent: boolean = false;
+  activeCourse: string = '';
+  activeCourseId: number | null = null;
 
-
-
-  // Completed quizzes
-  completedQuizzes = [
-    { title: 'Assembly language', group: 'Programming Basics', persons: 23, date: '12/02/2023' },
-    { title: 'C programming', group: 'Advanced Programming', persons: 17, date: '12/02/2023' },
-    { title: 'Python', group: 'Machine Learning', persons: 38, date: '12/02/2023' }
-  ];
-
-  // Courses and categories
-  courses = ['Programming Basics', 'Advanced Programming', 'Machine Learning'];
-  activeCourse = this.courses[0];
-
-  categories = [
-    { id: 1, nombre: 'Programming Basics' },
-    { id: 2, nombre: 'Advanced Programming' },
-    { id: 3, nombre: 'Machine Learning' }
-  ];
-
-  selectedCategory = this.categories[0]; // Default selected category
-
-  // Students list
+  // Lista de estudiantes (dummy data)
   students = [
     {
       name: 'Emmanuel James',
@@ -68,28 +54,52 @@ export class HomeComponent {
     }
   ];
 
-  get filteredStudents() {
-    return this.students.filter(student => student.course === this.activeCourse);
-  }
-
-  selectCourse(course: string) {
-    this.activeCourse = course;
-  }
-
-  // Methods for category selection and course pagination
-  selectCategory(category: any) {
-    this.selectedCategory = category;
-
-  }
-
-
-  constructor(private courseService: CourseService, private authService: AuthService) {}
+  constructor(
+    private inscripcionService: InscripcionService,
+    private authService: AuthService,
+    private courseService: CourseService
+  ) {}
 
   ngOnInit(): void {
+    this.identifyUserRole();
     this.loadRecentCursos();
     this.loadRecommendedCursos();
+    if (this.isStudent) {
+      this.loadEnrolledCursos();
+    }
+    if (this.userRole === 'Tutor') {
+      this.loadCursosCreados();
+    }
   }
 
+
+  // Método para identificar el rol del usuario
+  identifyUserRole(): void {
+    const storedUserRole = localStorage.getItem('userRole');
+    if (storedUserRole) {
+      switch (storedUserRole) {
+        case '1':
+          this.userRole = 'Administrador';
+          this.isStudent = false;
+          break;
+        case '2':
+          this.userRole = 'Estudiante';
+          this.isStudent = true;
+          break;
+        case '3':
+          this.userRole = 'Tutor';
+          this.isStudent = false;
+          break;
+        default:
+          this.userRole = 'Estudiante';
+          this.isStudent = true;
+      }
+    } else {
+      this.userRole = 'Estudiante';
+      this.isStudent = true;
+    }
+    console.log('Rol de usuario:', this.userRole);
+  }
 
   // Método para cargar los cursos recientes desde el servicio
   loadRecentCursos(): void {
@@ -120,5 +130,71 @@ export class HomeComponent {
     }
   }
 
+  // Método para cargar los cursos inscritos del estudiante
+  loadEnrolledCursos(): void {
+    const userId = this.authService.getCurrentUserId();
+    if (userId) {
+      this.inscripcionService.getInscripcionesByUsuarioId(userId).subscribe({
+        next: (data: InscripcionResponseDto[]) => {
+          this.enrolledCursos = data.map((inscripcion) => ({
+            idCurso: inscripcion.cursoId,
+            nombre: inscripcion.cursoNombre,
+            descripcion: inscripcion.cursoDescripcion,
+            dificultad: 'Desconocida', // Valor predeterminado
+            estado: true, // Valor predeterminado
+            categoriaId: 0, // Valor predeterminado
+            portada: inscripcion.cursoPortadaUrl || '', // Manejo de null
+          }));
+          console.log('Cursos inscritos:', this.enrolledCursos);
+        },
+        error: (err) => {
+          console.error('Error al cargar los cursos inscritos:', err);
+        }
+      });
+    } else {
+      console.warn('No se pudo obtener el ID del usuario.');
+    }
+  }
 
+  // Cargar los cursos creados por el tutor
+  loadCursosCreados(): void {
+    const tutorId = this.authService.getCurrentUserId();
+    if (tutorId) {
+      this.courseService.getCursosByUsuario(tutorId).subscribe({
+        next: (data: CursoDto[]) => {
+          this.cursosCreados = data;
+          console.log('Cursos creados por el tutor:', this.cursosCreados); // Verifica aquí
+        },
+        error: (err) => {
+          console.error('Error al cargar los cursos creados:', err);
+        }
+      });
+    } else {
+      console.warn('No se pudo obtener el ID del tutor.');
+    }
+  }
+
+
+  // Cargar estudiantes inscritos en el curso seleccionado
+  loadEstudiantesInscritos(cursoId: number): void {
+    this.activeCourseId = cursoId;
+    this.inscripcionService.getInscripcionesByCursoId(cursoId).subscribe({
+      next: (data: InscripcionResponseDto[]) => {
+        this.estudiantesInscritos = data;
+        console.log('Estudiantes inscritos en el curso:', this.estudiantesInscritos); // Verifica los datos aquí
+      },
+      error: (err) => {
+        console.error('Error al cargar los estudiantes inscritos:', err);
+      }
+    });
+  }
+
+  // Método para filtrar estudiantes (ejemplo con dummy data)
+  get filteredStudents() {
+    return this.students.filter(student => student.course === this.activeCourse);
+  }
+
+  selectCourse(course: string): void {
+    this.activeCourse = course;
+  }
 }
