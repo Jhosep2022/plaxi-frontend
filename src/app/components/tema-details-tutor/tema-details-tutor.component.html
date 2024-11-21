@@ -1,1 +1,22 @@
-<p>tema-details-tutor works!</p>
+<div *ngIf="tema" class="course-details-container">
+    <!-- Contenedor para la imagen y el título superpuesto -->
+    <div class="course-image">
+      <img [src]="tema.recursoMultimedia || 'assets/default-image.png'" alt="Course Image" class="course-image" />
+      <div class="course-title-overlay">{{ tema.titulo }}</div>
+    </div>
+  
+    <div class="course-info">
+      <p><strong>Descripción:</strong> {{ tema.descripcion }}</p>
+      <p><strong>Orden:</strong> {{ tema.orden }}</p>
+    </div>
+  
+    <div class="button-container">
+      <!-- <button class="enroll-btn" [routerLink]="['/lesson-form', tema.idCurso]">Agregar lección</button> -->
+      <button class="back-btn" (click)="goBack()">Volver a la lista de lecciones</button>
+    </div>
+
+  <div *ngIf="!tema" class="no-course-message">
+    <p>Curso no encontrado.</p>
+    <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
+  </div>
+  

@@ -44,8 +44,8 @@ const routes: Routes = [
   { path: 'tema-form/:id', component: TemaFormComponent },
   { path: 'lesson-edit/:id', component: LessonEditComponent },
   { path: 'theme-edit/:id', component: ThemeEditComponent },
-  { path: 'tema-details-tutor', component: TemaDetailsTutorComponent },
-  { path: 'tema-details', component: TemaDetailsComponent }
+  { path: 'tema-details-tutor/:id', component: TemaDetailsTutorComponent },
+  { path: 'tema-details/:id', component: TemaDetailsComponent }
 ];
 
 @NgModule({
