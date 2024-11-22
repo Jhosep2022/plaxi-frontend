@@ -17,6 +17,7 @@
     <button class="enroll-btn" [routerLink]="['/lesson-form', course.idCurso]">Agregar lección</button>
     <button class="delete-btn" (click)="deleteCourse()">Eliminar curso</button>
     <p *ngIf="isEnrolled" class="enrolled-message">Ya estás inscrito en este curso</p>
+    <button *ngIf="isEnrolled" class="delete-btn" (click)="noenrollInCourse()">Desinscribirse del curso</button>
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
   </div>
 
