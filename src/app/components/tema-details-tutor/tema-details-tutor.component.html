@@ -1,22 +1,28 @@
 <div *ngIf="tema" class="course-details-container">
-    <!-- Contenedor para la imagen y el título superpuesto -->
+  <!-- Contenedor para la imagen y el título superpuesto -->  
+  <div class="course-info">
     <div class="course-image">
-      <img [src]="tema.recursoMultimedia || 'assets/default-image.png'" alt="Course Image" class="course-image" />
       <div class="course-title-overlay">{{ tema.titulo }}</div>
     </div>
-  
-    <div class="course-info">
-      <p><strong>Descripción:</strong> {{ tema.descripcion }}</p>
-      <p><strong>Orden:</strong> {{ tema.orden }}</p>
-    </div>
-  
-    <div class="button-container">
-      <!-- <button class="enroll-btn" [routerLink]="['/lesson-form', tema.idCurso]">Agregar lección</button> -->
-      <button class="back-btn" (click)="goBack()">Volver a la lista de lecciones</button>
-    </div>
+    <p><strong>Descripción:</strong> {{ tema.descripcion }}</p>
+    <p><strong>Orden:</strong> {{ tema.orden }}</p>
+    <p><strong>Recurso:</strong></p>
 
-  <div *ngIf="!tema" class="no-course-message">
-    <p>Curso no encontrado.</p>
-    <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
+    <!-- Mostrar recurso multimedia en un iframe -->
+    <iframe *ngIf="sanitizedUrl" 
+            [src]="sanitizedUrl" 
+            width="100%" 
+            height="600px">
+      Tu navegador no soporta la visualización de este recurso.
+    </iframe>
   </div>
   
+  <div class="button-container">
+    <button class="back-btn" (click)="goBack()">Volver a la lista de lecciones</button>
+  </div>
+</div>
+
+<div *ngIf="!tema" class="no-course-message">
+  <p>Curso no encontrado.</p>
+  <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
+</div>

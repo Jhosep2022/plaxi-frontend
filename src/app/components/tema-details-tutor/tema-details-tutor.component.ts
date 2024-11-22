@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { PaginadoDto } from 'src/app/models/PaginadoDto';
-import { LeccionService } from '../../services/leccion.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TemaDto } from 'src/app/models/TemaDto';
 import { TemaService } from 'src/app/services/tema.service';
 
@@ -11,16 +10,17 @@ import { TemaService } from 'src/app/services/tema.service';
   templateUrl: './tema-details-tutor.component.html',
   styleUrls: ['./tema-details-tutor.component.css']
 })
-export class TemaDetailsTutorComponent {
+export class TemaDetailsTutorComponent implements OnInit {
   tema: TemaDto | null = null;
+  sanitizedUrl: SafeResourceUrl | null = null;
   userId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private temaService: TemaService,
-    private leccionService: LeccionService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -33,39 +33,17 @@ export class TemaDetailsTutorComponent {
   // Método para cargar los detalles del tema
   loadTemaDetails(temaId: number): void {
     this.temaService.getTemaById(temaId).subscribe({
-      next: (data: TemaDto) => this.tema = data,
-      error: (error) => console.error('Error al cargar los detalles del tema:', error)
+      next: (data: TemaDto) => {
+        this.tema = data;
+        console.log('Tema cargado:', this.tema);
+        console.log('Recurso Multimedia:', this.tema?.recursoMultimedia);
+        if (this.tema?.recursoMultimedia) {
+          this.sanitizedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.tema.recursoMultimedia);
+          console.log('URL sanitizada:', this.sanitizedUrl);
+        }
+      },
+      error: (error) => console.error('Error al cargar los detalles del tema:', error),
     });
-  }
-
-  // Función para redirigir a la vista de edición con los datos del tema
-  editTema() {
-    // if (this.course) {
-    //   this.router.navigate(['/course-edit-tutor'], {
-    //     queryParams: {
-    //       id: this.course.idCurso,
-    //       name: this.course.nombre,
-    //       descripcion: this.course.descripcion,
-    //       dificultad: this.course.dificultad,
-    //       estado: this.course.estado,
-    //       categoriaId: this.course.categoriaId,
-    //       portada: this.course.portada
-    //     }
-    //   });
-    // }
-  }
-
-  deleteTema() {
-    if (confirm(`¿Estás seguro de que deseas eliminar el curso: ${this.tema?.titulo}?`)) {
-      console.log(`Curso con ID ${this.tema?.idTema} eliminado`);
-      this.snackBar.open('Curso eliminado exitosamente', 'Cerrar', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['success-snackbar']
-      });
-      this.router.navigate(['/my-courses']);
-    }
   }
 
   // Lógica para volver a la lista de cursos
