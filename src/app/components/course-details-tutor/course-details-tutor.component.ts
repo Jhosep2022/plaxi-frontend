@@ -103,22 +103,21 @@ export class CourseDetailsTutorComponent implements OnInit {
       });
     } else {
       this.snackBar.open('No se pudo realizar la inscripción. Inténtalo de nuevo más tarde.', 'Cerrar', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['error-snackbar'],
+        duration: 3000
       });
     }
   }
 
   deleteCourse() {
     if (confirm(`¿Estás seguro de que deseas eliminar el curso: ${this.course?.nombre}?`)) {
+      this.cursoService.deleteCurso(this.course?.idCurso!).subscribe({
+        next: () => console.log('Curso eliminado exitosamente'),
+        error: (error) => console.error('Error al eliminar el curso:', error)
+      });
+
       console.log(`Curso con ID ${this.course?.idCurso} eliminado`);
       this.snackBar.open('Curso eliminado exitosamente', 'Cerrar', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['success-snackbar']
+        duration: 3000
       });
       this.router.navigate(['/my-courses']);
     }

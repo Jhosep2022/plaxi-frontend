@@ -4,7 +4,7 @@ export interface TemaDto {
     orden: number;
     descripcion: string;
     recursoMultimedia: string;
-    estado: boolean;
+    estado: true;
     leccionId: number; // Solo el ID de la lección a la que pertenece el tema
   }
   

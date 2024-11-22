@@ -33,7 +33,7 @@ export class ThemeEditComponent implements OnInit {
       descripcion: ['', [Validators.maxLength(500)]],
       orden: [1, Validators.required],
       estado: [true, Validators.required],
-      recursoMultimedia: [''] // For displaying the current file name
+      recursoMultimedia: ['']
     });
 
     this.temaId = Number(this.route.snapshot.paramMap.get('id'));
@@ -70,7 +70,7 @@ export class ThemeEditComponent implements OnInit {
       titulo: this.temaData.titulo,
       descripcion: this.temaData.descripcion,
       orden: this.temaData.orden,
-      estado: this.temaData.estado,
+      estado: true, // asegúrate de que siempre se establezca a true
       recursoMultimedia: this.temaData.recursoMultimedia ? this.extractFileName(this.temaData.recursoMultimedia) : ''
     });
   }
@@ -100,8 +100,8 @@ export class ThemeEditComponent implements OnInit {
         titulo: formValues.titulo,
         descripcion: formValues.descripcion,
         orden: formValues.orden,
-        estado: formValues.estado,
-        recursoMultimedia: this.temaData.recursoMultimedia // Keep existing resource if not changed
+        estado: true, // asegúrate de que siempre se establezca a true
+        recursoMultimedia: this.temaData.recursoMultimedia // Mantén el recurso existente si no se ha cambiado
       };
 
       this.confirmSave(updatedTema);
@@ -134,12 +134,15 @@ export class ThemeEditComponent implements OnInit {
 
   // Save changes to the server
   saveChanges(tema: TemaDto): void {
+    console.log('Estado antes de enviar la solicitud:', tema.estado); // Añadir para depuración
     this.temaService.updateTema(this.temaId, tema, this.selectedFile!).subscribe({
       next: () => {
         this.snackBar.open('Tema actualizado con éxito.', 'Cerrar', {
           duration: 3000
         });
-        this.router.navigate(['/lesson-details', tema.leccionId]);
+        setTimeout(() => {
+          this.router.navigate(['/my-courses']); 
+        }, 500);
       },
       error: (error) => {
         console.error('Error al actualizar el tema:', error);
