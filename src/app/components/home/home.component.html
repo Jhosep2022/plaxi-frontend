@@ -3,7 +3,7 @@
   <div class="upcoming-quizzes">
     <div class="header">
       <h2 class="title-card" >Cursos Recientes</h2>
-      <a class="quiz-directory-link" href="#">Ver Todos <span>→</span></a>
+      <!-- <a class="quiz-directory-link" href="#">Ver Todos <span>→</span></a> -->
     </div>
     <div class="upcoming-quizzes-container">
       <div *ngFor="let curso of recentCursos" class="quiz">
@@ -55,6 +55,13 @@
       </button>
     </div>
 
+    <!-- Contador de estudiantes -->
+    <div class="student-count" *ngIf="activeCourseId !== null">
+      <p>
+        Número de estudiantes inscritos: {{ estudiantesInscritos.length }}
+      </p>
+    </div>
+
     <!-- Estudiantes inscritos en el curso seleccionado -->
     <div class="student-card-container" *ngIf="estudiantesInscritos.length > 0">
       <div *ngFor="let estudiante of estudiantesInscritos" class="student-card">
@@ -72,6 +79,7 @@
       <p>No hay estudiantes inscritos en este curso.</p>
     </div>
   </div>
+
 
 
 

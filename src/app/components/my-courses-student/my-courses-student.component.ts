@@ -1,18 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service';
-import { InscripcionResponseDto } from '../../models/inscripcionDto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
-
-interface Course {
-  id: number;
-  name: string;
-  date: string;
-  time: string;
-  studentsEnrolled: number;
-  image: string;
-}
 
 @Component({
   selector: 'app-my-courses-student',
@@ -20,7 +10,7 @@ interface Course {
   styleUrls: ['./my-courses-student.component.css']
 })
 export class MyCoursesStudentComponent implements OnInit {
-  courses: Course[] = [];
+  courses: any[] = [];
   userId: number | null = null;
 
   constructor(
@@ -33,7 +23,7 @@ export class MyCoursesStudentComponent implements OnInit {
   ngOnInit(): void {
     // Recuperar el ID del usuario actualmente logueado desde AuthService
     this.userId = this.authService.getCurrentUserId();
-    console.log('User ID recuperado:', this.userId); // Para depuración
+    console.log('User ID recuperado:', this.userId);
 
     if (this.userId !== null) {
       this.loadUserCourses();
@@ -54,14 +44,15 @@ export class MyCoursesStudentComponent implements OnInit {
       next: (inscripciones) => {
         console.log('Inscripciones obtenidas del backend:', inscripciones);
 
-        // Convertir las inscripciones en el formato de Course para mostrar en la vista
+        // Mantener el idInscripcion en los datos del curso
         this.courses = inscripciones.map((inscripcion) => ({
           id: inscripcion.cursoId,
           name: inscripcion.cursoNombre,
           date: inscripcion.fechaInscripcion,
-          time: '10:00 AM', // Ajustar esta hora si la API devuelve una
-          studentsEnrolled: 0, // Ajustar según tus necesidades
-          image: inscripcion.cursoPortadaUrl || 'assets/curso.png' // Usar la imagen de portada si está disponible, de lo contrario, imagen predeterminada
+          idInscripcion: inscripcion.idInscripcion,
+          time: '10:00 AM',
+          studentsEnrolled: 0,
+          image: inscripcion.cursoPortadaUrl || 'assets/curso.png' 
         }));
 
         console.log('Cursos mapeados:', this.courses);
@@ -78,8 +69,35 @@ export class MyCoursesStudentComponent implements OnInit {
     });
   }
 
+  // Método para eliminar una inscripción utilizando idInscripcion
+  deleteCourse(idInscripcion: number): void {
+    if (confirm('¿Estás seguro de que deseas darte de baja de este curso?')) {
+      this.inscripcionService.deleteInscripcion(idInscripcion).subscribe({
+        next: () => {
+          this.snackBar.open('Te has dado de baja del curso exitosamente.', 'Cerrar', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          });
+
+          // Actualizar la lista de cursos eliminando el curso con idInscripcion
+          this.courses = this.courses.filter((course) => course.idInscripcion !== idInscripcion);
+        },
+        error: (error) => {
+          console.error('Error al intentar darse de baja:', error);
+          this.snackBar.open('Ocurrió un error al intentar darte de baja. Por favor, intenta nuevamente.', 'Cerrar', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar'],
+          });
+        },
+      });
+    }
+  }
+
   // Abrir un curso (redirigir a una vista de detalles del curso)
-  openCourse(course: Course) {
+  openCourse(course: any) {
     this.router.navigate(['/course-details', course.id]);
   }
 

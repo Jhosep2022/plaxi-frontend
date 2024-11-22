@@ -70,11 +70,13 @@
   border-bottom: 1px solid var(--lime-green);
 }
 
-/* Detalles del curso con fondo y texto en colores personalizados */
+
 .course-details {
   padding: 20px;
-  background: var(--dark-blue); /* Fondo de los detalles en azul oscuro */
-  color: var(--text-light); /* Texto en blanco */
+  background: var(--dark-blue);
+  color: var(--text-light);
+  flex-grow: 1;
+
 }
 
 /* Título del curso */
