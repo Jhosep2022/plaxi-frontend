@@ -59,16 +59,40 @@
   font-weight: bold;
 }
 
-
 /* Icono de cerrar */
 .close-btn {
   color: var(--dark-blue);
   font-weight: bold;
 }
 
+/* Botón principal */
+button {
+  background-color: var(--dark-blue); /* Color principal del botón */
+  color: var(--text-light); /* Texto blanco */
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px; /* Bordes redondeados */
+  padding: 12px 25px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+button:hover {
+  background-color: var(--lime-green); /* Cambia a verde al pasar el mouse */
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px); /* Leve elevación */
+}
+
+button:active {
+  background-color: var(--dark-blue); /* Vuelve al color original al hacer clic */
+  transform: translateY(0); /* Sin elevación */
+}
+
 /* Contenedor de detalles del curso */
 .details-section {
-  border: 1px solid var(--dark-blue); /* Borde con el verde de la paleta */
+  border: 1px solid var(--dark-blue); /* Borde con el azul oscuro */
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
@@ -80,48 +104,11 @@
   margin-bottom: 20px;
 }
 
-/* Input group y su contenedor */
-.input-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  background: var(--light-cream); /* Fondo de los inputs */
-  border: 1px solid var(--dark-blue); /* Borde verde */
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-/* Inputs, selects y textareas */
-.input-wrapper input,
-.input-wrapper select,
-.input-wrapper textarea {
-  width: 100%;
-  border: none;
-  padding: 12px 20px;
-  font-size: 16px;
-  color: var(--dark-blue); /* Color del texto en los inputs */
-  background: transparent;
-  box-sizing: border-box;
-  outline: none;
-}
-
 /* Placeholder con estilo */
 .input-wrapper input::placeholder,
 .input-wrapper textarea::placeholder {
   color: var(--dark-blue);
   font-style: italic;
-}
-
-/* Estilo para select */
-.input-wrapper select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  cursor: pointer;
 }
 
 /* Layout en filas para agrupar elementos */
@@ -141,13 +128,6 @@
   }
 }
 
-/* Estilo para labels y contenedores de inputs */
-.form-group label {
-  font-weight: bold;
-  color: var(--dark-blue); /* Color de los labels */
-  margin-bottom: 8px;
-}
-
 /* Efectos en los inputs al estar en focus */
 .form-group input:focus,
 .form-group textarea:focus,
@@ -156,21 +136,6 @@
   border-color: var(--lime-green); /* Borde verde */
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
-
-/* Estilos específicos para inputs */
-.input-wrapper input,
-.input-wrapper textarea,
-.input-wrapper select {
-  font-family: 'Arial', sans-serif;
-}
-
-/* Mensajes de error */
-.error-message {
-  color: #ff6b6b; /* Rojo claro para errores */
-  font-size: 14px;
-  margin-top: 5px;
-}
-
 
 /* Contenedor de la vista previa de la imagen */
 .image-preview {
@@ -187,6 +152,7 @@
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Snack bar */
 .mat-snack-bar-container {
   bottom: 0 !important;
   top: auto !important;
