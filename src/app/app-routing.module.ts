@@ -37,7 +37,7 @@ const routes: Routes = [
   { path: 'course-details/:id', component: CourseDetailsComponent },
   { path: 'my-courses-student', component: MyCoursesStudentComponent },
   { path: 'course-details-tutor/:id', component: CourseDetailsTutorComponent },
-  { path: 'course-edit-tutor', component: CourseEditTutorComponent },
+  { path: 'course-edit-tutor/:id', component: CourseEditTutorComponent },
   { path: 'lesson-form/:id', component: LessonFormComponent },
   { path: 'lesson-details/:id', component: LessonDetailsComponent },
   { path: 'lesson-details-tutor/:id', component: LessonDetailsTutorComponent },
