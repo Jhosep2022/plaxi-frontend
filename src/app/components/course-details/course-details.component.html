@@ -14,6 +14,7 @@
   <div class="button-container">
     <button class="enroll-btn" (click)="enrollInCourse()" *ngIf="!isEnrolled">Inscribirse en el Curso</button>
     <p *ngIf="isEnrolled" class="enrolled-message">Ya estás inscrito en este curso</p>
+    <button *ngIf="isEnrolled" class="delete-btn" (click)="noenrollInCourse()">Desinscribirse del curso</button>
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
   </div>
 

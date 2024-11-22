@@ -38,7 +38,6 @@
   color: var(--dark-blue);
 }
 
-/* Contenedor para alinear los botones horizontalmente */
 .button-container {
   display: flex;
   justify-content: center;
@@ -47,7 +46,8 @@
 }
 
 .enroll-btn,
-.back-btn {
+.back-btn,
+.delete-btn {
   padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -57,7 +57,6 @@
   border: none;
 }
 
-/* Estilo para el botón de inscripción */
 .enroll-btn {
   background-color: var(--lime-green);
   color: var(--text-dark);
@@ -65,6 +64,33 @@
 
 .enroll-btn:hover {
   background-color: #9abb4e;
+}
+
+.enrolled-message {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--lime-green);
+  margin-top: 20px;
+}
+
+.back-btn {
+  background-color: var(--dark-blue);
+  color: var(--text-light);
+}
+
+.back-btn:hover {
+  background-color: #080820;
+}
+
+/* Estilo para el botón de eliminar */
+.delete-btn {
+  background-color: #ff6b6b; /* Color rojo */
+  color: #ffffff;
+}
+
+.delete-btn:hover {
+  background-color: #ff4949;
 }
 
 /* Mensaje de inscripción */
@@ -76,12 +102,3 @@
   margin-top: 20px;
 }
 
-/* Estilo para el botón de regresar */
-.back-btn {
-  background-color: var(--dark-blue);
-  color: var(--text-light);
-}
-
-.back-btn:hover {
-  background-color: #080820;
-}

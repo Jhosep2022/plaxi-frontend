@@ -119,5 +119,20 @@ export class CourseDetailsComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/course-categories']);
   }
+
+  noenrollInCourse() {
+    if (confirm(`¿Estás seguro de que deseas desincribirte del curso: ${this.course?.nombre}?`)) {
+      this.inscripcionService.deleteInscripcion(this.course?.idCurso!).subscribe({
+        next: () => console.log('Curso eliminado exitosamente'),
+        error: (error) => console.error('Error al desinscribirse del curso:', error)
+      });
+
+      console.log(`Curso con ID ${this.course?.idCurso} eliminado`);
+      this.snackBar.open('Desinscripción exitosa', 'Cerrar', {
+        duration: 3000
+      });
+      this.router.navigate(['/course-categories']);
+    }
+  }
 }
 
