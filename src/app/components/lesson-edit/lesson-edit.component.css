@@ -1,22 +1,102 @@
 .lesson-edit-card {
-    max-width: 600px;
-    margin: 20px auto;
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px; /* Bordes redondeados para un diseño más suave */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra sutil para dar profundidad */
+  transition: box-shadow 0.3s ease-in-out; /* Transición para la sombra */
+}
+
+.lesson-edit-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada al pasar el ratón */
+}
+
+mat-form-field {
+  width: 100%;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+/* Estilo para los campos de entrada */
+mat-form-field mat-label {
+  color: #2a2a2a; /* Etiquetas con color más oscuro */
+}
+
+mat-input-element {
+  font-size: 16px; /* Tamaño de fuente consistente */
+}
+
+/* Mejorar apariencia de los errores */
+mat-error {
+  color: #e74c3c; /* Rojo suave para los mensajes de error */
+  font-size: 14px;
+}
+
+mat-form-field input, mat-form-field textarea, mat-form-field mat-select {
+  background-color: #f7f7f7; /* Fondo suave en los campos */
+  border-radius: 8px; /* Bordes redondeados */
+  padding: 10px; /* Mejor relleno en los campos */
+  font-size: 16px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.button-group button {
+  margin-left: 12px;
+  padding: 12px 24px;
+  border-radius: 8px; /* Bordes redondeados */
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s, transform 0.2s ease-in-out;
+}
+
+/* Estilo para el botón de guardar */
+.button-group button[type="submit"] {
+  background-color: #4CAF50; /* Verde suave para el botón de guardar */
+  color: #fff;
+  border: none;
+}
+
+.button-group button[type="submit"]:hover {
+  background-color: #45a049; /* Verde más oscuro al hacer hover */
+  transform: scale(1.05); /* Efecto de agrandado */
+}
+
+/* Estilo para el botón de cancelar */
+.button-group button[type="button"] {
+  background-color: #f1f1f1; /* Fondo gris suave para el botón de cancelar */
+  color: #333;
+  border: none;
+}
+
+.button-group button[type="button"]:hover {
+  background-color: #ddd; /* Gris más oscuro al hacer hover */
+  transform: scale(1.05);
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .lesson-edit-card {
     padding: 16px;
+    max-width: 100%;
   }
-  
+
   .button-group {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
+    flex-direction: column;
+    align-items: stretch;
   }
-  
+
   .button-group button {
-    margin-left: 8px;
-    background-color: #bccf4e;
+    margin-left: 0;
+    margin-bottom: 10px; /* Separación vertical en botones en pantallas pequeñas */
   }
-  
+
   mat-form-field {
-    width: 100%;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
-  
+}
