@@ -92,7 +92,7 @@ button:active {
 
 /* Contenedor de detalles del curso */
 .details-section {
-  border: 1px solid var(--dark-blue); /* Borde con el azul oscuro */
+  border: 1px solid var(--dark-blue); /* Borde con el verde de la paleta */
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
@@ -159,4 +159,61 @@ button:active {
   position: fixed !important;
   left: 50%;
   transform: translateX(-50%);
+}
+
+/* Input group y su contenedor */
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--light-cream); /* Fondo de los inputs */
+  border: 1px solid var(--dark-blue); /* Borde verde */
+  border-radius: 8px;
+  overflow: hidden;
+}
+/* Inputs, selects y textareas */
+.input-wrapper input,
+.input-wrapper select,
+.input-wrapper textarea {
+  width: 100%;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  color: var(--dark-blue); /* Color del texto en los inputs */
+  background: transparent;
+  box-sizing: border-box;
+  outline: none;
+}
+
+
+/* Estilo para select */
+.input-wrapper select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Estilo para labels y contenedores de inputs */
+.form-group label {
+  font-weight: bold;
+  color: var(--dark-blue); /* Color de los labels */
+  margin-bottom: 8px;
+}
+
+/* Estilos específicos para inputs */
+.input-wrapper input,
+.input-wrapper textarea,
+.input-wrapper select {
+  font-family: 'Arial', sans-serif;
+}
+
+/* Mensajes de error */
+.error-message {
+  color: #ff6b6b; /* Rojo claro para errores */
+  font-size: 14px;
+  margin-top: 5px;
 }
