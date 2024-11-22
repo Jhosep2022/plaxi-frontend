@@ -41,7 +41,8 @@
 }
 
 .enroll-btn,
-.back-btn {
+.back-btn,
+.delete-btn {
   padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -59,6 +60,16 @@
 
 .enroll-btn:hover {
   background-color: #9abb4e;
+}
+
+/* Estilo para el botón de eliminar */
+.delete-btn {
+  background-color: #ff6b6b; /* Color rojo */
+  color: #ffffff;
+}
+
+.delete-btn:hover {
+  background-color: #ff4949;
 }
 
 /* Mensaje de inscripción */

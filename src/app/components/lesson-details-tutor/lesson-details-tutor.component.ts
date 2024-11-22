@@ -85,4 +85,19 @@ export class LessonDetailsTutorComponent implements OnInit {
       });
     }
   }
+
+  deleteLesson() {
+    if (confirm(`¿Estás seguro de que deseas eliminar la leccion: ${this.leccion?.titulo}?`)) {
+      this.leccionService.deleteLeccion(this.leccion?.idLeccion!).subscribe({
+        next: () => console.log('Leccion eliminada exitosamente'),
+        error: (error) => console.error('Error al eliminar la leccion:', error)
+      });
+
+      console.log(`leccion con ID ${this.course?.idCurso} eliminada`);
+      this.snackBar.open('Leccion eliminada exitosamente', 'Cerrar', {
+        duration: 3000
+      });
+      this.router.navigate(['/my-courses']);
+    }
+  }
 }

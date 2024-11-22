@@ -50,4 +50,19 @@ export class TemaDetailsTutorComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/my-courses']);
   }
+
+  deleteTema() {
+    if (confirm(`¿Estás seguro de que deseas eliminar el tema: ${this.tema?.titulo}?`)) {
+      this.temaService.deleteTema(this.tema?.idTema!).subscribe({
+        next: () => console.log('Tema eliminado exitosamente'),
+        error: (error) => console.error('Error al eliminar el te,a:', error)
+      });
+
+      console.log(`Tema con ID ${this.tema?.idTema} eliminado`);
+      this.snackBar.open('Tema eliminado exitosamente', 'Cerrar', {
+        duration: 3000
+      });
+      this.router.navigate(['/my-courses']);
+    }
+  }
 }
