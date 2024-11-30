@@ -75,14 +75,19 @@
       </div>
 
       <div class="form-group input-group">
-        <label for="Categoria_id_categoria">ID de la Categoría</label>
+        <label for="Categoria_id_categoria">Categoría</label>
         <div class="input-wrapper">
-          <input id="Categoria_id_categoria" type="number" formControlName="Categoria_id_categoria" placeholder="ID de la categoría">
+          <select id="Categoria_id_categoria" formControlName="Categoria_id_categoria" class="form-control">
+            <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">
+              {{ categoria.nombre }}
+            </option>
+          </select>
         </div>
         <span *ngIf="courseForm.get('Categoria_id_categoria')?.touched && courseForm.get('Categoria_id_categoria')?.invalid" class="error-message">
           {{ getErrorMessage('Categoria_id_categoria') }}
         </span>
       </div>
+
     </div>
   </form>
 </div>

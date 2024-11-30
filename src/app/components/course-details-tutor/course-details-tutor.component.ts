@@ -128,6 +128,8 @@ export class CourseDetailsTutorComponent implements OnInit {
     this.router.navigate(['/my-courses']);
   }
 
+  
+
   noenrollInCourse() {
     if (confirm(`¿Estás seguro de que deseas desincribirte del curso: ${this.course?.nombre}?`)) {
       this.inscripcionService.deleteInscripcion(this.course?.idCurso!).subscribe({

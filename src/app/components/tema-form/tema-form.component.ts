@@ -64,7 +64,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
   }
 
   ngAfterViewChecked(): void {
-    console.log('ngAfterViewChecked ejecutado' ); 
+    console.log('ngAfterViewChecked ejecutado' );
     if (this.snackBarRef) {
       this.snackBarRef.instance.snackBarContainer.nativeElement.style.bottom = '0';
     }
@@ -87,20 +87,20 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     console.log('Archivo seleccionado:', file);
-  
+
     if (file) {
       const validExtensions = [
         'image/jpeg', 'image/png', 'image/jpg', // Imágenes
         'video/mp4',                           // Videos
         'application/pdf'                      // PDFs
       ];
-  
+
       if (validExtensions.includes(file.type)) {
         this.selectedFile = file;
         this.fileError = null;
-  
+
         const reader = new FileReader();
-  
+
         // Verificar si el archivo es una imagen para mostrar la vista previa
         if (file.type.startsWith('image/')) {
           reader.onload = () => {
@@ -114,7 +114,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
           console.log('Archivo PDF seleccionado');
         } else if (file.type.startsWith('video/')) {
           // Para videos, se puede reproducir directamente o manejar como se prefiera
-          this.previewUrl = null; 
+          this.previewUrl = null;
           console.log('Archivo de video seleccionado');
         }
       } else {
@@ -128,24 +128,24 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
 
   onSubmit() {
     console.log('Botón de enviar presionado.');
-  
-    const leccionId = Number(this.route.snapshot.paramMap.get('id'));
-  
+
+    const leccionId = Number(this.route.snapshot.paramMap.get('id')); // Obtén el ID de la lección
+
     if (this.temaForm.valid && this.selectedFile) {
       // Construir el objeto TemaDto
       const temaDto: TemaDto = {
-        idTema: 0, 
+        idTema: 0,
         titulo: this.temaForm.value.titulo,
         orden: this.temaForm.value.orden,
         descripcion: this.temaForm.value.descripcion,
-        recursoMultimedia: '', 
-        estado: this.temaForm.value.estado, 
+        recursoMultimedia: '',
+        estado: this.temaForm.value.estado,
         leccionId: leccionId,
       };
-  
+
       // Mostrar los valores de TemaDto para depurar
       console.log('Datos de TemaDto:', temaDto);
-  
+
       // Llamar al servicio para crear el tema
       this.temaService.createTema(temaDto, this.selectedFile).subscribe({
         next: (response) => {
@@ -153,9 +153,9 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
           this.snackBarRef = this.snackBar.open('¡El tema se ha creado exitosamente!', 'Cerrar', {
             duration: 3000
           });
-          setTimeout(() => {
-            this.router.navigate(['/my-courses']); // Redirigir a la lista de cursos
-          }, 500);
+
+          // Redirigir a la ruta lesson-details-tutor con el ID de la lección
+          this.router.navigate([`/lesson-details-tutor/${leccionId}`]);
         },
         error: (error) => {
           console.error('Error al crear el tema:', error);
@@ -170,6 +170,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
       console.log('Archivo seleccionado:', this.selectedFile);
     }
   }
+
 
   // Método para cancelar la creación de la lección y redirigir
   onCancel() {

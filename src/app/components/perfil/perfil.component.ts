@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProfileService } from '../../services/profile.service';  // Ruta correcta al servicio
 import { faEdit, faTrash, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';  // Importar icono de edición y cerrar sesión
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-perfil',
@@ -17,7 +19,8 @@ export class PerfilComponent implements OnInit {
 
   isDialogOpen = false;  // Controla si el diálogo está abierto
 
-  constructor(private perfilService: ProfileService, private router: Router) {}
+  constructor(private perfilService: ProfileService, private router: Router, private dialog: MatDialog) {}
+
 
   ngOnInit(): void {
     const idUsuario = localStorage.getItem('idUsuario');  // Obtiene el ID del usuario desde localStorage
@@ -47,9 +50,29 @@ export class PerfilComponent implements OnInit {
   }
 
   abrirDialogoConfirmacion() {
-    // Si no necesitas este botón, simplemente elimínalo o comenta esta función
-    console.log('Dar de baja está deshabilitado');
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Si el usuario confirma, elimina la cuenta
+        const idUsuario = localStorage.getItem('idUsuario');
+        if (idUsuario) {
+          this.perfilService.deleteProfile(Number(idUsuario)).subscribe({
+            next: (response) => {
+              console.log('Cuenta eliminada correctamente:', response);
+              this.router.navigate(['/login']);
+            },
+            error: (err) => {
+              console.error('Error al eliminar la cuenta:', err);
+            },
+          });
+        }
+      }
+    });
   }
+
 
   // Función para cerrar sesión y redirigir al login
   cerrarSesion() {

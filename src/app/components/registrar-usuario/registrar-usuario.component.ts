@@ -81,4 +81,13 @@ export class RegistrarUsuarioComponent {
   redirectToLogin() {
     this.router.navigate(['/login']);
   }
+
+  validateNumberInput(event: KeyboardEvent): void {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode < 48 || charCode > 57) {
+      // Previene la entrada de caracteres no numéricos
+      event.preventDefault();
+    }
+  }
+
 }

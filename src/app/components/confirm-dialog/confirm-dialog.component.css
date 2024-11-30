@@ -1,17 +1,17 @@
 .custom-dialog {
   width: 350px;
   padding: 25px;
-  background-color: #39313d; /* Fondo oscuro acorde con la paleta */
+  background-color: var(--dark-blue); /* Fondo oscuro */
   border-radius: 10px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
-  color: #f2f2f2; /* Texto claro */
+  color: var(--text-light); /* Texto claro */
 }
 
 .dialog-title {
   font-size: 20px;
   margin-bottom: 15px;
   text-align: center;
-  color: #fbb334; /* Amarillo destacado */
+  color: var(--lime-green); /* Título en verde lima */
 }
 
 .dialog-content {
@@ -19,6 +19,7 @@
   margin-bottom: 20px;
   line-height: 1.5;
   text-align: center;
+  color: var(--dark-blue); /* Texto en crema */
 }
 
 .dialog-actions {
@@ -36,21 +37,23 @@
 }
 
 .cancel-btn {
-  background-color: #8a8c93; /* Gris oscuro */
-  color: #39313d; /* Contraste para texto */
+  background-color: var(--light-cream); /* Fondo crema */
+  color: var(--dark-blue); /* Texto oscuro */
 }
 
 .cancel-btn:hover {
-  background-color: #2a919d; /* Azul verdoso de la paleta */
+  background-color: var(--lime-green); /* Hover en verde lima */
+  color: var(--text-dark); /* Texto oscuro */
   transform: scale(1.05);
 }
 
 .confirm-btn {
-  background-color: #f38f38; /* Naranja de la paleta */
-  color: white;
+  background-color: var(--lime-green); /* Fondo verde lima */
+  color: var(--text-dark); /* Texto oscuro */
 }
 
 .confirm-btn:hover {
-  background-color: #d9534f; /* Rojo vibrante */
+  background-color: var(--light-cream); /* Hover en crema */
+  color: var(--dark-blue); /* Texto oscuro */
   transform: scale(1.05);
 }

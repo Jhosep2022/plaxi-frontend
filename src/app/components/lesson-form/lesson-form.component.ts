@@ -121,9 +121,9 @@ export class LessonFormComponent implements OnInit {
           this.snackBar.open('¡La lección se ha creado exitosamente!', 'Cerrar', {
             duration: 3000
           });
-          setTimeout(() => {
-            this.router.navigate(['/my-courses']);
-          }, 3000);
+
+          // Redirigir a `CourseDetailsTutorComponent` con el `courseId`
+          this.router.navigate([`/course-details-tutor/${courseId}`]);
         },
         error: (error) => {
           console.error('Error en la creación de la lección:', error);
@@ -139,6 +139,7 @@ export class LessonFormComponent implements OnInit {
       });
     }
   }
+
 
   // Método para cancelar la creación de la lección y redirigir
   onCancel(): void {

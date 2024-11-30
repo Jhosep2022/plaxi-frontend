@@ -95,7 +95,17 @@
             <label for="telefono">Teléfono</label>
             <div class="input-container">
               <span class="icon">📞</span>
-              <input type="text" id="telefono" [(ngModel)]="telefono" name="telefono" placeholder="Introduce tu número de teléfono" class="form-control" required />
+              <input
+                type="text"
+                id="telefono"
+                [(ngModel)]="telefono"
+                name="telefono"
+                placeholder="Introduce tu número de teléfono"
+                class="form-control"
+                (keypress)="validateNumberInput($event)"
+                required
+              />
+
             </div>
           </div>
 

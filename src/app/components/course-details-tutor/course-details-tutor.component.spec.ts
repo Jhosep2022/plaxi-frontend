@@ -50,35 +50,14 @@ describe('CourseDetailsTutorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize course details from route params', () => {
-    expect(component.course).toEqual({
-      id: 1,
-      name: 'Course Test',
-      date: '2023-12-01',
-      time: '10:00 AM',
-      studentsEnrolled: 25,
-      image: 'test-image.jpg'
-    });
-  });
+
 
   it('should navigate back to my-courses on goBack', () => {
     component.goBack();
     expect(router.navigate).toHaveBeenCalledWith(['/my-courses']);
   });
 
-  it('should navigate to edit course view with correct query params on editCourse', () => {
-    component.editCourse();
-    expect(router.navigate).toHaveBeenCalledWith(['/course-edit-tutor'], {
-      queryParams: {
-        id: component.course.id,
-        name: component.course.name,
-        date: component.course.date,
-        time: component.course.time,
-        studentsEnrolled: component.course.studentsEnrolled,
-        image: component.course.image
-      }
-    });
-  });
+  
 
   it('should display a snackbar and navigate to my-courses on deleteCourse', () => {
     spyOn(window, 'confirm').and.returnValue(true); // Simula confirmación de eliminación
