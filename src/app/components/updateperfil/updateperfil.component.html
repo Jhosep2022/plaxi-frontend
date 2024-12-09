@@ -170,7 +170,7 @@
 
     <!-- Botones de Actualizar y Cancelar -->
     <div class="form-buttons">
-      <button type="submit" class="update-btn" [disabled]="profileForm.invalid">Actualizar Perfil <span class="icon">✔️</span></button>
+      <button type="submit" class="update-btn" (click)="profileForm.invalid">Actualizar Perfil <span class="icon">✔️</span></button>
       <button type="button" class="cancel-btn" (click)="cancelar()">Cancelar</button>
     </div>
   </form>
