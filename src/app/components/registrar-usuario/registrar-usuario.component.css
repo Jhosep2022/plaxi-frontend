@@ -210,3 +210,32 @@ label {
     min-width: 100%; /* Asegura que los campos tomen el ancho completo en pantallas pequeñas */
   }
 }
+/* Estilo para campos con íconos */
+.input-container .icon-right {
+  position: absolute;
+  top: 50%;
+  right: 10px; /* Ajusta la posición del ícono */
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 1.2rem;
+}
+
+/* Ajuste del input para acomodar el ícono en el lado derecho */
+.input-container .form-control.icon-input {
+  padding-right: 40px; /* Espacio adicional para el ícono en la derecha */
+}
+
+
+.toggle-visibility{
+  background-color: transparent;
+  border: none;
+}
+
+.input-container .toggle-visibility {
+  position: absolute;
+  top: 50%;
+  left: calc(100% - 40px); /* Ajusta la posición del ícono */
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 1.2rem;
+}

@@ -33,17 +33,42 @@
             <label for="password">Contraseña</label>
             <div class="input-container">
               <span class="icon">🔒</span>
-              <input type="password" id="password" [(ngModel)]="password" name="password" placeholder="Introduce tu contraseña" class="form-control" required />
+              <input
+                [type]="isPasswordVisible ? 'text' : 'password'"
+                id="password"
+                [(ngModel)]="password"
+                name="password"
+                placeholder="Introduce tu contraseña"
+                class="form-control"
+                required
+              />
+              <button type="button" class="toggle-visibility" (click)="togglePasswordVisibility()">
+                <span *ngIf="isPasswordVisible">👁️</span>
+                <span *ngIf="!isPasswordVisible">🙈</span>
+              </button>
             </div>
           </div>
-
+          
           <div class="form-group form-half">
             <label for="confirmPassword">Confirmar Contraseña</label>
             <div class="input-container">
               <span class="icon">🔒</span>
-              <input type="password" id="confirmPassword" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repite tu contraseña" class="form-control" required />
+              <input
+                [type]="isConfirmPasswordVisible ? 'text' : 'password'"
+                id="confirmPassword"
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+                placeholder="Repite tu contraseña"
+                class="form-control"
+                required
+              />
+              <button type="button" class="toggle-visibility" (click)="toggleConfirmPasswordVisibility()">
+                <span *ngIf="isConfirmPasswordVisible">👁️</span>
+                <span *ngIf="!isConfirmPasswordVisible">🙈</span>
+              </button>
             </div>
           </div>
+          
         </div>
 
         <div class="form-group">

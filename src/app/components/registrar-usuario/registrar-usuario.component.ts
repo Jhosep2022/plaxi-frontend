@@ -21,15 +21,25 @@ export class RegistrarUsuarioComponent {
   ci: string = '';
   errorMessage: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  // Variables para la visibilidad de contraseñas
+  isPasswordVisible: boolean = false;
+  isConfirmPasswordVisible: boolean = false;
 
+  constructor(private authService: AuthService, private router: Router) {}
 
   selectOption(option: string) {
     this.isTutorSelected = option === 'tutor';
   }
 
-  onRegister() {
+  togglePasswordVisibility(): void {
+    this.isPasswordVisible = !this.isPasswordVisible;
+  }
 
+  toggleConfirmPasswordVisibility(): void {
+    this.isConfirmPasswordVisible = !this.isConfirmPasswordVisible;
+  }
+
+  onRegister() {
     if (!this.username || !this.password || !this.confirmPassword || !this.gmail || !this.nombre || !this.primerApellido || !this.telefono || !this.ci) {
       this.errorMessage = 'Por favor, completa todos los campos.';
       return;
@@ -89,5 +99,4 @@ export class RegistrarUsuarioComponent {
       event.preventDefault();
     }
   }
-
 }
