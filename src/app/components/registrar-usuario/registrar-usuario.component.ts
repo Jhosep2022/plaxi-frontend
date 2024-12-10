@@ -77,8 +77,11 @@ export class RegistrarUsuarioComponent {
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        console.error('Error en el registro:', err);
-        this.errorMessage = 'Error al registrar. Por favor, inténtalo nuevamente.';
+        if (err.error.message === 'El nombre de usuario ya está en uso.') {
+          this.errorMessage = 'El nombre de usuario ya está en uso. Por favor, elige otro.';
+        } else {
+          this.errorMessage = 'Error al registrar. Por favor, inténtalo nuevamente.';
+        }
       }
     });
   }
