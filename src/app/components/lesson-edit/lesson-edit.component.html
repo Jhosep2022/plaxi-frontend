@@ -39,7 +39,7 @@
         <div class="form-group input-group">
           <mat-label>Duración Estimada (minutos)</mat-label>
           <div class="input-wrapper">
-            <input matInput type="number" formControlName="duracionEstimada" />
+            <input matInput type="number" formControlName="duracionEstimada"  />
             <mat-error *ngIf="lessonForm.get('duracionEstimada')?.invalid && lessonForm.get('duracionEstimada')?.touched">
               {{ getErrorMessage('duracionEstimada') }}
             </mat-error>

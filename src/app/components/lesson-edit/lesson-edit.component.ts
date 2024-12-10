@@ -29,12 +29,13 @@ export class LessonEditComponent implements OnInit {
   ngOnInit(): void {
     // Initialize the form
     this.lessonForm = this.fb.group({
-      titulo: ['', [Validators.required, Validators.maxLength(150)]],
-      contenido: ['', [Validators.maxLength(250)]],
-      duracionEstimada: [60, Validators.required],
-      orden: [1, Validators.required],
-      estado: [true, Validators.required]
-    });
+  titulo: ['', [Validators.required, Validators.maxLength(150)]],
+  contenido: ['', [Validators.maxLength(250)]],
+  duracionEstimada: [60, [Validators.required, Validators.max(60)]], // Restricción de máximo 60
+  orden: [1, Validators.required],
+  estado: [true, Validators.required]
+});
+
 
     // Get the leccion ID from the route
     this.leccionId = Number(this.route.snapshot.paramMap.get('id'));

@@ -43,7 +43,7 @@ export class LessonFormComponent implements OnInit {
     this.lessonForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.maxLength(150)]],
       contenido: ['', [Validators.maxLength(250)]],
-      duracion: [60, Validators.required],
+      duracion: [60, [Validators.required, Validators.max(60)],],
       orden: [1, Validators.required],
       estado: [true, Validators.required]
     });
