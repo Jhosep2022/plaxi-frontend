@@ -177,7 +177,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
     const leccionId = Number(this.route.snapshot.paramMap.get('id'));
 
     if (leccionId) {
-      this.router.navigate([`/leccion-details/${leccionId}`]); // Redirige a la leccion con el ID correcto
+      this.router.navigate([`/lesson-details-tutor/${leccionId}`]); // Redirige a la leccion con el ID correcto
     } else {
       console.error('No se encontró el ID de la lección para redirigir.');
     }
