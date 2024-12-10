@@ -140,7 +140,7 @@ export class CourseEditTutorComponent implements OnInit {
             duration: 3000,
             verticalPosition: 'bottom',
           });
-          this.router.navigate(['/my-courses']);
+          this.router.navigate([`/course-details-tutor/${this.courseId}`]);
         },
         error: (err) => {
           console.error('Error al actualizar el curso:', err);
