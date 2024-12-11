@@ -36,7 +36,7 @@ export class CourseEditTutorComponent implements OnInit {
     // Inicializar el formulario
     this.courseForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.maxLength(150)]],
-      descripcion: ['', [Validators.maxLength(250)]],
+      descripcion: ['', [Validators.required, Validators.maxLength(250)]],
       dificultad: ['Beginner', Validators.required],
       estado: [true, Validators.required],
       Categoria_id_categoria: [0, [Validators.required, Validators.min(1)]], // ID de la categoría seleccionada
