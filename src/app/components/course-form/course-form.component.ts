@@ -21,6 +21,8 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
   userId: number | null = null; // Almacenar el ID del usuario logueado
   snackBarRef: any;
 
+  isSubmitting = false;
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -112,6 +114,11 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
   onSubmit() {
     console.log('Botón de enviar presionado.');
 
+    if (this.isSubmitting) {
+      console.log('La solicitud ya está en proceso. Ignorando el clic.');
+      return;
+    }
+
     if (this.courseForm.valid && this.selectedFile && this.userId !== null) {
       // Validación adicional para verificar categoría
       if (!this.courseForm.value.Categoria_id_categoria) {
@@ -143,6 +150,8 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
         console.log(`FormData - ${key}:`, value);
       });
 
+      this.isSubmitting = true;
+
       // Llamar al servicio para crear el curso
       this.cursoService.createCurso(formData).subscribe({
         next: (response) => {
@@ -159,6 +168,7 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
           this.snackBar.open('Error al crear el curso. Por favor, revisa los campos.', 'Cerrar', {
             duration: 3000
           });
+          this.isSubmitting = false;
         },
       });
     } else {
