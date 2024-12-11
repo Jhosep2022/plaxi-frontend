@@ -117,7 +117,7 @@ export class LessonEditComponent implements OnInit {
 
   // Cancel editing
   onCancel(): void {
-    this.router.navigate(['/course-details', this.leccionData.cursoId]);
+    this.router.navigate(['/lesson-details', this.leccionData.idLeccion]);
   }
 
   getErrorMessage(field: string): string {
@@ -137,7 +137,7 @@ export class LessonEditComponent implements OnInit {
         this.snackBar.open('Lección actualizada con éxito.', 'Cerrar', {
           duration: 3000
         });
-        this.router.navigate(['/course-details', leccion.cursoId]);
+        this.router.navigate(['/lesson-details', this.leccionData.idLeccion]);
       },
       error: (error) => {
         console.error('Error al actualizar la lección:', error);

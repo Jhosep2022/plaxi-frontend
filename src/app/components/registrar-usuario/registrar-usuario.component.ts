@@ -1,13 +1,15 @@
-import { Component } from '@angular/core';
-import { AuthService } from '../../services/auth.service';  // Ruta correcta al servicio
-import { Router } from '@angular/router';  // Para redirigir al login
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+import { ProfileService } from '../../services/profile.service'; // Importar el servicio de perfiles
+import { PerfilDto } from '../../models/PerfilDto'; // Importar el modelo de perfil
 
 @Component({
   selector: 'app-registrar-usuario',
   templateUrl: './registrar-usuario.component.html',
   styleUrls: ['./registrar-usuario.component.css']
 })
-export class RegistrarUsuarioComponent {
+export class RegistrarUsuarioComponent implements OnInit {
   isTutorSelected: boolean = true;
 
   username: string = '';
@@ -20,16 +22,36 @@ export class RegistrarUsuarioComponent {
   telefono: string = '';
   ci: string = '';
   errorMessage: string = '';
+  correosRegistrados: string[] = []; // Lista de correos ya registrados
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private profileService: ProfileService // Inyectar el servicio de perfiles
+  ) {}
 
+  ngOnInit(): void {
+    this.cargarCorreosRegistrados();
+  }
+
+  // Cargar los correos registrados
+  private cargarCorreosRegistrados(): void {
+    this.profileService.getAllProfiles().subscribe({
+      next: (perfiles: PerfilDto[]) => {
+        this.correosRegistrados = perfiles.map((perfil) => perfil.gmail);
+        console.log('Correos registrados cargados:', this.correosRegistrados);
+      },
+      error: (error) => {
+        console.error('Error al cargar los correos registrados:', error);
+      },
+    });
+  }
 
   selectOption(option: string) {
     this.isTutorSelected = option === 'tutor';
   }
 
   onRegister() {
-
     if (!this.username || !this.password || !this.confirmPassword || !this.gmail || !this.nombre || !this.primerApellido || !this.telefono || !this.ci) {
       this.errorMessage = 'Por favor, completa todos los campos.';
       return;
@@ -42,6 +64,11 @@ export class RegistrarUsuarioComponent {
 
     if (this.password !== this.confirmPassword) {
       this.errorMessage = 'Las contraseñas no coinciden. Por favor, intenta de nuevo.';
+      return;
+    }
+
+    if (this.correosRegistrados.includes(this.gmail)) {
+      alert('El correo ya se encuentra registrado.');
       return;
     }
 
@@ -89,5 +116,4 @@ export class RegistrarUsuarioComponent {
       event.preventDefault();
     }
   }
-
 }

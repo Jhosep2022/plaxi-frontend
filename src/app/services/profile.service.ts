@@ -14,9 +14,9 @@ export class ProfileService {
 
   // Obtener todos los perfiles
   getAllProfiles(): Observable<PerfilDto[]> {
-    return this.http.get<PerfilDto[]>(`${this.apiUrl}`);
+    return this.http.get<PerfilDto[]>(`${this.apiUrl}/all`);
   }
-
+  
   // Obtener un perfil específico por ID
   getProfile(idUsuario: number): Observable<PerfilDto> {
     return this.http.get<PerfilDto>(`${this.apiUrl}/${idUsuario}`);
