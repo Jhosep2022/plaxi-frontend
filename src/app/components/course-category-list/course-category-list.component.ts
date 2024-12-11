@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
+import { CategoriaService } from 'src/app/services/categoria.service';
 
 // Interfaz para la categoría
 interface Category {
@@ -15,12 +16,8 @@ interface Category {
   styleUrls: ['./course-category-list.component.css']
 })
 export class CourseCategoryListComponent implements OnInit {
-  // Lista de categorías simulada (puedes ajustar esto según necesites)
-  categories: Category[] = [
-    { id: 1, nombre: 'Programación' },
-    { id: 2, nombre: 'Psicología' },
-    { id: 3, nombre: 'Data Science' }
-  ];
+  // Lista de categorías obtenida de la API
+  categories: Category[] = [];
 
   // Lista de cursos obtenida de la API
   courses: CursoDto[] = [];
@@ -31,14 +28,40 @@ export class CourseCategoryListComponent implements OnInit {
   itemsPerPage: number = 6;
   totalPages: number = 1;
 
-  constructor(private router: Router, private cursoService: CourseService) {}
+  constructor(
+    private router: Router, 
+    private cursoService: CourseService,
+    private categoriaService: CategoriaService // Importar el servicio de categorías
+  ) {}
 
   ngOnInit(): void {
-    // Obtener todos los cursos desde la API cuando el componente se inicie
-    this.getCoursesFromApi();
+    // Obtener todas las categorías desde la API
+    this.getCategoriesFromApi();
 
-    // Seleccionar la primera categoría por defecto
-    this.selectedCategory = this.categories[0];
+    // Obtener todos los cursos desde la API
+    this.getCoursesFromApi();
+  }
+
+    // Obtener todas las categorías desde la API
+  getCategoriesFromApi(): void {
+    this.categoriaService.getAllCategorias().subscribe({
+      next: (data) => {
+        this.categories = data.map(categoria => ({
+          id: categoria.idCategoria, 
+          nombre: categoria.nombre 
+        }));
+        console.log('Categorías obtenidas y transformadas de la API:', this.categories);
+
+        // Seleccionar la primera categoría por defecto, si existe
+        if (this.categories.length > 0) {
+          this.selectedCategory = this.categories[0];
+          this.filterCoursesByCategory();
+        }
+      },
+      error: (err) => {
+        console.error('Error al obtener categorías desde la API:', err);
+      }
+    });
   }
 
   // Obtener todos los cursos desde la API
@@ -64,14 +87,13 @@ export class CourseCategoryListComponent implements OnInit {
   // Filtrar los cursos según la categoría seleccionada y actualizar la paginación
   filterCoursesByCategory(): void {
     if (this.selectedCategory) {
-      // Filtrar los cursos según la categoría seleccionada
-      this.filteredCourses = this.courses.filter(course => course.categoriaId === this.selectedCategory?.id);
+      this.filteredCourses = this.courses.filter(
+        course => course.categoriaId === this.selectedCategory?.id
+      );
     } else {
-      // Mostrar todos los cursos si no hay categoría seleccionada
       this.filteredCourses = this.courses;
     }
 
-    // Actualizar la paginación con la lista filtrada
     this.currentPage = 1;
     this.totalPages = Math.ceil(this.filteredCourses.length / this.itemsPerPage);
     this.updatePagedCourses();
@@ -94,7 +116,6 @@ export class CourseCategoryListComponent implements OnInit {
 
   // Redirigir a la página de detalles del curso
   viewCourse(course: CursoDto): void {
-    this.router.navigate(['/course-details', course.idCurso]); 
+    this.router.navigate(['/course-details', course.idCurso]);
   }
-
 }

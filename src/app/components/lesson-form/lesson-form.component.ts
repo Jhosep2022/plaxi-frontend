@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { CourseService } from '../../services/course.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Categoria } from 'src/app/models/categoriaDto';
 import { CategoriaService } from 'src/app/services/categoria.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -28,7 +28,7 @@ export class LessonFormComponent implements OnInit {
     private fb: FormBuilder,
     private categoriaService: CategoriaService,
     private authService: AuthService,
-    private snackBar: MatSnackBar,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -38,10 +38,22 @@ export class LessonFormComponent implements OnInit {
     this.loadCourseDetails();
   }
 
+  // Validador personalizado para comprobar si el valor contiene al menos una letra
+  private noSoloNumerosValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (value && /^[0-9]+$/.test(value)) {
+      return { soloNumeros: true }; // Error personalizado
+    }
+    return null;
+  }
+
   // Inicializa el formulario con sus validaciones
   private initializeForm(): void {
     this.lessonForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.maxLength(150)]],
+      nombre: [
+        '', 
+        [Validators.required, Validators.maxLength(150), this.noSoloNumerosValidator.bind(this)] // Añadido
+      ],
       contenido: ['', [Validators.maxLength(250)]],
       duracion: [60, Validators.required],
       orden: [1, Validators.required],
@@ -140,7 +152,6 @@ export class LessonFormComponent implements OnInit {
     }
   }
 
-
   // Método para cancelar la creación de la lección y redirigir
   onCancel(): void {
     const courseId = Number(this.route.snapshot.paramMap.get('id'));
@@ -153,11 +164,15 @@ export class LessonFormComponent implements OnInit {
 
   // Obtener mensaje de error para un campo específico
   getErrorMessage(field: string): string {
-    if (this.lessonForm.get(field)?.hasError('required')) {
+    const control = this.lessonForm.get(field);
+    if (control?.hasError('required')) {
       return 'Este campo es obligatorio.';
     }
-    if (this.lessonForm.get(field)?.hasError('maxlength')) {
-      return `Máximo ${this.lessonForm.get(field)?.errors?.['maxlength'].requiredLength} caracteres permitidos.`;
+    if (control?.hasError('maxlength')) {
+      return `Máximo ${control.errors?.['maxlength'].requiredLength} caracteres permitidos.`;
+    }
+    if (control?.hasError('soloNumeros')) {
+      return 'El título no puede contener solo números.';
     }
     return '';
   }

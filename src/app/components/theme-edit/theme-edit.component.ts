@@ -134,14 +134,18 @@ export class ThemeEditComponent implements OnInit {
 
   // Save changes to the server
   saveChanges(tema: TemaDto): void {
-    console.log('Estado antes de enviar la solicitud:', tema.estado); // Añadir para depuración
-    this.temaService.updateTema(this.temaId, tema, this.selectedFile!).subscribe({
+    const hasFile = this.selectedFile !== null; // Verifica si hay un archivo seleccionado
+    const uploadObservable = hasFile
+      ? this.temaService.updateTemaWithFile(this.temaId, tema, this.selectedFile as File) // Asegura que no sea null
+      : this.temaService.updateTemaWithoutFile(this.temaId, tema);
+  
+    uploadObservable.subscribe({
       next: () => {
         this.snackBar.open('Tema actualizado con éxito.', 'Cerrar', {
           duration: 3000
         });
         setTimeout(() => {
-          this.router.navigate(['/my-courses']); 
+          this.router.navigate(['/my-courses']);
         }, 500);
       },
       error: (error) => {
@@ -152,6 +156,8 @@ export class ThemeEditComponent implements OnInit {
       }
     });
   }
+  
+  
 
   // Cancel editing
   onCancel(): void {

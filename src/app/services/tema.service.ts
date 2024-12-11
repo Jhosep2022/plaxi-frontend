@@ -88,7 +88,18 @@ export class TemaService {
         catchError(this.handleError)
       );
   }
-
+  
+  updateTemaWithFile(id: number, tema: TemaDto, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('tema', new Blob([JSON.stringify(tema)], { type: 'application/json' }));
+    formData.append('file', file);
+    return this.http.put(`${this.apiUrl}/update`, formData);
+  }
+  
+  updateTemaWithoutFile(id: number, tema: TemaDto): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update/${id}`, tema);
+  }
+  
   // Eliminar un tema por ID
   deleteTema(idTema: number): Observable<void> {
     const url = `${this.apiUrl}/delete/${idTema}`;
