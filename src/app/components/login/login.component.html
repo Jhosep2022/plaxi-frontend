@@ -22,7 +22,12 @@
         <label for="password">Contraseña</label>
         <div class="input-container">
           <span class="icon">🔒</span>
-          <input type="password" id="password" [(ngModel)]="password" name="password" placeholder="Introduce tu contraseña" class="form-control" />
+          <input [type]="passwordVisible ? 'text' : 'password'" id="password" [(ngModel)]="password" name="password" placeholder="Introduce tu contraseña" class="form-control"/>
+          <button type="button" class="toggle-visibility-btn" (click)="togglePasswordVisibility()">
+            <span *ngIf="passwordVisible">🙉</span>
+            <span *ngIf="!passwordVisible">🙈</span>
+          </button>
+
         </div>
       </div>
 

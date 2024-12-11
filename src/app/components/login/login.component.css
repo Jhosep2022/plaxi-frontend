@@ -153,3 +153,19 @@ h1 {
   font-size: 1.2rem;
   color: var(--lime-green);
 }
+
+.password-container {
+  position: relative;
+}
+
+.toggle-visibility-btn {
+  position: absolute;
+  right: -70px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem; /* Adjust as needed */
+  outline: none;
+}

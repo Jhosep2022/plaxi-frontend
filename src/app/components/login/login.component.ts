@@ -11,6 +11,7 @@ export class LoginComponent {
   username: string = '';
   password: string = '';
   errorMessage: string = '';
+  passwordVisible: boolean = false;
 
   constructor(private router: Router, private authService: AuthService) {}
 
@@ -36,5 +37,9 @@ export class LoginComponent {
         this.errorMessage = 'Error en el servidor. Inténtalo de nuevo más tarde.';
       }
     });
+  }
+
+  togglePasswordVisibility() {
+    this.passwordVisible = !this.passwordVisible;
   }
 }
