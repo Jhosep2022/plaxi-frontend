@@ -36,7 +36,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
   ngOnInit(): void {
     // Inicializar el formulario con validaciones
     this.temaForm = this.fb.group({
-      titulo: ['', [Validators.required, Validators.maxLength(150)]],
+      titulo: ['', [Validators.required, Validators.maxLength(150), Validators.pattern('^(?![0-9]+$)[A-Za-z0-9 ]+$')]],
       descripcion: ['', [Validators.maxLength(250)]],
       orden: [1, Validators.required],
       estado: [true, Validators.required]
@@ -190,6 +190,9 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
     }
     if (this.temaForm.get(field)?.hasError('maxlength')) {
       return `Máximo ${this.temaForm.get(field)?.errors?.['maxlength'].requiredLength} caracteres permitidos.`;
+    }
+    if (this.temaForm.get(field)?.hasError('pattern')) {
+      return 'El titulo no puede contener solo números.';
     }
     return '';
   }
