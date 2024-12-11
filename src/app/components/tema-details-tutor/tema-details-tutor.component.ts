@@ -48,8 +48,13 @@ export class TemaDetailsTutorComponent implements OnInit {
 
   // Lógica para volver a la lista de cursos
   goBack(): void {
-    this.router.navigate(['/my-courses']);
-  }
+    if (this.tema?.leccionId) {
+      this.router.navigate([`/lesson-details-tutor/${this.tema.leccionId}`]);
+    } else {
+      // Fallback if no leccionId is found
+      console.error('No se encontró leccionId para el tema.');
+      // Optional: Navigate to a default page or show an error.
+    }  }
 
   deleteTema() {
     if (confirm(`¿Estás seguro de que deseas eliminar el tema: ${this.tema?.titulo}?`)) {
