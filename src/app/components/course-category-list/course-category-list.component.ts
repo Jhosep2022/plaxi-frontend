@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
@@ -18,6 +18,10 @@ interface Category {
     imports: [RouterLink]
 })
 export class CourseCategoryListComponent implements OnInit {
+  private router = inject(Router);
+  private cursoService = inject(CourseService);
+  private categoriaService = inject(CategoriaService);
+
   // Lista de categorías obtenida de la API
   categories: Category[] = [];
 
@@ -29,12 +33,6 @@ export class CourseCategoryListComponent implements OnInit {
   currentPage: number = 1;
   itemsPerPage: number = 6;
   totalPages: number = 1;
-
-  constructor(
-    private router: Router, 
-    private cursoService: CourseService,
-    private categoriaService: CategoriaService // Importar el servicio de categorías
-  ) {}
 
   ngOnInit(): void {
     // Obtener todas las categorías desde la API

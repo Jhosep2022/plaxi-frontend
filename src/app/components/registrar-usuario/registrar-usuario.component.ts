@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { faChalkboardTeacher, faCheck, faEnvelope, faIdCard, faLock, faPhone, faUser, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
@@ -16,6 +16,10 @@ import { FormsModule } from '@angular/forms'; // Importar el modelo de perfil
     imports: [NgClass, FaIconComponent, FormsModule]
 })
 export class RegistrarUsuarioComponent implements OnInit {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private profileService = inject(ProfileService);
+
   // Íconos (FontAwesome)
   faChalkboardTeacher = faChalkboardTeacher;
   faCheck = faCheck;
@@ -38,13 +42,7 @@ export class RegistrarUsuarioComponent implements OnInit {
   telefono: string = '';
   ci: string = '';
   errorMessage: string = '';
-  correosRegistrados: string[] = []; // Lista de correos ya registrados
-
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private profileService: ProfileService // Inyectar el servicio de perfiles
-  ) {}
+  correosRegistrados: string[] = [];
 
   ngOnInit(): void {
     this.cargarCorreosRegistrados();

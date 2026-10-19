@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';  // Asegúrate de que el servicio esté en la ruta correcta
 import { Router, RouterLink } from '@angular/router';
 import { faCheck, faEnvelope } from '@fortawesome/free-solid-svg-icons';
@@ -13,13 +13,14 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [FormsModule, FaIconComponent, RouterLink]
 })
 export class ForgotPasswordComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   // Íconos (FontAwesome)
   faCheck = faCheck;
   faEnvelope = faEnvelope;
 
   email: string = '';
-
-  constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit(): void {
     if (!this.email) {

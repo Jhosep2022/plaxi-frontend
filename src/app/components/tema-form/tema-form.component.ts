@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { TemaService } from '../../services/tema.service';
@@ -16,6 +16,14 @@ import { TemaDto } from 'src/app/models/TemaDto';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class TemaFormComponent implements OnInit, AfterViewChecked {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private temaService = inject(TemaService);
+  private leccionService = inject(LeccionService);
+  private snackBar = inject(MatSnackBar);
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+
   leccion: LeccionDto | null = null;
   isEnrolled: boolean = false;
   userId: number | null = null;
@@ -24,16 +32,6 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
   fileError: string | null = null; // Error relacionado con el archivo
   previewUrl: string | ArrayBuffer | null = null; // URL de vista previa de la imagen
   snackBarRef: any;
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private temaService: TemaService,
-    private leccionService: LeccionService,
-    private snackBar: MatSnackBar,
-    private fb: FormBuilder,
-    private authService: AuthService
-  ) {}
 
   ngOnInit(): void {
     // Inicializar el formulario con validaciones

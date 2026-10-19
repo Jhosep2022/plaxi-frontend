@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,19 +15,17 @@ import { CourseService } from 'src/app/services/course.service';
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class CourseDetailsComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private cursoService = inject(CourseService);
+  private inscripcionService = inject(InscripcionService);
+  private leccionService = inject(LeccionService);
+  private snackBar = inject(MatSnackBar);
+
   course: CursoDto | null = null;
   isEnrolled: boolean = false;
   userId: number | null = null;
-  lecciones: LeccionDto[] = []; // Variable para almacenar las lecciones del curso
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private cursoService: CourseService,
-    private inscripcionService: InscripcionService,
-    private leccionService: LeccionService, // Agrega el servicio de lecciones
-    private snackBar: MatSnackBar
-  ) {}
+  lecciones: LeccionDto[] = [];
 
   ngOnInit(): void {
     const storedUserId = localStorage.getItem('idUsuario');

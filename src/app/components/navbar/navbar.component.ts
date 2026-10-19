@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { faBars, faBell, faEnvelope, faChevronDown, faUserCircle, faEdit, faCog, faSignOutAlt, faHome, faClipboard, faChartBar, faQuestionCircle, faPlusCircle, faBookOpen, faComments, faUser, faUsers, faBook, faChartLine, faChalkboardTeacher, faUserGraduate, faClipboardCheck, faChartPie, faTasks, faClipboardList } from '@fortawesome/free-solid-svg-icons';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../services/profile.service';
@@ -15,6 +15,10 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 })
 
 export class NavbarComponent implements OnInit {
+  private router = inject(Router);
+  private perfilService = inject(ProfileService);
+  private authService = inject(AuthService);
+
   // Iconos
   faBars = faBars;
   faBell = faBell;
@@ -49,8 +53,6 @@ export class NavbarComponent implements OnInit {
   currentRoute: string = '';
   userProfile: PerfilDto | null = null;
   userRole: string = '';
-
-  constructor(private router: Router, private perfilService: ProfileService, private authService: AuthService) {}
 
   ngOnInit(): void {
     // Actualizar título y ruta según la navegación

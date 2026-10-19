@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar.component';
 
@@ -10,9 +10,9 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     imports: [NavbarComponent, RouterOutlet]
 })
 export class AppComponent {
-  showNavbar: boolean = true;
+  private router = inject(Router);
 
-  constructor(private router: Router) {}
+  showNavbar: boolean = true;
 
   ngOnInit(): void {
     this.router.events.subscribe(() => {

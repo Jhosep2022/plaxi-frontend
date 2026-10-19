@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
@@ -16,19 +16,17 @@ import { InscripcionService } from 'src/app/services/inscripcion.service';
     imports: [RouterLink]
 })
 export class CourseDetailsTutorComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private inscripcionService = inject(InscripcionService);
+  private cursoService = inject(CourseService);
+  private leccionService = inject(LeccionService);
+  private snackBar = inject(MatSnackBar);
+
   course: CursoDto | null = null;
   lecciones: LeccionDto[] = [];
   isEnrolled: boolean = false;
   userId: number | null = null;
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private inscripcionService: InscripcionService,
-    private cursoService: CourseService,
-    private leccionService: LeccionService,
-    private snackBar: MatSnackBar
-  ) {}
 
   ngOnInit(): void {
     const courseId = Number(this.route.snapshot.paramMap.get('id'));

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { InscripcionService } from 'src/app/services/inscripcion.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -15,6 +15,10 @@ import { DatePipe } from '@angular/common';
     imports: [RouterLink, DatePipe]
 })
 export class HomeComponent implements OnInit {
+  private inscripcionService = inject(InscripcionService);
+  private authService = inject(AuthService);
+  private courseService = inject(CourseService);
+
   // Propiedades de cursos
   cursosCreados: CursoDto[] = []; // Cursos creados por el tutor
   estudiantesInscritos: InscripcionResponseDto[] = []; // Estudiantes inscritos en el curso seleccionado
@@ -57,12 +61,6 @@ export class HomeComponent implements OnInit {
       image: 'assets/perfil.jpeg'
     }
   ];
-
-  constructor(
-    private inscripcionService: InscripcionService,
-    private authService: AuthService,
-    private courseService: CourseService
-  ) {}
 
   ngOnInit(): void {
     this.identifyUserRole();

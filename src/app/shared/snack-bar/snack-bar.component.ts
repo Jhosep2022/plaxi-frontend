@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
 import { MatButton } from '@angular/material/button';
 
@@ -14,5 +14,9 @@ import { MatButton } from '@angular/material/button';
     imports: [MatButton]
 })
 export class SnackBarComponent {
-  constructor(@Inject(MAT_SNACK_BAR_DATA) public data: { message: string, actionLabel?: string, action?: () => void }) {}
+  data = inject<{
+    message: string;
+    actionLabel?: string;
+    action?: () => void;
+}>(MAT_SNACK_BAR_DATA);
 }

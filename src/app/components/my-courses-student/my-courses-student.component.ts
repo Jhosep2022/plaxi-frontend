@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -14,15 +14,13 @@ import { DatePipe } from '@angular/common';
     imports: [MatButton, RouterLink, DatePipe]
 })
 export class MyCoursesStudentComponent implements OnInit {
+  private router = inject(Router);
+  private inscripcionService = inject(InscripcionService);
+  private snackBar = inject(MatSnackBar);
+  private authService = inject(AuthService);
+
   courses: any[] = [];
   userId: number | null = null;
-
-  constructor(
-    private router: Router,
-    private inscripcionService: InscripcionService,
-    private snackBar: MatSnackBar,
-    private authService: AuthService
-  ) {}
 
   ngOnInit(): void {
     // Recuperar el ID del usuario actualmente logueado desde AuthService

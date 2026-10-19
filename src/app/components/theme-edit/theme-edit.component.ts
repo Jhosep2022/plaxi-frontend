@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TemaService } from '../../services/tema.service';
@@ -17,19 +17,17 @@ import { MatSelect, MatOption } from '@angular/material/select';
     imports: [FormsModule, ReactiveFormsModule, MatLabel, MatInput, MatError, MatSelect, MatOption]
 })
 export class ThemeEditComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private temaService = inject(TemaService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+
   themeForm!: FormGroup;
   temaId!: number;
   temaData!: TemaDto;
   selectedFile!: File | null;
-
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private temaService: TemaService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
-  ) {}
 
   ngOnInit(): void {
     this.themeForm = this.fb.group({

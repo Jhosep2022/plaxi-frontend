@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { faCheck, faEnvelope, faIdCard, faImage, faPhone, faUser } from '@fortawesome/free-solid-svg-icons';
 import { ActualizarPerfilDto } from '../../models/PerfilDto';
@@ -15,6 +15,9 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [FormsModule, FaIconComponent]
 })
 export class UpdateperfilComponent implements OnInit {
+  private router = inject(Router);
+  private perfilService = inject(ProfileService);
+
   // Íconos (FontAwesome)
   faCheck = faCheck;
   faEnvelope = faEnvelope;
@@ -35,9 +38,7 @@ export class UpdateperfilComponent implements OnInit {
   };
 
   selectedFile: File | null = null;
-  fileError: string | null = null; // Mensaje de error para el archivo
-
-  constructor(private router: Router, private perfilService: ProfileService) {}
+  fileError: string | null = null;
 
   ngOnInit(): void {
     const idUsuario = localStorage.getItem('idUsuario');

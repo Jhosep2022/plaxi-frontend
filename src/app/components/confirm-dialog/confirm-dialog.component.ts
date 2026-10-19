@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, output } from '@angular/core';
 import { MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatButton } from '@angular/material/button';
@@ -12,7 +12,7 @@ import { MatButton } from '@angular/material/button';
 })
 export class ConfirmDialogComponent {
 
-  @Output() confirmed = new EventEmitter<boolean>();
+  readonly confirmed = output<boolean>();
 
   onConfirm(): void {
     this.confirmed.emit(true);

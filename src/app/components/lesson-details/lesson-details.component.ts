@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
@@ -14,17 +14,15 @@ import { TemaDto } from 'src/app/models/TemaDto';
     imports: [RouterLink]
 })
 export class LessonDetailsComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private temaService = inject(TemaService);
+  private leccionService = inject(LeccionService);
+  private snackBar = inject(MatSnackBar);
+
   courseId: number | null = null; // Captura el ID del curso
   leccion: LeccionDto | null = null;
   temas: TemaDto[] = [];
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private temaService: TemaService,
-    private leccionService: LeccionService,
-    private snackBar: MatSnackBar
-  ) {}
 
   ngOnInit(): void {
     // Captura el `courseId` de los parámetros de consulta

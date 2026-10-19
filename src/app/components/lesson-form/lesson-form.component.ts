@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { CourseService } from '../../services/course.service';
@@ -17,21 +17,19 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class LessonFormComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private cursoService = inject(CourseService);
+  private leccionService = inject(LeccionService);
+  private fb = inject(FormBuilder);
+  private categoriaService = inject(CategoriaService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
+
   course: CursoDto | null = null;
   userId: number | null = null;
   lessonForm!: FormGroup;
   categorias: Categoria[] = [];
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private cursoService: CourseService,
-    private leccionService: LeccionService,
-    private fb: FormBuilder,
-    private categoriaService: CategoriaService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar
-  ) {}
 
   ngOnInit(): void {
     this.initializeForm();

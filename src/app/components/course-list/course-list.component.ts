@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { AuthService } from 'src/app/services/auth.service';
@@ -10,14 +10,12 @@ import { CourseService } from 'src/app/services/course.service';
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class CourseListComponent implements OnInit {
+  private router = inject(Router);
+  private cursoService = inject(CourseService);
+  private authService = inject(AuthService);
+
   courses: CursoDto[] = [];
   userId: number | null = null;
-
-  constructor(
-    private router: Router,
-    private cursoService: CourseService,
-    private authService: AuthService
-  ) {}
 
   ngOnInit(): void {
     // Intentar obtener el ID del usuario logueado desde localStorage

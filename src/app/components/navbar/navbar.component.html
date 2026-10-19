@@ -1,7 +1,7 @@
 <div class="navbar-container">
   <div class="navbar-left">
     <button class="menu-button" (click)="toggleSidebar()">
-      <fa-icon [icon]="faBars" class="menu-icon"></fa-icon>
+      <fa-icon [icon]="faBars" class="menu-icon" />
     </button>
     <img src="assets/Logo_icon.png" alt="QuizWiz Logo" class="logo" />
   </div>
@@ -12,15 +12,15 @@
 
   <div class="navbar-right">
     <button class="join-quiz-btn">
-      <fa-icon [icon]="faPlusCircle" class="icon"></fa-icon> Join Quiz
+      <fa-icon [icon]="faPlusCircle" class="icon" /> Join Quiz
     </button>
 
     <div class="icon-container">
-      <fa-icon [icon]="faEnvelope"></fa-icon>
+      <fa-icon [icon]="faEnvelope" />
       <span class="notification-count">10</span>
     </div>
     <div class="icon-container">
-      <fa-icon [icon]="faBell"></fa-icon>
+      <fa-icon [icon]="faBell" />
       <span class="notification-count">10</span>
     </div>
 
@@ -37,22 +37,22 @@
         <span class="role">{{ userRole }}</span>
       </div>
 
-      <fa-icon [icon]="faChevronDown" class="dropdown-arrow"></fa-icon>
+      <fa-icon [icon]="faChevronDown" class="dropdown-arrow" />
     </div>
 
     <div class="profile-dropdown" [class.show]="isDropdownOpen">
       <ul>
         <li (click)="viewProfile()">
-          <fa-icon [icon]="faUserCircle" class="dropdown-icon"></fa-icon> View Profile
+          <fa-icon [icon]="faUserCircle" class="dropdown-icon" /> View Profile
         </li>
         <li (click)="editProfile()">
-          <fa-icon [icon]="faEdit" class="dropdown-icon"></fa-icon> Edit Profile
+          <fa-icon [icon]="faEdit" class="dropdown-icon" /> Edit Profile
         </li>
         <li (click)="openSettings()">
-          <fa-icon [icon]="faCog" class="dropdown-icon"></fa-icon> Settings
+          <fa-icon [icon]="faCog" class="dropdown-icon" /> Settings
         </li>
         <li (click)="logout()">
-          <fa-icon [icon]="faSignOutAlt" class="dropdown-icon"></fa-icon> Logout
+          <fa-icon [icon]="faSignOutAlt" class="dropdown-icon" /> Logout
         </li>
       </ul>
     </div>
@@ -64,31 +64,31 @@
   <ul class="sidebar-list">
     <li class="sidebar-item" [class.active]="currentRoute === '/home'" (click)="navigateTo('home')">
       <div class="sidebar-icon-container">
-        <fa-icon [icon]="faHome" class="sidebar-icon"></fa-icon>
+        <fa-icon [icon]="faHome" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Home</span>
     </li>
     <li class="sidebar-item" [class.active]="currentRoute === '/quizzes'" (click)="navigateTo('quizzes')">
       <div class="sidebar-icon-container">
-        <fa-icon [icon]="faClipboard" class="sidebar-icon"></fa-icon>
+        <fa-icon [icon]="faClipboard" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Quizzes</span>
     </li>
     <li class="sidebar-item" [class.active]="currentRoute === '/course-categories'" (click)="navigateTo('course-categories')">
       <div class="sidebar-icon-container">
-        <fa-icon [icon]="faBookOpen" class="sidebar-icon"></fa-icon>
+        <fa-icon [icon]="faBookOpen" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Cursos</span>
     </li>
     <li class="sidebar-item" [class.active]="currentRoute === '/forum'" (click)="navigateTo('forum')">
       <div class="sidebar-icon-container">
-        <fa-icon [icon]="faComments" class="sidebar-icon"></fa-icon>
+        <fa-icon [icon]="faComments" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Foro</span>
     </li>
     <li class="sidebar-item" [class.active]="currentRoute === '/help'" (click)="navigateTo('help')">
       <div class="sidebar-icon-container">
-        <fa-icon [icon]="faQuestionCircle" class="sidebar-icon"></fa-icon>
+        <fa-icon [icon]="faQuestionCircle" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Ayuda</span>
     </li>
@@ -99,25 +99,25 @@
     <ul class="sidebar-list">
       <li class="sidebar-item" [class.active]="currentRoute === '/user-management'" (click)="navigateTo('user-management')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faUsers" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faUsers" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Gestión de Usuarios</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/course-management'" (click)="navigateTo('course-management')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faBook" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Gestión de Cursos</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/reports'" (click)="navigateTo('reports')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faChartLine" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faChartLine" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Reportes</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/settings'" (click)="navigateTo('settings')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faCog" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faCog" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Configuraciones</span>
       </li>
@@ -129,19 +129,19 @@
     <ul class="sidebar-list">
       <li class="sidebar-item" [class.active]="currentRoute === '/my-courses'" (click)="navigateTo('my-courses')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faChalkboardTeacher" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faChalkboardTeacher" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Mis Cursos</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/students'" (click)="navigateTo('students')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faUserGraduate" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faUserGraduate" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Estudiantes</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faClipboardCheck" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faClipboardCheck" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Evaluaciones</span>
       </li>
@@ -153,25 +153,25 @@
     <ul class="sidebar-list">
       <li class="sidebar-item" [class.active]="currentRoute === '/my-courses-student'" (click)="navigateTo('my-courses-student')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faBook" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Mis Cursos</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/progress'" (click)="navigateTo('progress')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faChartPie" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faChartPie" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Progreso</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/tasks'" (click)="navigateTo('tasks')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faTasks" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faTasks" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Tareas</span>
       </li>
       <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
         <div class="sidebar-icon-container">
-          <fa-icon [icon]="faClipboardList" class="sidebar-icon"></fa-icon>
+          <fa-icon [icon]="faClipboardList" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Evaluaciones</span>
       </li>

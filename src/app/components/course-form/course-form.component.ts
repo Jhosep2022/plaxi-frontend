@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,6 +15,13 @@ import { Categoria } from 'src/app/models/categoriaDto';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseFormComponent implements OnInit, AfterViewChecked {
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  private categoriaService = inject(CategoriaService);
+  private cursoService = inject(CourseService);
+  private authService = inject(AuthService);
+
   courseForm!: FormGroup;
   selectedFile: File | null = null; // Archivo seleccionado
   fileError: string | null = null; // Error relacionado con el archivo
@@ -22,15 +29,6 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
   categorias: Categoria[] = []; // Almacenar las categorías obtenidas de la API
   userId: number | null = null; // Almacenar el ID del usuario logueado
   snackBarRef: any;
-
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private snackBar: MatSnackBar,
-    private categoriaService: CategoriaService,
-    private cursoService: CourseService,
-    private authService: AuthService
-  ) {}
 
   ngOnInit(): void {
     // Inicializar el formulario con validaciones

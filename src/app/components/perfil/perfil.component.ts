@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProfileService } from '../../services/profile.service';  // Ruta correcta al servicio
 import { faEdit, faTrash, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';  // Importar icono de edición y cerrar sesión
@@ -15,15 +15,17 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [NgClass, FaIconComponent]
 })
 export class PerfilComponent implements OnInit {
+  private perfilService = inject(ProfileService);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
+
 
   faEdit = faEdit;  // Icono de edición
   faTrash = faTrash;  // Icono de eliminación
   faSignOut = faSignOutAlt;  // Icono de cerrar sesión
   user: any = {}; // Objeto vacío para inicializar el perfil del usuario
 
-  isDialogOpen = false;  // Controla si el diálogo está abierto
-
-  constructor(private perfilService: ProfileService, private router: Router, private dialog: MatDialog) {}
+  isDialogOpen = false;
 
 
   ngOnInit(): void {

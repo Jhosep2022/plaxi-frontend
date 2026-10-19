@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -8,10 +8,11 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class SuccessDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<SuccessDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { message: string }
-  ) {}
+  dialogRef = inject<MatDialogRef<SuccessDialogComponent>>(MatDialogRef);
+  data = inject<{
+    message: string;
+}>(MAT_DIALOG_DATA);
+
 
   // Cerrar el diálogo y redirigir a la lista de cursos
   onClose(): void {

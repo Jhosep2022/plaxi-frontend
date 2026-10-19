@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { faCheck, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
@@ -13,6 +13,9 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [FormsModule, FaIconComponent, RouterLink]
 })
 export class LoginComponent {
+  private router = inject(Router);
+  private authService = inject(AuthService);
+
   // Íconos (FontAwesome)
   faCheck = faCheck;
   faLock = faLock;
@@ -21,8 +24,6 @@ export class LoginComponent {
   username: string = '';
   password: string = '';
   errorMessage: string = '';
-
-  constructor(private router: Router, private authService: AuthService) {}
 
   onLogin() {
 

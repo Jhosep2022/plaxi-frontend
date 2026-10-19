@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -17,18 +17,16 @@ import { MatSelect, MatOption } from '@angular/material/select';
     imports: [FormsModule, ReactiveFormsModule, MatLabel, MatInput, MatError, MatFormField, MatSelect, MatOption]
 })
 export class LessonEditComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private leccionService = inject(LeccionService);
+  private snackBar = inject(MatSnackBar);
+  private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
+
   lessonForm!: FormGroup;
   leccionId!: number;
   leccionData!: LeccionDto;
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private leccionService: LeccionService,
-    private snackBar: MatSnackBar,
-    private fb: FormBuilder,
-    private dialog: MatDialog,
-  ) {}
 
   ngOnInit(): void {
     // Initialize the form

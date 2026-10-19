@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -13,17 +13,15 @@ import { TemaService } from 'src/app/services/tema.service';
     imports: [RouterLink]
 })
 export class TemaDetailsTutorComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private temaService = inject(TemaService);
+  private snackBar = inject(MatSnackBar);
+  private sanitizer = inject(DomSanitizer);
+
   tema: TemaDto | null = null;
   sanitizedUrl: SafeResourceUrl | null = null;
   userId: number | null = null;
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private temaService: TemaService,
-    private snackBar: MatSnackBar,
-    private sanitizer: DomSanitizer
-  ) {}
 
   ngOnInit(): void {
     const temaId = Number(this.route.snapshot.paramMap.get('id'));

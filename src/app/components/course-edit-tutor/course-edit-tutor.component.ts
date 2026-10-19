@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,21 +15,19 @@ import { Categoria } from 'src/app/models/categoriaDto';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseEditTutorComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  private courseService = inject(CourseService);
+  private categoriaService = inject(CategoriaService);
+
   courseForm!: FormGroup;
   selectedFile: File | null = null;
   fileError: string | null = null;
   previewUrl: string | ArrayBuffer | null = null;
   courseId!: number; // ID del curso a editar
-  categorias: Categoria[] = []; // Lista de categorías disponibles
-
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private snackBar: MatSnackBar,
-    private courseService: CourseService,
-    private categoriaService: CategoriaService // Servicio de categorías
-  ) {}
+  categorias: Categoria[] = [];
 
   ngOnInit(): void {
     // Obtener el ID del curso de la URL
