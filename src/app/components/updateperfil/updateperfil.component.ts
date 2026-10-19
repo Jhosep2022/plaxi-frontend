@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { faCheck, faEnvelope, faIdCard, faImage, faPhone, faUser } from '@fortawesome/free-solid-svg-icons';
 import { ActualizarPerfilDto } from '../../models/PerfilDto';
 import { HttpClient } from '@angular/common/http';
 import { ProfileService } from 'src/app/services/profile.service';
@@ -10,6 +11,14 @@ import { ProfileService } from 'src/app/services/profile.service';
   styleUrls: ['./updateperfil.component.css']
 })
 export class UpdateperfilComponent implements OnInit {
+  // Íconos (FontAwesome)
+  faCheck = faCheck;
+  faEnvelope = faEnvelope;
+  faIdCard = faIdCard;
+  faImage = faImage;
+  faPhone = faPhone;
+  faUser = faUser;
+
   perfilDto: ActualizarPerfilDto = {
     username: '',
     gmail: '',

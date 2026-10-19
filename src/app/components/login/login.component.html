@@ -1,5 +1,6 @@
 <div class="container">
   <div class="login-container">
+    <div class="login-left">
     <div class="login-header">
       <img src="assets/Logo-white.png" alt="Logo de QuizWiz" class="logo" />
     </div>
@@ -13,7 +14,7 @@
       <div class="form-group">
         <label for="username">Nombre de Usuario</label>
         <div class="input-container">
-          <span class="icon">👤</span>
+          <fa-icon [icon]="faUser" class="icon"></fa-icon>
           <input type="text" id="username" [(ngModel)]="username" name="username" placeholder="Introduce tu nombre de usuario" class="form-control" />
         </div>
       </div>
@@ -21,12 +22,12 @@
       <div class="form-group">
         <label for="password">Contraseña</label>
         <div class="input-container">
-          <span class="icon">🔒</span>
+          <fa-icon [icon]="faLock" class="icon"></fa-icon>
           <input type="password" id="password" [(ngModel)]="password" name="password" placeholder="Introduce tu contraseña" class="form-control" />
         </div>
       </div>
 
-      <button type="submit" class="login-btn">Iniciar Sesión <span class="icon">✔️</span></button>
+      <button type="submit" class="login-btn">Iniciar Sesión <fa-icon [icon]="faCheck" class="btn-icon"></fa-icon></button>
 
       <button type="button" class="signup-btn" [routerLink]="['/registrar']">Registrarse</button>
 
@@ -34,6 +35,7 @@
         <a [routerLink]="['/forgot-password']">¿Olvidaste tu contraseña? <span class="highlight">haz clic aquí</span></a>
       </div>
     </form>
+    </div>
 
     <div class="illustration">
       <img src="assets/Login_Image.png" alt="Ilustración de Aprendizaje" />

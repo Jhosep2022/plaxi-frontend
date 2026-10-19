@@ -19,6 +19,19 @@ body {
   flex-direction: column;
 }
 
+/* Autocompletado de Chrome: evita el fondo celeste en los inputs
+   y mantiene el fondo azul oscuro con borde y texto blanco */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus,
+.form-control:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--dark-blue) inset !important;
+  box-shadow: 0 0 0 1000px var(--dark-blue) inset !important;
+  -webkit-text-fill-color: var(--text-light) !important;
+  caret-color: var(--text-light);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 .navbar-container {
   width: 100%;
   background-color: var(--dark-blue);

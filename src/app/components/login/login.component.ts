@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { faCheck, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -8,6 +9,11 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
+  // Íconos (FontAwesome)
+  faCheck = faCheck;
+  faLock = faLock;
+  faUser = faUser;
+
   username: string = '';
   password: string = '';
   errorMessage: string = '';

@@ -131,3 +131,8 @@ label {
   background-color: var(--lime-green);
   color: var(--text-dark);
 }
+
+/* Ícono dentro de botones: hereda el color del texto del botón */
+.btn-icon {
+  margin-left: 8px;
+}

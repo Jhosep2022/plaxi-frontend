@@ -30,11 +30,24 @@ html, body {
   padding: 20px;
 }
 
+/* Parte superior: título + opciones a la izquierda, ilustración a la derecha */
+.register-top {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+
+.top-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 /* Header y logo */
 .login-header {
   text-align: left;
-  margin-bottom: 20px;
-  flex-basis: 100%;
 }
 
 .logo {
@@ -50,8 +63,8 @@ h1 {
 .login-options {
   display: flex;
   gap: 10px;
-  margin: 20px 0;
-  justify-content: center;
+  margin: 20px 0 0;
+  justify-content: flex-start;
   width: 100%;
 }
 
@@ -63,14 +76,16 @@ h1 {
   gap: 20px;
 }
 
-.form-column {
-  flex: 1; /* Distribuye las tres columnas de manera igualitaria */
-  display: flex;
-  flex-direction: column;
+/* Los dos formularios se reparten el ancho por igual */
+.login-form,
+.personal-form {
+  flex: 1;
+  min-width: 0;
 }
 
+/* Ilustración sin fondo (PNG transparente) directamente sobre el azul */
 .illustration {
-  flex: 1; /* También le damos el mismo ancho a la columna de la imagen */
+  flex: 0 0 40%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -78,7 +93,8 @@ h1 {
 
 .illustration img {
   max-width: 100%;
-  height: auto;
+  max-height: 280px;
+  object-fit: contain;
 }
 
 /* Estilos para las filas de formularios */
@@ -197,6 +213,10 @@ label {
 
 /* Ajuste responsivo */
 @media (max-width: 768px) {
+  .register-top {
+    flex-direction: column;
+  }
+
   .form-container {
     flex-direction: column;
     align-items: center;
@@ -209,4 +229,9 @@ label {
   .form-half {
     min-width: 100%; /* Asegura que los campos tomen el ancho completo en pantallas pequeñas */
   }
+}
+
+/* Ícono dentro de botones: hereda el color del texto del botón */
+.btn-icon {
+  margin-left: 8px;
 }

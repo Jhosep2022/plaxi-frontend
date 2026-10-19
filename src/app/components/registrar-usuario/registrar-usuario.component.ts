@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { faChalkboardTeacher, faCheck, faEnvelope, faIdCard, faLock, faPhone, faUser, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
 import { ProfileService } from '../../services/profile.service'; // Importar el servicio de perfiles
 import { PerfilDto } from '../../models/PerfilDto'; // Importar el modelo de perfil
 
@@ -10,6 +11,16 @@ import { PerfilDto } from '../../models/PerfilDto'; // Importar el modelo de per
   styleUrls: ['./registrar-usuario.component.css']
 })
 export class RegistrarUsuarioComponent implements OnInit {
+  // Íconos (FontAwesome)
+  faChalkboardTeacher = faChalkboardTeacher;
+  faCheck = faCheck;
+  faEnvelope = faEnvelope;
+  faIdCard = faIdCard;
+  faLock = faLock;
+  faPhone = faPhone;
+  faUser = faUser;
+  faUserGraduate = faUserGraduate;
+
   isTutorSelected: boolean = true;
 
   username: string = '';
