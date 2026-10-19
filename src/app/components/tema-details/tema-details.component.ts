@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -9,7 +9,6 @@ import { TemaService } from 'src/app/services/tema.service';
     selector: 'app-tema-details',
     templateUrl: './tema-details.component.html',
     styleUrls: ['./tema-details.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class TemaDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -18,8 +17,8 @@ export class TemaDetailsComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private sanitizer = inject(DomSanitizer);
 
-  tema: TemaDto | null = null;
-  sanitizedUrl: SafeResourceUrl | null = null;
+  readonly tema = signal<TemaDto | null>(null);
+  readonly sanitizedUrl = signal<SafeResourceUrl | null>(null);
   userId: number | null = null;
 
   ngOnInit(): void {
@@ -33,12 +32,12 @@ export class TemaDetailsComponent implements OnInit {
   loadTemaDetails(temaId: number): void {
     this.temaService.getTemaById(temaId).subscribe({
       next: (data: TemaDto) => {
-        this.tema = data;
-        console.log('Tema cargado:', this.tema);
-        console.log('Recurso Multimedia:', this.tema?.recursoMultimedia);
-        if (this.tema?.recursoMultimedia) {
-          this.sanitizedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.tema.recursoMultimedia);
-          console.log('URL sanitizada:', this.sanitizedUrl);
+        this.tema.set(data);
+        console.log('Tema cargado:', this.tema());
+        console.log('Recurso Multimedia:', this.tema()?.recursoMultimedia);
+        if (this.tema()?.recursoMultimedia) {
+          this.sanitizedUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(data.recursoMultimedia));
+          console.log('URL sanitizada:', this.sanitizedUrl());
         }
       },
       error: (error) => console.error('Error al cargar los detalles del tema:', error),

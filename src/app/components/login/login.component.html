@@ -9,8 +9,8 @@
         <h1>Iniciar Sesión</h1>
 
         <!-- Mensaje de error -->
-        @if (errorMessage) {
-          <div class="error-message">{{ errorMessage }}</div>
+        @if (errorMessage()) {
+          <div class="error-message">{{ errorMessage() }}</div>
         }
 
         <div class="form-group">

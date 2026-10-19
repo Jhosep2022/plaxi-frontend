@@ -10,7 +10,7 @@
         <input
           type="text"
           id="username"
-          [(ngModel)]="perfilDto.username"
+          [(ngModel)]="perfilDto().username"
           name="username"
           placeholder="Introduce tu nombre de usuario"
           class="form-control"
@@ -34,7 +34,7 @@
         <input
           type="email"
           id="gmail"
-          [(ngModel)]="perfilDto.gmail"
+          [(ngModel)]="perfilDto().gmail"
           name="gmail"
           placeholder="Introduce tu correo Gmail"
           class="form-control"
@@ -58,7 +58,7 @@
         <input
           type="text"
           id="nombre"
-          [(ngModel)]="perfilDto.nombre"
+          [(ngModel)]="perfilDto().nombre"
           name="nombre"
           placeholder="Introduce tu nombre"
           class="form-control"
@@ -82,7 +82,7 @@
           <input
             type="text"
             id="primer_apellido"
-            [(ngModel)]="perfilDto.primerApellido"
+            [(ngModel)]="perfilDto().primerApellido"
             name="primerApellido"
             placeholder="Introduce tu primer apellido"
             class="form-control"
@@ -104,7 +104,7 @@
           <input
             type="text"
             id="segundo_apellido"
-            [(ngModel)]="perfilDto.segundoApellido"
+            [(ngModel)]="perfilDto().segundoApellido"
             name="segundoApellido"
             placeholder="Introduce tu segundo apellido"
             class="form-control"
@@ -129,7 +129,7 @@
           <input
             type="text"
             id="telefono"
-            [(ngModel)]="perfilDto.telefono"
+            [(ngModel)]="perfilDto().telefono"
             name="telefono"
             placeholder="Introduce tu número de teléfono"
             class="form-control"
@@ -153,7 +153,7 @@
           <input
             type="text"
             id="ci"
-            [(ngModel)]="perfilDto.ci"
+            [(ngModel)]="perfilDto().ci"
             name="ci"
             placeholder="Introduce tu CI"
             class="form-control"
@@ -177,9 +177,9 @@
         <fa-icon [icon]="faImage" class="icon" />
         <input type="file" id="imagen" (change)="onFileSelected($event)" class="form-control" accept=".jpg, .jpeg, .png" />
       </div>
-      @if (fileError) {
+      @if (fileError()) {
         <span class="error-message">
-          {{ fileError }}
+          {{ fileError() }}
         </span>
       }
     </div>

@@ -6,9 +6,9 @@
   </div>
 
   <!-- Lista de Cursos -->
-  @if (courses.length > 0) {
+  @if (courses().length > 0) {
     <div class="course-list">
-      @for (course of courses; track course) {
+      @for (course of courses(); track course.idCurso) {
         <div class="course-card">
           <div class="course-info">
             <!-- Imagen del curso -->

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { faChalkboardTeacher, faCheck, faEnvelope, faIdCard, faLock, faPhone, faUser, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
@@ -12,7 +12,6 @@ import { FormsModule } from '@angular/forms'; // Importar el modelo de perfil
     selector: 'app-registrar-usuario',
     templateUrl: './registrar-usuario.component.html',
     styleUrls: ['./registrar-usuario.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [NgClass, FaIconComponent, FormsModule]
 })
 export class RegistrarUsuarioComponent implements OnInit {
@@ -30,18 +29,17 @@ export class RegistrarUsuarioComponent implements OnInit {
   faUser = faUser;
   faUserGraduate = faUserGraduate;
 
-  isTutorSelected: boolean = true;
-
-  username: string = '';
-  password: string = '';
-  confirmPassword: string = '';
-  gmail: string = '';
-  nombre: string = '';
-  primerApellido: string = '';
-  segundoApellido: string = '';
-  telefono: string = '';
-  ci: string = '';
-  errorMessage: string = '';
+  readonly isTutorSelected = signal<boolean>(true);
+  readonly username = signal<string>('');
+  readonly password = signal<string>('');
+  readonly confirmPassword = signal<string>('');
+  readonly gmail = signal<string>('');
+  readonly nombre = signal<string>('');
+  readonly primerApellido = signal<string>('');
+  readonly segundoApellido = signal<string>('');
+  readonly telefono = signal<string>('');
+  readonly ci = signal<string>('');
+  readonly errorMessage = signal<string>('');
   correosRegistrados: string[] = [];
 
   ngOnInit(): void {
@@ -62,44 +60,44 @@ export class RegistrarUsuarioComponent implements OnInit {
   }
 
   selectOption(option: string) {
-    this.isTutorSelected = option === 'tutor';
+    this.isTutorSelected.set(option === 'tutor');
   }
 
   onRegister() {
-    if (!this.username || !this.password || !this.confirmPassword || !this.gmail || !this.nombre || !this.primerApellido || !this.telefono || !this.ci) {
-      this.errorMessage = 'Por favor, completa todos los campos.';
+    if (!this.username() || !this.password() || !this.confirmPassword() || !this.gmail() || !this.nombre() || !this.primerApellido() || !this.telefono() || !this.ci()) {
+      this.errorMessage.set('Por favor, completa todos los campos.');
       return;
     }
 
-    if (!this.isValidEmail(this.gmail)) {
-      this.errorMessage = 'El formato del correo no es válido.';
+    if (!this.isValidEmail(this.gmail())) {
+      this.errorMessage.set('El formato del correo no es válido.');
       return;
     }
 
-    if (this.password !== this.confirmPassword) {
-      this.errorMessage = 'Las contraseñas no coinciden. Por favor, intenta de nuevo.';
+    if (this.password() !== this.confirmPassword()) {
+      this.errorMessage.set('Las contraseñas no coinciden. Por favor, intenta de nuevo.');
       return;
     }
 
-    if (this.correosRegistrados.includes(this.gmail)) {
+    if (this.correosRegistrados.includes(this.gmail())) {
       alert('El correo ya se encuentra registrado.');
       return;
     }
 
     const usuarioDto = {
-      username: this.username,
-      password: this.password,
-      gmail: this.gmail,
+      username: this.username(),
+      password: this.password(),
+      gmail: this.gmail(),
       status: true,
-      id_rol: this.isTutorSelected ? 3 : 2
+      id_rol: this.isTutorSelected() ? 3 : 2
     };
 
     const personaDto = {
-      nombre: this.nombre,
-      primer_apellido: this.primerApellido,
-      segundo_apellido: this.segundoApellido,
-      telefono: this.telefono,
-      ci: this.ci
+      nombre: this.nombre(),
+      primer_apellido: this.primerApellido(),
+      segundo_apellido: this.segundoApellido(),
+      telefono: this.telefono(),
+      ci: this.ci()
     };
 
     this.authService.registerUser(usuarioDto, personaDto).subscribe({
@@ -109,7 +107,7 @@ export class RegistrarUsuarioComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error en el registro:', err);
-        this.errorMessage = 'Error al registrar. Por favor, inténtalo nuevamente.';
+        this.errorMessage.set('Error al registrar. Por favor, inténtalo nuevamente.');
       }
     });
   }

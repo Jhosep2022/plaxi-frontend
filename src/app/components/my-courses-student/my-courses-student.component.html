@@ -5,10 +5,10 @@
   </div>
 
   <!-- Verificar si hay cursos inscritos -->
-  @if (courses.length > 0) {
+  @if (courses().length > 0) {
     <div>
       <!-- Lista de Cursos -->
-      @for (course of courses; track course) {
+      @for (course of courses(); track course.idInscripcion) {
         <div class="course-card">
           <div class="course-info">
             <img [src]="course.image" alt="{{ course.name }} image" class="course-image" />

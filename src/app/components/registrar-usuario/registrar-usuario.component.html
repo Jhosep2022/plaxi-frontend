@@ -8,11 +8,11 @@
         </div>
 
         <div class="login-options">
-          <button class="option-button tutor" [ngClass]="{'active': isTutorSelected}" (click)="selectOption('tutor')">
+          <button class="option-button tutor" [ngClass]="{'active': isTutorSelected()}" (click)="selectOption('tutor')">
             <fa-icon [icon]="faChalkboardTeacher" class="icon" />
             Registrarse como Tutor
           </button>
-          <button class="option-button learner" [ngClass]="{'active': !isTutorSelected}" (click)="selectOption('learner')">
+          <button class="option-button learner" [ngClass]="{'active': !isTutorSelected()}" (click)="selectOption('learner')">
             <fa-icon [icon]="faUserGraduate" class="icon" />
             Registrarse como Estudiante
           </button>
@@ -66,8 +66,8 @@
         <button type="button" class="login-btn" (click)="redirectToLogin()">Ya tienes cuenta?</button>
 
         <!-- Mensaje de error -->
-        @if (errorMessage) {
-          <div class="error-message">{{ errorMessage }}</div>
+        @if (errorMessage()) {
+          <div class="error-message">{{ errorMessage() }}</div>
         }
       </form>
 

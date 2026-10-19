@@ -5,10 +5,10 @@
   <!-- Sección de Categorías -->
   <div class="category-list">
     <!-- Agrega un "ng-container" para asegurar el ciclo *ngFor está encapsulado correctamente -->
-    @for (category of categories; track category) {
+    @for (category of categories(); track category.id) {
       <button
         class="category-item"
-        [class.active]="selectedCategory?.id === category.id"
+        [class.active]="selectedCategory()?.id === category.id"
         (click)="selectCategory(category)">
         {{ category.nombre }}
       </button>
@@ -17,7 +17,7 @@
 
   <!-- Lista de Cursos filtrados -->
   <div class="course-list">
-    @for (course of pagedCourses; track course) {
+    @for (course of pagedCourses(); track course.idCurso) {
       <div class="course-card">
         <img [src]="course.portada" alt="{{ course.nombre }}" class="course-image" />
         <div class="course-details">
@@ -31,19 +31,19 @@
   </div>
 
   <!-- Paginación -->
-  @if (totalPages > 1) {
+  @if (totalPages() > 1) {
     <div class="pagination">
       <button
         class="pagination-btn"
-        [disabled]="currentPage === 1"
-        (click)="changePage(currentPage - 1)">
+        [disabled]="currentPage() === 1"
+        (click)="changePage(currentPage() - 1)">
         Anterior
       </button>
-      <span class="page-number">Página {{ currentPage }} de {{ totalPages }}</span>
+      <span class="page-number">Página {{ currentPage() }} de {{ totalPages() }}</span>
       <button
         class="pagination-btn"
-        [disabled]="currentPage === totalPages"
-        (click)="changePage(currentPage + 1)">
+        [disabled]="currentPage() === totalPages()"
+        (click)="changePage(currentPage() + 1)">
         Siguiente
       </button>
     </div>

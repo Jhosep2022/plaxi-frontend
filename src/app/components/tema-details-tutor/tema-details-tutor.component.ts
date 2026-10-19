@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -9,7 +9,6 @@ import { TemaService } from 'src/app/services/tema.service';
     selector: 'app-tema-details-tutor',
     templateUrl: './tema-details-tutor.component.html',
     styleUrls: ['./tema-details-tutor.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [RouterLink]
 })
 export class TemaDetailsTutorComponent implements OnInit {
@@ -19,8 +18,8 @@ export class TemaDetailsTutorComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private sanitizer = inject(DomSanitizer);
 
-  tema: TemaDto | null = null;
-  sanitizedUrl: SafeResourceUrl | null = null;
+  readonly tema = signal<TemaDto | null>(null);
+  readonly sanitizedUrl = signal<SafeResourceUrl | null>(null);
   userId: number | null = null;
 
   ngOnInit(): void {
@@ -34,12 +33,12 @@ export class TemaDetailsTutorComponent implements OnInit {
   loadTemaDetails(temaId: number): void {
     this.temaService.getTemaById(temaId).subscribe({
       next: (data: TemaDto) => {
-        this.tema = data;
-        console.log('Tema cargado:', this.tema);
-        console.log('Recurso Multimedia:', this.tema?.recursoMultimedia);
-        if (this.tema?.recursoMultimedia) {
-          this.sanitizedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.tema.recursoMultimedia);
-          console.log('URL sanitizada:', this.sanitizedUrl);
+        this.tema.set(data);
+        console.log('Tema cargado:', this.tema());
+        console.log('Recurso Multimedia:', this.tema()?.recursoMultimedia);
+        if (this.tema()?.recursoMultimedia) {
+          this.sanitizedUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(data.recursoMultimedia));
+          console.log('URL sanitizada:', this.sanitizedUrl());
         }
       },
       error: (error) => console.error('Error al cargar los detalles del tema:', error),
@@ -52,13 +51,13 @@ export class TemaDetailsTutorComponent implements OnInit {
   }
 
   deleteTema() {
-    if (confirm(`¿Estás seguro de que deseas eliminar el tema: ${this.tema?.titulo}?`)) {
-      this.temaService.deleteTema(this.tema?.idTema!).subscribe({
+    if (confirm(`¿Estás seguro de que deseas eliminar el tema: ${this.tema()?.titulo}?`)) {
+      this.temaService.deleteTema(this.tema()?.idTema!).subscribe({
         next: () => console.log('Tema eliminado exitosamente'),
         error: (error) => console.error('Error al eliminar el te,a:', error)
       });
 
-      console.log(`Tema con ID ${this.tema?.idTema} eliminado`);
+      console.log(`Tema con ID ${this.tema()?.idTema} eliminado`);
       this.snackBar.open('Tema eliminado exitosamente', 'Cerrar', {
         duration: 3000
       });

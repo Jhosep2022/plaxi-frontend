@@ -1,4 +1,4 @@
-@if (tema) {
+@if (tema(); as tema) {
   <div class="course-details-container">
     <!-- Contenedor para la imagen y el título superpuesto -->
     <div class="course-info">
@@ -9,7 +9,7 @@
       <p><strong>Orden:</strong> {{ tema.orden }}</p>
       <p><strong>Recurso:</strong></p>
       <!-- Mostrar recurso multimedia en un iframe -->
-      @if (sanitizedUrl) {
+      @if (sanitizedUrl(); as sanitizedUrl) {
         <iframe
           [src]="sanitizedUrl"
           width="100%"
@@ -24,7 +24,7 @@
   </div>
 }
 
-@if (!tema) {
+@if (!tema()) {
   <div class="no-course-message">
     <p>Curso no encontrado.</p>
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>

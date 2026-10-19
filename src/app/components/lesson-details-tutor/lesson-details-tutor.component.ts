@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
@@ -12,7 +12,6 @@ import { PaginadoDto } from 'src/app/models/PaginadoDto';
     selector: 'app-lesson-details-tutor',
     templateUrl: './lesson-details-tutor.component.html',
     styleUrls: ['./lesson-details-tutor.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [RouterLink]
 })
 export class LessonDetailsTutorComponent implements OnInit {
@@ -23,11 +22,10 @@ export class LessonDetailsTutorComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   course: CursoDto | null = null;
-  leccion: LeccionDto | null = null;
+  readonly leccion = signal<LeccionDto | null>(null);
   userId: number | null = null;
-  temas: TemaDto[] = [];
-  courseId: number | null = null;
-
+  readonly temas = signal<TemaDto[]>([]);
+  readonly courseId = signal<number | null>(null);
   ngOnInit(): void {
     const storedUserId = localStorage.getItem('idUsuario');
 
@@ -56,7 +54,7 @@ export class LessonDetailsTutorComponent implements OnInit {
 
     this.temaService.getTemasByLeccion(lessonId, paginadoDto).subscribe({
       next: (response) => {
-        this.temas = response.content || [];
+        this.temas.set(response.content || []);
       },
       error: (error) => {
         console.error('Error al cargar los temas:', error);
@@ -68,8 +66,8 @@ export class LessonDetailsTutorComponent implements OnInit {
   loadLessonDetails(lessonId: number): void {
     this.leccionService.getLeccionById(lessonId).subscribe({
       next: (data) => {
-        this.leccion = data;
-        this.courseId = data.cursoId;
+        this.leccion.set(data);
+        this.courseId.set(data.cursoId);
       },
       error: (error) => console.error('Error al cargar los detalles del curso:', error)
     });
@@ -77,8 +75,8 @@ export class LessonDetailsTutorComponent implements OnInit {
 
   // Lógica para volver a la página de detalles del curso
   goBack(): void {
-    if (this.courseId) {
-      this.router.navigate(['/course-details-tutor', this.courseId]);
+    if (this.courseId()) {
+      this.router.navigate(['/course-details-tutor', this.courseId()]);
     } else {
       this.snackBar.open('No se pudo encontrar el curso relacionado.', 'Cerrar', {
         duration: 3000
@@ -87,8 +85,8 @@ export class LessonDetailsTutorComponent implements OnInit {
   }
 
   deleteLesson() {
-    if (confirm(`¿Estás seguro de que deseas eliminar la leccion: ${this.leccion?.titulo}?`)) {
-      this.leccionService.deleteLeccion(this.leccion?.idLeccion!).subscribe({
+    if (confirm(`¿Estás seguro de que deseas eliminar la leccion: ${this.leccion()?.titulo}?`)) {
+      this.leccionService.deleteLeccion(this.leccion()?.idLeccion!).subscribe({
         next: () => console.log('Leccion eliminada exitosamente'),
         error: (error) => console.error('Error al eliminar la leccion:', error)
       });

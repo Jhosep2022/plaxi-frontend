@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
@@ -14,7 +14,6 @@ interface Category {
     selector: 'app-course-category-list',
     templateUrl: './course-category-list.component.html',
     styleUrls: ['./course-category-list.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [RouterLink]
 })
 export class CourseCategoryListComponent implements OnInit {
@@ -22,40 +21,46 @@ export class CourseCategoryListComponent implements OnInit {
   private cursoService = inject(CourseService);
   private categoriaService = inject(CategoriaService);
 
-  // Lista de categorías obtenida de la API
-  categories: Category[] = [];
+  readonly itemsPerPage = 6;
 
-  // Lista de cursos obtenida de la API
-  courses: CursoDto[] = [];
-  filteredCourses: CursoDto[] = [];
-  pagedCourses: CursoDto[] = [];
-  selectedCategory: Category | null = null;
-  currentPage: number = 1;
-  itemsPerPage: number = 6;
-  totalPages: number = 1;
+  // Estado
+  readonly categories = signal<Category[]>([]);
+  readonly courses = signal<CursoDto[]>([]);
+  readonly selectedCategory = signal<Category | null>(null);
+  readonly currentPage = signal(1);
+
+  // Estado derivado: se recalcula solo cuando cambian sus dependencias
+  readonly filteredCourses = computed(() => {
+    const category = this.selectedCategory();
+    const courses = this.courses();
+    return category ? courses.filter((course) => course.categoriaId === category.id) : courses;
+  });
+
+  readonly totalPages = computed(() => Math.ceil(this.filteredCourses().length / this.itemsPerPage));
+
+  readonly pagedCourses = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+    return this.filteredCourses().slice(startIndex, startIndex + this.itemsPerPage);
+  });
 
   ngOnInit(): void {
-    // Obtener todas las categorías desde la API
     this.getCategoriesFromApi();
-
-    // Obtener todos los cursos desde la API
     this.getCoursesFromApi();
   }
 
-    // Obtener todas las categorías desde la API
+  // Obtener todas las categorías desde la API
   getCategoriesFromApi(): void {
     this.categoriaService.getAllCategorias().subscribe({
       next: (data) => {
-        this.categories = data.map(categoria => ({
-          id: categoria.idCategoria, 
-          nombre: categoria.nombre 
+        const categories = data.map((categoria) => ({
+          id: categoria.idCategoria,
+          nombre: categoria.nombre
         }));
-        console.log('Categorías obtenidas y transformadas de la API:', this.categories);
+        this.categories.set(categories);
 
         // Seleccionar la primera categoría por defecto, si existe
-        if (this.categories.length > 0) {
-          this.selectedCategory = this.categories[0];
-          this.filterCoursesByCategory();
+        if (categories.length > 0) {
+          this.selectCategory(categories[0]);
         }
       },
       error: (err) => {
@@ -67,50 +72,23 @@ export class CourseCategoryListComponent implements OnInit {
   // Obtener todos los cursos desde la API
   getCoursesFromApi(): void {
     this.cursoService.getAllCursos().subscribe({
-      next: (data) => {
-        this.courses = data;
-        console.log('Cursos obtenidos de la API:', this.courses);
-        this.filterCoursesByCategory();
-      },
+      next: (data) => this.courses.set(data),
       error: (err) => {
         console.error('Error al obtener cursos desde la API:', err);
       }
     });
   }
 
-  // Filtrar cursos por categoría seleccionada
+  // Filtrar cursos por categoría seleccionada (vuelve a la primera página)
   selectCategory(category: Category): void {
-    this.selectedCategory = category;
-    this.filterCoursesByCategory();
-  }
-
-  // Filtrar los cursos según la categoría seleccionada y actualizar la paginación
-  filterCoursesByCategory(): void {
-    if (this.selectedCategory) {
-      this.filteredCourses = this.courses.filter(
-        course => course.categoriaId === this.selectedCategory?.id
-      );
-    } else {
-      this.filteredCourses = this.courses;
-    }
-
-    this.currentPage = 1;
-    this.totalPages = Math.ceil(this.filteredCourses.length / this.itemsPerPage);
-    this.updatePagedCourses();
-  }
-
-  // Actualizar los cursos mostrados en la página actual
-  updatePagedCourses(): void {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    this.pagedCourses = this.filteredCourses.slice(startIndex, endIndex);
+    this.selectedCategory.set(category);
+    this.currentPage.set(1);
   }
 
   // Cambiar de página
   changePage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.updatePagedCourses();
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
     }
   }
 

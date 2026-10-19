@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AuthService } from '../../services/auth.service';  // Asegúrate de que el servicio esté en la ruta correcta
 import { Router, RouterLink } from '@angular/router';
 import { faCheck, faEnvelope } from '@fortawesome/free-solid-svg-icons';
@@ -9,7 +9,6 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'app-forgot-password',
     templateUrl: './forgot-password.component.html',
     styleUrls: ['./forgot-password.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, FaIconComponent, RouterLink]
 })
 export class ForgotPasswordComponent {
@@ -20,15 +19,15 @@ export class ForgotPasswordComponent {
   faCheck = faCheck;
   faEnvelope = faEnvelope;
 
-  email: string = '';
+  readonly email = signal('');
 
   onSubmit(): void {
-    if (!this.email) {
+    if (!this.email()) {
       alert('Por favor, introduce un correo electrónico.');
       return;
     }
 
-    this.authService.resetPassword(this.email).subscribe({
+    this.authService.resetPassword(this.email()).subscribe({
       next: (response) => {
         alert('Se ha enviado un enlace de restablecimiento de contraseña a tu correo.');
         this.router.navigate(['/login']);  // Redirige al login después de enviar el correo

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -10,7 +10,6 @@ import { DatePipe } from '@angular/common';
     selector: 'app-my-courses-student',
     templateUrl: './my-courses-student.component.html',
     styleUrls: ['./my-courses-student.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [MatButton, RouterLink, DatePipe]
 })
 export class MyCoursesStudentComponent implements OnInit {
@@ -19,7 +18,7 @@ export class MyCoursesStudentComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private authService = inject(AuthService);
 
-  courses: any[] = [];
+  readonly courses = signal<any[]>([]);
   userId: number | null = null;
 
   ngOnInit(): void {
@@ -47,7 +46,7 @@ export class MyCoursesStudentComponent implements OnInit {
         console.log('Inscripciones obtenidas del backend:', inscripciones);
 
         // Mantener el idInscripcion en los datos del curso
-        this.courses = inscripciones.map((inscripcion) => ({
+        this.courses.set(inscripciones.map((inscripcion) => ({
           id: inscripcion.cursoId,
           name: inscripcion.cursoNombre,
           date: inscripcion.fechaInscripcion,
@@ -55,9 +54,9 @@ export class MyCoursesStudentComponent implements OnInit {
           time: '10:00 AM',
           studentsEnrolled: 0,
           image: inscripcion.cursoPortadaUrl || 'assets/curso.png' 
-        }));
+        })));
 
-        console.log('Cursos mapeados:', this.courses);
+        console.log('Cursos mapeados:', this.courses());
       },
       error: (error) => {
         console.error('Error al cargar los cursos del usuario:', error);
@@ -83,7 +82,7 @@ export class MyCoursesStudentComponent implements OnInit {
           });
 
           // Actualizar la lista de cursos eliminando el curso con idInscripcion
-          this.courses = this.courses.filter((course) => course.idInscripcion !== idInscripcion);
+          this.courses.set(this.courses().filter((course) => course.idInscripcion !== idInscripcion));
         },
         error: (error) => {
           console.error('Error al intentar darse de baja:', error);

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { faCheck, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
@@ -9,7 +9,6 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'app-login',
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, FaIconComponent, RouterLink]
 })
 export class LoginComponent {
@@ -21,30 +20,30 @@ export class LoginComponent {
   faLock = faLock;
   faUser = faUser;
 
-  username: string = '';
-  password: string = '';
-  errorMessage: string = '';
+  readonly username = signal('');
+  readonly password = signal('');
+  readonly errorMessage = signal('');
 
   onLogin() {
 
-    if (!this.username || !this.password) {
-      this.errorMessage = 'Por favor, ingresa tu nombre de usuario y tu contraseña.';
+    if (!this.username() || !this.password()) {
+      this.errorMessage.set('Por favor, ingresa tu nombre de usuario y tu contraseña.');
       return;
     }
 
-    this.authService.loginUser(this.username, this.password).subscribe({
+    this.authService.loginUser(this.username(), this.password()).subscribe({
       next: (response) => {
         if (response.success) {
           localStorage.setItem('idUsuario', response.data.id_usuario.toString());
           localStorage.setItem('userRole', response.data.id_rol.toString());
           this.router.navigate(['/home']);
         } else {
-          this.errorMessage = 'Inicio de sesión fallido. Usuario no encontrado.';
+          this.errorMessage.set('Inicio de sesión fallido. Usuario no encontrado.');
         }
       },
       error: (err) => {
         console.error('Error en el inicio de sesión:', err);
-        this.errorMessage = 'Error en el servidor. Inténtalo de nuevo más tarde.';
+        this.errorMessage.set('Error en el servidor. Inténtalo de nuevo más tarde.');
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { faCheck, faEnvelope, faIdCard, faImage, faPhone, faUser } from '@fortawesome/free-solid-svg-icons';
 import { ActualizarPerfilDto } from '../../models/PerfilDto';
@@ -11,7 +11,6 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'app-updateperfil',
     templateUrl: './updateperfil.component.html',
     styleUrls: ['./updateperfil.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, FaIconComponent]
 })
 export class UpdateperfilComponent implements OnInit {
@@ -26,7 +25,7 @@ export class UpdateperfilComponent implements OnInit {
   faPhone = faPhone;
   faUser = faUser;
 
-  perfilDto: ActualizarPerfilDto = {
+  readonly perfilDto = signal<ActualizarPerfilDto>({
     username: '',
     gmail: '',
     nombre: '',
@@ -35,18 +34,16 @@ export class UpdateperfilComponent implements OnInit {
     telefono: '',
     ci: '',
     file: undefined
-  };
-
+  });
   selectedFile: File | null = null;
-  fileError: string | null = null;
-
+  readonly fileError = signal<string | null>(null);
   ngOnInit(): void {
     const idUsuario = localStorage.getItem('idUsuario');
     if (idUsuario) {
       // Cargar los datos del perfil y asignarlos a perfilDto para mostrar en el formulario
       this.perfilService.getProfile(Number(idUsuario)).subscribe({
         next: (response: any) => {
-          this.perfilDto = {
+          this.perfilDto.set({
             username: response.username,
             gmail: response.gmail,
             nombre: response.nombre,
@@ -55,7 +52,7 @@ export class UpdateperfilComponent implements OnInit {
             telefono: response.telefono,
             ci: response.ci,
             file: undefined
-          };
+          });
         },
         error: (err: any) => {
           console.error('Error al cargar el perfil del usuario:', err);
@@ -73,27 +70,28 @@ export class UpdateperfilComponent implements OnInit {
     const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
     if (file && validExtensions.includes(file.type)) {
       this.selectedFile = file;
-      this.fileError = null; // Limpiar mensaje de error si la validación es correcta
+      this.fileError.set(null); // Limpiar mensaje de error si la validación es correcta
     } else {
-      this.fileError = 'Por favor, selecciona un archivo con formato .jpg, .jpeg o .png';
+      this.fileError.set('Por favor, selecciona un archivo con formato .jpg, .jpeg o .png');
       this.selectedFile = null; // Si no es válido, no se guarda el archivo
     }
   }
 
   actualizarPerfil() {
     // Validar que todos los campos estén llenos antes de enviar la solicitud
-    if (!this.perfilDto.username || !this.perfilDto.gmail || !this.perfilDto.nombre || !this.perfilDto.primerApellido || !this.perfilDto.segundoApellido || !this.perfilDto.telefono || !this.perfilDto.ci) {
+    if (!this.perfilDto().username || !this.perfilDto().gmail || !this.perfilDto().nombre || !this.perfilDto().primerApellido || !this.perfilDto().segundoApellido || !this.perfilDto().telefono || !this.perfilDto().ci) {
       console.error('Por favor, completa todos los campos.');
       return;
     }
 
     if (this.selectedFile) {
-      this.perfilDto.file = this.selectedFile;
+      const file = this.selectedFile;
+      this.perfilDto.update((dto) => ({ ...dto, file }));
     }
 
     const idUsuario = localStorage.getItem('idUsuario');
     if (idUsuario) {
-      this.perfilService.updateProfile(Number(idUsuario), this.perfilDto).subscribe({
+      this.perfilService.updateProfile(Number(idUsuario), this.perfilDto()).subscribe({
         next: (response) => {
           console.log('Perfil actualizado:', response);
           this.router.navigate(['/perfil']);

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { AuthService } from 'src/app/services/auth.service';
@@ -7,14 +7,13 @@ import { CourseService } from 'src/app/services/course.service';
     selector: 'app-course-list',
     templateUrl: './course-list.component.html',
     styleUrls: ['./course-list.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class CourseListComponent implements OnInit {
   private router = inject(Router);
   private cursoService = inject(CourseService);
   private authService = inject(AuthService);
 
-  courses: CursoDto[] = [];
+  readonly courses = signal<CursoDto[]>([]);
   userId: number | null = null;
 
   ngOnInit(): void {
@@ -35,8 +34,8 @@ export class CourseListComponent implements OnInit {
   loadCoursesByUser(userId: number): void {
     this.cursoService.getCursosByUsuario(userId).subscribe({
       next: (data) => {
-        this.courses = data;
-        console.log('Cursos obtenidos para el usuario:', this.courses);
+        this.courses.set(data);
+        console.log('Cursos obtenidos para el usuario:', this.courses());
       },
       error: (error) => {
         console.error('Error al cargar los cursos del usuario:', error);

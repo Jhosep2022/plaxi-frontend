@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProfileService } from '../../services/profile.service';  // Ruta correcta al servicio
 import { faEdit, faTrash, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';  // Importar icono de edición y cerrar sesión
@@ -11,7 +11,6 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'app-perfil',
     templateUrl: './perfil.component.html',
     styleUrls: ['./perfil.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [NgClass, FaIconComponent]
 })
 export class PerfilComponent implements OnInit {
@@ -23,7 +22,7 @@ export class PerfilComponent implements OnInit {
   faEdit = faEdit;  // Icono de edición
   faTrash = faTrash;  // Icono de eliminación
   faSignOut = faSignOutAlt;  // Icono de cerrar sesión
-  user: any = {}; // Objeto vacío para inicializar el perfil del usuario
+  readonly user = signal<any>({}); // Objeto vacío para inicializar el perfil del usuario
 
   isDialogOpen = false;
 
@@ -41,7 +40,7 @@ export class PerfilComponent implements OnInit {
   cargarPerfil(idUsuario: number) {
     this.perfilService.getProfile(idUsuario).subscribe({
       next: (response: any) => {
-        this.user = response;  // Actualiza el perfil del usuario con la respuesta
+        this.user.set(response);  // Actualiza el perfil del usuario con la respuesta
       },
       error: (err: any) => {
         console.error('Error al cargar el perfil del usuario:', err);

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
@@ -10,7 +10,6 @@ import { TemaDto } from 'src/app/models/TemaDto';
     selector: 'app-lesson-details',
     templateUrl: './lesson-details.component.html',
     styleUrls: ['./lesson-details.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [RouterLink]
 })
 export class LessonDetailsComponent implements OnInit {
@@ -21,9 +20,8 @@ export class LessonDetailsComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   courseId: number | null = null; // Captura el ID del curso
-  leccion: LeccionDto | null = null;
-  temas: TemaDto[] = [];
-
+  readonly leccion = signal<LeccionDto | null>(null);
+  readonly temas = signal<TemaDto[]>([]);
   ngOnInit(): void {
     // Captura el `courseId` de los parámetros de consulta
     const courseIdParam = this.route.snapshot.queryParamMap.get('courseId');
@@ -41,7 +39,7 @@ export class LessonDetailsComponent implements OnInit {
   loadLessonDetails(lessonId: number): void {
     this.leccionService.getLeccionById(lessonId).subscribe({
       next: (data) => {
-        this.leccion = data;
+        this.leccion.set(data);
       },
       error: (error) => {
         console.error('Error al cargar los detalles de la lección:', error);
@@ -54,7 +52,7 @@ export class LessonDetailsComponent implements OnInit {
     const paginadoDto = { page: 0, size: 10, sortBy: 'orden', sortDir: 'desc' };
     this.temaService.getTemasByLeccion(lessonId, paginadoDto).subscribe(
       (response) => {
-        this.temas = response.content || [];
+        this.temas.set(response.content || []);
       },
       (error) => {
         console.error('Error al cargar los temas de la lección:', error);

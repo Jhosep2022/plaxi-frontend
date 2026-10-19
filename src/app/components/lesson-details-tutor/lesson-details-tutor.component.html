@@ -1,4 +1,4 @@
-@if (leccion) {
+@if (leccion(); as leccion) {
   <div class="course-details-container">
     <h2 class="course-title">{{ leccion.titulo }}</h2>
     <div class="course-info">
@@ -15,11 +15,11 @@
       <button class="back-btn" (click)="goBack()">Volver al curso</button>
     </div>
     <!-- Lista de temas -->
-    @if (temas.length > 0) {
+    @if (temas().length > 0) {
       <div class="lessons-list">
         <h3>Temas:</h3>
         <ul>
-          @for (tema of temas; track tema) {
+          @for (tema of temas(); track tema.idTema) {
             <li>
               <h4>{{ tema.titulo }}</h4>
               <p><strong>Orden:</strong> {{ tema.orden }}</p>
@@ -30,13 +30,13 @@
         </ul>
       </div>
     }
-    @if (temas.length === 0) {
+    @if (temas().length === 0) {
       <p>No hay temas disponibles para esta leccion.</p>
     }
   </div>
 }
 
-@if (!leccion) {
+@if (!leccion()) {
   <div class="no-course-message">
     <p>Leccion no encontrada.</p>
     <button class="back-btn" (click)="goBack()">Volver a la lista de lecciones</button>
