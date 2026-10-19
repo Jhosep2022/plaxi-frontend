@@ -3,24 +3,32 @@ import { Observable, forkJoin, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   faAtom,
+  faBolt,
   faBookOpen,
   faCalculator,
   faCode,
+  faCompass,
+  faFire,
   faFlask,
   faLink,
+  faListCheck,
   faPalette,
+  faPersonRunning,
   faPlus,
   faQrcode,
   faStar,
+  faTrophy,
   faUserCheck,
   faUserPlus,
   faVideo,
 } from '@fortawesome/free-solid-svg-icons';
 import { Membresia } from '../core/models/espacio.model';
 import { CursoDto } from '../models/CursoDto';
+import { InscripcionResponseDto } from '../models/inscripcionDto';
 import { PerfilDto } from '../models/PerfilDto';
 import { ResumenData, Tono } from '../shared/dashboard/dashboard.models';
 import { CourseService } from './course.service';
+import { InscripcionService } from './inscripcion.service';
 import { ProfileService } from './profile.service';
 
 // MOCK: estudiantes de ejemplo para los avatares
@@ -33,6 +41,7 @@ const TONOS: Tono[] = ['lima', 'azul', 'crema'];
 export class ResumenService {
   private profileService = inject(ProfileService);
   private courseService = inject(CourseService);
+  private inscripcionService = inject(InscripcionService);
 
   obtener(membresia: Membresia, usuarioId: number): Observable<ResumenData> {
     const perfil$ = this.profileService.getProfile(usuarioId);
@@ -43,6 +52,14 @@ export class ResumenService {
     if (membresia.rol === 'docente') {
       return forkJoin([perfil$, this.courseService.getCursosByUsuario(usuarioId)]).pipe(
         map(([perfil, cursos]) => this.docenteAcademia(membresia, perfil, cursos))
+      );
+    }
+    if (membresia.rol === 'estudiante' && membresia.espacio.tipo === 'colegio') {
+      return perfil$.pipe(map((perfil) => this.estudianteColegio(membresia, perfil)));
+    }
+    if (membresia.rol === 'estudiante') {
+      return forkJoin([perfil$, this.inscripcionService.getInscripcionesByUsuarioId(usuarioId)]).pipe(
+        map(([perfil, inscripciones]) => this.estudianteAcademia(membresia, perfil, inscripciones))
       );
     }
     return throwError(() => new Error(`Resumen no disponible para el rol ${membresia.rol}`));
@@ -204,6 +221,178 @@ export class ResumenService {
         ],
       },
       asistente: { sugerencia: 'Crea un plan de 4 sesiones en vivo para el curso Angular desde cero' },
+    };
+  }
+
+  // MOCK: estudiante de 3ro A en un colegio (materias, asistencia, notas)
+  private estudianteColegio({ espacio }: Membresia, perfil: PerfilDto): ResumenData {
+    const base = `/${espacio.slug}/estudiante`;
+    const companeros = ESTUDIANTES.filter((n) => !n.startsWith(perfil.nombre));
+    return {
+      saludo: `¡Hola de nuevo, ${perfil.nombre}!`,
+      subtitulo: `Esto es lo que tienes hoy en ${espacio.nombre}.`,
+      accion: { label: 'Mis tareas (3)', icono: faListCheck, link: `${base}/tareas` },
+      progreso: [
+        { titulo: 'Matemáticas', icono: faCalculator, tono: 'lima', actual: 16, total: 20, unidad: 'lecciones' },
+        { titulo: 'Física', icono: faAtom, tono: 'azul', actual: 11, total: 18, unidad: 'lecciones' },
+        { titulo: 'Lenguaje', icono: faBookOpen, tono: 'crema', actual: 19, total: 25, unidad: 'lecciones' },
+      ],
+      horario: {
+        titulo: 'Mi horario de hoy',
+        desde: '07:30',
+        hasta: '14:30',
+        eventos: [
+          { titulo: 'Matemáticas', detalle: 'Aula 12 · Prof. María', inicio: '08:00', fin: '09:30', icono: faCalculator, tono: 'lima' },
+          { titulo: 'Lenguaje', detalle: 'Aula 12 · Prof. Jorge', inicio: '09:45', fin: '11:15', icono: faBookOpen, tono: 'crema' },
+          { titulo: 'Educación Física', detalle: 'Coliseo', inicio: '11:30', fin: '12:15', icono: faPersonRunning, tono: 'azul' },
+          { titulo: 'Física', detalle: 'Laboratorio de física', inicio: '12:30', fin: '14:00', icono: faAtom, tono: 'azul' },
+        ],
+      },
+      proximos: {
+        titulo: 'Próximas clases',
+        verTodo: `${base}/horario`,
+        items: [
+          {
+            titulo: 'Matemáticas', icono: faCalculator, horario: '08:00 – 09:30', detalle: 'Aula 12',
+            participantes: companeros, totalParticipantes: 31,
+            accion: { label: 'Ver material', icono: faBookOpen, link: `${base}/cursos` },
+          },
+          { titulo: 'Lenguaje', icono: faBookOpen, horario: '09:45 – 11:15', detalle: 'Aula 12', participantes: companeros.slice(1), totalParticipantes: 31 },
+          { titulo: 'Física', icono: faAtom, horario: '12:30 – 14:00', detalle: 'Lab. física', participantes: companeros.slice(2), totalParticipantes: 31 },
+        ],
+      },
+      lista: {
+        titulo: 'Mis materias',
+        verTodo: `${base}/cursos`,
+        items: [
+          { titulo: 'Matemáticas', subtitulo: 'Prof. María Fernández', icono: faCalculator, tono: 'lima', meta: '85 pts', link: `${base}/calificaciones` },
+          { titulo: 'Física', subtitulo: 'Prof. María Fernández', icono: faAtom, tono: 'azul', meta: '72 pts', link: `${base}/calificaciones` },
+          { titulo: 'Lenguaje', subtitulo: 'Prof. Jorge Vargas', icono: faBookOpen, tono: 'crema', meta: '90 pts', link: `${base}/calificaciones` },
+          { titulo: 'Educación Física', subtitulo: 'Prof. Ana Rojas', icono: faPersonRunning, tono: 'azul', meta: '95 pts', link: `${base}/calificaciones` },
+        ],
+      },
+      perfil: {
+        nombre: `${perfil.nombre} ${perfil.primerApellido}`,
+        organizacion: '3ro A · Secundaria',
+        insignia: 'Puesto 3',
+        imagenUrl: perfil.imagenUrl,
+        semana: {
+          valor: 4,
+          texto: 'días asistidos esta semana',
+          dias: [
+            { etiqueta: 'Lu', estado: 'ok' },
+            { etiqueta: 'Ma', estado: 'ok' },
+            { etiqueta: 'Mi', estado: 'atraso' },
+            { etiqueta: 'Ju', estado: 'ok' },
+            { etiqueta: 'Vi', estado: 'hoy' },
+          ],
+        },
+      },
+      actividad: {
+        titulo: 'Notas y logros recientes',
+        items: [
+          { titulo: 'Práctica calificada', detalle: 'Matemáticas · Práctica 3', icono: faStar, tono: 'lima', meta: '85/100' },
+          { titulo: 'Tarea entregada', detalle: 'Lenguaje · Ensayo argumentativo', icono: faListCheck, tono: 'crema', meta: 'Hoy' },
+          { titulo: 'Asistencia perfecta', detalle: 'Toda la semana pasada', icono: faTrophy, tono: 'azul', meta: '+1' },
+        ],
+      },
+      asistente: { sugerencia: 'Explícame las ecuaciones de segundo grado con ejemplos sencillos' },
+    };
+  }
+
+  // MOCK: estudiante inscrito en cursos de una academia
+  private estudianteAcademia({ espacio }: Membresia, perfil: PerfilDto, inscripciones: InscripcionResponseDto[]): ResumenData {
+    const base = `/${espacio.slug}/estudiante`;
+    const avance = [[13, 20], [9, 12], [4, 15]];
+    const sesiones = [
+      { horario: '10:00 – 11:30', inicio: '10:00', fin: '11:30', lugar: 'Google Meet', inscritos: 18 },
+      { horario: '18:00 – 19:00', inicio: '18:00', fin: '19:00', lugar: 'Zoom', inscritos: 11 },
+      { horario: '15:00 – 16:00', inicio: '15:00', fin: '16:00', lugar: 'Google Meet', inscritos: 6 },
+    ];
+    const icono = (nombre: string) => (/ui|ux|figma|diseño/i.test(nombre) ? faPalette : faCode);
+    const cursos = inscripciones.slice(0, 3);
+
+    return {
+      saludo: `¡Hola de nuevo, ${perfil.nombre}!`,
+      subtitulo: 'Sigue con tus cursos y alcanza todo tu potencial.',
+      accion: { label: 'Explorar cursos', icono: faCompass, link: `${base}/catalogo` },
+      progreso: cursos.map((ins, i) => ({
+        titulo: ins.cursoNombre,
+        icono: icono(ins.cursoNombre),
+        tono: TONOS[i % TONOS.length],
+        actual: avance[i][0],
+        total: avance[i][1],
+        unidad: 'lecciones',
+      })),
+      horario: {
+        titulo: 'Sesiones de hoy',
+        desde: '09:00',
+        hasta: '20:00',
+        eventos: cursos.map((ins, i) => ({
+          titulo: `En vivo · ${ins.cursoNombre}`,
+          detalle: sesiones[i].lugar,
+          inicio: sesiones[i].inicio,
+          fin: sesiones[i].fin,
+          icono: faVideo,
+          tono: TONOS[i % TONOS.length],
+        })),
+      },
+      proximos: {
+        titulo: 'Próximas sesiones',
+        verTodo: `${base}/horario`,
+        items: cursos.map((ins, i) => ({
+          titulo: `En vivo · ${ins.cursoNombre}`,
+          icono: faVideo,
+          horario: sesiones[i].horario,
+          detalle: sesiones[i].lugar,
+          participantes: ESTUDIANTES.slice(i + 1),
+          totalParticipantes: sesiones[i].inscritos,
+          accion: i === 0 ? { label: 'Unirme', icono: faVideo, link: `${base}/cursos/${ins.cursoId}` } : undefined,
+        })),
+      },
+      lista: {
+        titulo: 'Mis cursos',
+        verTodo: `${base}/cursos`,
+        items: inscripciones.map((ins, i) => {
+          const [actual, total] = avance[i % avance.length];
+          return {
+            titulo: ins.cursoNombre,
+            subtitulo: `${actual} de ${total} lecciones`,
+            icono: icono(ins.cursoNombre),
+            tono: TONOS[i % TONOS.length],
+            meta: `${Math.round((actual / total) * 100)}%`,
+            link: `${base}/cursos/${ins.cursoId}`,
+          };
+        }),
+      },
+      perfil: {
+        nombre: `${perfil.nombre} ${perfil.primerApellido}`,
+        organizacion: espacio.nombre,
+        insignia: '1.250 XP',
+        imagenUrl: perfil.imagenUrl,
+        semana: {
+          valor: 6,
+          texto: 'días seguidos estudiando',
+          dias: [
+            { etiqueta: 'Lu', estado: 'ok' },
+            { etiqueta: 'Ma', estado: 'ok' },
+            { etiqueta: 'Mi', estado: 'ok' },
+            { etiqueta: 'Ju', estado: 'ok' },
+            { etiqueta: 'Vi', estado: 'hoy' },
+            { etiqueta: 'Sá', estado: 'pendiente' },
+            { etiqueta: 'Do', estado: 'pendiente' },
+          ],
+        },
+      },
+      actividad: {
+        titulo: 'Logros recientes',
+        items: [
+          { titulo: 'Aprendiz veloz', detalle: '5 lecciones completadas', icono: faBolt, tono: 'lima', meta: '+100 XP' },
+          { titulo: 'Constante', detalle: '7 días seguidos estudiando', icono: faFire, tono: 'crema', meta: '+200 XP' },
+          { titulo: 'Quiz perfecto', detalle: cursos[0]?.cursoNombre ?? 'Tu primer quiz', icono: faTrophy, tono: 'azul', meta: '+150 XP' },
+        ],
+      },
+      asistente: { sugerencia: 'Resúmeme la última lección de mi curso en palabras sencillas' },
     };
   }
 }
