@@ -23,9 +23,11 @@
           <input id="nombre" type="text" formControlName="nombre" placeholder="Título del curso">
         </div>
         <!-- Mensaje de error para el campo de título -->
-        <span *ngIf="courseForm.get('nombre')?.touched && courseForm.get('nombre')?.invalid" class="error-message">
-          {{ getErrorMessage('nombre') }}
-        </span>
+        @if (courseForm.get('nombre')?.touched && courseForm.get('nombre')?.invalid) {
+          <span class="error-message">
+            {{ getErrorMessage('nombre') }}
+          </span>
+        }
       </div>
 
       <!-- Campo de Descripción del curso -->
@@ -35,9 +37,11 @@
           <textarea id="descripcion" formControlName="descripcion" rows="2" placeholder="Breve descripción del curso"></textarea>
         </div>
         <!-- Mensaje de error para el campo de descripción -->
-        <span *ngIf="courseForm.get('descripcion')?.touched && courseForm.get('descripcion')?.invalid" class="error-message">
-          {{ getErrorMessage('descripcion') }}
-        </span>
+        @if (courseForm.get('descripcion')?.touched && courseForm.get('descripcion')?.invalid) {
+          <span class="error-message">
+            {{ getErrorMessage('descripcion') }}
+          </span>
+        }
       </div>
 
       <!-- Campo para subir la imagen de portada -->
@@ -47,15 +51,19 @@
           <input id="portada" type="file" (change)="onFileSelected($event)" accept=".jpg, .jpeg, .png" />
         </div>
         <!-- Mensaje de error para el campo de portada -->
-        <span *ngIf="fileError" class="error-message">
-          {{ fileError }}
-        </span>
+        @if (fileError) {
+          <span class="error-message">
+            {{ fileError }}
+          </span>
+        }
       </div>
 
       <!-- Mostrar la imagen de vista previa si existe -->
-      <div *ngIf="previewUrl" class="image-preview">
-        <img [src]="previewUrl" alt="Vista previa de la imagen" class="preview-image" />
-      </div>
+      @if (previewUrl) {
+        <div class="image-preview">
+          <img [src]="previewUrl" alt="Vista previa de la imagen" class="preview-image" />
+        </div>
+      }
 
       <!-- Fila con Dificultad y Estado del Curso -->
       <div class="form-row">
@@ -88,13 +96,17 @@
           <select id="Categoria_id_categoria" formControlName="Categoria_id_categoria" (change)="onCategoryChange($event)">
             <option value="" disabled selected>Selecciona una categoría</option>
             <!-- Modificado para utilizar idCategoria -->
-            <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
+            @for (categoria of categorias; track categoria) {
+              <option [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
+            }
           </select>
         </div>
         <!-- Mensaje de error para el campo de categoría -->
-        <span *ngIf="courseForm.get('Categoria_id_categoria')?.touched && courseForm.get('Categoria_id_categoria')?.invalid" class="error-message">
-          {{ getErrorMessage('Categoria_id_categoria') }}
-        </span>
+        @if (courseForm.get('Categoria_id_categoria')?.touched && courseForm.get('Categoria_id_categoria')?.invalid) {
+          <span class="error-message">
+            {{ getErrorMessage('Categoria_id_categoria') }}
+          </span>
+        }
       </div>
     </div>
 

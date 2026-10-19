@@ -66,7 +66,9 @@
         <button type="button" class="login-btn" (click)="redirectToLogin()">Ya tienes cuenta?</button>
 
         <!-- Mensaje de error -->
-        <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+        @if (errorMessage) {
+          <div class="error-message">{{ errorMessage }}</div>
+        }
       </form>
 
       <!-- Información Personal -->
@@ -113,7 +115,7 @@
                 class="form-control"
                 (keypress)="validateNumberInput($event)"
                 required
-              />
+                />
 
             </div>
           </div>

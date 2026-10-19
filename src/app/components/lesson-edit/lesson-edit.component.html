@@ -11,65 +11,73 @@
     </div>
   </div>
 
-    <form [formGroup]="lessonForm" (ngSubmit)="onSubmit()">
-      <!-- Título -->
-      <div class="details-section">
-        <div class="form-group input-group">
-          <mat-label>Título de la lección</mat-label>
-          <div class="input-wrapper">
-            <input matInput formControlName="titulo" />
-            <mat-error *ngIf="lessonForm.get('titulo')?.invalid && lessonForm.get('titulo')?.touched">
+  <form [formGroup]="lessonForm" (ngSubmit)="onSubmit()">
+    <!-- Título -->
+    <div class="details-section">
+      <div class="form-group input-group">
+        <mat-label>Título de la lección</mat-label>
+        <div class="input-wrapper">
+          <input matInput formControlName="titulo" />
+          @if (lessonForm.get('titulo')?.invalid && lessonForm.get('titulo')?.touched) {
+            <mat-error>
               {{ getErrorMessage('titulo') }}
             </mat-error>
-          </div>
+          }
         </div>
+      </div>
 
-        <!-- Contenido -->
-        <div class="form-group input-group">
-          <mat-label>Contenido</mat-label>
-          <div class="input-wrapper">
-            <textarea matInput formControlName="contenido" rows="4"></textarea>
-            <mat-error *ngIf="lessonForm.get('contenido')?.invalid && lessonForm.get('contenido')?.touched">
+      <!-- Contenido -->
+      <div class="form-group input-group">
+        <mat-label>Contenido</mat-label>
+        <div class="input-wrapper">
+          <textarea matInput formControlName="contenido" rows="4"></textarea>
+          @if (lessonForm.get('contenido')?.invalid && lessonForm.get('contenido')?.touched) {
+            <mat-error>
               {{ getErrorMessage('contenido') }}
             </mat-error>
-          </div>
+          }
         </div>
+      </div>
 
-        <!-- Duración Estimada -->
-        <div class="form-group input-group">
-          <mat-label>Duración Estimada (minutos)</mat-label>
-          <div class="input-wrapper">
-            <input matInput type="number" formControlName="duracionEstimada" />
-            <mat-error *ngIf="lessonForm.get('duracionEstimada')?.invalid && lessonForm.get('duracionEstimada')?.touched">
+      <!-- Duración Estimada -->
+      <div class="form-group input-group">
+        <mat-label>Duración Estimada (minutos)</mat-label>
+        <div class="input-wrapper">
+          <input matInput type="number" formControlName="duracionEstimada" />
+          @if (lessonForm.get('duracionEstimada')?.invalid && lessonForm.get('duracionEstimada')?.touched) {
+            <mat-error>
               {{ getErrorMessage('duracionEstimada') }}
             </mat-error>
-          </div>
+          }
         </div>
+      </div>
 
-        <div class="form-row">
-          <div class="form-group input-group">
-            <mat-label>Orden</mat-label>
-            <div class="input-wrapper">
-              <input matInput type="number" formControlName="orden" />
-              <mat-error *ngIf="lessonForm.get('orden')?.invalid && lessonForm.get('orden')?.touched">
+      <div class="form-row">
+        <div class="form-group input-group">
+          <mat-label>Orden</mat-label>
+          <div class="input-wrapper">
+            <input matInput type="number" formControlName="orden" />
+            @if (lessonForm.get('orden')?.invalid && lessonForm.get('orden')?.touched) {
+              <mat-error>
                 {{ getErrorMessage('orden') }}
               </mat-error>
-            </div>
+            }
           </div>
-
-          <mat-form-field class="form-group input-group">
-            <mat-label>Estado de la lección</mat-label>
-            <div class="input-wrapper">
-              <mat-select formControlName="estado">
-                <mat-option [value]="true">Activo</mat-option>
-                <mat-option [value]="false">Inactivo</mat-option>
-              </mat-select>
-            </div>
-          </mat-form-field>
         </div>
+
+        <mat-form-field class="form-group input-group">
+          <mat-label>Estado de la lección</mat-label>
+          <div class="input-wrapper">
+            <mat-select formControlName="estado">
+              <mat-option [value]="true">Activo</mat-option>
+              <mat-option [value]="false">Inactivo</mat-option>
+            </mat-select>
+          </div>
+        </mat-form-field>
       </div>
-      <div class="form-group submit-group">
-        <button class="submit-btn" type="submit">Guardar Cambios</button>
-      </div>
-    </form>
+    </div>
+    <div class="form-group submit-group">
+      <button class="submit-btn" type="submit">Guardar Cambios</button>
+    </div>
+  </form>
 </div>

@@ -17,11 +17,13 @@
           required
           minlength="3"
           #usernameInput="ngModel"
-        />
+          />
       </div>
-      <span class="error-message" *ngIf="usernameInput.invalid && usernameInput.touched">
-        El nombre de usuario es obligatorio y debe tener al menos 3 caracteres.
-      </span>
+      @if (usernameInput.invalid && usernameInput.touched) {
+        <span class="error-message">
+          El nombre de usuario es obligatorio y debe tener al menos 3 caracteres.
+        </span>
+      }
     </div>
 
     <!-- Correo Electrónico -->
@@ -39,11 +41,13 @@
           required
           email
           #gmailInput="ngModel"
-        />
+          />
       </div>
-      <span class="error-message" *ngIf="gmailInput.invalid && gmailInput.touched">
-        El correo electrónico es obligatorio y debe tener un formato válido.
-      </span>
+      @if (gmailInput.invalid && gmailInput.touched) {
+        <span class="error-message">
+          El correo electrónico es obligatorio y debe tener un formato válido.
+        </span>
+      }
     </div>
 
     <!-- Nombre -->
@@ -60,11 +64,13 @@
           class="form-control"
           required
           #nombreInput="ngModel"
-        />
+          />
       </div>
-      <span class="error-message" *ngIf="nombreInput.invalid && nombreInput.touched">
-        El nombre es obligatorio.
-      </span>
+      @if (nombreInput.invalid && nombreInput.touched) {
+        <span class="error-message">
+          El nombre es obligatorio.
+        </span>
+      }
     </div>
 
     <!-- Primer Apellido y Segundo Apellido en una fila -->
@@ -82,11 +88,13 @@
             class="form-control"
             required
             #primerApellidoInput="ngModel"
-          />
+            />
         </div>
-        <span class="error-message" *ngIf="primerApellidoInput.invalid && primerApellidoInput.touched">
-          El primer apellido es obligatorio.
-        </span>
+        @if (primerApellidoInput.invalid && primerApellidoInput.touched) {
+          <span class="error-message">
+            El primer apellido es obligatorio.
+          </span>
+        }
       </div>
 
       <div class="form-group form-half">
@@ -102,11 +110,13 @@
             class="form-control"
             required
             #segundoApellidoInput="ngModel"
-          />
+            />
         </div>
-        <span class="error-message" *ngIf="segundoApellidoInput.invalid && segundoApellidoInput.touched">
-          El segundo apellido es obligatorio.
-        </span>
+        @if (segundoApellidoInput.invalid && segundoApellidoInput.touched) {
+          <span class="error-message">
+            El segundo apellido es obligatorio.
+          </span>
+        }
       </div>
     </div>
 
@@ -127,11 +137,13 @@
             pattern="^[0-9]*$"
             minlength="7"
             #telefonoInput="ngModel"
-          />
+            />
         </div>
-        <span class="error-message" *ngIf="telefonoInput.invalid && telefonoInput.touched">
-          El teléfono es obligatorio, debe contener solo números y tener al menos 7 caracteres.
-        </span>
+        @if (telefonoInput.invalid && telefonoInput.touched) {
+          <span class="error-message">
+            El teléfono es obligatorio, debe contener solo números y tener al menos 7 caracteres.
+          </span>
+        }
       </div>
 
       <div class="form-group form-half">
@@ -148,11 +160,13 @@
             required
             pattern="^[0-9]*$"
             #ciInput="ngModel"
-          />
+            />
         </div>
-        <span class="error-message" *ngIf="ciInput.invalid && ciInput.touched">
-          El CI es obligatorio y debe contener solo números.
-        </span>
+        @if (ciInput.invalid && ciInput.touched) {
+          <span class="error-message">
+            El CI es obligatorio y debe contener solo números.
+          </span>
+        }
       </div>
     </div>
 
@@ -163,9 +177,11 @@
         <fa-icon [icon]="faImage" class="icon"></fa-icon>
         <input type="file" id="imagen" (change)="onFileSelected($event)" class="form-control" accept=".jpg, .jpeg, .png" />
       </div>
-      <span class="error-message" *ngIf="fileError">
-        {{ fileError }}
-      </span>
+      @if (fileError) {
+        <span class="error-message">
+          {{ fileError }}
+        </span>
+      }
     </div>
 
     <!-- Botones de Actualizar y Cancelar -->

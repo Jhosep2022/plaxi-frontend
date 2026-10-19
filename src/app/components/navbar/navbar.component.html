@@ -25,11 +25,12 @@
     </div>
 
     <div class="user-info-container" (click)="toggleDropdown()">
-      <img *ngIf="userProfile?.imagenUrl; else defaultImage" [src]="userProfile?.imagenUrl" class="user-image" alt="User Image" />
-
-      <ng-template #defaultImage>
+      @if (userProfile?.imagenUrl) {
+        <img [src]="userProfile?.imagenUrl" class="user-image" alt="User Image" />
+      } @else {
         <img src="assets/perfil.jpeg" class="user-image" alt="Default User Image" />
-      </ng-template>
+      }
+
 
       <div class="user-info">
         <span class="username">{{ userProfile?.nombre }} {{ userProfile?.primerApellido }}</span>
@@ -94,81 +95,87 @@
   </ul>
 
   <!-- Pestañas para Administradores -->
-  <ul class="sidebar-list" *ngIf="userRole === 'Administrador'">
-    <li class="sidebar-item" [class.active]="currentRoute === '/user-management'" (click)="navigateTo('user-management')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faUsers" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Gestión de Usuarios</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/course-management'" (click)="navigateTo('course-management')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Gestión de Cursos</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/reports'" (click)="navigateTo('reports')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faChartLine" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Reportes</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/settings'" (click)="navigateTo('settings')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faCog" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Configuraciones</span>
-    </li>
-  </ul>
+  @if (userRole === 'Administrador') {
+    <ul class="sidebar-list">
+      <li class="sidebar-item" [class.active]="currentRoute === '/user-management'" (click)="navigateTo('user-management')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faUsers" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Gestión de Usuarios</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/course-management'" (click)="navigateTo('course-management')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Gestión de Cursos</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/reports'" (click)="navigateTo('reports')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faChartLine" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Reportes</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/settings'" (click)="navigateTo('settings')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faCog" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Configuraciones</span>
+      </li>
+    </ul>
+  }
 
   <!-- Pestañas para Tutores -->
-  <ul class="sidebar-list" *ngIf="userRole === 'Tutor'">
-    <li class="sidebar-item" [class.active]="currentRoute === '/my-courses'" (click)="navigateTo('my-courses')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faChalkboardTeacher" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Mis Cursos</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/students'" (click)="navigateTo('students')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faUserGraduate" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Estudiantes</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faClipboardCheck" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Evaluaciones</span>
-    </li>
-  </ul>
+  @if (userRole === 'Tutor') {
+    <ul class="sidebar-list">
+      <li class="sidebar-item" [class.active]="currentRoute === '/my-courses'" (click)="navigateTo('my-courses')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faChalkboardTeacher" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Mis Cursos</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/students'" (click)="navigateTo('students')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faUserGraduate" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Estudiantes</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faClipboardCheck" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Evaluaciones</span>
+      </li>
+    </ul>
+  }
 
   <!-- Pestañas para Estudiantes -->
-  <ul class="sidebar-list" *ngIf="userRole === 'Estudiante'">
-    <li class="sidebar-item" [class.active]="currentRoute === '/my-courses-student'" (click)="navigateTo('my-courses-student')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Mis Cursos</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/progress'" (click)="navigateTo('progress')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faChartPie" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Progreso</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/tasks'" (click)="navigateTo('tasks')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faTasks" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Tareas</span>
-    </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
-      <div class="sidebar-icon-container">
-        <fa-icon [icon]="faClipboardList" class="sidebar-icon"></fa-icon>
-      </div>
-      <span class="sidebar-text">Evaluaciones</span>
-    </li>
-  </ul>
+  @if (userRole === 'Estudiante') {
+    <ul class="sidebar-list">
+      <li class="sidebar-item" [class.active]="currentRoute === '/my-courses-student'" (click)="navigateTo('my-courses-student')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faBook" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Mis Cursos</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/progress'" (click)="navigateTo('progress')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faChartPie" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Progreso</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/tasks'" (click)="navigateTo('tasks')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faTasks" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Tareas</span>
+      </li>
+      <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
+        <div class="sidebar-icon-container">
+          <fa-icon [icon]="faClipboardList" class="sidebar-icon"></fa-icon>
+        </div>
+        <span class="sidebar-text">Evaluaciones</span>
+      </li>
+    </ul>
+  }
 </div>
 

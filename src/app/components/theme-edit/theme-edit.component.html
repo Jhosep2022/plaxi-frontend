@@ -11,64 +11,69 @@
     </div>
   </div>
 
-      <form [formGroup]="themeForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
-        <!-- Título -->
-         <div class="details-section">
-          <div class="form-group input-group">
-            <mat-label>Título del tema</mat-label>
-            <div class="input-wrapper">
-              <input matInput formControlName="titulo" />
-              <mat-error *ngIf="themeForm.get('titulo')?.invalid && themeForm.get('titulo')?.touched">
-                {{ getErrorMessage('titulo') }}
-              </mat-error>
-            </div>
-          </div>
-    
-          <!-- Descripción -->
-          <div class="form-group input-group">
-            <mat-label>Descripción</mat-label>
-            <div class="input-wrapper">
-              <textarea matInput formControlName="descripcion" rows="4"></textarea>
-              <mat-error *ngIf="themeForm.get('descripcion')?.invalid && themeForm.get('descripcion')?.touched">
-                {{ getErrorMessage('descripcion') }}
-              </mat-error>
-            </div>
-          </div>
+  <form [formGroup]="themeForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
+    <!-- Título -->
+    <div class="details-section">
+      <div class="form-group input-group">
+        <mat-label>Título del tema</mat-label>
+        <div class="input-wrapper">
+          <input matInput formControlName="titulo" />
+          @if (themeForm.get('titulo')?.invalid && themeForm.get('titulo')?.touched) {
+            <mat-error>
+              {{ getErrorMessage('titulo') }}
+            </mat-error>
+          }
+        </div>
+      </div>
 
-          <div class="form-row">
-            <!-- Orden -->
-            <div class="form-group input-group">
-              <mat-label>Orden</mat-label>
-              <div class="input-wrapper">
-                <input matInput type="number" formControlName="orden" />
-                <mat-error *ngIf="themeForm.get('orden')?.invalid && themeForm.get('orden')?.touched">
-                  {{ getErrorMessage('orden') }}
-                </mat-error>
-              </div>
-            </div>
+      <!-- Descripción -->
+      <div class="form-group input-group">
+        <mat-label>Descripción</mat-label>
+        <div class="input-wrapper">
+          <textarea matInput formControlName="descripcion" rows="4"></textarea>
+          @if (themeForm.get('descripcion')?.invalid && themeForm.get('descripcion')?.touched) {
+            <mat-error>
+              {{ getErrorMessage('descripcion') }}
+            </mat-error>
+          }
+        </div>
+      </div>
 
-            <!-- Estado -->
-            <div class="form-group input-group">
-              <mat-label>Estado del tema</mat-label>
-              <div class="input-wrapper">
-                <mat-select formControlName="estado">
-                  <mat-option [value]="true">Activo</mat-option>
-                  <mat-option [value]="false">Inactivo</mat-option>
-                </mat-select>
-              </div>
-            </div>
+      <div class="form-row">
+        <!-- Orden -->
+        <div class="form-group input-group">
+          <mat-label>Orden</mat-label>
+          <div class="input-wrapper">
+            <input matInput type="number" formControlName="orden" />
+            @if (themeForm.get('orden')?.invalid && themeForm.get('orden')?.touched) {
+              <mat-error>
+                {{ getErrorMessage('orden') }}
+              </mat-error>
+            }
           </div>
-    
-          <!-- Recurso Multimedia -->
-          <div>
-            <p>Recurso actual: {{ themeForm.get('recursoMultimedia')?.value }}</p>
-            <input type="file" (change)="onFileSelected($event)" />
+        </div>
+
+        <!-- Estado -->
+        <div class="form-group input-group">
+          <mat-label>Estado del tema</mat-label>
+          <div class="input-wrapper">
+            <mat-select formControlName="estado">
+              <mat-option [value]="true">Activo</mat-option>
+              <mat-option [value]="false">Inactivo</mat-option>
+            </mat-select>
           </div>
-         </div>
-          <!-- Botones -->
-          <div class="form-group submit-group">
-            <button class="submit-btn" type="submit">Guardar Cambios</button>
-          </div>
-      </form>
-  </div>
-  
+        </div>
+      </div>
+
+      <!-- Recurso Multimedia -->
+      <div>
+        <p>Recurso actual: {{ themeForm.get('recursoMultimedia')?.value }}</p>
+        <input type="file" (change)="onFileSelected($event)" />
+      </div>
+    </div>
+    <!-- Botones -->
+    <div class="form-group submit-group">
+      <button class="submit-btn" type="submit">Guardar Cambios</button>
+    </div>
+  </form>
+</div>

@@ -5,34 +5,34 @@
   </div>
 
   <!-- Verificar si hay cursos inscritos -->
-  <div *ngIf="courses.length > 0; else noCourses">
-    <!-- Lista de Cursos -->
-    <div *ngFor="let course of courses" class="course-card">
-      <div class="course-info">
-        <img [src]="course.image" alt="{{ course.name }} image" class="course-image" />
-        <div class="course-details">
-          <h3 class="course-title">{{ course.name }}</h3>
-          <p class="course-date">{{ course.date | date: 'dd/MM/yyyy' }} | {{ course.time }}</p>
-          <p class="course-enrollment">Disfruta el curso con nosotros</p>
+  @if (courses.length > 0) {
+    <div>
+      <!-- Lista de Cursos -->
+      @for (course of courses; track course) {
+        <div class="course-card">
+          <div class="course-info">
+            <img [src]="course.image" alt="{{ course.name }} image" class="course-image" />
+            <div class="course-details">
+              <h3 class="course-title">{{ course.name }}</h3>
+              <p class="course-date">{{ course.date | date: 'dd/MM/yyyy' }} | {{ course.time }}</p>
+              <p class="course-enrollment">Disfruta el curso con nosotros</p>
+            </div>
+          </div>
+          <div class="button-container">
+            <!-- Botón para abrir el curso -->
+            <button class="open-btn" (click)="openCourse(course)">Abrir</button>
+            <!-- Botón para eliminar inscripción -->
+            <button class="delete-btn" (click)="deleteCourse(course.idInscripcion)">Darse de Baja</button>
+          </div>
         </div>
-      </div>
-
-      <div class="button-container">
-        <!-- Botón para abrir el curso -->
-        <button class="open-btn" (click)="openCourse(course)">Abrir</button>
-
-        <!-- Botón para eliminar inscripción -->
-        <button class="delete-btn" (click)="deleteCourse(course.idInscripcion)">Darse de Baja</button>
-      </div>
+      }
     </div>
-
-  </div>
-
-  <!-- Mensaje cuando no hay cursos inscritos -->
-  <ng-template #noCourses>
+  } @else {
     <div class="empty-state">
       <p>No tienes cursos inscritos.</p>
       <button mat-raised-button color="primary" routerLink="/course-categories">Explora Cursos</button>
     </div>
-  </ng-template>
+  }
+
+  <!-- Mensaje cuando no hay cursos inscritos -->
 </div>

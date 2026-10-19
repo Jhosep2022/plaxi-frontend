@@ -1,6 +1,6 @@
-<div *ngIf="leccion" class="course-details-container">
+@if (leccion) {
+  <div class="course-details-container">
     <h2 class="course-title">{{ leccion.titulo }}</h2>
-
     <div class="course-info">
       <p><strong>Descripción:</strong> {{ leccion.titulo }}</p>
       <p><strong>Dificultad:</strong> {{ leccion.orden }}</p>
@@ -8,27 +8,34 @@
       <p><strong>Contenido:</strong> {{ leccion.contenido }}</p>
       <p><strong>Estado:</strong> {{ leccion.estado }}</p>
     </div>
-
     <div class="button-container">
       <button class="back-btn" (click)="goBack()">Volver al curso</button>
     </div>
-
     <!-- Lista de temas -->
-    <div *ngIf="temas.length > 0" class="lessons-list">
-      <h3>Temas:</h3>
-      <ul>
-        <li *ngFor="let tema of temas">
-          <h4>{{ tema.titulo }}</h4>
-          <p><strong>Orden:</strong> {{ tema.orden }}</p>
-          <p><strong>Descripción</strong> {{ tema.descripcion }} minutos</p>
-          <button class="enroll-btn" [routerLink]="['/tema-details', tema.idTema]">Ver tema</button>
-        </li>
-      </ul>
-    </div>
-    <p *ngIf="temas.length === 0">No hay temas disponibles para esta leccion.</p>
+    @if (temas.length > 0) {
+      <div class="lessons-list">
+        <h3>Temas:</h3>
+        <ul>
+          @for (tema of temas; track tema) {
+            <li>
+              <h4>{{ tema.titulo }}</h4>
+              <p><strong>Orden:</strong> {{ tema.orden }}</p>
+              <p><strong>Descripción</strong> {{ tema.descripcion }} minutos</p>
+              <button class="enroll-btn" [routerLink]="['/tema-details', tema.idTema]">Ver tema</button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    @if (temas.length === 0) {
+      <p>No hay temas disponibles para esta leccion.</p>
+    }
   </div>
+}
 
-  <div *ngIf="!leccion" class="no-course-message">
+@if (!leccion) {
+  <div class="no-course-message">
     <p>Leccion no encontrada.</p>
     <button class="back-btn" (click)="goBack()">Volver a la lista de lecciones</button>
   </div>
+}
