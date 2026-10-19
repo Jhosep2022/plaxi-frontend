@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -11,6 +11,7 @@ import { Categoria } from 'src/app/models/categoriaDto';
     selector: 'app-course-edit-tutor',
     templateUrl: './course-edit-tutor.component.html',
     styleUrls: ['./course-edit-tutor.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CourseEditTutorComponent implements OnInit {

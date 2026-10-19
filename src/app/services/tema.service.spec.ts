@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 import { TemaDto } from '../models/TemaDto';
 import { PaginadoDto } from '../models/PaginadoDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('TemaService', () => {
   let service: TemaService;
@@ -16,7 +16,7 @@ describe('TemaService', () => {
     TestBed.configureTestingModule({
     schemas: [NO_ERRORS_SCHEMA],
     imports: [],
-    providers: [TemaService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [TemaService, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(TemaService);
     httpMock = TestBed.inject(HttpTestingController);

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { InscripcionService } from 'src/app/services/inscripcion.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -9,6 +9,7 @@ import { CourseService } from 'src/app/services/course.service';
     selector: 'app-home',
     templateUrl: './home.component.html',
     styleUrls: ['./home.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class HomeComponent implements OnInit {

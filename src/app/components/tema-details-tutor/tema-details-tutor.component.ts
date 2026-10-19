@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -9,6 +9,7 @@ import { TemaService } from 'src/app/services/tema.service';
     selector: 'app-tema-details-tutor',
     templateUrl: './tema-details-tutor.component.html',
     styleUrls: ['./tema-details-tutor.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TemaDetailsTutorComponent implements OnInit {

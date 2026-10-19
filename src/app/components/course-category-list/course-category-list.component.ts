@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
@@ -14,6 +14,7 @@ interface Category {
     selector: 'app-course-category-list',
     templateUrl: './course-category-list.component.html',
     styleUrls: ['./course-category-list.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CourseCategoryListComponent implements OnInit {

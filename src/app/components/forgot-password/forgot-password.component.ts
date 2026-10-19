@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { AuthService } from '../../services/auth.service';  // Asegúrate de que el servicio esté en la ruta correcta
 import { Router } from '@angular/router';
 import { faCheck, faEnvelope } from '@fortawesome/free-solid-svg-icons';
@@ -7,6 +7,7 @@ import { faCheck, faEnvelope } from '@fortawesome/free-solid-svg-icons';
     selector: 'app-forgot-password',
     templateUrl: './forgot-password.component.html',
     styleUrls: ['./forgot-password.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ForgotPasswordComponent {

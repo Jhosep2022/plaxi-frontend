@@ -4,7 +4,7 @@ import { CategoriaService } from './categoria.service';
 import { environment } from '../../environments/environment';
 import { Categoria } from '../models/categoriaDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('CategoriaService', () => {
   let service: CategoriaService;
@@ -15,7 +15,7 @@ describe('CategoriaService', () => {
     schemas: [NO_ERRORS_SCHEMA] // Añadido para ignorar errores de elementos desconocidos
     ,
     imports: [],
-    providers: [CategoriaService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [CategoriaService, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(CategoriaService);
     httpMock = TestBed.inject(HttpTestingController);

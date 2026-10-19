@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { faCheck, faEnvelope, faIdCard, faImage, faPhone, faUser } from '@fortawesome/free-solid-svg-icons';
 import { ActualizarPerfilDto } from '../../models/PerfilDto';
@@ -9,6 +9,7 @@ import { ProfileService } from 'src/app/services/profile.service';
     selector: 'app-updateperfil',
     templateUrl: './updateperfil.component.html',
     styleUrls: ['./updateperfil.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UpdateperfilComponent implements OnInit {

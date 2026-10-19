@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
@@ -10,6 +10,7 @@ import { TemaDto } from 'src/app/models/TemaDto';
     selector: 'app-lesson-details',
     templateUrl: './lesson-details.component.html',
     styleUrls: ['./lesson-details.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LessonDetailsComponent implements OnInit {

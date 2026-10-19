@@ -4,7 +4,7 @@ import { CourseService } from './course.service';
 import { CursoDto, ActualizarCursoDto } from '../models/CursoDto';
 import { environment } from '../../environments/environment';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('CourseService', () => {
   let service: CourseService;
@@ -16,7 +16,7 @@ describe('CourseService', () => {
     schemas: [NO_ERRORS_SCHEMA] // Añadido para ignorar errores de elementos desconocidos
     ,
     imports: [],
-    providers: [CourseService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [CourseService, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(CourseService);
     httpMock = TestBed.inject(HttpTestingController);

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { AuthService } from 'src/app/services/auth.service';
@@ -7,6 +7,7 @@ import { CourseService } from 'src/app/services/course.service';
     selector: 'app-course-list',
     templateUrl: './course-list.component.html',
     styleUrls: ['./course-list.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CourseListComponent implements OnInit {

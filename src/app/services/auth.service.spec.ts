@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 import { PersonaDto, UsuarioDto } from '../models/PersonaDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -16,7 +16,7 @@ describe('AuthService', () => {
     schemas: [NO_ERRORS_SCHEMA] // Ignora errores de propiedades desconocidas en el DOM
     ,
     imports: [],
-    providers: [AuthService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [AuthService, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);

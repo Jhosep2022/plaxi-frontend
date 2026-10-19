@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { of } from 'rxjs';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('LessonFormComponent', () => {
   let component: LessonFormComponent;
@@ -48,7 +48,7 @@ describe('LessonFormComponent', () => {
         { provide: LeccionService, useValue: mockLeccionService },
         { provide: CourseService, useValue: mockCourseService },
         { provide: MatSnackBar, useValue: mockSnackBar },
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
 });

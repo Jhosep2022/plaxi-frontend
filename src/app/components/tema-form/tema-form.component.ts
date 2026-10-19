@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { TemaService } from '../../services/tema.service';
@@ -12,6 +12,7 @@ import { TemaDto } from 'src/app/models/TemaDto';
     selector: 'app-tema-form',
     templateUrl: './tema-form.component.html',
     styleUrls: ['./tema-form.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TemaFormComponent implements OnInit, AfterViewChecked {

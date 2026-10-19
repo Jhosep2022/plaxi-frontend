@@ -4,7 +4,7 @@ import { InscripcionService } from './inscripcion.service';
 import { environment } from '../../environments/environment';
 import { InscripcionDto, InscripcionResponseDto } from '../models/inscripcionDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 describe('InscripcionService', () => {
   let service: InscripcionService;
   let httpMock: HttpTestingController;
@@ -14,7 +14,7 @@ describe('InscripcionService', () => {
     TestBed.configureTestingModule({
     schemas: [NO_ERRORS_SCHEMA],
     imports: [],
-    providers: [InscripcionService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [InscripcionService, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(InscripcionService);
     httpMock = TestBed.inject(HttpTestingController);

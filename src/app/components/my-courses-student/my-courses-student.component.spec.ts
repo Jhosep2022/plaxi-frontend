@@ -6,7 +6,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('MyCoursesStudentComponent', () => {
   let component: MyCoursesStudentComponent;
@@ -37,7 +37,7 @@ describe('MyCoursesStudentComponent', () => {
         { provide: Router, useValue: mockRouter },
         { provide: InscripcionService, useValue: mockInscripcionService },
         { provide: MatSnackBar, useValue: mockSnackBar },
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
 }).compileComponents();

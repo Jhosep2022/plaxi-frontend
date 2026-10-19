@@ -26,7 +26,7 @@
 
     <div class="user-info-container" (click)="toggleDropdown()">
       @if (userProfile?.imagenUrl) {
-        <img [src]="userProfile?.imagenUrl" class="user-image" alt="User Image" />
+        <img [src]="$safeNavigationMigration(userProfile?.imagenUrl)" class="user-image" alt="User Image" />
       } @else {
         <img src="assets/perfil.jpeg" class="user-image" alt="Default User Image" />
       }

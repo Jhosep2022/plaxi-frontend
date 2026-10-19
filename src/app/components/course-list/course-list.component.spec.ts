@@ -7,7 +7,7 @@ import { of, throwError } from 'rxjs';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('CourseListComponent', () => {
   let component: CourseListComponent;
@@ -49,7 +49,7 @@ describe('CourseListComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: CourseService, useValue: mockCourseService },
         { provide: Router, useValue: mockRouter },
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
 });

@@ -6,7 +6,7 @@ import { LeccionDto } from '../models/LeccionDto';
 import { PaginadoDto } from '../models/PaginadoDto';
 import { Page } from '../models/page';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 describe('LeccionService', () => {
   let service: LeccionService;
   let httpMock: HttpTestingController;
@@ -16,7 +16,7 @@ describe('LeccionService', () => {
     TestBed.configureTestingModule({
     schemas: [NO_ERRORS_SCHEMA],
     imports: [],
-    providers: [LeccionService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [LeccionService, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(LeccionService);
     httpMock = TestBed.inject(HttpTestingController);

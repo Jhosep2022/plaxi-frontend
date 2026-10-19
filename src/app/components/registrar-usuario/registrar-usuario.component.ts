@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { faChalkboardTeacher, faCheck, faEnvelope, faIdCard, faLock, faPhone, faUser, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
@@ -9,6 +9,7 @@ import { PerfilDto } from '../../models/PerfilDto'; // Importar el modelo de per
     selector: 'app-registrar-usuario',
     templateUrl: './registrar-usuario.component.html',
     styleUrls: ['./registrar-usuario.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RegistrarUsuarioComponent implements OnInit {

@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { environment } from '../../environments/environment';
 import { AlertService } from './gmail.service';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 describe('AlertService', () => {
   let service: AlertService;
   let httpMock: HttpTestingController;
@@ -13,7 +13,7 @@ describe('AlertService', () => {
     TestBed.configureTestingModule({
     schemas: [NO_ERRORS_SCHEMA],
     imports: [],
-    providers: [AlertService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [AlertService, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(AlertService);
     httpMock = TestBed.inject(HttpTestingController);
