@@ -1,0 +1,115 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--dark-blue);
+  color: var(--text-light);
+}
+
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 32px 48px;
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.logo {
+  width: 54px;
+  filter: invert(1);
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+header p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.reloj {
+  margin-left: auto;
+  font-size: 30px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  color: var(--lime-green);
+}
+
+.centro {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 64px;
+  flex-wrap: wrap;
+}
+
+.qr-marco {
+  width: min(48vh, 440px);
+  padding: 22px;
+  border-radius: 28px;
+  background: var(--text-light);
+  box-shadow: 0 0 0 10px var(--lime-green);
+}
+
+.lateral {
+  max-width: 420px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 34px;
+  color: var(--lime-green);
+}
+
+ol {
+  margin: 0 0 28px;
+  padding-left: 22px;
+  font-size: 19px;
+  line-height: 1.7;
+}
+
+.codigo {
+  margin: 0 0 18px;
+  font-size: 72px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.barra {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+.barra span {
+  display: block;
+  height: 100%;
+  background: var(--lime-green);
+  transition: width 1s linear;
+}
+
+.cuenta small {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 15px;
+}
+
+.error {
+  margin: auto;
+  font-size: 22px;
+}

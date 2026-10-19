@@ -8,6 +8,7 @@ const SUITES = {
   horarios: require('./horarios.e2e'),
   vistas: require('./vistas.e2e'),
   asistencia: require('./asistencia.e2e'),
+  marcacion: require('./marcacion.e2e'),
 };
 
 async function main() {

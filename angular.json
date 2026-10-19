@@ -25,7 +25,10 @@
               "src/styles.css",
               "src/styles/ui.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "qrcode"
+            ]
           },
           "configurations": {
             "production": {

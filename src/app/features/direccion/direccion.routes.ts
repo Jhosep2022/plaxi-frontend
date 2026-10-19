@@ -23,8 +23,8 @@ export default [
   // Asistencia
   { path: 'asistencia/estudiantes', title: 'Asistencia de estudiantes', loadComponent: () => import('./asistencia/asistencia-estudiantes.component').then((m) => m.AsistenciaEstudiantesComponent) },
   { path: 'asistencia/licencias', title: 'Licencias', loadComponent: () => import('./asistencia/licencias.component').then((m) => m.LicenciasComponent) },
-  proximamente('asistencia/personal', 'Asistencia del personal', 'Marcaciones de entrada y salida, atrasos y ausencias.'),
-  proximamente('asistencia/puntos-marcacion', 'Puntos de marcación', 'QR de cada punto de marcación y su ubicación GPS permitida.'),
+  { path: 'asistencia/personal', title: 'Asistencia del personal', loadComponent: () => import('./asistencia/personal-asistencia.component').then((m) => m.PersonalAsistenciaComponent) },
+  { path: 'asistencia/puntos-marcacion', title: 'Puntos de marcación', loadComponent: () => import('./asistencia/puntos-marcacion.component').then((m) => m.PuntosMarcacionComponent) },
 
   // Calificaciones
   proximamente('calificaciones/escala', 'Escala y ponderación', 'Nota máxima, nota de aprobación y peso de cada criterio.'),
@@ -34,5 +34,5 @@ export default [
   proximamente('reportes', 'Reportes'),
   proximamente('institucion', 'Datos de la institución'),
   { path: 'institucion/jornada', title: 'Jornada escolar', loadComponent: () => import('./institucion/jornada/jornada.component').then((m) => m.JornadaComponent) },
-  proximamente('institucion/horario-laboral', 'Horario laboral', 'Horario de entrada y salida del personal y tolerancia de atraso.'),
+  { path: 'institucion/horario-laboral', title: 'Horario laboral', loadComponent: () => import('./institucion/horario-laboral/horario-laboral.component').then((m) => m.HorarioLaboralComponent) },
 ] satisfies Routes;

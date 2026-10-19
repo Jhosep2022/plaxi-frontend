@@ -33,6 +33,15 @@ export const routes: Routes = [
     loadComponent: () => import('./shared/pages/no-autorizado.component').then((m) => m.NoAutorizadoComponent),
   },
 
+  // Pantalla de QR para la entrada del colegio (pantalla completa, sin sidebar)
+  {
+    path: ':espacio/pantalla-marcacion/:puntoId',
+    canMatch: [authGuard, espacioGuard],
+    canActivate: [rolGuard('direccion')],
+    title: 'Pantalla de marcación',
+    loadComponent: () => import('./features/direccion/asistencia/pantalla-marcacion.component').then((m) => m.PantallaMarcacionComponent),
+  },
+
   {
     path: ':espacio',
     canMatch: [authGuard, espacioGuard],

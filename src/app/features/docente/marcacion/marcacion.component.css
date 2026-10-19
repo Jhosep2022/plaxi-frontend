@@ -1,0 +1,157 @@
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.marcas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
+
+.marca.hecha {
+  border-style: solid;
+  background: var(--lime-soft);
+}
+
+.marca div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.marca small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.marca strong {
+  font-size: 20px;
+}
+
+.estado-a-tiempo, .estado-salida { background: var(--lime-soft); color: var(--lime-strong); }
+.estado-atraso, .estado-salida-anticipada { background: var(--light-cream); color: var(--cream-strong); }
+
+.grande {
+  width: 100%;
+  height: 52px;
+  font-size: 16px;
+}
+
+.listo,
+.exito {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--lime-soft);
+  color: var(--lime-strong);
+  font-weight: bold;
+}
+
+.flujo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.paso {
+  display: flex;
+  gap: 14px;
+}
+
+.paso.bloqueado {
+  opacity: 0.55;
+}
+
+.numero {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--dark-blue);
+  color: var(--lime-green);
+  font-weight: bold;
+}
+
+.paso.completo .numero {
+  background: var(--lime-green);
+  color: var(--dark-blue);
+}
+
+.paso-cuerpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.paso-cuerpo p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.ok {
+  color: var(--lime-strong);
+}
+
+.error {
+  color: #c0392b;
+}
+
+.chico {
+  height: 34px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.enlace-demo {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cream-strong);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.camara {
+  width: 100%;
+  max-width: 360px;
+  border-radius: 12px;
+  background: var(--dark-blue);
+}
+
+.codigo {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.codigo .ui-input {
+  max-width: 170px;
+  font-size: 20px;
+  letter-spacing: 0.15em;
+  text-align: center;
+}

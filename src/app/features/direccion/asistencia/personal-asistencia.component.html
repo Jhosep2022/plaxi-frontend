@@ -1,0 +1,65 @@
+<app-page-header miga="Asistencia" titulo="Asistencia del personal" descripcion="Entradas y salidas registradas con QR y validación GPS, comparadas con el horario laboral de cada docente.">
+  <label class="fecha">
+    <fa-icon [icon]="faCalendarDays" />
+    <input type="date" class="ui-input" [max]="hoy" [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)" aria-label="Fecha" />
+  </label>
+</app-page-header>
+
+<h2 class="dia">{{ fechaLarga(fecha()) }}</h2>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="pendiente">Cargando marcaciones…</p>
+} @else if (filas().length === 0) {
+  <div class="ui-card"><app-empty-state [icono]="faCalendarDays" titulo="Nadie tiene clases este día" texto="Elige otro día para ver las marcaciones del personal." /></div>
+} @else {
+  <div class="indicadores">
+    <div class="ui-card indicador destacado">
+      <span class="ui-icono tono-lima"><fa-icon [icon]="faCircleCheck" /></span>
+      <div><strong>{{ resumen().marcaron }}/{{ resumen().esperados }}</strong><small>docentes marcaron entrada</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-crema"><fa-icon [icon]="faClock" /></span>
+      <div><strong>{{ resumen().atrasos }}</strong><small>llegaron con atraso</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono ausente"><fa-icon [icon]="faUserXmark" /></span>
+      <div><strong>{{ resumen().sinMarcar }}</strong><small>{{ fecha() === hoy ? 'todavía sin marcar' : 'no marcaron (falta)' }}</small></div>
+    </div>
+  </div>
+
+  <div class="ui-card">
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla">
+        <thead>
+          <tr><th>Docente</th><th>Horario</th><th>Entrada</th><th>Salida</th><th>Punto</th></tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.nombre) {
+            <tr>
+              <td><strong>{{ f.nombre }}</strong></td>
+              <td>{{ f.esperado.entrada }} – {{ f.esperado.salida }}<br /><small>1ra clase {{ f.esperado.primeraClase }}</small></td>
+              <td>
+                @if (f.entrada; as m) {
+                  {{ m.hora }} <span class="ui-badge" [class]="'estado-' + m.estado">{{ estadoLabel[m.estado] }}@if (m.minutos) { · {{ m.minutos }} min }</span>
+                } @else if (fecha() === hoy) {
+                  <span class="pendiente">Pendiente</span>
+                } @else {
+                  <span class="ui-badge falta">Falta</span>
+                }
+              </td>
+              <td>
+                @if (f.salida; as m) {
+                  {{ m.hora }}
+                  @if (m.estado === 'salida-anticipada') { <span class="ui-badge" [class]="'estado-' + m.estado">{{ m.minutos }} min antes</span> }
+                } @else {
+                  <span class="pendiente">—</span>
+                }
+              </td>
+              <td><small>{{ f.punto }}</small></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

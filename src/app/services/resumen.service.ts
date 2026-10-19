@@ -43,10 +43,13 @@ import { iconoMateria } from '../shared/ui/iconos-academicos';
 import { CursoDto } from '../models/CursoDto';
 import { InscripcionResponseDto } from '../models/inscripcionDto';
 import { PerfilDto } from '../models/PerfilDto';
-import { EventoHorario, ItemProximo, ResumenData, Tono } from '../shared/dashboard/dashboard.models';
+import { DiaSemana, EventoHorario, ItemProximo, ResumenData, Tono } from '../shared/dashboard/dashboard.models';
+import { Marcacion } from '../core/models/marcacion.model';
+import { diaDeSemana, hoyIso, sumarDias } from '../core/utils/asistencia';
 import { AcademicoService } from './academico.service';
 import { CourseService } from './course.service';
 import { HorariosService } from './horarios.service';
+import { MarcacionService } from './marcacion.service';
 import { InscripcionService } from './inscripcion.service';
 import { ProfileService } from './profile.service';
 
@@ -64,15 +67,17 @@ export class ResumenService {
   private inscripcionService = inject(InscripcionService);
   private horarios = inject(HorariosService);
   private academico = inject(AcademicoService);
+  private marcacion = inject(MarcacionService);
 
   obtener(membresia: Membresia, usuarioId: number): Observable<ResumenData> {
     const perfil$ = this.profileService.getProfile(usuarioId);
 
     if (membresia.rol === 'docente' && membresia.espacio.tipo === 'colegio') {
-      return forkJoin([perfil$, this.horarios.datos(membresia.espacio.id)]).pipe(
-        map(([perfil, datos]) => {
+      return forkJoin([perfil$, this.horarios.datos(membresia.espacio.id), this.marcacion.marcacionesDe(usuarioId)]).pipe(
+        map(([perfil, datos, marcaciones]) => {
           const clases = clasesDeDocente(datos, usuarioId);
-          return this.docenteColegio(membresia, perfil, horarioDeHoy(datos, clases, 'docente', 'Mi horario de hoy'), proximasDeHoy(datos, clases, 'docente'));
+          const semana = semanaDeMarcaciones(marcaciones, (fecha) => !!this.marcacion.esperado(membresia.espacio.id, usuarioId, fecha));
+          return this.docenteColegio(membresia, perfil, horarioDeHoy(datos, clases, 'docente', 'Mi horario de hoy'), proximasDeHoy(datos, clases, 'docente'), semana);
         })
       );
     }
@@ -99,7 +104,16 @@ export class ResumenService {
       );
     }
     if (membresia.rol === 'direccion') {
-      return perfil$.pipe(map((perfil) => this.direccion(membresia, perfil)));
+      const espacioId = membresia.espacio.id;
+      return forkJoin([perfil$, this.marcacion.marcacionesEntre(espacioId, sumarDias(hoyIso(), -14), hoyIso())]).pipe(
+        map(([perfil, marcaciones]) => {
+          let fecha = hoyIso();
+          for (let i = 0; i < 14 && !this.marcacion.docentesEsperados(espacioId, fecha).length; i++) fecha = sumarDias(fecha, -1);
+          const esperados = this.marcacion.docentesEsperados(espacioId, fecha).map((e) => e.docenteId);
+          const marcaron = new Set(marcaciones.filter((m) => m.fecha === fecha && m.tipo === 'entrada').map((m) => m.docenteId));
+          return this.direccion(membresia, perfil, { marcaron: esperados.filter((id) => marcaron.has(id)).length, esperados: esperados.length });
+        })
+      );
     }
     if (membresia.rol === 'padre') {
       return this.academico.hijosDe(usuarioId).pipe(
@@ -116,7 +130,7 @@ export class ResumenService {
   }
 
   // MOCK: docente en un colegio (clases = materia + paralelo)
-  private docenteColegio({ espacio }: Membresia, perfil: PerfilDto, horario: ResumenData['horario'], proximas: ItemProximo[]): ResumenData {
+  private docenteColegio({ espacio }: Membresia, perfil: PerfilDto, horario: ResumenData['horario'], proximas: ItemProximo[], semana: ResumenData['perfil']['semana']): ResumenData {
     const base = `/${espacio.slug}/docente`;
     return {
       saludo: `¡Hola de nuevo, ${perfil.nombre}!`,
@@ -148,17 +162,7 @@ export class ResumenService {
         organizacion: espacio.nombre,
         insignia: 'Docente',
         imagenUrl: perfil.imagenUrl,
-        semana: {
-          valor: 3,
-          texto: 'días a tiempo esta semana',
-          dias: [
-            { etiqueta: 'Lu', estado: 'ok' },
-            { etiqueta: 'Ma', estado: 'ok' },
-            { etiqueta: 'Mi', estado: 'atraso' },
-            { etiqueta: 'Ju', estado: 'ok' },
-            { etiqueta: 'Vi', estado: 'hoy' },
-          ],
-        },
+        semana,
       },
       actividad: {
         titulo: 'Actividad reciente',
@@ -411,7 +415,7 @@ export class ResumenService {
   }
 
   // MOCK: dirección del colegio (indicadores del día, alertas y paralelos)
-  private direccion({ espacio }: Membresia, perfil: PerfilDto): ResumenData {
+  private direccion({ espacio }: Membresia, perfil: PerfilDto, personal: { marcaron: number; esperados: number }): ResumenData {
     const base = `/${espacio.slug}/direccion`;
     return {
       saludo: `¡Buen día, ${perfil.nombre}!`,
@@ -419,7 +423,7 @@ export class ResumenService {
       accion: { label: 'Reporte del día', icono: faChartLine, link: `${base}/reportes` },
       progreso: [
         { titulo: 'Asistencia de estudiantes', icono: faUserGraduate, tono: 'lima', actual: 412, total: 450, unidad: 'presentes' },
-        { titulo: 'Docentes que marcaron', icono: faQrcode, tono: 'azul', actual: 28, total: 32, unidad: 'docentes' },
+        { titulo: 'Docentes que marcaron', icono: faQrcode, tono: 'azul', actual: personal.marcaron, total: personal.esperados, unidad: 'docentes' },
         { titulo: 'Avance del 3er trimestre', icono: faCalendarDays, tono: 'crema', actual: 34, total: 60, unidad: 'días' },
       ],
       horario: {
@@ -591,4 +595,20 @@ function proximasDeHoy(datos: DatosHorario, clases: DatosHorario['clases'], modo
 
 function conAccionEnLaPrimera(items: ItemProximo[], accion: NonNullable<ItemProximo['accion']>): ItemProximo[] {
   return items.map((item, i) => (i === 0 ? { ...item, accion } : item));
+}
+
+// Últimos 5 días hábiles del docente según sus marcaciones de entrada
+function semanaDeMarcaciones(marcaciones: Marcacion[], teniaClases: (fecha: string) => boolean): ResumenData['perfil']['semana'] {
+  const hoy = hoyIso();
+  const fechas: string[] = [];
+  for (let f = hoy; fechas.length < 5; f = sumarDias(f, -1)) if (diaDeSemana(f) <= 5) fechas.unshift(f);
+  const etiquetas = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi'];
+  const dias: DiaSemana[] = fechas.map((fecha) => {
+    const entrada = marcaciones.find((m) => m.fecha === fecha && m.tipo === 'entrada');
+    const etiqueta = etiquetas[diaDeSemana(fecha) - 1];
+    if (entrada) return { etiqueta, estado: entrada.estado === 'atraso' ? 'atraso' : 'ok' };
+    if (fecha === hoy) return { etiqueta, estado: 'hoy' };
+    return { etiqueta, estado: teniaClases(fecha) ? 'falta' : 'pendiente' };
+  });
+  return { valor: dias.filter((d) => d.estado === 'ok').length, texto: 'días a tiempo en la última semana', dias };
 }

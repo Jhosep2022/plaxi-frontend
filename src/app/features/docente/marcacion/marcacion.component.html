@@ -1,0 +1,110 @@
+<app-page-header miga="Marcación" titulo="Marcar entrada / salida" descripcion="Escanea el QR del punto de marcación del colegio. Tu ubicación debe estar dentro de la zona permitida.">
+  <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('marcacion', 'historial')"><fa-icon [icon]="faListCheck" /> Mi historial</a>
+</app-page-header>
+
+<div class="contenido">
+  <!-- Estado de hoy -->
+  <section class="ui-card hoy">
+    <h2>Hoy</h2>
+    @if (esperado; as e) {
+      <p class="ui-ayuda">Turno {{ e.turno === 'manana' ? 'mañana' : e.turno }} · entrada {{ e.entrada }} · salida {{ e.salida }} · tu primera clase es a las {{ e.primeraClase }}</p>
+    } @else {
+      <p class="ui-ayuda">Hoy no tienes clases en tu horario. Si vienes al colegio igual puedes marcar.</p>
+    }
+    <div class="marcas">
+      <div class="marca" [class.hecha]="!!entrada()">
+        <span class="ui-icono" [class]="entrada() ? 'tono-lima' : ''"><fa-icon [icon]="entrada() ? faCircleCheck : faClock" /></span>
+        <div>
+          <small>Entrada</small>
+          @if (entrada(); as m) {
+            <strong>{{ m.hora }}</strong>
+            <span class="ui-badge" [class]="'estado-' + m.estado">{{ estadoLabel[m.estado] }}@if (m.minutos) { · {{ m.minutos }} min }</span>
+          } @else {
+            <strong>Pendiente</strong>
+          }
+        </div>
+      </div>
+      <div class="marca" [class.hecha]="!!salida()">
+        <span class="ui-icono" [class]="salida() ? 'tono-lima' : ''"><fa-icon [icon]="salida() ? faCircleCheck : faClock" /></span>
+        <div>
+          <small>Salida</small>
+          @if (salida(); as m) {
+            <strong>{{ m.hora }}</strong>
+            <span class="ui-badge" [class]="'estado-' + m.estado">{{ estadoLabel[m.estado] }}@if (m.minutos) { · {{ m.minutos }} min antes }</span>
+          } @else {
+            <strong>Pendiente</strong>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (resultado(); as r) {
+      <p class="exito" role="status"><fa-icon [icon]="faCheck" /> {{ r.tipo === 'entrada' ? 'Entrada' : 'Salida' }} registrada a las {{ r.hora }} en {{ r.distanciaM }} m del punto.</p>
+    }
+
+    @if (!marcando()) {
+      @if (siguiente(); as tipo) {
+        <button type="button" class="ui-btn grande" (click)="iniciar()"><fa-icon [icon]="faQrcode" /> Marcar {{ tipo }}</button>
+      } @else {
+        <p class="listo">Ya registraste tu entrada y tu salida de hoy. ¡Hasta mañana!</p>
+      }
+    }
+  </section>
+
+  <!-- Flujo de marcación -->
+  @if (marcando()) {
+    <section class="ui-card flujo">
+      <h2>Marcar {{ siguiente() }}</h2>
+
+      <!-- Paso 1 -->
+      <div class="paso" [class.completo]="dentroDelRadio()">
+        <span class="numero">1</span>
+        <div class="paso-cuerpo">
+          <strong><fa-icon [icon]="faLocationDot" /> Tu ubicación</strong>
+          @if (buscandoUbicacion()) {
+            <p>Buscando tu ubicación…</p>
+          } @else if (errorUbicacion()) {
+            <p class="error"><fa-icon [icon]="faTriangleExclamation" /> {{ errorUbicacion() }}</p>
+            <button type="button" class="ui-btn ui-btn--secundario chico" (click)="pedirUbicacion()">Intentar de nuevo</button>
+          } @else if (cercano(); as c) {
+            @if (dentroDelRadio()) {
+              <p class="ok">Estás a {{ distanciaLabel(c.distancia) }} de <strong>{{ c.punto.nombre }}</strong>.@if (ubicacion()?.demo) { <span class="ui-badge tono-crema">demo</span> }</p>
+            } @else {
+              <p class="error">Estás a {{ distanciaLabel(c.distancia) }} de {{ c.punto.nombre }}. Acércate a menos de {{ c.punto.radioM }} m para marcar.</p>
+              <button type="button" class="ui-btn ui-btn--secundario chico" (click)="pedirUbicacion()">Volver a intentar</button>
+            }
+          }
+          @if (modoDemo && !dentroDelRadio()) {
+            <button type="button" class="enlace-demo" (click)="usarUbicacionDemo()">Usar la ubicación del colegio (demo, solo en desarrollo)</button>
+          }
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="paso" [class.bloqueado]="!dentroDelRadio()">
+        <span class="numero">2</span>
+        <div class="paso-cuerpo">
+          <strong><fa-icon [icon]="faQrcode" /> Código del punto de marcación</strong>
+          @if (dentroDelRadio()) {
+            @if (camaraActiva()) {
+              <video #video class="camara" playsinline muted></video>
+              <button type="button" class="ui-btn ui-btn--secundario chico" (click)="detenerCamara()">Cerrar cámara</button>
+            } @else if (puedeEscanear) {
+              <button type="button" class="ui-btn" (click)="abrirCamara()"><fa-icon [icon]="faCamera" /> Escanear QR</button>
+            }
+            <p class="ui-ayuda">{{ puedeEscanear ? 'O escribe' : 'Escribe' }} el número de 6 dígitos que aparece en la pantalla:</p>
+            <form class="codigo" (submit)="$event.preventDefault(); enviar()">
+              <input class="ui-input" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="one-time-code"
+                [ngModel]="codigo()" (ngModelChange)="codigo.set($event)" name="codigo" aria-label="Código de 6 dígitos" />
+              <button type="submit" class="ui-btn" [disabled]="enviando()">{{ enviando() ? 'Registrando…' : 'Registrar ' + siguiente() }}</button>
+            </form>
+          } @else {
+            <p class="ui-ayuda">Primero confirma que estás en el colegio.</p>
+          }
+        </div>
+      </div>
+
+      <button type="button" class="ui-btn ui-btn--secundario" (click)="cancelar()">Cancelar</button>
+    </section>
+  }
+</div>

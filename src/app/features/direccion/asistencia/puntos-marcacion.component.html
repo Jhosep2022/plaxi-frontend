@@ -1,0 +1,79 @@
+<app-page-header miga="Asistencia" titulo="Puntos de marcación" descripcion="Lugares donde el personal marca su entrada y salida. Cada punto tiene una pantalla con un QR que cambia cada 30 segundos y una zona GPS permitida.">
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo punto</button>
+</app-page-header>
+
+<div class="grilla">
+  @for (p of puntos.value(); track p.id) {
+    <article class="ui-card punto" [class.inactivo]="!p.activo">
+      <header>
+        <span class="ui-icono tono-lima"><fa-icon [icon]="faQrcode" /></span>
+        <div class="titulo">
+          <h3>{{ p.nombre }}</h3>
+          <small>{{ p.latitud }}, {{ p.longitud }}</small>
+        </div>
+        @if (!p.activo) {
+          <span class="ui-badge">Inactivo</span>
+        }
+      </header>
+      <div class="datos">
+        <span class="ui-badge tono-azul"><fa-icon [icon]="faLocationDot" /> Radio de {{ p.radioM }} m</span>
+      </div>
+      <div class="acciones">
+        @if (p.activo) {
+          <a class="ui-btn" [routerLink]="session.ruta('pantalla-marcacion', p.id)" target="_blank"><fa-icon [icon]="faDisplay" /> Abrir pantalla</a>
+        }
+        <a class="ui-btn ui-btn--secundario" [href]="mapa(p)" target="_blank" rel="noopener"><fa-icon [icon]="faMapLocationDot" /> Ver en el mapa</a>
+        <div class="derecha">
+          <button type="button" class="ui-btn ui-btn--icono" (click)="editar(p)" [attr.aria-label]="'Editar ' + p.nombre"><fa-icon [icon]="faPen" /></button>
+          <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(p)" [attr.aria-label]="'Eliminar ' + p.nombre"><fa-icon [icon]="faTrash" /></button>
+        </div>
+      </div>
+    </article>
+  } @empty {
+    <div class="ui-card">
+      <app-empty-state [icono]="faQrcode" titulo="Todavía no hay puntos de marcación" texto="Crea uno en la entrada del colegio para que el personal pueda marcar.">
+        <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo punto</button>
+      </app-empty-state>
+    </div>
+  }
+</div>
+
+<app-drawer [abierto]="drawerAbierto()" [titulo]="editandoId() ? 'Editar punto' : 'Nuevo punto de marcación'"
+  subtitulo="Tip: créalo parado en el lugar y usa tu ubicación actual." (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-campo">
+      <label for="pm-nombre">Nombre</label>
+      <input id="pm-nombre" class="ui-input" placeholder="Ej. Entrada principal" [formField]="formulario.nombre" />
+      @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+        <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="pm-lat">Latitud</label>
+        <input id="pm-lat" type="number" class="ui-input" [formField]="formulario.latitud" />
+      </div>
+      <div class="ui-campo">
+        <label for="pm-lng">Longitud</label>
+        <input id="pm-lng" type="number" class="ui-input" [formField]="formulario.longitud" />
+      </div>
+    </div>
+    @if (formulario.latitud().invalid() || formulario.longitud().invalid()) {
+      <span class="ui-error">Revisa las coordenadas.</span>
+    }
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="usarMiUbicacion()"><fa-icon [icon]="faCrosshairs" /> Usar mi ubicación actual</button>
+    <div class="ui-campo">
+      <label for="pm-radio">Radio permitido (metros)</label>
+      <input id="pm-radio" type="number" class="ui-input" [formField]="formulario.radioM" />
+      <span class="ui-ayuda">El personal solo puede marcar si está a esta distancia o menos del punto.</span>
+      @if (formulario.radioM().invalid()) {
+        <span class="ui-error">{{ formulario.radioM().errors()[0].message }}</span>
+      }
+    </div>
+    <label class="check"><input type="checkbox" [formField]="formulario.activo" /> Punto activo</label>
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : editandoId() ? 'Guardar cambios' : 'Crear punto' }}</button>
+  </ng-container>
+</app-drawer>

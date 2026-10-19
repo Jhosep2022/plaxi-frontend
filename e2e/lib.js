@@ -45,7 +45,23 @@ const scriptFecha = (fecha) => `(() => {
   window.Date = Simulado;
 })();`;
 
-async function abrirNavegador({ ancho = 1500, alto = 1100, fecha } = {}) {
+// Reemplaza navigator.geolocation: devuelve window.__ubicacion (o "permiso denegado" si no hay)
+const SCRIPT_GEO = `(() => {
+  const geo = {
+    getCurrentPosition(ok, error) {
+      setTimeout(() => {
+        const u = window.__ubicacion;
+        if (u) ok({ coords: { latitude: u.lat, longitude: u.lng, accuracy: 8 }, timestamp: Date.now() });
+        else error({ code: 1, PERMISSION_DENIED: 1, message: 'denegado' });
+      }, 50);
+    },
+    watchPosition() { return 0; },
+    clearWatch() {},
+  };
+  Object.defineProperty(navigator, 'geolocation', { get: () => geo });
+})();`;
+
+async function abrirNavegador({ ancho = 1500, alto = 1100, fecha, geolocalizacion = false } = {}) {
   const perfil = fs.mkdtempSync(path.join(os.tmpdir(), 'quizwiz-e2e-'));
   const puerto = 9400 + Math.floor(Math.random() * 400);
   const proc = spawn(rutaChrome(), [
@@ -77,6 +93,7 @@ async function abrirNavegador({ ancho = 1500, alto = 1100, fecha } = {}) {
   await cdp('Page.enable');
   await cdp('Runtime.enable');
   if (fecha) await cdp('Page.addScriptToEvaluateOnNewDocument', { source: scriptFecha(fecha) });
+  if (geolocalizacion) await cdp('Page.addScriptToEvaluateOnNewDocument', { source: SCRIPT_GEO });
 
   const evaluar = async (expr) => {
     const r = await cdp('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true });
@@ -112,6 +129,8 @@ async function abrirNavegador({ ancho = 1500, alto = 1100, fecha } = {}) {
     // Elige una opción de un <select> (dispara input y change, como el navegador)
     elegir: (selector, valor) => evaluar(`(() => { const s = document.querySelector(${JSON.stringify(selector)}); s.value = ${JSON.stringify(valor)};
       s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); return s.value; })()`),
+    // Fija la ubicación que devolverá la geolocalización simulada (null = permiso denegado)
+    ubicacion: (lat, lng) => evaluar(`window.__ubicacion = ${lat === null ? 'null' : JSON.stringify({ lat, lng })}; true`),
     texto: (selector) => evaluar(`document.querySelector(${JSON.stringify(selector)})?.textContent.trim() ?? ''`),
     captura: async (nombre) => {
       fs.mkdirSync(CAPTURAS, { recursive: true });

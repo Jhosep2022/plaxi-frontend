@@ -41,8 +41,8 @@ export default [
   // Colegio: clases asignadas (materia + paralelo)
   proximamente('clases', 'Mis clases', 'Tus materias y paralelos asignados, con sus estudiantes.'),
   { path: 'horario', title: 'Mi horario', loadComponent: () => import('../horario/mi-horario.component').then((m) => m.MiHorarioComponent) },
-  proximamente('marcacion', 'Marcación', 'Escanea el QR del punto de marcación para registrar tu entrada o salida (con validación GPS).', { canActivate: [tipoEspacioGuard('colegio')] }),
-  proximamente('marcacion/historial', 'Mi historial de marcaciones', 'Tus entradas, salidas y atrasos.', { canActivate: [tipoEspacioGuard('colegio')] }),
+  { path: 'marcacion', title: 'Marcación', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('./marcacion/marcacion.component').then((m) => m.MarcacionComponent) },
+  { path: 'marcacion/historial', title: 'Mi historial de marcaciones', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('./marcacion/historial-marcacion.component').then((m) => m.HistorialMarcacionComponent) },
 
   // Academia: estudiantes, invitaciones y sesiones en vivo
   proximamente('estudiantes', 'Estudiantes', 'Estudiantes inscritos en tus cursos.'),
