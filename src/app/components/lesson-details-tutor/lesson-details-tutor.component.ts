@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
 import { LeccionService } from '../../services/leccion.service';
@@ -13,7 +13,7 @@ import { PaginadoDto } from 'src/app/models/PaginadoDto';
     templateUrl: './lesson-details-tutor.component.html',
     styleUrls: ['./lesson-details-tutor.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [RouterLink]
 })
 export class LessonDetailsTutorComponent implements OnInit {
   course: CursoDto | null = null;

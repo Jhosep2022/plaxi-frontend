@@ -17,10 +17,9 @@ describe('SuccessDialogComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [SuccessDialogComponent],
     schemas: [NO_ERRORS_SCHEMA] // Ignora errores relacionados con plantillas externas
     ,
-    imports: [],
+    imports: [SuccessDialogComponent],
     providers: [
         { provide: MatDialogRef, useValue: mockDialogRef },
         { provide: MAT_DIALOG_DATA, useValue: { message: 'Operation successful!' } },

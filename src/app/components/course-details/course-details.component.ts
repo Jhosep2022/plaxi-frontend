@@ -12,8 +12,7 @@ import { CourseService } from 'src/app/services/course.service';
     selector: 'app-course-details',
     templateUrl: './course-details.component.html',
     styleUrls: ['./course-details.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class CourseDetailsComponent implements OnInit {
   course: CursoDto | null = null;

@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from 'src/app/services/course.service';
 import { CursoDto, ActualizarCursoDto } from 'src/app/models/CursoDto';
@@ -12,7 +12,7 @@ import { Categoria } from 'src/app/models/categoriaDto';
     templateUrl: './course-edit-tutor.component.html',
     styleUrls: ['./course-edit-tutor.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseEditTutorComponent implements OnInit {
   courseForm!: FormGroup;

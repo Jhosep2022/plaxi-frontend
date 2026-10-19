@@ -10,14 +10,13 @@ describe('ConfirmDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ConfirmDialogComponent],
-      imports: [NoopAnimationsModule],
-      providers: [
+    imports: [NoopAnimationsModule, ConfirmDialogComponent],
+    providers: [
         { provide: MatDialogRef, useValue: {} },
         { provide: MAT_DIALOG_DATA, useValue: {} }
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Agrega NO_ERRORS_SCHEMA para manejar propiedades no reconocidas
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA] // Agrega NO_ERRORS_SCHEMA para manejar propiedades no reconocidas
+}).compileComponents();
   });
 
   beforeEach(() => {

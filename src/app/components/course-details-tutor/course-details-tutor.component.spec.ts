@@ -29,10 +29,9 @@ describe('CourseDetailsTutorComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [CourseDetailsTutorComponent],
     schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
     ,
-    imports: [RouterTestingModule],
+    imports: [RouterTestingModule, CourseDetailsTutorComponent],
     providers: [
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },

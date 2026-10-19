@@ -43,9 +43,23 @@ import {LessonDetailsTutorComponent} from './components/lesson-details-tutor/les
 import { TemaDetailsComponent } from './components/tema-details/tema-details.component';
 import { TemaDetailsTutorComponent } from './components/tema-details-tutor/tema-details-tutor.component';
 
-@NgModule({ declarations: [
-        AppComponent,
-        NavbarComponent,
+@NgModule({ declarations: [AppComponent], bootstrap: [AppComponent],
+    schemas: [NO_ERRORS_SCHEMA], imports: [BrowserModule,
+        FormsModule,
+        ReactiveFormsModule,
+        AppRoutingModule,
+        RouterModule,
+        FontAwesomeModule,
+        CommonModule,
+        MatDialogModule,
+        BrowserAnimationsModule,
+        MatSnackBarModule,
+        MatToolbarModule,
+        MatButtonModule,
+        MatInputModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatCardModule, NavbarComponent,
         LoginComponent,
         RegistrarUsuarioComponent,
         ForgotPasswordComponent,
@@ -70,23 +84,5 @@ import { TemaDetailsTutorComponent } from './components/tema-details-tutor/tema-
         SnackBarComponent,
         LessonDetailsTutorComponent,
         TemaDetailsComponent,
-        TemaDetailsTutorComponent
-    ],
-    bootstrap: [AppComponent],
-    schemas: [NO_ERRORS_SCHEMA], imports: [BrowserModule,
-        FormsModule,
-        ReactiveFormsModule,
-        AppRoutingModule,
-        RouterModule,
-        FontAwesomeModule,
-        CommonModule,
-        MatDialogModule,
-        BrowserAnimationsModule,
-        MatSnackBarModule,
-        MatToolbarModule,
-        MatButtonModule,
-        MatInputModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatCardModule], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
+        TemaDetailsTutorComponent], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
 export class AppModule { }

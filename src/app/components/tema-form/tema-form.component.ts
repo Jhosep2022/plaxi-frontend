@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { TemaService } from '../../services/tema.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
 import { LeccionDto } from 'src/app/models/LeccionDto';
 import { TemaDto } from 'src/app/models/TemaDto';
@@ -13,7 +13,7 @@ import { TemaDto } from 'src/app/models/TemaDto';
     templateUrl: './tema-form.component.html',
     styleUrls: ['./tema-form.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormsModule, ReactiveFormsModule]
 })
 export class TemaFormComponent implements OnInit, AfterViewChecked {
   leccion: LeccionDto | null = null;

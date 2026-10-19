@@ -29,10 +29,9 @@ describe('CourseFormComponent', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-    declarations: [CourseFormComponent],
     schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
     ,
-    imports: [ReactiveFormsModule, BrowserAnimationsModule],
+    imports: [ReactiveFormsModule, BrowserAnimationsModule, CourseFormComponent],
     providers: [
         FormBuilder,
         { provide: CategoriaService, useValue: categoriaServiceSpy },

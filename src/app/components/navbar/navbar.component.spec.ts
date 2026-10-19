@@ -36,9 +36,8 @@ describe('NavbarComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [NavbarComponent],
     schemas: [NO_ERRORS_SCHEMA],
-    imports: [],
+    imports: [NavbarComponent],
     providers: [
         { provide: Router, useValue: mockRouter },
         { provide: ProfileService, useValue: mockProfileService },

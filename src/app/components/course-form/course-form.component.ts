@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CategoriaService } from 'src/app/services/categoria.service';
@@ -12,7 +12,7 @@ import { Categoria } from 'src/app/models/categoriaDto';
     templateUrl: './course-form.component.html',
     styleUrls: ['./course-form.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseFormComponent implements OnInit, AfterViewChecked {
   courseForm!: FormGroup;

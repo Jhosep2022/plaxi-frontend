@@ -22,11 +22,10 @@ describe('LoginComponent', () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-    declarations: [LoginComponent],
     schemas: [NO_ERRORS_SCHEMA] // Añadido NO_ERRORS_SCHEMA
     ,
     imports: [FormsModule // Agregamos FormsModule para permitir el uso de ngModel
-    ],
+        , LoginComponent],
     providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter },

@@ -41,10 +41,9 @@ describe('CourseListComponent', () => {
     });
 
     TestBed.configureTestingModule({
-    declarations: [CourseListComponent],
     schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
     ,
-    imports: [],
+    imports: [CourseListComponent],
     providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: CourseService, useValue: mockCourseService },

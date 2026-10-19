@@ -5,8 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     selector: 'app-success-dialog',
     templateUrl: './success-dialog.component.html',
     styleUrls: ['./success-dialog.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class SuccessDialogComponent {
   constructor(

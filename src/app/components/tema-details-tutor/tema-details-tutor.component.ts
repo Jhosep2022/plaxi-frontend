@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TemaDto } from 'src/app/models/TemaDto';
@@ -10,7 +10,7 @@ import { TemaService } from 'src/app/services/tema.service';
     templateUrl: './tema-details-tutor.component.html',
     styleUrls: ['./tema-details-tutor.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [RouterLink]
 })
 export class TemaDetailsTutorComponent implements OnInit {
   tema: TemaDto | null = null;

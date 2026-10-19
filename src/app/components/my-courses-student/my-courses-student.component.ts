@@ -1,15 +1,17 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
+import { MatButton } from '@angular/material/button';
+import { DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-my-courses-student',
     templateUrl: './my-courses-student.component.html',
     styleUrls: ['./my-courses-student.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatButton, RouterLink, DatePipe]
 })
 export class MyCoursesStudentComponent implements OnInit {
   courses: any[] = [];

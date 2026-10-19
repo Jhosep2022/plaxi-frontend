@@ -7,8 +7,7 @@ import { CourseService } from 'src/app/services/course.service';
     selector: 'app-course-list',
     templateUrl: './course-list.component.html',
     styleUrls: ['./course-list.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class CourseListComponent implements OnInit {
   courses: CursoDto[] = [];

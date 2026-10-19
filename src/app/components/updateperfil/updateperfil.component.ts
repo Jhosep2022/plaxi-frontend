@@ -4,13 +4,15 @@ import { faCheck, faEnvelope, faIdCard, faImage, faPhone, faUser } from '@fortaw
 import { ActualizarPerfilDto } from '../../models/PerfilDto';
 import { HttpClient } from '@angular/common/http';
 import { ProfileService } from 'src/app/services/profile.service';
+import { FormsModule } from '@angular/forms';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
     selector: 'app-updateperfil',
     templateUrl: './updateperfil.component.html',
     styleUrls: ['./updateperfil.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormsModule, FaIconComponent]
 })
 export class UpdateperfilComponent implements OnInit {
   // Íconos (FontAwesome)

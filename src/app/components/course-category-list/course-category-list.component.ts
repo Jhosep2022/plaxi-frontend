@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
 import { CategoriaService } from 'src/app/services/categoria.service';
@@ -15,7 +15,7 @@ interface Category {
     templateUrl: './course-category-list.component.html',
     styleUrls: ['./course-category-list.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [RouterLink]
 })
 export class CourseCategoryListComponent implements OnInit {
   // Lista de categorías obtenida de la API

@@ -29,10 +29,9 @@ describe('MyCoursesStudentComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [MyCoursesStudentComponent],
     schemas: [NO_ERRORS_SCHEMA] // Ignorar errores de elementos desconocidos (útil para simplificar el componente en pruebas)
     ,
-    imports: [],
+    imports: [MyCoursesStudentComponent],
     providers: [
         { provide: Router, useValue: mockRouter },
         { provide: InscripcionService, useValue: mockInscripcionService },

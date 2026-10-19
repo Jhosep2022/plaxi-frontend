@@ -23,9 +23,8 @@ describe('CourseEditTutorComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [CourseEditTutorComponent],
     schemas: [NO_ERRORS_SCHEMA],
-    imports: [ReactiveFormsModule, RouterTestingModule],
+    imports: [ReactiveFormsModule, RouterTestingModule, CourseEditTutorComponent],
     providers: [
         FormBuilder,
         { provide: ActivatedRoute, useValue: activatedRouteStub },

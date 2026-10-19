@@ -30,9 +30,8 @@ describe('CourseDetailsComponent', () => {
     const activatedRouteStub = { snapshot: { paramMap: { get: () => '1' } } };
 
     await TestBed.configureTestingModule({
-    declarations: [CourseDetailsComponent],
     schemas: [NO_ERRORS_SCHEMA],
-    imports: [],
+    imports: [CourseDetailsComponent],
     providers: [
         { provide: CourseService, useValue: courseServiceSpy },
         { provide: InscripcionService, useValue: inscripcionServiceSpy },

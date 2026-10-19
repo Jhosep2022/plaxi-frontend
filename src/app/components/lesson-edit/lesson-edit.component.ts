@@ -2,17 +2,19 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LeccionDto } from 'src/app/models/LeccionDto';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { MatLabel, MatInput, MatError, MatFormField } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
 
 @Component({
     selector: 'app-lesson-edit',
     templateUrl: './lesson-edit.component.html',
     styleUrls: ['./lesson-edit.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormsModule, ReactiveFormsModule, MatLabel, MatInput, MatError, MatFormField, MatSelect, MatOption]
 })
 export class LessonEditComponent implements OnInit {
   lessonForm!: FormGroup;

@@ -39,8 +39,7 @@ describe('LessonFormComponent', () => {
     };
 
     TestBed.configureTestingModule({
-    declarations: [LessonFormComponent],
-    imports: [ReactiveFormsModule],
+    imports: [ReactiveFormsModule, LessonFormComponent],
     providers: [
         FormBuilder,
         { provide: Router, useValue: mockRouter },

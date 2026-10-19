@@ -9,8 +9,7 @@ import { TemaService } from 'src/app/services/tema.service';
     selector: 'app-tema-details',
     templateUrl: './tema-details.component.html',
     styleUrls: ['./tema-details.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class TemaDetailsComponent implements OnInit {
   tema: TemaDto | null = null;

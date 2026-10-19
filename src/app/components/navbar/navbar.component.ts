@@ -4,13 +4,14 @@ import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../services/profile.service';
 import { AuthService } from '../../services/auth.service';
 import { PerfilDto } from '../../models/PerfilDto';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
     selector: 'app-navbar',
     templateUrl: './navbar.component.html',
     styleUrls: ['./navbar.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FaIconComponent]
 })
 
 export class NavbarComponent implements OnInit {

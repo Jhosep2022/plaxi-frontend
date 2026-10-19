@@ -3,14 +3,17 @@ import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { faChalkboardTeacher, faCheck, faEnvelope, faIdCard, faLock, faPhone, faUser, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
 import { ProfileService } from '../../services/profile.service'; // Importar el servicio de perfiles
-import { PerfilDto } from '../../models/PerfilDto'; // Importar el modelo de perfil
+import { PerfilDto } from '../../models/PerfilDto';
+import { NgClass } from '@angular/common';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FormsModule } from '@angular/forms'; // Importar el modelo de perfil
 
 @Component({
     selector: 'app-registrar-usuario',
     templateUrl: './registrar-usuario.component.html',
     styleUrls: ['./registrar-usuario.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass, FaIconComponent, FormsModule]
 })
 export class RegistrarUsuarioComponent implements OnInit {
   // Íconos (FontAwesome)

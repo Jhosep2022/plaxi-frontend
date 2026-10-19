@@ -18,10 +18,9 @@ describe('CourseCategoryListComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-    declarations: [CourseCategoryListComponent],
     schemas: [NO_ERRORS_SCHEMA] // Agrega NO_ERRORS_SCHEMA para manejar propiedades no reconocidas
     ,
-    imports: [],
+    imports: [CourseCategoryListComponent],
     providers: [
         { provide: CourseService, useValue: courseServiceSpy },
         { provide: Router, useValue: routerSpy },

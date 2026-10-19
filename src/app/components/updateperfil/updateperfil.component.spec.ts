@@ -34,11 +34,10 @@ describe('UpdateperfilComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [UpdateperfilComponent],
     schemas: [NO_ERRORS_SCHEMA],
     imports: [FormsModule,
         ReactiveFormsModule // Añade FormsModule y ReactiveFormsModule
-    ],
+        , UpdateperfilComponent],
     providers: [
         { provide: ProfileService, useValue: mockProfileService },
         { provide: Router, useValue: mockRouter },

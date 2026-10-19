@@ -25,10 +25,9 @@ describe('RegistrarUsuarioComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [RegistrarUsuarioComponent],
     schemas: [NO_ERRORS_SCHEMA] // Ignorar errores de plantillas no relacionadas con este test
     ,
-    imports: [],
+    imports: [RegistrarUsuarioComponent],
     providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter },

@@ -1,5 +1,6 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
+import { MatButton } from '@angular/material/button';
 
 @Component({
     selector: 'app-snack-bar',
@@ -10,7 +11,7 @@ import { MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
     }
   `],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatButton]
 })
 export class SnackBarComponent {
   constructor(@Inject(MAT_SNACK_BAR_DATA) public data: { message: string, actionLabel?: string, action?: () => void }) {}

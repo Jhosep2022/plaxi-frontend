@@ -26,11 +26,10 @@ describe('ForgotPasswordComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [ForgotPasswordComponent],
     schemas: [NO_ERRORS_SCHEMA] // Incluimos NO_ERRORS_SCHEMA para evitar errores por enlaces desconocidos
     ,
     imports: [FormsModule // Agregamos FormsModule para permitir el uso de ngModel
-    ],
+        , ForgotPasswordComponent],
     providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter },

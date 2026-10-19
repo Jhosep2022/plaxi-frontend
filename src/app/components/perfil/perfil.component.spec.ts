@@ -27,9 +27,8 @@ describe('PerfilComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-    declarations: [PerfilComponent],
     schemas: [NO_ERRORS_SCHEMA],
-    imports: [],
+    imports: [PerfilComponent],
     providers: [
         { provide: ProfileService, useValue: mockProfileService },
         { provide: Router, useValue: mockRouter },

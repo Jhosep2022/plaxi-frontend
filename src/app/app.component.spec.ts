@@ -8,7 +8,7 @@ describe('AppComponent', () => {
     imports: [RouterTestingModule],
     declarations: [AppComponent],
     schemas: [NO_ERRORS_SCHEMA]
-  }).compileComponents());
+}).compileComponents());
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
