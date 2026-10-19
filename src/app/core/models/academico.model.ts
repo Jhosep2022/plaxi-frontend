@@ -110,6 +110,10 @@ export interface Docente {
   id: number;
   nombre: string;
   especialidad: string;
+  ci: string;
+  telefono: string;
+  email: string;
+  activo: boolean; // los inactivos no se pueden asignar a materias
 }
 
 // Qué docente dicta cada materia en cada paralelo

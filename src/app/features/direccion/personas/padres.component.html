@@ -1,0 +1,155 @@
+<app-page-header miga="Personas" titulo="Padres y tutores legales" descripcion="Responsables de cada estudiante. Reciben los avisos de asistencia, pueden solicitar licencias y ver las calificaciones de sus hijos.">
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo padre o tutor</button>
+</app-page-header>
+
+<div class="indicadores">
+  <div class="ui-card indicador destacado">
+    <span class="ui-icono tono-lima"><fa-icon [icon]="faUsers" /></span>
+    <div><strong>{{ conteo().total }}</strong><small>padres y tutores registrados</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-azul"><fa-icon [icon]="faMobileScreen" /></span>
+    <div><strong>{{ conteo().conCuenta }}</strong><small>usan la app</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono alerta"><fa-icon [icon]="faChild" /></span>
+    <div><strong>{{ conteo().estudiantesSinTutor }}</strong><small>estudiantes sin tutor</small></div>
+  </div>
+</div>
+
+<div class="filtros">
+  <label class="buscar">
+    <fa-icon [icon]="faMagnifyingGlass" />
+    <input class="ui-input" placeholder="Buscar por nombre, CI o nombre del hijo" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar padre o tutor" />
+  </label>
+  <select class="ui-input" aria-label="Curso del hijo" (change)="curso.set($any($event.target).value)">
+    <option value="todos" [selected]="curso() === 'todos'">Todos los cursos</option>
+    @for (p of cursos(); track p.id) {
+      <option [value]="'' + p.id" [selected]="curso() === '' + p.id">Hijos en {{ paraleloLabel(p) }}</option>
+    }
+  </select>
+  <span class="contador-filas">{{ visibles().length }} de {{ conteo().total }}</span>
+</div>
+
+<div class="ui-card">
+  @if (padres.isLoading() && padres.value().length === 0) {
+    <p class="cargando">Cargando padres y tutores…</p>
+  } @else {
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla">
+        <thead>
+          <tr><th>Padre / tutor</th><th>CI</th><th>Contacto</th><th>A cargo de</th><th>Cuenta</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (p of visibles(); track p.id) {
+            <tr>
+              <td>
+                <div class="persona">
+                  <span class="avatar lima">{{ iniciales(p.nombre) }}</span>
+                  <div><strong>{{ p.nombre }}</strong><small>{{ p.ocupacion || 'Ocupación sin registrar' }}</small></div>
+                </div>
+              </td>
+              <td>{{ p.ci }}</td>
+              <td>
+                <div class="contacto">
+                  @if (p.telefono) { <span><fa-icon [icon]="faPhone" /> {{ p.telefono }}</span> }
+                  @if (p.email) { <span><fa-icon [icon]="faEnvelope" /> {{ p.email }}</span> }
+                </div>
+              </td>
+              <td>
+                <div class="chips">
+                  @for (h of hijosDe().get(p.id) ?? []; track h.id) {
+                    <span class="ui-badge tono-crema">{{ h.nombre }} · {{ h.curso }} · {{ h.parentesco }}</span>
+                  } @empty {
+                    <span class="ui-badge alerta">Sin estudiantes</span>
+                  }
+                </div>
+              </td>
+              <td>
+                @if (cuentas.value().has(p.id)) { <span class="ui-badge tono-azul">Con cuenta</span> } @else { <span class="secundario">Sin cuenta</span> }
+              </td>
+              <td>
+                <div class="acciones">
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="editar(p)" [attr.aria-label]="'Editar ' + p.nombre"><fa-icon [icon]="faPen" /></button>
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(p)" [attr.aria-label]="'Eliminar ' + p.nombre"><fa-icon [icon]="faTrash" /></button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="vacio">Nadie coincide con los filtros.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-drawer [abierto]="drawerAbierto()" [titulo]="editando() ? 'Editar padre o tutor' : 'Nuevo padre o tutor'" subtitulo="Datos de contacto y estudiantes a su cargo." (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-campo">
+      <label for="pad-nombre">Nombre completo</label>
+      <input id="pad-nombre" class="ui-input" placeholder="Ej. Rosa Quispe Mamani" [formField]="formulario.nombre" />
+      @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+        <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="pad-ci">CI</label>
+        <input id="pad-ci" class="ui-input" [formField]="formulario.ci" />
+        @if (formulario.ci().touched() && formulario.ci().invalid()) {
+          <span class="ui-error">{{ formulario.ci().errors()[0].message }}</span>
+        }
+      </div>
+      <div class="ui-campo">
+        <label for="pad-tel">Teléfono</label>
+        <input id="pad-tel" class="ui-input" inputmode="numeric" [formField]="formulario.telefono" />
+        @if (formulario.telefono().touched() && formulario.telefono().invalid()) {
+          <span class="ui-error">{{ formulario.telefono().errors()[0].message }}</span>
+        }
+      </div>
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="pad-email">Correo <span class="ui-ayuda">(opcional)</span></label>
+        <input id="pad-email" type="email" class="ui-input" [formField]="formulario.email" />
+        @if (formulario.email().touched() && formulario.email().invalid()) {
+          <span class="ui-error">{{ formulario.email().errors()[0].message }}</span>
+        }
+      </div>
+      <div class="ui-campo">
+        <label for="pad-ocup">Ocupación <span class="ui-ayuda">(opcional)</span></label>
+        <input id="pad-ocup" class="ui-input" [formField]="formulario.ocupacion" />
+      </div>
+    </div>
+
+    <h3 class="seccion">Estudiantes a cargo</h3>
+    <div class="hijos">
+      @for (h of hijos(); track $index; let i = $index) {
+        <div class="hijo">
+          <select class="ui-input" [id]="'pad-hijo-' + i" aria-label="Estudiante" (change)="cambiarHijo(i, { estudianteId: $any($event.target).value })">
+            <option value="" [selected]="h.estudianteId === ''">Elige un estudiante</option>
+            @for (g of opcionesEstudiante(); track g.label) {
+              <optgroup [label]="g.label">
+                @for (e of g.estudiantes; track e.id) {
+                  <option [value]="'' + e.id" [selected]="h.estudianteId === '' + e.id">{{ e.nombre }}</option>
+                }
+              </optgroup>
+            }
+          </select>
+          <select class="ui-input" [id]="'pad-par-' + i" aria-label="Parentesco" (change)="cambiarHijo(i, { parentesco: $any($event.target).value })">
+            @for (p of parentescos; track p.id) {
+              <option [value]="p.id" [selected]="h.parentesco === p.id">{{ p.label }}</option>
+            }
+          </select>
+          <button type="button" class="ui-btn ui-btn--icono" (click)="quitarHijo(i)" aria-label="Quitar estudiante"><fa-icon [icon]="faTrash" /></button>
+        </div>
+      }
+      <button type="button" class="ui-btn ui-btn--secundario" (click)="agregarHijo()"><fa-icon [icon]="faPlus" /> Agregar otro estudiante</button>
+    </div>
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Registrar' }}</button>
+  </ng-container>
+</app-drawer>

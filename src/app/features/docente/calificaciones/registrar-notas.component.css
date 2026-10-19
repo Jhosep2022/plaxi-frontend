@@ -1,0 +1,259 @@
+.cargando {
+  color: var(--muted);
+}
+
+.distribucion {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .distribucion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.clases {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clase {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  font: inherit;
+  text-align: left;
+  color: var(--dark-blue);
+  cursor: pointer;
+}
+
+.clase.elegida {
+  border-color: var(--dark-blue);
+  box-shadow: 0 0 0 2px var(--lime-soft);
+}
+
+.clase-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clase-texto strong {
+  font-size: 14px;
+}
+
+.clase-texto small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.planilla {
+  min-width: 0;
+}
+
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cabecera h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.insignias,
+.resumen {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.resumen {
+  margin-top: 12px;
+}
+
+.reprobado {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+/* Planilla */
+.tabla-contenedor {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.tabla {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 100%;
+  font-size: 13px;
+}
+
+.tabla th,
+.tabla td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tabla thead th {
+  background: var(--page-bg);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla tbody tr:hover td {
+  background: var(--cream-soft);
+}
+
+.fijo {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 190px;
+  text-align: left !important;
+  background: var(--text-light);
+  border-right: 1px solid var(--line);
+}
+
+thead .fijo {
+  z-index: 2;
+}
+
+.numero {
+  display: inline-block;
+  width: 20px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.grupo {
+  color: var(--dark-blue) !important;
+  font-size: 13px !important;
+  border-left: 2px solid var(--line);
+}
+
+.grupo small {
+  font-weight: normal;
+  color: var(--muted);
+}
+
+.actividad {
+  min-width: 82px;
+  max-width: 110px;
+  vertical-align: top;
+}
+
+.nombre-act {
+  display: block;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--dark-blue);
+}
+
+.actividad small {
+  display: block;
+  font-weight: normal;
+}
+
+.acciones-act {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.mini {
+  width: 24px;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--text-light);
+  color: var(--muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.mini:hover {
+  color: var(--dark-blue);
+  border-color: var(--dark-blue);
+}
+
+.prom {
+  background: var(--cream-soft) !important;
+  font-weight: bold;
+  color: var(--dark-blue) !important;
+}
+
+.final {
+  min-width: 64px;
+  border-left: 2px solid var(--line);
+}
+
+.nota {
+  width: 52px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--text-light);
+  color: var(--dark-blue);
+  font: inherit;
+  text-align: center;
+}
+
+.nota:focus {
+  outline: none;
+  border-color: var(--dark-blue);
+  box-shadow: 0 0 0 2px var(--lime-soft);
+}
+
+.nota.invalida {
+  border-color: #c0392b;
+  background: #fdf0ee;
+}
+
+.baja {
+  color: #c0392b !important;
+}
+
+.valor {
+  font-weight: bold;
+}
+
+.sin-nota {
+  color: var(--muted);
+}
+
+.pie {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px -18px -18px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 16px 16px;
+  background: var(--text-light);
+}

@@ -1,0 +1,172 @@
+/* Piezas comunes de las pantallas de Personas (docentes, estudiantes, padres, inscripciones) */
+.cargando {
+  color: var(--muted);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.indicador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indicador div {
+  display: flex;
+  flex-direction: column;
+}
+
+.indicador strong {
+  font-size: 22px;
+}
+
+.indicador small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.indicador.destacado {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+}
+
+.filtros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.buscar {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.buscar fa-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.buscar .ui-input {
+  width: 100%;
+  padding-left: 34px;
+}
+
+.filtros select {
+  width: 200px;
+}
+
+.contador-filas {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Persona: avatar con iniciales + nombre + detalle */
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--light-cream);
+  color: var(--dark-blue);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.avatar.azul {
+  background: var(--dark-blue);
+  color: var(--lime-green);
+}
+
+.avatar.lima {
+  background: var(--lime-soft);
+  color: var(--lime-strong);
+}
+
+.persona div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.persona small,
+.secundario {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.contacto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.contacto span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.contacto fa-icon {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: 360px;
+}
+
+.inactivo td {
+  opacity: 0.55;
+}
+
+.alerta {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.vacio {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}

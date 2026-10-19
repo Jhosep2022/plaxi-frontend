@@ -72,7 +72,9 @@
                           [attr.aria-label]="'Docente de ' + fila.materia.nombre">
                           <option value="0" [selected]="!fila.docenteId">Sin asignar</option>
                           @for (d of docentes.value(); track d.id) {
-                            <option [value]="'' + d.id" [selected]="d.id === fila.docenteId">{{ d.nombre }} · {{ d.especialidad }}</option>
+                            @if (d.activo || d.id === fila.docenteId) {
+                              <option [value]="'' + d.id" [selected]="d.id === fila.docenteId">{{ d.nombre }} · {{ d.especialidad }}</option>
+                            }
                           }
                         </select>
                         @if (!fila.docenteId) {

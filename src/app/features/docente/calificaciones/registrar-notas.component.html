@@ -1,0 +1,188 @@
+<app-page-header miga="Seguimiento" titulo="Calificaciones" descripcion="Registra las notas de cada actividad. El promedio por criterio y la nota final se calculan solos con la ponderación del colegio.">
+  @if (gestion(); as g) {
+    <div class="ui-tabs" role="tablist" aria-label="Periodo">
+      @for (p of g.periodos; track $index) {
+        <button type="button" role="tab" class="ui-tab" [class.activa]="periodo() === $index" [attr.aria-selected]="periodo() === $index" (click)="cambiarPeriodo($index)">
+          @if (periodoCerrado($index)) { <fa-icon [icon]="faLock" /> }
+          {{ p.nombre }}
+        </button>
+      }
+    </div>
+  }
+</app-page-header>
+
+@if (espacio.tipo !== 'colegio') {
+  <div class="ui-card">
+    <app-empty-state [icono]="faStar" titulo="Calificaciones de la academia" texto="Muy pronto podrás calificar las evaluaciones de tus cursos (Exámenes, Prácticas y Tareas)." />
+  </div>
+} @else if (clases.isLoading() && !clases.value()) {
+  <p class="cargando">Cargando tus clases…</p>
+} @else if (misClases().length === 0) {
+  <div class="ui-card">
+    <app-empty-state [icono]="faStar" titulo="No tienes clases asignadas" texto="Cuando la dirección te asigne materias, podrás registrar sus notas aquí." />
+  </div>
+} @else {
+  <div class="distribucion">
+    <!-- Clases del docente -->
+    <aside class="clases">
+      @for (c of misClases(); track c.asignacion.id) {
+        <button type="button" class="ui-card clase" [class.elegida]="c.asignacion.id === seleccionadaId()" (click)="cambiarClase(c.asignacion.id)">
+          <span class="ui-icono" [class]="'tono-' + c.materia.tono"><fa-icon [icon]="iconoMateria(c.materia.icono)" /></span>
+          <span class="clase-texto">
+            <strong>{{ c.materia.nombre }}</strong>
+            <small>{{ paraleloLabel(c.paralelo) }} · {{ c.paralelo.estudiantes }} estudiantes</small>
+          </span>
+        </button>
+      }
+    </aside>
+
+    @if (seleccionada(); as s) {
+      <section class="ui-card planilla">
+        <header class="cabecera">
+          <div>
+            <h3>{{ s.materia.nombre }} · {{ paraleloLabel(s.paralelo) }}</h3>
+            <div class="insignias">
+              @if (cerrado()) {
+                <span class="ui-badge tono-azul"><fa-icon [icon]="faLock" /> Periodo cerrado · solo lectura</span>
+              } @else {
+                <span class="ui-badge tono-lima">Periodo abierto</span>
+              }
+              @for (c of config()?.criterios ?? []; track c.id) {
+                <span class="ui-badge">{{ c.nombre }} {{ c.porcentaje }}%</span>
+              }
+            </div>
+          </div>
+          @if (!cerrado()) {
+            <button type="button" class="ui-btn" (click)="nuevaActividad()"><fa-icon [icon]="faPlus" /> Nueva actividad</button>
+          }
+        </header>
+
+        @if (resumen().promedio !== null) {
+          <div class="resumen">
+            <span class="ui-badge tono-crema">Promedio del curso: {{ resumen().promedio }}</span>
+            <span class="ui-badge tono-lima">{{ resumen().aprobados }} aprobados</span>
+            <span class="ui-badge reprobado">{{ resumen().reprobados }} reprobados</span>
+          </div>
+        }
+
+        @if (datos.isLoading() && !datos.value()) {
+          <p class="cargando">Cargando notas…</p>
+        } @else if (actividades().length === 0) {
+          <app-empty-state [icono]="faStar" titulo="Todavía no hay actividades en este periodo" [texto]="cerrado() ? 'El periodo se cerró sin actividades.' : 'Agrega un examen, una práctica o un proyecto para empezar a calificar.'" />
+        } @else {
+          <div class="tabla-contenedor">
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="fijo">Estudiante</th>
+                  @for (g of grupos(); track g.criterio.id) {
+                    <th class="grupo" [attr.colspan]="g.actividades.length + 1">{{ g.criterio.nombre }} <small>{{ g.criterio.porcentaje }}%</small></th>
+                  }
+                  <th rowspan="2" class="final">Final</th>
+                </tr>
+                <tr>
+                  @for (g of grupos(); track g.criterio.id) {
+                    @for (a of g.actividades; track a.id) {
+                      <th class="actividad">
+                        <span class="nombre-act" [title]="a.nombre">{{ a.nombre }}</span>
+                        <small>{{ fechaCorta(a.fecha) }}</small>
+                        @if (!cerrado()) {
+                          <span class="acciones-act">
+                            <button type="button" class="mini" (click)="editarActividad(a)" [attr.aria-label]="'Editar ' + a.nombre"><fa-icon [icon]="faPen" /></button>
+                            <button type="button" class="mini" (click)="eliminarActividad(a)" [attr.aria-label]="'Eliminar ' + a.nombre"><fa-icon [icon]="faTrash" /></button>
+                          </span>
+                        }
+                      </th>
+                    }
+                    <th class="prom">Prom.</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of datos.value()?.estudiantes ?? []; track e.id; let n = $index) {
+                  @let r = resultados().get(e.id);
+                  <tr>
+                    <td class="fijo"><span class="numero">{{ n + 1 }}</span> {{ e.nombre }}</td>
+                    @for (g of grupos(); track g.criterio.id; let gi = $index) {
+                      @for (a of g.actividades; track a.id) {
+                        @let t = texto(a.id, e.id);
+                        <td class="celda">
+                          @if (cerrado()) {
+                            <span class="valor" [class.baja]="t !== '' && !aprueba(+t)">{{ t || '—' }}</span>
+                          } @else {
+                            <input class="nota" inputmode="numeric" [value]="t" [class.invalida]="invalida(t)" [class.baja]="t !== '' && !invalida(t) && !aprueba(+t)"
+                              (input)="escribir(a.id, e.id, $any($event.target).value)" [attr.aria-label]="a.nombre + ' de ' + e.nombre" />
+                          }
+                        </td>
+                      }
+                      @let pc = r?.porCriterio?.[gi]?.promedio ?? null;
+                      <td class="prom" [class.baja]="pc !== null && !aprueba(pc)">{{ pc ?? '—' }}</td>
+                    }
+                    <td class="final">
+                      @if (r?.final != null) {
+                        <span class="ui-badge" [class]="aprueba(r!.final!) ? 'tono-lima' : 'reprobado'">{{ r!.final }}</span>
+                      } @else {
+                        <span class="sin-nota">—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (!cerrado() && actividades().length) {
+          <footer class="pie">
+            <span class="ui-ayuda">
+              @if (hayErrores()) {
+                <span class="ui-error">Hay notas fuera de rango (0 a {{ config()?.notaMaxima }}).</span>
+              } @else {
+                Notas sobre {{ config()?.notaMaxima }} · aprueba con {{ config()?.notaAprobacion }}. Las casillas vacías no cuentan en el promedio.
+              }
+            </span>
+            <button type="button" class="ui-btn" [disabled]="guardando() || hayErrores() || pendientes().length === 0" (click)="guardar()">
+              {{ guardando() ? 'Guardando…' : pendientes().length ? 'Guardar ' + pendientes().length + (pendientes().length === 1 ? ' nota' : ' notas') : 'Sin cambios' }}
+            </button>
+          </footer>
+        }
+      </section>
+    }
+  </div>
+}
+
+<!-- Crear / editar actividad -->
+<app-drawer [abierto]="drawerAbierto()" [titulo]="editando() ? 'Editar actividad' : 'Nueva actividad'" [subtitulo]="(seleccionada()?.materia?.nombre ?? '') + ' · ' + (gestion()?.periodos?.[periodo()]?.nombre ?? '')" (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardarActividad()" novalidate>
+    <div class="ui-campo">
+      <label for="act-nombre">Nombre</label>
+      <input id="act-nombre" class="ui-input" placeholder="Ej. Examen parcial, Práctica 4…" [formField]="formulario.nombre" />
+      @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+        <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-campo">
+      <label for="act-criterio">Criterio</label>
+      <select id="act-criterio" class="ui-input" [formField]="formulario.criterioId">
+        <option value="">Elige un criterio</option>
+        @for (c of config()?.criterios ?? []; track c.id) {
+          <option [value]="'' + c.id" [selected]="modelo().criterioId === '' + c.id">{{ c.nombre }} ({{ c.porcentaje }}%)</option>
+        }
+      </select>
+      @if (formulario.criterioId().touched() && formulario.criterioId().invalid()) {
+        <span class="ui-error">{{ formulario.criterioId().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-campo">
+      <label for="act-fecha">Fecha</label>
+      <input id="act-fecha" type="date" class="ui-input" [formField]="formulario.fecha" />
+      @if (formulario.fecha().touched() && formulario.fecha().invalid()) {
+        <span class="ui-error">{{ formulario.fecha().errors()[0].message }}</span>
+      }
+    </div>
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" (click)="guardarActividad()">{{ editando() ? 'Guardar cambios' : 'Agregar actividad' }}</button>
+  </ng-container>
+</app-drawer>

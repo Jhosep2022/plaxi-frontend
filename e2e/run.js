@@ -9,6 +9,9 @@ const SUITES = {
   vistas: require('./vistas.e2e'),
   asistencia: require('./asistencia.e2e'),
   marcacion: require('./marcacion.e2e'),
+  calificaciones: require('./calificaciones.e2e'),
+  personas: require('./personas.e2e'),
+  reportes: require('./reportes.e2e'),
 };
 
 async function main() {

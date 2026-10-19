@@ -52,5 +52,5 @@ export default [
 
   // Seguimiento (ambos tipos de espacio)
   { path: 'asistencia', title: 'Asistencia', loadComponent: () => import('./asistencia/tomar-asistencia.component').then((m) => m.TomarAsistenciaComponent) },
-  proximamente('calificaciones', 'Calificaciones', 'Registra notas según la escala y ponderación de tu institución.'),
+  { path: 'calificaciones', title: 'Calificaciones', loadComponent: () => import('./calificaciones/registrar-notas.component').then((m) => m.RegistrarNotasComponent) },
 ] satisfies Routes;

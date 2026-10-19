@@ -115,3 +115,24 @@ body {
   font-weight: bold;
   text-align: center;
 }
+
+/* Impresión (boletines): solo el contenido, sin sidebar ni controles */
+@media print {
+  app-sidebar,
+  .no-imprimir {
+    display: none !important;
+  }
+
+  app-app-layout,
+  app-app-layout .main {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body,
+  .ui-pagina {
+    background: #fff !important;
+    padding: 0 !important;
+  }
+}

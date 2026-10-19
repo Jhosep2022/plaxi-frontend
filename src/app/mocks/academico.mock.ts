@@ -70,13 +70,14 @@ export const MOCK_MATERIAS: Materia[] = [
 ];
 
 export const MOCK_DOCENTES: Docente[] = [
-  { id: 3, nombre: 'María Fernández', especialidad: 'Matemáticas y Ciencias' },
-  { id: 7, nombre: 'Jorge Vargas', especialidad: 'Lenguaje' },
-  { id: 8, nombre: 'Carlos Lima', especialidad: 'Educación Física' },
-  { id: 9, nombre: 'Sofía Paredes', especialidad: 'Inglés' },
-  { id: 10, nombre: 'Ana Torres', especialidad: 'Computación' },
-  { id: 11, nombre: 'Raúl Choque', especialidad: 'Ciencias Sociales' },
-  { id: 12, nombre: 'Lucía Mendoza', especialidad: 'Educación Inicial y Primaria' },
+  { id: 3, nombre: 'María Fernández', especialidad: 'Matemáticas y Ciencias', ci: '4876512', telefono: '71234567', email: 'maria.fernandez@sanjose.edu.bo', activo: true },
+  { id: 7, nombre: 'Jorge Vargas', especialidad: 'Lenguaje', ci: '5123987', telefono: '72345678', email: 'jorge.vargas@sanjose.edu.bo', activo: true },
+  { id: 8, nombre: 'Carlos Lima', especialidad: 'Educación Física', ci: '6234871', telefono: '73456789', email: 'carlos.lima@sanjose.edu.bo', activo: true },
+  { id: 9, nombre: 'Sofía Paredes', especialidad: 'Inglés', ci: '7345128', telefono: '74567890', email: 'sofia.paredes@sanjose.edu.bo', activo: true },
+  { id: 10, nombre: 'Ana Torres', especialidad: 'Computación', ci: '5987234', telefono: '75678901', email: 'ana.torres@sanjose.edu.bo', activo: true },
+  { id: 11, nombre: 'Raúl Choque', especialidad: 'Ciencias Sociales', ci: '4561238', telefono: '76789012', email: 'raul.choque@sanjose.edu.bo', activo: true },
+  { id: 12, nombre: 'Lucía Mendoza', especialidad: 'Educación Inicial y Primaria', ci: '6012347', telefono: '77890123', email: 'lucia.mendoza@sanjose.edu.bo', activo: true },
+  { id: 13, nombre: 'Hugo Salazar', especialidad: 'Química', ci: '3987612', telefono: '78901234', email: '', activo: false },
 ];
 
 let id = 0;
@@ -118,15 +119,4 @@ export const MOCK_CLASES: ClaseHorario[] = [
   c(5, 4, 1, 12, 1), c(5, 4, 2, 11, 1),
   c(5, 5, 0, 7, 1), c(5, 5, 1, 13, 11),
   c(6, 1, 1, 7, 2), c(6, 1, 2, 10, 2), c(6, 2, 0, 13, 11), c(6, 3, 2, 7, 2),
-];
-
-// ---------- Estudiantes y tutores legales ----------
-// Paralelo de cada estudiante en la gestión activa (usuarioId -> paraleloId)
-export const MOCK_MATRICULAS: { usuarioId: number; paraleloId: number }[] = [
-  { usuarioId: 2, paraleloId: 5 }, // Luis Mamani -> 3ro A
-];
-
-// Padre / tutor legal de cada estudiante
-export const MOCK_TUTORES: { padreId: number; estudianteId: number }[] = [
-  { padreId: 6, estudianteId: 2 }, // Rosa Quispe -> Luis Mamani
 ];

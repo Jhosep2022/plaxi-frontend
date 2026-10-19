@@ -1,0 +1,82 @@
+<app-page-header miga="Reportes" titulo="Asistencia de estudiantes" [descripcion]="'Asistencia registrada por clase. Se espera al menos ' + META + '%; las licencias no cuentan como falta.'">
+  <div class="filtros">
+    <label>Desde <input type="date" class="ui-input" id="rep-desde" [max]="hasta()" [value]="desde()" (change)="cambiarDesde($any($event.target).value)" /></label>
+    <label>Hasta <input type="date" class="ui-input" id="rep-hasta" [min]="desde()" [max]="hoy" [value]="hasta()" (change)="cambiarHasta($any($event.target).value)" /></label>
+    <button type="button" class="ui-btn ui-btn--secundario no-imprimir" (click)="imprimir()"><fa-icon [icon]="faPrint" /> Imprimir</button>
+  </div>
+</app-page-header>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando asistencia…</p>
+} @else if (general().total === 0) {
+  <div class="ui-card"><app-empty-state [icono]="faUserCheck" titulo="No hay asistencia registrada en este rango" texto="Elige otras fechas o pide a los docentes que tomen asistencia." /></div>
+} @else {
+  <div class="indicadores">
+    <div class="ui-card indicador destacado">
+      <span class="ui-icono tono-lima"><fa-icon [icon]="faUserCheck" /></span>
+      <div><strong>{{ general().porcentaje }}%</strong><small>de asistencia en {{ diasConClases() }} días de clase</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono alerta"><fa-icon [icon]="faUserXmark" /></span>
+      <div><strong>{{ general().ausente }}</strong><small>faltas a clases</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-crema"><fa-icon [icon]="faClock" /></span>
+      <div><strong>{{ general().atraso }}</strong><small>atrasos</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-azul"><fa-icon [icon]="faFileMedical" /></span>
+      <div><strong>{{ general().licencia }}</strong><small>clases con licencia</small></div>
+    </div>
+  </div>
+
+  <div class="secciones">
+    <section class="ui-card seccion">
+      <h2>Asistencia por curso</h2>
+      <span class="ui-ayuda">Solo los cursos que tuvieron clases con asistencia tomada en el rango.</span>
+      <app-barras [items]="porCurso()" />
+    </section>
+    <section class="ui-card seccion">
+      <h2>Asistencia por día</h2>
+      <span class="ui-ayuda">Porcentaje de asistencia de cada día de clases.</span>
+      <app-columnas [items]="porDia()" [max]="100" />
+      <div class="leyenda"><span>{{ META }}% o más</span><span class="baja">Menos de {{ META }}%</span></div>
+    </section>
+  </div>
+
+  <div class="secciones">
+    <section class="ui-card seccion">
+      <h2>Por materia</h2>
+      <span class="ui-ayuda">De menor a mayor asistencia.</span>
+      <app-barras [items]="porMateria()" />
+    </section>
+    <section class="ui-card seccion">
+      <h2>
+        Estudiantes con más faltas
+        <button type="button" class="ui-btn ui-btn--secundario exportar" (click)="exportar()" [disabled]="!estudiantes().length"><fa-icon [icon]="faFileCsv" /> Exportar CSV</button>
+      </h2>
+      <span class="ui-ayuda">{{ estudiantes().length }} estudiantes con al menos una falta o atraso.</span>
+      <div class="ui-tabla-contenedor">
+        <table class="ui-tabla" id="tabla-faltas">
+          <thead><tr><th>Estudiante</th><th>Curso</th><th class="num">Faltas</th><th class="num">Atrasos</th><th class="num">Asistencia</th></tr></thead>
+          <tbody>
+            @for (e of estudiantesVisibles(); track e.nombre + e.curso) {
+              <tr>
+                <td><strong>{{ e.nombre }}</strong></td>
+                <td>{{ e.curso }}</td>
+                <td class="num">{{ e.conteo.ausente }}</td>
+                <td class="num">{{ e.conteo.atraso }}</td>
+                <td class="num" [class.reprobada]="e.conteo.porcentaje < META">{{ e.conteo.porcentaje }}%</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="vacio">Nadie faltó ni llegó tarde en este rango. 🎉</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (estudiantes().length > 15) {
+        <button type="button" class="ui-btn ui-btn--secundario ver-mas no-imprimir" (click)="verTodos.set(!verTodos())">{{ verTodos() ? 'Ver menos' : 'Ver los ' + estudiantes().length }}</button>
+      }
+    </section>
+  </div>
+}

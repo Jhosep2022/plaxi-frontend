@@ -1,0 +1,111 @@
+<app-page-header miga="Reportes" titulo="Rendimiento académico" [descripcion]="'Notas finales de todos los cursos de la gestión ' + (gestion()?.anio ?? '') + '. Aprueba con ' + (config()?.notaAprobacion ?? '') + ' sobre ' + (config()?.notaMaxima ?? '') + '.'">
+  <div class="filtros">
+    <label>Periodo
+      <select class="ui-input" aria-label="Periodo" (change)="periodo.set(+$any($event.target).value)">
+        @for (p of gestion()?.periodos ?? []; track $index) {
+          <option [value]="$index" [selected]="periodo() === $index">{{ p.nombre }}</option>
+        }
+        <option [value]="ANUAL" [selected]="periodo() === ANUAL">Promedio anual</option>
+      </select>
+    </label>
+    <button type="button" class="ui-btn ui-btn--secundario no-imprimir" (click)="imprimir()"><fa-icon [icon]="faPrint" /> Imprimir</button>
+  </div>
+</app-page-header>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Calculando notas de todos los cursos…</p>
+} @else if (notas().length === 0) {
+  <div class="ui-card"><app-empty-state [icono]="faChartLine" titulo="Todavía no hay notas en este periodo" texto="Cuando los docentes registren notas, verás aquí el rendimiento de cada curso." /></div>
+} @else {
+  @if (provisional()) {
+    <p class="ui-aviso">{{ nombrePeriodo() }} todavía no está cerrado: estos resultados son provisionales.</p>
+  }
+
+  <div class="indicadores">
+    <div class="ui-card indicador destacado">
+      <span class="ui-icono tono-lima"><fa-icon [icon]="faChartLine" /></span>
+      <div><strong>{{ resumen().promedio }}</strong><small>promedio general</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-azul"><fa-icon [icon]="faCircleCheck" /></span>
+      <div><strong>{{ resumen().aprobacion }}%</strong><small>de notas aprobadas</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono alerta"><fa-icon [icon]="faTriangleExclamation" /></span>
+      <div><strong>{{ resumen().enRiesgo }}</strong><small>estudiantes con materias reprobadas</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-crema"><fa-icon [icon]="faUsers" /></span>
+      <div><strong>{{ resumen().evaluados }}</strong><small>estudiantes evaluados</small></div>
+    </div>
+  </div>
+
+  <div class="secciones">
+    <section class="ui-card seccion">
+      <h2>Promedio por curso</h2>
+      <span class="ui-ayuda">En tono crema, los cursos con menos del 90% de notas aprobadas.</span>
+      <app-barras [items]="porCurso()" [max]="config()?.notaMaxima ?? 100" />
+    </section>
+    <section class="ui-card seccion">
+      <h2>Distribución de notas</h2>
+      <span class="ui-ayuda">Cantidad de notas finales (estudiante × materia) en cada rango.</span>
+      <app-columnas [items]="distribucion()" />
+      <div class="leyenda"><span>Aprobadas</span><span class="baja">Reprobadas</span></div>
+    </section>
+  </div>
+
+  <section class="ui-card seccion">
+    <h2>
+      Materias con reprobados
+      <button type="button" class="ui-btn ui-btn--secundario exportar" (click)="exportarMaterias()" [disabled]="!materiasCriticas().length"><fa-icon [icon]="faFileCsv" /> Exportar CSV</button>
+    </h2>
+    <span class="ui-ayuda">Ordenadas por porcentaje de reprobados: conviene revisarlas con su docente.</span>
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla" id="tabla-materias">
+        <thead><tr><th>Materia</th><th>Curso</th><th>Docente</th><th class="num">Promedio</th><th class="num">Reprobados</th></tr></thead>
+        <tbody>
+          @for (m of materiasCriticas(); track m.curso + m.materia) {
+            <tr>
+              <td><strong>{{ m.materia }}</strong></td>
+              <td>{{ m.curso }}</td>
+              <td>{{ m.docente }}</td>
+              <td class="num">{{ m.promedio }}</td>
+              <td class="num"><span class="ui-badge alerta">{{ m.reprobados }} de {{ m.total }}</span></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="vacio">Ninguna materia tiene reprobados en este periodo. 🎉</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ui-card seccion separada">
+    <h2>
+      Estudiantes en riesgo
+      <button type="button" class="ui-btn ui-btn--secundario exportar" (click)="exportarRiesgo()" [disabled]="!enRiesgo().length"><fa-icon [icon]="faFileCsv" /> Exportar CSV</button>
+    </h2>
+    <span class="ui-ayuda">Estudiantes con al menos una materia por debajo de {{ config()?.notaAprobacion }}.</span>
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla" id="tabla-riesgo">
+        <thead><tr><th>Estudiante</th><th>Curso</th><th>Materias reprobadas</th><th class="num">Promedio</th></tr></thead>
+        <tbody>
+          @for (e of enRiesgo(); track e.estudiante + e.curso) {
+            <tr>
+              <td><strong>{{ e.estudiante }}</strong></td>
+              <td>{{ e.curso }}</td>
+              <td>
+                @for (r of e.reprobadas; track r.materia) {
+                  <span class="ui-badge alerta">{{ r.materia }} · {{ r.nota }}</span>&nbsp;
+                }
+              </td>
+              <td class="num">{{ e.promedio }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="vacio">Ningún estudiante tiene materias reprobadas.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}

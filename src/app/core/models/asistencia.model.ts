@@ -10,11 +10,13 @@ export const ESTADOS_ASISTENCIA: { id: EstadoAsistencia; label: string; corto: s
 
 export const TOLERANCIA_POR_DEFECTO = 10; // minutos
 
-// Estudiante de un paralelo (en la gestión activa)
+// Estudiante del colegio y su paralelo en la gestión activa (0 = todavía sin inscribir)
 export interface Estudiante {
   id: number;
   nombre: string;
   paraleloId: number;
+  ci: string;
+  fechaNacimiento: string; // YYYY-MM-DD
 }
 
 // Asistencia de un estudiante en una clase (materia + paralelo) en una fecha
