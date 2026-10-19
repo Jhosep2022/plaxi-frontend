@@ -7,8 +7,8 @@ export default [
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   {
     path: 'inicio',
-    title: 'Inicio',
-    loadComponent: () => import('../../components/home/home.component').then((m) => m.HomeComponent),
+    title: 'Resumen',
+    loadComponent: () => import('../resumen/resumen.component').then((m) => m.ResumenComponent),
   },
 
   // Contenido digital: cursos -> lecciones -> temas (colegio y academia)

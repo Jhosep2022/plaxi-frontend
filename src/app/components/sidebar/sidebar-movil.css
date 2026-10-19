@@ -1,0 +1,11 @@
+/* Pantallas chicas: el panel flota sobre el contenido en lugar de empujarlo */
+@media (max-width: 768px) {
+  .panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: var(--rail-w);
+    z-index: 900;
+    box-shadow: 8px 0 24px rgba(10, 10, 35, 0.18);
+  }
+}

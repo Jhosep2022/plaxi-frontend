@@ -1,0 +1,44 @@
+@if (data(); as d) {
+  <app-dash-header [saludo]="d.saludo" [subtitulo]="d.subtitulo" [accion]="d.accion" placeholder="Buscar cursos, estudiantes…" />
+
+  <div class="grid">
+    <!-- Columna principal -->
+    <div class="principal">
+      <div class="progreso">
+        @for (tarjeta of d.progreso; track tarjeta.titulo) {
+          <app-progress-card [data]="tarjeta" />
+        }
+      </div>
+
+      <app-dash-card [titulo]="d.horario.titulo">
+        <span acciones class="chip">Hoy <fa-icon [icon]="faChevronDown" /></span>
+        <button acciones type="button" class="chip-btn" aria-label="Agregar actividad"><fa-icon [icon]="faPlus" /></button>
+        <app-schedule-timeline [eventos]="d.horario.eventos" [desde]="d.horario.desde" [hasta]="d.horario.hasta" />
+      </app-dash-card>
+
+      <div class="inferior">
+        <app-assistant-card [sugerencia]="d.asistente.sugerencia" />
+        <app-dash-card [titulo]="d.lista.titulo" [verTodo]="d.lista.verTodo">
+          <app-item-list [items]="d.lista.items" />
+        </app-dash-card>
+      </div>
+    </div>
+
+    <!-- Columna lateral -->
+    <div class="lateral">
+      <app-dash-card [titulo]="d.proximos.titulo" [verTodo]="d.proximos.verTodo">
+        <app-upcoming-list [items]="d.proximos.items" />
+      </app-dash-card>
+
+      <app-dash-card titulo="Perfil">
+        <app-profile-card [data]="d.perfil" />
+        <h3 class="subtitulo">{{ d.actividad.titulo }}</h3>
+        <app-item-list class="tarjetas" [items]="d.actividad.items" />
+      </app-dash-card>
+    </div>
+  </div>
+} @else if (data() === null) {
+  <p class="estado">No pudimos cargar tu resumen. Intenta de nuevo más tarde.</p>
+} @else {
+  <p class="estado">Cargando tu resumen…</p>
+}

@@ -6,6 +6,35 @@
   --lime-green: #bccf4e;
   --text-light: #ffffff;
   --text-dark: #0a0a23;
+
+  /* Variantes de la paleta (tintes suaves para fondos, tonos fuertes para íconos) */
+  --lime-soft: #f2f5dc;
+  --lime-strong: #6f7f1c;
+  --blue-soft: #e8e8f1;
+  --cream-soft: #fbf5ee;
+  --cream-strong: #9a6b3f;
+  --page-bg: #faf8f4;
+  --line: #ececf0;
+  --muted: #6b6b80;
+}
+
+/* Tonos para tarjetas, íconos y barras (dashboard). Uso: class="tono-lima" */
+.tono-lima {
+  --tono-bg: var(--lime-soft);
+  --tono-fg: var(--lime-strong);
+  --tono-bar: var(--lime-green);
+}
+
+.tono-azul {
+  --tono-bg: var(--blue-soft);
+  --tono-fg: var(--dark-blue);
+  --tono-bar: var(--dark-blue);
+}
+
+.tono-crema {
+  --tono-bg: var(--light-cream);
+  --tono-fg: var(--cream-strong);
+  --tono-bar: #d9b48f;
 }
 
 body {

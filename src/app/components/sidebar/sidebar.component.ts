@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -27,11 +27,12 @@ import { PerfilDto } from '../../models/PerfilDto';
 import { NavItem, NavModule, navegacion } from './sidebar.navigation';
 
 const COLLAPSED_KEY = 'sidebarCollapsed';
+const esMovil = () => typeof window !== 'undefined' && window.innerWidth <= 768;
 
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.css', './sidebar-espacio.css'],
+  styleUrls: ['./sidebar.component.css', './sidebar-espacio.css', './sidebar-movil.css'],
   imports: [RouterLink, RouterLinkActive, FaIconComponent],
   host: {
     '(document:click)': 'onDocumentClick($event)',
@@ -115,6 +116,14 @@ export class SidebarComponent {
   readonly userMenuOpen = signal(false);
   readonly espacioMenuOpen = signal(false);
 
+  constructor() {
+    // En celular el panel flota sobre el contenido: se cierra después de cada navegación
+    effect(() => {
+      this.url();
+      if (esMovil()) untracked(() => this.collapsed.set(true));
+    });
+  }
+
   // Link absoluto dentro del espacio activo
   link(route: string): string {
     return `/${this.slug()}/${route}`;
@@ -189,6 +198,7 @@ export class SidebarComponent {
   }
 
   private readCollapsed(): boolean {
+    if (esMovil()) return true;
     try {
       return localStorage.getItem(COLLAPSED_KEY) === 'true';
     } catch {
@@ -198,6 +208,7 @@ export class SidebarComponent {
 
   private setCollapsed(value: boolean): void {
     this.collapsed.set(value);
+    if (esMovil()) return; // la preferencia guardada es solo para escritorio
     try {
       localStorage.setItem(COLLAPSED_KEY, String(value));
     } catch {
