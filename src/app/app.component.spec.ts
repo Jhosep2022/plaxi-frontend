@@ -5,8 +5,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('AppComponent', () => {
   beforeEach(() => TestBed.configureTestingModule({
-    imports: [RouterTestingModule],
-    declarations: [AppComponent],
+    imports: [RouterTestingModule, AppComponent],
     schemas: [NO_ERRORS_SCHEMA]
 }).compileComponents());
 
