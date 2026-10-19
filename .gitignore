@@ -44,3 +44,6 @@ Thumbs.db
 .agents
 .codestudio
 skills-lock.json
+
+# Capturas de las pruebas e2e
+e2e/capturas/
