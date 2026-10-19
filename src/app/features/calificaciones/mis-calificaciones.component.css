@@ -1,0 +1,168 @@
+.cargando {
+  color: var(--muted);
+}
+
+.aviso {
+  margin: 0 0 16px;
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.indicador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indicador div {
+  display: flex;
+  flex-direction: column;
+}
+
+.indicador strong {
+  font-size: 24px;
+}
+
+.indicador small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.indicador.destacado {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+}
+
+.materias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.materia header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.materia.en-riesgo {
+  border-color: #e3a49b;
+}
+
+.titulo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.titulo small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.final {
+  min-width: 52px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--lime-soft);
+  color: var(--dark-blue);
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.final.reprobada {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+.final.vacia {
+  background: var(--page-bg);
+  color: var(--muted);
+}
+
+.criterios {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.criterios li {
+  display: grid;
+  grid-template-columns: 110px 1fr 34px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.criterios small {
+  color: var(--muted);
+}
+
+.criterios .valor {
+  font-weight: bold;
+  text-align: right;
+}
+
+.barra-baja {
+  --tono-bar: #c0392b;
+}
+
+details {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+summary {
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.actividades {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.actividades li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px dashed var(--line);
+}
+
+.actividades li:last-child {
+  border-bottom: none;
+}
+
+.actividades small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.reprobada {
+  color: #c0392b;
+}
+
+.sin-actividades {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}

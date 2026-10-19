@@ -8,10 +8,10 @@ import {
   MOCK_DOCENTES,
   MOCK_GESTIONES,
   MOCK_MATERIAS,
-  MOCK_MATRICULAS,
   MOCK_PARALELOS,
-  MOCK_TUTORES,
 } from '../mocks/academico.mock';
+import { MOCK_ESTUDIANTES } from '../mocks/asistencia.mock';
+import { MOCK_VINCULOS } from '../mocks/personas.mock';
 import { RepositorioMock } from './repositorio-mock';
 
 // Módulo Académico del colegio: gestiones, aulas, paralelos, materias y asignaciones.
@@ -122,12 +122,12 @@ export class AcademicoService {
   // ---------- Estudiantes y tutores ----------
   // Paralelo en el que está inscrito un estudiante (0 si no tiene)
   paraleloDeEstudiante(usuarioId: number): Observable<number> {
-    return of(MOCK_MATRICULAS.find((m) => m.usuarioId === usuarioId)?.paraleloId ?? 0);
+    return of(MOCK_ESTUDIANTES.find((e) => e.id === usuarioId)?.paraleloId ?? 0);
   }
 
   // Estudiantes a cargo de un padre o tutor legal
   hijosDe(padreId: number): Observable<number[]> {
-    return of(MOCK_TUTORES.filter((t) => t.padreId === padreId).map((t) => t.estudianteId));
+    return of(MOCK_VINCULOS.filter((v) => v.padreId === padreId).map((v) => v.estudianteId));
   }
 
   // ---------- Docentes y asignaciones ----------

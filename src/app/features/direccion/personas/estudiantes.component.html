@@ -1,0 +1,124 @@
+<app-page-header miga="Personas" titulo="Estudiantes" descripcion="Estudiantes del colegio con su curso en la gestión activa y sus padres o tutores registrados.">
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo estudiante</button>
+</app-page-header>
+
+<div class="indicadores">
+  <div class="ui-card indicador destacado">
+    <span class="ui-icono tono-lima"><fa-icon [icon]="faUserGraduate" /></span>
+    <div><strong>{{ conteo().inscritos }}</strong><small>inscritos en un curso</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-crema"><fa-icon [icon]="faUserClock" /></span>
+    <div><strong>{{ conteo().sinCurso }}</strong><small>sin inscribir</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono alerta"><fa-icon [icon]="faChild" /></span>
+    <div><strong>{{ conteo().sinTutor }}</strong><small>sin padre o tutor registrado</small></div>
+  </div>
+</div>
+
+<div class="filtros">
+  <label class="buscar">
+    <fa-icon [icon]="faMagnifyingGlass" />
+    <input class="ui-input" placeholder="Buscar por nombre o CI" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar estudiante" />
+  </label>
+  <select class="ui-input" aria-label="Curso" (change)="curso.set($any($event.target).value)">
+    <option value="todos" [selected]="curso() === 'todos'">Todos los cursos</option>
+    <option [value]="SIN_CURSO" [selected]="curso() === SIN_CURSO">Sin inscribir ({{ conteo().sinCurso }})</option>
+    @for (p of cursos(); track p.id) {
+      <option [value]="'' + p.id" [selected]="curso() === '' + p.id">{{ paraleloLabel(p) }}</option>
+    }
+  </select>
+  <span class="contador-filas">{{ visibles().length }} de {{ conteo().total }} estudiantes</span>
+</div>
+
+<div class="ui-card">
+  @if (estudiantes.isLoading() && estudiantes.value().length === 0) {
+    <p class="cargando">Cargando estudiantes…</p>
+  } @else {
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla">
+        <thead>
+          <tr><th>Estudiante</th><th>CI</th><th>Curso</th><th>Padres / tutores</th><th>Cuenta</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (e of visibles(); track e.id) {
+            <tr>
+              <td>
+                <div class="persona">
+                  <span class="avatar">{{ iniciales(e.nombre) }}</span>
+                  <div><strong>{{ e.nombre }}</strong><small>{{ edadDe(e) }} años</small></div>
+                </div>
+              </td>
+              <td>{{ e.ci }}</td>
+              <td>
+                @if (e.paraleloId) { <span class="ui-badge tono-lima">{{ cursoDe(e) }}</span> } @else { <span class="ui-badge tono-crema">Sin inscribir</span> }
+              </td>
+              <td>
+                @if (tutoresDe().get(e.id); as tutores) {
+                  <span class="secundario">{{ tutores.join(', ') }}</span>
+                } @else {
+                  <span class="ui-badge alerta">Sin tutor registrado</span>
+                }
+              </td>
+              <td>
+                @if (cuentas.value().has(e.id)) { <span class="ui-badge tono-azul">Con cuenta</span> } @else { <span class="secundario">Sin cuenta</span> }
+              </td>
+              <td>
+                <div class="acciones">
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="editar(e)" [attr.aria-label]="'Editar ' + e.nombre"><fa-icon [icon]="faPen" /></button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="vacio">Ningún estudiante coincide con los filtros.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-drawer [abierto]="drawerAbierto()" [titulo]="editando() ? 'Editar estudiante' : 'Nuevo estudiante'" subtitulo="Los padres o tutores se vinculan en Personas → Padres y tutores." (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-campo">
+      <label for="est-nombre">Nombre completo</label>
+      <input id="est-nombre" class="ui-input" placeholder="Ej. Luis Mamani Quispe" [formField]="formulario.nombre" />
+      @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+        <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="est-ci">CI</label>
+        <input id="est-ci" class="ui-input" placeholder="Ej. 9123456" [formField]="formulario.ci" />
+        @if (formulario.ci().touched() && formulario.ci().invalid()) {
+          <span class="ui-error">{{ formulario.ci().errors()[0].message }}</span>
+        }
+      </div>
+      <div class="ui-campo">
+        <label for="est-nac">Fecha de nacimiento</label>
+        <input id="est-nac" type="date" class="ui-input" [max]="hoy" [formField]="formulario.fechaNacimiento" />
+        @if (formulario.fechaNacimiento().touched() && formulario.fechaNacimiento().invalid()) {
+          <span class="ui-error">{{ formulario.fechaNacimiento().errors()[0].message }}</span>
+        }
+      </div>
+    </div>
+    <div class="ui-campo">
+      <label for="est-curso">Curso</label>
+      <select id="est-curso" class="ui-input" [formField]="formulario.paraleloId">
+        <option value="0" [selected]="modelo().paraleloId === '0'">Sin inscribir por ahora</option>
+        @for (p of cursos(); track p.id) {
+          <option [value]="'' + p.id" [selected]="modelo().paraleloId === '' + p.id" [disabled]="!disponible(p.id, p.estudiantes, p.capacidad)">
+            {{ paraleloLabel(p) }} · {{ p.estudiantes }}/{{ p.capacidad }}@if (!disponible(p.id, p.estudiantes, p.capacidad)) { (lleno) }
+          </option>
+        }
+      </select>
+      <span class="ui-ayuda">También puedes inscribirlo o cambiarlo de curso desde Personas → Inscripciones.</span>
+    </div>
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Registrar estudiante' }}</button>
+  </ng-container>
+</app-drawer>

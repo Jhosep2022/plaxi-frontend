@@ -15,10 +15,10 @@ export default [
   { path: 'academico/horarios', title: 'Horarios', loadComponent: () => import('./academico/horarios/horarios.component').then((m) => m.HorariosComponent) },
 
   // Personas
-  proximamente('personas/docentes', 'Docentes'),
-  proximamente('personas/estudiantes', 'Estudiantes'),
-  proximamente('personas/padres', 'Padres y tutores legales'),
-  proximamente('personas/inscripciones', 'Inscripciones', 'Inscripción de estudiantes a grados y paralelos.'),
+  { path: 'personas/docentes', title: 'Docentes', loadComponent: () => import('./personas/docentes.component').then((m) => m.DocentesComponent) },
+  { path: 'personas/estudiantes', title: 'Estudiantes', loadComponent: () => import('./personas/estudiantes.component').then((m) => m.EstudiantesComponent) },
+  { path: 'personas/padres', title: 'Padres y tutores legales', loadComponent: () => import('./personas/padres.component').then((m) => m.PadresComponent) },
+  { path: 'personas/inscripciones', title: 'Inscripciones', loadComponent: () => import('./personas/inscripciones.component').then((m) => m.InscripcionesComponent) },
 
   // Asistencia
   { path: 'asistencia/estudiantes', title: 'Asistencia de estudiantes', loadComponent: () => import('./asistencia/asistencia-estudiantes.component').then((m) => m.AsistenciaEstudiantesComponent) },
@@ -27,11 +27,14 @@ export default [
   { path: 'asistencia/puntos-marcacion', title: 'Puntos de marcación', loadComponent: () => import('./asistencia/puntos-marcacion.component').then((m) => m.PuntosMarcacionComponent) },
 
   // Calificaciones
-  proximamente('calificaciones/escala', 'Escala y ponderación', 'Nota máxima, nota de aprobación y peso de cada criterio.'),
-  proximamente('calificaciones/periodos', 'Cierre de periodos'),
-  proximamente('calificaciones/boletines', 'Boletines'),
+  { path: 'calificaciones/escala', title: 'Escala y ponderación', loadComponent: () => import('./calificaciones/escala.component').then((m) => m.EscalaComponent) },
+  { path: 'calificaciones/periodos', title: 'Cierre de periodos', loadComponent: () => import('./calificaciones/cierre-periodos.component').then((m) => m.CierrePeriodosComponent) },
+  { path: 'calificaciones/boletines', title: 'Boletines', loadComponent: () => import('./calificaciones/boletines.component').then((m) => m.BoletinesComponent) },
 
-  proximamente('reportes', 'Reportes'),
+  { path: 'reportes', pathMatch: 'full', redirectTo: 'reportes/rendimiento' },
+  { path: 'reportes/rendimiento', title: 'Rendimiento académico', loadComponent: () => import('./reportes/rendimiento.component').then((m) => m.RendimientoComponent) },
+  { path: 'reportes/asistencia', title: 'Reporte de asistencia', loadComponent: () => import('./reportes/asistencia-reporte.component').then((m) => m.AsistenciaReporteComponent) },
+  { path: 'reportes/puntualidad', title: 'Puntualidad del personal', loadComponent: () => import('./reportes/puntualidad.component').then((m) => m.PuntualidadComponent) },
   proximamente('institucion', 'Datos de la institución'),
   { path: 'institucion/jornada', title: 'Jornada escolar', loadComponent: () => import('./institucion/jornada/jornada.component').then((m) => m.JornadaComponent) },
   { path: 'institucion/horario-laboral', title: 'Horario laboral', loadComponent: () => import('./institucion/horario-laboral/horario-laboral.component').then((m) => m.HorarioLaboralComponent) },

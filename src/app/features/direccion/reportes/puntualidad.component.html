@@ -1,0 +1,64 @@
+<app-page-header miga="Reportes" titulo="Puntualidad del personal" [descripcion]="'Entradas marcadas con QR y GPS frente al horario laboral. Cada docente debe marcar los días que tiene clases; se espera al menos ' + META + '% de puntualidad.'">
+  <div class="filtros">
+    <label>Desde <input type="date" class="ui-input" id="rep-desde" [max]="hasta()" [value]="desde()" (change)="cambiarDesde($any($event.target).value)" /></label>
+    <label>Hasta <input type="date" class="ui-input" id="rep-hasta" [min]="desde()" [max]="hoy" [value]="hasta()" (change)="cambiarHasta($any($event.target).value)" /></label>
+    <button type="button" class="ui-btn ui-btn--secundario no-imprimir" (click)="imprimir()"><fa-icon [icon]="faPrint" /> Imprimir</button>
+  </div>
+</app-page-header>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando marcaciones…</p>
+} @else if (filas().length === 0) {
+  <div class="ui-card"><app-empty-state [icono]="faClock" titulo="Nadie debía marcar en este rango" texto="Elige un rango con días de clases." /></div>
+} @else {
+  <div class="indicadores">
+    <div class="ui-card indicador destacado">
+      <span class="ui-icono tono-lima"><fa-icon [icon]="faClock" /></span>
+      <div><strong>{{ resumen().puntualidad }}%</strong><small>de puntualidad</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-crema"><fa-icon [icon]="faUserClock" /></span>
+      <div><strong>{{ resumen().atrasos }}</strong><small>entradas con atraso</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-azul"><fa-icon [icon]="faHourglassHalf" /></span>
+      <div><strong>{{ resumen().minutos }} min</strong><small>de atraso acumulado</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono alerta"><fa-icon [icon]="faUserXmark" /></span>
+      <div><strong>{{ resumen().faltas }}</strong><small>días sin marcar</small></div>
+    </div>
+  </div>
+
+  <div class="secciones">
+    <section class="ui-card seccion">
+      <h2>Puntualidad por docente</h2>
+      <span class="ui-ayuda">Días a tiempo sobre los días con clases que ya pasaron.</span>
+      <app-barras [items]="grafico()" />
+    </section>
+    <section class="ui-card seccion">
+      <h2>
+        Detalle
+        <button type="button" class="ui-btn ui-btn--secundario exportar" (click)="exportar()"><fa-icon [icon]="faFileCsv" /> Exportar CSV</button>
+      </h2>
+      <span class="ui-ayuda">El día de hoy no cuenta como falta hasta que termine.</span>
+      <div class="ui-tabla-contenedor">
+        <table class="ui-tabla" id="tabla-puntualidad">
+          <thead><tr><th>Docente</th><th class="num">Días</th><th class="num">A tiempo</th><th class="num">Atrasos</th><th class="num">Faltas</th><th class="num">Puntualidad</th></tr></thead>
+          <tbody>
+            @for (f of filas(); track f.nombre) {
+              <tr>
+                <td><strong>{{ f.nombre }}</strong>@if (f.salidasAnticipadas) { <br /><small class="ui-ayuda">{{ f.salidasAnticipadas }} {{ f.salidasAnticipadas === 1 ? 'salida anticipada' : 'salidas anticipadas' }}</small> }</td>
+                <td class="num">{{ f.esperados }}</td>
+                <td class="num">{{ f.aTiempo }}</td>
+                <td class="num">{{ f.atrasos }}@if (f.minutosAtraso) { <small class="ui-ayuda"> ({{ f.minutosAtraso }} min)</small> }</td>
+                <td class="num">{{ f.faltas }}</td>
+                <td class="num" [class.reprobada]="f.puntualidad < META">{{ f.puntualidad }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+}

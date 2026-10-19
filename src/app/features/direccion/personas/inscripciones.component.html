@@ -1,0 +1,98 @@
+<app-page-header miga="Personas" titulo="Inscripciones"
+  [descripcion]="'Gestión ' + (gestion.value()?.anio ?? '') + ': inscribe estudiantes en su paralelo, cámbialos de curso o retíralos. Cada paralelo respeta su cupo.'" />
+
+<div class="indicadores">
+  <div class="ui-card indicador destacado">
+    <span class="ui-icono tono-lima"><fa-icon [icon]="faChartPie" /></span>
+    <div><strong>{{ resumen().inscritos }}/{{ resumen().capacidad }}</strong><small>cupos ocupados ({{ resumen().ocupacion }}%)</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-crema"><fa-icon [icon]="faUserClock" /></span>
+    <div><strong>{{ sinCurso().length }}</strong><small>estudiantes sin inscribir</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-azul"><fa-icon [icon]="faDoorClosed" /></span>
+    <div><strong>{{ resumen().llenos }}</strong><small>paralelos llenos</small></div>
+  </div>
+</div>
+
+@if (paralelos.isLoading() && paralelos.value().length === 0) {
+  <p class="cargando">Cargando paralelos…</p>
+} @else if (paralelos.value().length === 0) {
+  <div class="ui-card"><app-empty-state titulo="No hay paralelos en la gestión activa" texto="Créalos en Académico → Grados y paralelos." /></div>
+} @else {
+  <div class="distribucion">
+    <!-- Paralelos con su cupo -->
+    <aside class="paralelos">
+      @for (g of grupos(); track g.nivel) {
+        <h3>{{ g.nivel }}</h3>
+        @for (p of g.paralelos; track p.id) {
+          <button type="button" class="ui-card paralelo" [class.elegido]="p.id === seleccionadoId()" (click)="seleccionadoId.set(p.id)">
+            <span class="linea"><strong>{{ paraleloLabel(p) }}</strong><small>{{ turnoLabel(p) }}</small></span>
+            <span class="ui-barra" [class]="lleno(p) ? 'tono-crema' : 'tono-lima'"><span [style.width.%]="ocupacion(p)"></span></span>
+            <small class="cupo" [class.lleno]="lleno(p)">{{ p.estudiantes }} de {{ p.capacidad }}@if (lleno(p)) { · lleno }</small>
+          </button>
+        }
+      }
+    </aside>
+
+    <div class="columna">
+      @if (seleccionado(); as sel) {
+        <!-- Estudiantes sin inscribir -->
+        @if (sinCurso().length) {
+          <section class="ui-card pendientes">
+            <h2><fa-icon [icon]="faUserClock" /> Sin inscribir <span class="ui-badge tono-crema">{{ sinCurso().length }}</span></h2>
+            <ul class="lista">
+              @for (e of sinCurso(); track e.id) {
+                <li>
+                  <span class="avatar">{{ iniciales(e.nombre) }}</span>
+                  <span class="nombre"><strong>{{ e.nombre }}</strong><small>{{ edadDe(e) }} años · CI {{ e.ci }}</small></span>
+                  <button type="button" class="ui-btn" [disabled]="lleno(sel) || trabajando() === e.id" (click)="inscribir(e)">
+                    <fa-icon [icon]="faArrowRightToBracket" /> Inscribir en {{ paraleloLabel(sel) }}
+                  </button>
+                </li>
+              }
+            </ul>
+            @if (lleno(sel)) {
+              <p class="ui-aviso">{{ paraleloLabel(sel) }} está lleno. Elige otro paralelo a la izquierda o aumenta su capacidad en Académico.</p>
+            }
+          </section>
+        }
+
+        <!-- Estudiantes del paralelo -->
+        <section class="ui-card">
+          <header class="cabecera">
+            <div>
+              <h2>{{ paraleloLabel(sel) }} <small>· Turno {{ turnoLabel(sel) }}</small></h2>
+              <span class="secundario">{{ sel.estudiantes }} inscritos · {{ sel.capacidad - sel.estudiantes }} cupos libres</span>
+            </div>
+            <div class="ocupacion">
+              <div class="ui-barra" [class]="lleno(sel) ? 'tono-crema' : 'tono-lima'"><span [style.width.%]="ocupacion(sel)"></span></div>
+              <small>{{ ocupacion(sel) }}%</small>
+            </div>
+          </header>
+          <ul class="lista inscritos">
+            @for (e of inscritos(); track e.id; let n = $index) {
+              <li>
+                <span class="numero">{{ n + 1 }}</span>
+                <span class="avatar">{{ iniciales(e.nombre) }}</span>
+                <span class="nombre"><strong>{{ e.nombre }}</strong><small>{{ edadDe(e) }} años · CI {{ e.ci }}</small></span>
+                <select #mover class="ui-input mover" [attr.aria-label]="'Cambiar de paralelo a ' + e.nombre" [disabled]="trabajando() === e.id" (change)="cambiar(e, mover)">
+                  <option value="">Cambiar a…</option>
+                  @for (p of paralelos.value(); track p.id) {
+                    @if (p.id !== sel.id) {
+                      <option [value]="p.id" [disabled]="lleno(p)">{{ paraleloLabel(p) }} · {{ p.estudiantes }}/{{ p.capacidad }}</option>
+                    }
+                  }
+                </select>
+                <button type="button" class="ui-btn ui-btn--icono" [disabled]="trabajando() === e.id" (click)="retirar(e)" [attr.aria-label]="'Retirar a ' + e.nombre" title="Retirar del curso"><fa-icon [icon]="faUserMinus" /></button>
+              </li>
+            } @empty {
+              <li class="vacio">Todavía no hay estudiantes inscritos en este paralelo.</li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  </div>
+}

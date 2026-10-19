@@ -1,0 +1,153 @@
+/* Piezas comunes de los reportes de la dirección */
+.cargando {
+  color: var(--muted);
+}
+
+.filtros {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.filtros .ui-input {
+  width: 160px;
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.indicador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indicador div {
+  display: flex;
+  flex-direction: column;
+}
+
+.indicador strong {
+  font-size: 22px;
+}
+
+.indicador small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.indicador.destacado {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+}
+
+.alerta {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+.secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 700px) {
+  .secciones {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.seccion h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.seccion > .ui-ayuda {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.separada {
+  margin-top: 16px;
+}
+
+.ver-mas {
+  margin-top: 12px;
+}
+
+.exportar {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.num {
+  text-align: center !important;
+}
+
+.reprobada {
+  color: #c0392b;
+  font-weight: bold;
+}
+
+.vacio {
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.leyenda {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.leyenda span::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 3px;
+  background: var(--lime-green);
+}
+
+.leyenda span.baja::before {
+  background: #d9b48f;
+}
+
+@media print {
+  .exportar {
+    display: none;
+  }
+
+  .secciones {
+    display: block;
+  }
+
+  .seccion {
+    margin-bottom: 14px;
+    break-inside: avoid;
+  }
+}

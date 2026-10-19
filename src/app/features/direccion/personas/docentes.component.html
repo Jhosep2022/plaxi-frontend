@@ -1,0 +1,143 @@
+<app-page-header miga="Personas" titulo="Docentes" descripcion="Plantel docente del colegio. Las materias se asignan en Académico → Asignación docente.">
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo docente</button>
+</app-page-header>
+
+<div class="indicadores">
+  <div class="ui-card indicador destacado">
+    <span class="ui-icono tono-lima"><fa-icon [icon]="faUserTie" /></span>
+    <div><strong>{{ conteo().activos }}</strong><small>docentes activos</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-azul"><fa-icon [icon]="faChalkboardTeacher" /></span>
+    <div><strong>{{ conteo().conMaterias }}</strong><small>con materias asignadas</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-crema"><fa-icon [icon]="faChalkboardTeacher" /></span>
+    <div><strong>{{ conteo().sinMaterias }}</strong><small>activos sin materias</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono"><fa-icon [icon]="faUserSlash" /></span>
+    <div><strong>{{ conteo().baja }}</strong><small>dados de baja</small></div>
+  </div>
+</div>
+
+<div class="filtros">
+  <label class="buscar">
+    <fa-icon [icon]="faMagnifyingGlass" />
+    <input class="ui-input" placeholder="Buscar por nombre, CI o especialidad" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar docente" />
+  </label>
+  <div class="ui-tabs" role="tablist">
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'activos'" (click)="filtro.set('activos')">Activos <span class="contador">{{ conteo().activos }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'baja'" (click)="filtro.set('baja')">De baja <span class="contador">{{ conteo().baja }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'todos'" (click)="filtro.set('todos')">Todos</button>
+  </div>
+</div>
+
+<div class="ui-card">
+  @if (docentes.isLoading() && docentes.value().length === 0) {
+    <p class="cargando">Cargando docentes…</p>
+  } @else {
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla">
+        <thead>
+          <tr><th>Docente</th><th>Contacto</th><th>Materias que dicta</th><th>Clases/sem.</th><th>Cuenta</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (d of visibles(); track d.id) {
+            @let c = carga.value().get(d.id);
+            <tr [class.inactivo]="!d.activo">
+              <td>
+                <div class="persona">
+                  <span class="avatar azul">{{ iniciales(d.nombre) }}</span>
+                  <div><strong>{{ d.nombre }}</strong><small>{{ d.especialidad }} · CI {{ d.ci }}</small></div>
+                </div>
+              </td>
+              <td>
+                <div class="contacto">
+                  @if (d.telefono) { <span><fa-icon [icon]="faPhone" /> {{ d.telefono }}</span> }
+                  @if (d.email) { <span><fa-icon [icon]="faEnvelope" /> {{ d.email }}</span> }
+                  @if (!d.telefono && !d.email) { <span class="secundario">Sin datos</span> }
+                </div>
+              </td>
+              <td>
+                @if (!d.activo) {
+                  <span class="ui-badge">De baja</span>
+                } @else if (c) {
+                  <div class="chips">
+                    @for (m of c.materias.slice(0, 3); track m) { <span class="ui-badge tono-lima">{{ m }}</span> }
+                    @if (c.materias.length > 3) { <span class="ui-badge" [title]="c.materias.slice(3).join(', ')">+{{ c.materias.length - 3 }}</span> }
+                  </div>
+                } @else {
+                  <span class="ui-badge tono-crema">Sin materias</span>
+                }
+              </td>
+              <td>{{ c?.clasesSemana ?? 0 }}</td>
+              <td>
+                @if (cuentas.value().has(d.id)) { <span class="ui-badge tono-azul">Con cuenta</span> } @else { <span class="secundario">Sin cuenta</span> }
+              </td>
+              <td>
+                <div class="acciones">
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="editar(d)" [attr.aria-label]="'Editar ' + d.nombre"><fa-icon [icon]="faPen" /></button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="vacio">Ningún docente coincide con la búsqueda.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-drawer [abierto]="drawerAbierto()" [titulo]="editandoId() ? 'Editar docente' : 'Nuevo docente'" subtitulo="Datos personales y de contacto del docente." (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-campo">
+      <label for="doc-nombre">Nombre completo</label>
+      <input id="doc-nombre" class="ui-input" placeholder="Ej. María Fernández López" [formField]="formulario.nombre" />
+      @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+        <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="doc-ci">CI</label>
+        <input id="doc-ci" class="ui-input" placeholder="Ej. 4876512" [formField]="formulario.ci" />
+        @if (formulario.ci().touched() && formulario.ci().invalid()) {
+          <span class="ui-error">{{ formulario.ci().errors()[0].message }}</span>
+        }
+      </div>
+      <div class="ui-campo">
+        <label for="doc-tel">Teléfono <span class="ui-ayuda">(opcional)</span></label>
+        <input id="doc-tel" class="ui-input" inputmode="numeric" placeholder="Ej. 71234567" [formField]="formulario.telefono" />
+        @if (formulario.telefono().touched() && formulario.telefono().invalid()) {
+          <span class="ui-error">{{ formulario.telefono().errors()[0].message }}</span>
+        }
+      </div>
+    </div>
+    <div class="ui-campo">
+      <label for="doc-esp">Especialidad</label>
+      <input id="doc-esp" class="ui-input" placeholder="Ej. Matemáticas y Ciencias" [formField]="formulario.especialidad" />
+      @if (formulario.especialidad().touched() && formulario.especialidad().invalid()) {
+        <span class="ui-error">{{ formulario.especialidad().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-campo">
+      <label for="doc-email">Correo <span class="ui-ayuda">(opcional)</span></label>
+      <input id="doc-email" type="email" class="ui-input" placeholder="nombre@colegio.edu.bo" [formField]="formulario.email" />
+      @if (formulario.email().touched() && formulario.email().invalid()) {
+        <span class="ui-error">{{ formulario.email().errors()[0].message }}</span>
+      }
+    </div>
+    @if (editandoId()) {
+      <label class="check">
+        <input id="doc-activo" type="checkbox" [formField]="formulario.activo" />
+        <span>Activo (si lo desmarcas, queda de baja y ya no se le pueden asignar materias)</span>
+      </label>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : editandoId() ? 'Guardar cambios' : 'Registrar docente' }}</button>
+  </ng-container>
+</app-drawer>

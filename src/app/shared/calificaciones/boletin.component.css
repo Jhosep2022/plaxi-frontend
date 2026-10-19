@@ -1,0 +1,148 @@
+.boletin {
+  padding: 24px;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--dark-blue);
+}
+
+.escudo {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--dark-blue);
+  color: var(--lime-green);
+  font-size: 22px;
+}
+
+.titulos {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titulos small {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.titulos h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.titulos span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.datos div {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--page-bg);
+}
+
+.datos dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.datos dd {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.tabla th small {
+  display: block;
+  font-weight: normal;
+  color: var(--cream-strong);
+}
+
+.num {
+  text-align: center !important;
+  width: 110px;
+}
+
+td.num {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.provisional {
+  color: var(--muted);
+}
+
+.reprobada {
+  color: #c0392b;
+}
+
+.anual {
+  background: var(--cream-soft);
+}
+
+.materia {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.materia div {
+  display: flex;
+  flex-direction: column;
+}
+
+.materia small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ui-icono.chico {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+}
+
+.reprobado {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+tfoot th {
+  padding-top: 14px;
+  border-top: 2px solid var(--dark-blue);
+  border-bottom: none;
+  font-size: 13px;
+  color: var(--dark-blue);
+}
+
+.nota-pie {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media print {
+  .boletin {
+    border: none;
+    padding: 0;
+  }
+}

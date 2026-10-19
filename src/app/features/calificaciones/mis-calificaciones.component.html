@@ -1,0 +1,102 @@
+@if (espacio.tipo !== 'colegio') {
+  <app-page-header miga="Seguimiento" titulo="Mis calificaciones" />
+  <div class="ui-card">
+    <app-empty-state [icono]="faStar" titulo="Calificaciones de la academia" texto="Muy pronto verás aquí tus notas de Exámenes, Prácticas y Tareas." />
+  </div>
+} @else if (vista.isLoading() && !vista.value()) {
+  <p class="cargando">Cargando calificaciones…</p>
+} @else if (vista.value(); as v) {
+  <app-page-header class="no-imprimir" miga="Seguimiento" [titulo]="esPadre ? 'Calificaciones de ' + v.estudiante.nombre : 'Mis calificaciones'"
+    [descripcion]="'Gestión ' + v.datos.gestion.anio + ' · nota sobre ' + v.datos.config.notaMaxima + ', se aprueba con ' + v.datos.config.notaAprobacion + '.'">
+    <div class="ui-tabs" role="tablist" aria-label="Periodo">
+      @for (p of v.datos.gestion.periodos; track $index) {
+        <button type="button" role="tab" class="ui-tab" [class.activa]="pestana() === $index" [attr.aria-selected]="pestana() === $index" (click)="pestana.set($index)">
+          @if (cerrado($index)) { <fa-icon [icon]="faLock" /> }
+          {{ p.nombre }}
+        </button>
+      }
+      <button type="button" role="tab" class="ui-tab" [class.activa]="pestana() === BOLETIN" [attr.aria-selected]="pestana() === BOLETIN" (click)="pestana.set(BOLETIN)">
+        <fa-icon [icon]="faFileLines" /> Boletín
+      </button>
+    </div>
+  </app-page-header>
+
+  @if (pestana() === BOLETIN) {
+    <app-boletin [datos]="v.datos" [estudiante]="v.estudiante" [espacio]="espacio.nombre" />
+  } @else {
+    @if (!cerrado(pestana())) {
+      <p class="ui-aviso aviso">Periodo en curso: las notas son provisionales hasta que la dirección cierre el periodo.</p>
+    }
+
+    <div class="indicadores">
+      <div class="ui-card indicador destacado">
+        <span class="ui-icono tono-lima"><fa-icon [icon]="faChartLine" /></span>
+        <div><strong>{{ resumen().promedio ?? '—' }}</strong><small>promedio del periodo</small></div>
+      </div>
+      <div class="ui-card indicador">
+        <span class="ui-icono tono-azul"><fa-icon [icon]="faCircleCheck" /></span>
+        <div><strong>{{ resumen().aprobadas }}/{{ resumen().conNota }}</strong><small>materias aprobadas</small></div>
+      </div>
+      <div class="ui-card indicador">
+        <span class="ui-icono tono-crema"><fa-icon [icon]="faBookOpen" /></span>
+        <div><strong>{{ resumen().calificadas }}</strong><small>actividades calificadas</small></div>
+      </div>
+    </div>
+
+    <div class="materias">
+      @for (m of materias(); track m.materia.id) {
+        <article class="ui-card materia" [class.en-riesgo]="m.resultado.final !== null && !aprueba(m.resultado.final)">
+          <header>
+            <span class="ui-icono" [class]="'tono-' + m.materia.tono"><fa-icon [icon]="iconoMateria(m.materia.icono)" /></span>
+            <div class="titulo">
+              <strong>{{ m.materia.nombre }}</strong>
+              <small>Prof. {{ m.docente }}</small>
+            </div>
+            @if (m.resultado.final !== null) {
+              <span class="final" [class.reprobada]="!aprueba(m.resultado.final)">{{ m.resultado.final }}</span>
+            } @else {
+              <span class="final vacia">—</span>
+            }
+          </header>
+
+          <ul class="criterios">
+            @for (c of m.resultado.porCriterio; track c.criterio.id) {
+              <li>
+                <span class="nombre">{{ c.criterio.nombre }} <small>{{ c.criterio.porcentaje }}%</small></span>
+                <div class="ui-barra" [class]="c.promedio !== null && !aprueba(c.promedio) ? 'barra-baja' : 'tono-lima'">
+                  <span [style.width.%]="c.promedio !== null ? porcentaje(c.promedio) : 0"></span>
+                </div>
+                <span class="valor">{{ c.promedio ?? '—' }}</span>
+              </li>
+            }
+          </ul>
+
+          @if (m.actividades.length) {
+            <details>
+              <summary>Ver {{ m.actividades.length }} actividades</summary>
+              <ul class="actividades">
+                @for (a of m.actividades; track a.actividad.id) {
+                  <li>
+                    <span>{{ a.actividad.nombre }} <small>{{ a.criterio }} · {{ fechaCorta(a.actividad.fecha) }}</small></span>
+                    @if (a.nota !== undefined) {
+                      <strong [class.reprobada]="!aprueba(a.nota)">{{ a.nota }}</strong>
+                    } @else {
+                      <span class="ui-badge">Sin calificar</span>
+                    }
+                  </li>
+                }
+              </ul>
+            </details>
+          } @else {
+            <p class="sin-actividades">Todavía no hay actividades en este periodo.</p>
+          }
+        </article>
+      }
+    </div>
+  }
+} @else {
+  <app-page-header miga="Seguimiento" titulo="Calificaciones" />
+  <div class="ui-card">
+    <app-empty-state [icono]="faStar" titulo="Sin calificaciones" [texto]="esPadre ? 'Pide a la dirección que vincule tu cuenta con la de tu hijo.' : 'Todavía no estás inscrito en un curso de la gestión activa.'" />
+  </div>
+}

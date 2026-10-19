@@ -208,7 +208,15 @@ function direccion(): NavModule[] {
         ],
       }],
     },
-    { id: 'reportes', label: 'Reportes', icon: faChartLine, sections: [{ items: [item('Reportes', faChartLine, 'direccion/reportes')] }] },
+    {
+      id: 'reportes', label: 'Reportes', icon: faChartLine, sections: [{
+        items: [
+          item('Rendimiento académico', faChartLine, 'direccion/reportes/rendimiento'),
+          item('Asistencia de estudiantes', faUserCheck, 'direccion/reportes/asistencia'),
+          item('Puntualidad del personal', faClock, 'direccion/reportes/puntualidad'),
+        ],
+      }],
+    },
     {
       id: 'institucion', label: 'Institución', icon: faCog, sections: [{
         items: [
