@@ -1,0 +1,73 @@
+.cargando {
+  color: var(--muted);
+}
+
+.filtros {
+  margin-bottom: 16px;
+}
+
+.lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 14px;
+}
+
+.licencia {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.licencia header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quien {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+}
+
+.quien small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.estado-pendiente { background: var(--light-cream); color: var(--cream-strong); }
+.estado-aprobada { background: var(--lime-soft); color: var(--lime-strong); }
+.estado-rechazada { background: #fdf0ee; color: #c0392b; }
+
+.motivo {
+  margin: 0;
+  font-size: 14px;
+}
+
+.archivo {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.respuesta {
+  margin: 0;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.licencia footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.area {
+  height: auto;
+  padding: 10px 12px;
+  resize: vertical;
+}

@@ -1,0 +1,89 @@
+<app-page-header miga="Asistencia" titulo="Asistencia de estudiantes" descripcion="Resumen diario generado automáticamente a partir de la asistencia que toma cada docente por clase.">
+  @if (pendientes()) {
+    <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('asistencia', 'licencias')"><fa-icon [icon]="faFileMedical" /> {{ pendientes() }} licencia(s) por revisar</a>
+  }
+  <label class="fecha">
+    <fa-icon [icon]="faCalendarDays" />
+    <input type="date" class="ui-input" [max]="hoy" [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)" aria-label="Fecha" />
+  </label>
+</app-page-header>
+
+@if (base.isLoading() && !base.value()) {
+  <p class="cargando">Cargando asistencia…</p>
+} @else if (resumen(); as r) {
+  <h2 class="dia">{{ fechaLarga(fecha()) }}</h2>
+
+  @if (r.general.total === 0) {
+    <div class="ui-card">
+      <app-empty-state [icono]="faCalendarDays" titulo="No hay asistencia registrada este día" texto="Elige otro día o espera a que los docentes tomen asistencia." />
+    </div>
+  } @else {
+    <div class="indicadores">
+      <div class="ui-card indicador destacado">
+        <span class="ui-icono tono-lima"><fa-icon [icon]="faUserCheck" /></span>
+        <div><strong>{{ r.general.porcentaje }}%</strong><small>asistencia del día</small></div>
+      </div>
+      <div class="ui-card indicador">
+        <span class="ui-icono tono-azul"><fa-icon [icon]="faUsers" /></span>
+        <div><strong>{{ r.general.total }}</strong><small>estudiantes con clases</small></div>
+      </div>
+      <div class="ui-card indicador">
+        <span class="ui-icono ausente"><fa-icon [icon]="faUserXmark" /></span>
+        <div><strong>{{ r.general.ausente }}</strong><small>faltaron todo el día · {{ r.general.parcial }} a algunas clases</small></div>
+      </div>
+      <div class="ui-card indicador">
+        <span class="ui-icono tono-crema"><fa-icon [icon]="faClock" /></span>
+        <div><strong>{{ r.general.atraso }}</strong><small>llegaron con atraso · {{ r.general.licencia }} con licencia</small></div>
+      </div>
+    </div>
+
+    <div class="distribucion">
+      <!-- Por paralelo -->
+      <section class="ui-card">
+        <h3>Por paralelo</h3>
+        <ul class="paralelos">
+          @for (p of r.paralelos; track p.paralelo.id) {
+            <li>
+              <button type="button" class="paralelo" [class.elegido]="p.paralelo.id === paraleloId()" [disabled]="p.conteo.total === 0" (click)="paraleloId.set(p.paralelo.id)">
+                <span class="nombre">{{ paraleloLabel(p.paralelo) }}</span>
+                @if (p.conteo.total) {
+                  <div class="ui-barra" [class]="p.conteo.porcentaje < 90 ? 'tono-crema' : 'tono-lima'"><span [style.width.%]="p.conteo.porcentaje"></span></div>
+                  <span class="porcentaje">{{ p.conteo.porcentaje }}%</span>
+                  <fa-icon [icon]="faChevronRight" class="ir" />
+                } @else {
+                  <small class="sin">Sin registros</small>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Detalle del paralelo -->
+      @if (detalle(); as d) {
+        <section class="ui-card">
+          <div class="cabecera">
+            <h3>{{ paraleloLabel(d.paralelo) }}</h3>
+            <div class="chips">
+              <span class="ui-badge dia-presente">{{ d.conteo.presente }} asistieron</span>
+              <span class="ui-badge dia-ausente">{{ d.conteo.ausente + d.conteo.parcial }} con faltas</span>
+              <span class="ui-badge dia-atraso">{{ d.conteo.atraso }} atrasos</span>
+              <span class="ui-badge dia-licencia">{{ d.conteo.licencia }} licencias</span>
+            </div>
+          </div>
+          <ul class="estudiantes">
+            @for (x of ordenados(d.estudiantes); track x.estudiante.id) {
+              <li>
+                <span class="nombre-est">{{ x.estudiante.nombre }}</span>
+                <span class="ui-badge" [class]="'dia-' + x.estado">{{ estadoDiaLabel[x.estado] }}</span>
+                @if (x.detalle.length) {
+                  <small>{{ x.detalle.join(' · ') }}</small>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  }
+}

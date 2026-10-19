@@ -11,10 +11,11 @@ export class RepositorioMock<T extends { id: number }> {
     return this.responder(this.datos.filter(filtro).map((item) => structuredClone(item)));
   }
 
-  // Crea (si no tiene id) o actualiza (si ya existe)
+  // Actualiza si ya existe un elemento con ese id; si no, lo crea
+  // (con el id indicado, o con uno nuevo si no se indicó ninguno)
   guardar(item: Omit<T, 'id'> & { id?: number }): Observable<T> {
     const existente = item.id ? this.datos.findIndex((d) => d.id === item.id) : -1;
-    const guardado = { ...structuredClone(item), id: existente >= 0 ? item.id! : this.siguienteId() } as T;
+    const guardado = { ...structuredClone(item), id: item.id || this.siguienteId() } as T;
     if (existente >= 0) this.datos[existente] = guardado;
     else this.datos.push(guardado);
     return this.responder(structuredClone(guardado));

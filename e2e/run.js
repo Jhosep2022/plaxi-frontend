@@ -7,6 +7,7 @@ const SUITES = {
   academico: require('./academico.e2e'),
   horarios: require('./horarios.e2e'),
   vistas: require('./vistas.e2e'),
+  asistencia: require('./asistencia.e2e'),
 };
 
 async function main() {

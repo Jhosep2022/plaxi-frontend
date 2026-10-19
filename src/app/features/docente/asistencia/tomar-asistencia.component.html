@@ -1,0 +1,119 @@
+<app-page-header miga="Seguimiento" titulo="Asistencia" descripcion="Toma la asistencia de tus clases. El resumen diario de cada estudiante se genera automáticamente.">
+  @if (espacio.tipo === 'colegio') {
+    <label class="fecha">
+      <fa-icon [icon]="faCalendarDays" />
+      <input type="date" class="ui-input" [max]="hoy" [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)" aria-label="Fecha" />
+    </label>
+  }
+</app-page-header>
+
+@if (espacio.tipo !== 'colegio') {
+  <div class="ui-card">
+    <app-empty-state [icono]="faUserCheck" titulo="Asistencia de sesiones en vivo" texto="Muy pronto podrás registrar la asistencia de las sesiones de tu academia." />
+  </div>
+} @else if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando tus clases…</p>
+} @else {
+  <!-- Tolerancia de atraso -->
+  <div class="ui-card tolerancia">
+    <fa-icon [icon]="faClock" class="reloj" />
+    @if (editandoTolerancia()) {
+      <span>Llegar más de</span>
+      <input type="number" class="ui-input minutos" [(ngModel)]="toleranciaNueva" aria-label="Minutos de tolerancia" />
+      <span>minutos tarde cuenta como atraso.</span>
+      <button type="button" class="ui-btn chico" (click)="guardarTolerancia()">Guardar</button>
+      <button type="button" class="ui-btn ui-btn--secundario chico" (click)="editandoTolerancia.set(false)">Cancelar</button>
+    } @else {
+      <span>Tu tolerancia de atraso es de <strong>{{ tolerancia.value() }} minutos</strong>.</span>
+      <button type="button" class="ui-btn ui-btn--secundario chico" (click)="editandoTolerancia.set(true)">Cambiar</button>
+    }
+  </div>
+
+  <h2 class="dia">{{ fechaLarga(fecha()) }}@if (fecha() === hoy) { <span class="ui-badge tono-lima">Hoy</span> }</h2>
+
+  @if (clasesDelDia().length === 0) {
+    <div class="ui-card">
+      <app-empty-state [icono]="faCalendarDays" titulo="No tienes clases este día" texto="Elige otra fecha para tomar o revisar la asistencia." />
+    </div>
+  } @else {
+    <div class="distribucion">
+      <!-- Clases del día -->
+      <aside class="clases">
+        @for (c of clasesDelDia(); track c.clase.id) {
+          <button type="button" class="ui-card clase" [class.elegida]="c.clase.id === seleccionadaId()" (click)="seleccionadaId.set(c.clase.id)">
+            <span class="ui-icono" [class]="'tono-' + (c.materia?.tono ?? 'azul')"><fa-icon [icon]="iconoMateria(c.materia?.icono ?? 'libro')" /></span>
+            <span class="clase-texto">
+              <strong>{{ c.materia?.nombre }} · {{ paraleloLabel(c.paralelo) }}</strong>
+              <small>{{ c.rango!.inicio }} – {{ c.rango!.fin }} · {{ c.aula }}</small>
+            </span>
+          </button>
+        }
+      </aside>
+
+      <!-- Lista del paralelo -->
+      @if (seleccionada(); as s) {
+        <section class="ui-card lista">
+          <header class="cabecera">
+            <div>
+              <h3>{{ s.materia?.nombre }} · {{ paraleloLabel(s.paralelo) }}</h3>
+              @if (yaTomada()) {
+                <span class="ui-badge tono-lima"><fa-icon [icon]="faCheck" /> Asistencia tomada · puedes corregirla</span>
+              } @else {
+                <span class="ui-badge tono-crema">Pendiente de tomar</span>
+              }
+            </div>
+            <button type="button" class="ui-btn ui-btn--secundario" (click)="todosPresentes()"><fa-icon [icon]="faCheckDouble" /> Todos presentes</button>
+          </header>
+
+          <div class="conteo">
+            <span class="ui-badge tono-lima">{{ conteo().presente }} presentes</span>
+            <span class="ui-badge estado-ausente">{{ conteo().ausente }} ausentes</span>
+            <span class="ui-badge tono-crema">{{ conteo().atraso }} atrasos</span>
+            <span class="ui-badge tono-azul">{{ conteo().licencia }} con licencia</span>
+          </div>
+
+          @if (estudiantes.isLoading() && estudiantes.value().length === 0) {
+            <p class="cargando">Cargando estudiantes…</p>
+          } @else {
+            <ul class="estudiantes">
+              @for (e of estudiantes.value(); track e.id; let n = $index) {
+                @let marca = marcas().get(e.id)!;
+                <li class="estudiante" [class]="'fila-' + marca.estado">
+                  <span class="numero">{{ n + 1 }}</span>
+                  <span class="avatar">{{ iniciales(e.nombre) }}</span>
+                  <span class="nombre">{{ e.nombre }}</span>
+                  @if (conLicencia().has(e.id)) {
+                    <span class="ui-badge tono-azul">Licencia aprobada</span>
+                  } @else {
+                    @if (marca.estado === 'atraso') {
+                      <label class="tarde">
+                        <input type="number" class="ui-input" [ngModel]="marca.minutosTarde" (ngModelChange)="cambiarMinutos(e.id, $event)" [attr.aria-label]="'Minutos tarde de ' + e.nombre" />
+                        <span>min</span>
+                      </label>
+                      @if (dentroDeTolerancia(marca)) {
+                        <small class="ui-ayuda tolerado">Dentro de la tolerancia: quedará presente</small>
+                      }
+                    }
+                    <div class="estados" role="radiogroup" [attr.aria-label]="'Asistencia de ' + e.nombre">
+                      @for (est of estados; track est.id) {
+                        <button type="button" role="radio" class="estado" [class]="'estado-' + est.id" [class.activo]="marca.estado === est.id"
+                          [attr.aria-checked]="marca.estado === est.id" [title]="est.label" (click)="marcar(e.id, est.id)">{{ est.corto }}</button>
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          }
+
+          <footer class="pie">
+            <span class="ui-ayuda">P presente · A ausente · T atraso · L licencia</span>
+            <button type="button" class="ui-btn" [disabled]="guardando() || estudiantes.value().length === 0" (click)="guardar()">
+              {{ guardando() ? 'Guardando…' : yaTomada() ? 'Guardar cambios' : 'Guardar asistencia' }}
+            </button>
+          </footer>
+        </section>
+      }
+    </div>
+  }
+}

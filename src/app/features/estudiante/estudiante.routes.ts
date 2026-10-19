@@ -33,5 +33,5 @@ export default [
   { path: 'horario', title: 'Mi horario', loadComponent: () => import('../horario/mi-horario.component').then((m) => m.MiHorarioComponent) },
   proximamente('tareas', 'Tareas', 'Tus tareas pendientes y entregadas.'),
   proximamente('calificaciones', 'Mis calificaciones', 'Tus notas por materia y periodo, y tu boletín.'),
-  proximamente('asistencia', 'Mi asistencia', 'Tu porcentaje de asistencia, faltas y atrasos por materia.'),
+  { path: 'asistencia', title: 'Mi asistencia', loadComponent: () => import('../asistencia/mi-asistencia.component').then((m) => m.MiAsistenciaComponent) },
 ] satisfies Routes;

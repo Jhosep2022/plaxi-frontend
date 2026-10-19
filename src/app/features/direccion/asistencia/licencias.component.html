@@ -1,0 +1,65 @@
+<app-page-header miga="Asistencia" titulo="Licencias" descripcion="Solicitudes de los padres para justificar faltas. Al aprobarlas, la asistencia de esos días queda como licencia." />
+
+<div class="ui-tabs filtros" role="tablist">
+  <button type="button" class="ui-tab" [class.activa]="filtro() === 'pendiente'" (click)="filtro.set('pendiente')">Pendientes <span class="contador">{{ conteo().pendiente }}</span></button>
+  <button type="button" class="ui-tab" [class.activa]="filtro() === 'aprobada'" (click)="filtro.set('aprobada')">Aprobadas <span class="contador">{{ conteo().aprobada }}</span></button>
+  <button type="button" class="ui-tab" [class.activa]="filtro() === 'rechazada'" (click)="filtro.set('rechazada')">Rechazadas <span class="contador">{{ conteo().rechazada }}</span></button>
+</div>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando licencias…</p>
+} @else {
+  <div class="lista">
+    @for (item of lista(); track item.licencia.id) {
+      <article class="ui-card licencia">
+        <header>
+          <span class="ui-icono tono-azul"><fa-icon [icon]="faFileMedical" /></span>
+          <div class="quien">
+            <strong>{{ item.estudiante }}@if (item.paralelo) { · {{ item.paralelo }} }</strong>
+            <small>{{ item.solicitante }}</small>
+          </div>
+          <span class="ui-badge" [class]="'estado-' + item.licencia.estado">{{ rango(item.licencia) }} · {{ dias(item.licencia) }} día(s)</span>
+        </header>
+        <p class="motivo">{{ item.licencia.motivo }}</p>
+        @if (item.licencia.archivo) {
+          <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ item.licencia.archivo }}</span>
+        }
+        @if (item.licencia.respuesta) {
+          <p class="respuesta">Respuesta: {{ item.licencia.respuesta }}</p>
+        }
+        @if (item.licencia.estado === 'pendiente') {
+          <footer>
+            <button type="button" class="ui-btn ui-btn--peligro" (click)="abrir(item.licencia, 'rechazada')"><fa-icon [icon]="faXmark" /> Rechazar</button>
+            <button type="button" class="ui-btn" (click)="abrir(item.licencia, 'aprobada')"><fa-icon [icon]="faCheck" /> Aprobar</button>
+          </footer>
+        }
+      </article>
+    } @empty {
+      <div class="ui-card">
+        <app-empty-state [icono]="faFileMedical" titulo="No hay licencias en esta lista" />
+      </div>
+    }
+  </div>
+}
+
+<app-drawer
+  [abierto]="!!respondiendo()"
+  [titulo]="respondiendo()?.estado === 'aprobada' ? 'Aprobar licencia' : 'Rechazar licencia'"
+  [subtitulo]="respondiendo() ? rango(respondiendo()!.licencia) + ' · ' + respondiendo()!.licencia.motivo : ''"
+  (cerrar)="respondiendo.set(null)">
+  <div class="ui-form">
+    <div class="ui-campo">
+      <label for="lic-comentario">{{ respondiendo()?.estado === 'aprobada' ? 'Comentario para el padre (opcional)' : 'Motivo del rechazo' }}</label>
+      <textarea id="lic-comentario" class="ui-input area" rows="4" [(ngModel)]="comentario"></textarea>
+    </div>
+    @if (respondiendo()?.estado === 'aprobada') {
+      <p class="ui-aviso">La asistencia ya tomada en esas fechas pasará a "Licencia" y los docentes la verán marcada al tomar lista.</p>
+    }
+  </div>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="respondiendo.set(null)">Cancelar</button>
+    <button type="button" class="ui-btn" [class.ui-btn--peligro]="respondiendo()?.estado === 'rechazada'" [disabled]="guardando()" (click)="confirmar()">
+      {{ guardando() ? 'Guardando…' : respondiendo()?.estado === 'aprobada' ? 'Aprobar' : 'Rechazar' }}
+    </button>
+  </ng-container>
+</app-drawer>

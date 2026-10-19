@@ -21,7 +21,8 @@ export default [
   proximamente('personas/inscripciones', 'Inscripciones', 'Inscripción de estudiantes a grados y paralelos.'),
 
   // Asistencia
-  proximamente('asistencia/estudiantes', 'Asistencia de estudiantes', 'Por paralelo, materia y fecha, con el resumen diario.'),
+  { path: 'asistencia/estudiantes', title: 'Asistencia de estudiantes', loadComponent: () => import('./asistencia/asistencia-estudiantes.component').then((m) => m.AsistenciaEstudiantesComponent) },
+  { path: 'asistencia/licencias', title: 'Licencias', loadComponent: () => import('./asistencia/licencias.component').then((m) => m.LicenciasComponent) },
   proximamente('asistencia/personal', 'Asistencia del personal', 'Marcaciones de entrada y salida, atrasos y ausencias.'),
   proximamente('asistencia/puntos-marcacion', 'Puntos de marcación', 'QR de cada punto de marcación y su ubicación GPS permitida.'),
 

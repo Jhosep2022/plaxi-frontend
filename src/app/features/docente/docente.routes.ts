@@ -51,6 +51,6 @@ export default [
   proximamente('sesiones', 'Sesiones en vivo', 'Programa tus clases en vivo con su link de Meet o Zoom.', { canActivate: [tipoEspacioGuard('academia')] }),
 
   // Seguimiento (ambos tipos de espacio)
-  proximamente('asistencia', 'Asistencia', 'Registra la asistencia por clase; el resumen diario se genera automáticamente.'),
+  { path: 'asistencia', title: 'Asistencia', loadComponent: () => import('./asistencia/tomar-asistencia.component').then((m) => m.TomarAsistenciaComponent) },
   proximamente('calificaciones', 'Calificaciones', 'Registra notas según la escala y ponderación de tu institución.'),
 ] satisfies Routes;

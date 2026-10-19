@@ -193,6 +193,7 @@ function direccion(): NavModule[] {
       id: 'asistencia', label: 'Asistencia', icon: faUserCheck, sections: [{
         items: [
           item('Estudiantes', faUserGraduate, 'direccion/asistencia/estudiantes'),
+          item('Licencias', faFileSignature, 'direccion/asistencia/licencias'),
           item('Personal (marcaciones)', faClock, 'direccion/asistencia/personal'),
           item('Puntos de marcación', faQrcode, 'direccion/asistencia/puntos-marcacion'),
         ],

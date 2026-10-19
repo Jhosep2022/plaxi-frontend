@@ -1,0 +1,165 @@
+@if (espacio.tipo !== 'colegio') {
+  <app-page-header miga="Seguimiento" titulo="Mi asistencia" />
+  <div class="ui-card">
+    <app-empty-state [icono]="faUserCheck" titulo="Asistencia de sesiones en vivo" texto="Muy pronto verás aquí tu asistencia a las sesiones de la academia." />
+  </div>
+} @else if ((estudiante.isLoading() || datos.isLoading()) && !datos.value()) {
+  <p class="cargando">Cargando asistencia…</p>
+} @else if (!estudiante.value()) {
+  <app-page-header miga="Seguimiento" titulo="Asistencia" />
+  <div class="ui-card"><app-empty-state titulo="No hay un estudiante asociado" texto="Pide a la dirección que vincule tu cuenta con la de tu hijo." /></div>
+} @else {
+  <app-page-header
+    miga="Seguimiento"
+    [titulo]="esPadre ? 'Asistencia de ' + estudiante.value()!.nombre : 'Mi asistencia'"
+    descripcion="Resumen de las últimas dos semanas de clases.">
+    @if (esPadre) {
+      <button type="button" class="ui-btn" (click)="abrirSolicitud()"><fa-icon [icon]="faPlus" /> Solicitar licencia</button>
+    }
+  </app-page-header>
+
+  <!-- Indicadores -->
+  <div class="indicadores">
+    <div class="ui-card indicador destacado">
+      <span class="ui-icono tono-lima"><fa-icon [icon]="faUserCheck" /></span>
+      <div><strong>{{ conteo().porcentaje }}%</strong><small>de asistencia</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono ausente"><fa-icon [icon]="faUserXmark" /></span>
+      <div><strong>{{ conteo().ausente }}</strong><small>faltas a clases</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-crema"><fa-icon [icon]="faClock" /></span>
+      <div><strong>{{ conteo().atraso }}</strong><small>atrasos</small></div>
+    </div>
+    <div class="ui-card indicador">
+      <span class="ui-icono tono-azul"><fa-icon [icon]="faFileMedical" /></span>
+      <div><strong>{{ conteo().licencia }}</strong><small>clases con licencia</small></div>
+    </div>
+  </div>
+
+  <div class="distribucion">
+    <div class="columna">
+      <!-- Por materia -->
+      <section class="ui-card">
+        <h2>Por materia</h2>
+        <ul class="materias">
+          @for (m of porMateria(); track m.materia.id) {
+            <li>
+              <span class="ui-icono chico" [class]="'tono-' + m.materia.tono"><fa-icon [icon]="iconoMateria(m.materia.icono)" /></span>
+              <div class="materia-info">
+                <div class="linea">
+                  <strong>{{ m.materia.nombre }}</strong>
+                  <span [class.bajo]="m.conteo.porcentaje < 85">{{ m.conteo.porcentaje }}%</span>
+                </div>
+                <div class="ui-barra" [class]="m.conteo.porcentaje < 85 ? 'tono-crema' : 'tono-lima'"><span [style.width.%]="m.conteo.porcentaje"></span></div>
+                <small>{{ m.conteo.total }} clases · {{ m.conteo.ausente }} faltas · {{ m.conteo.atraso }} atrasos</small>
+              </div>
+            </li>
+          } @empty {
+            <li class="vacio">Todavía no hay asistencia registrada.</li>
+          }
+        </ul>
+      </section>
+
+      <!-- Últimos días -->
+      <section class="ui-card">
+        <h2>Últimos días</h2>
+        <ul class="dias">
+          @for (d of dias(); track d.fecha) {
+            <li>
+              <span class="fecha">{{ fechaCorta(d.fecha) }}</span>
+              <span class="ui-badge estado-dia" [class]="'dia-' + d.estado">{{ estadoDiaLabel[d.estado] }}</span>
+              @if (d.detalle.length) {
+                <small class="detalle">{{ d.detalle.join(' · ') }}</small>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    @if (esPadre) {
+      <div class="columna">
+        <!-- Avisos -->
+        <section class="ui-card">
+          <h2><fa-icon [icon]="faBell" /> Avisos</h2>
+          <ul class="avisos">
+            @for (a of alertas(); track a.fecha) {
+              <li [class]="'aviso-' + a.estado">
+                <strong>{{ estadoDiaLabel[a.estado] }}</strong>
+                <span>{{ fechaCorta(a.fecha) }}</span>
+                @if (a.detalle.length) {
+                  <small>{{ a.detalle.join(' · ') }}</small>
+                }
+              </li>
+            } @empty {
+              <li class="vacio">Sin faltas ni atrasos en las últimas dos semanas. 🎉</li>
+            }
+          </ul>
+        </section>
+
+        <!-- Licencias -->
+        <section class="ui-card">
+          <h2><fa-icon [icon]="faCalendarCheck" /> Licencias</h2>
+          <ul class="licencias">
+            @for (l of licencias(); track l.id) {
+              <li>
+                <div class="linea">
+                  <strong>{{ rango(l.desde, l.hasta) }}</strong>
+                  <span class="ui-badge" [class]="'licencia-' + l.estado">{{ estadoLicenciaLabel(l.estado) }}</span>
+                </div>
+                <span>{{ l.motivo }}</span>
+                @if (l.archivo) {
+                  <small><fa-icon [icon]="faPaperclip" /> {{ l.archivo }}</small>
+                }
+                @if (l.respuesta) {
+                  <small class="respuesta">Dirección: {{ l.respuesta }}</small>
+                }
+              </li>
+            } @empty {
+              <li class="vacio">No has solicitado licencias.</li>
+            }
+          </ul>
+        </section>
+      </div>
+    }
+  </div>
+}
+
+<!-- Solicitar licencia -->
+<app-drawer [abierto]="drawerAbierto()" titulo="Solicitar licencia" [subtitulo]="'Para ' + (estudiante.value()?.nombre ?? '') + '. La dirección la aprobará o rechazará.'" (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); solicitar()" novalidate>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="lic-desde">Desde</label>
+        <input id="lic-desde" type="date" class="ui-input" [formField]="formulario.desde" />
+        @if (formulario.desde().touched() && formulario.desde().invalid()) {
+          <span class="ui-error">{{ formulario.desde().errors()[0].message }}</span>
+        }
+      </div>
+      <div class="ui-campo">
+        <label for="lic-hasta">Hasta</label>
+        <input id="lic-hasta" type="date" class="ui-input" [formField]="formulario.hasta" />
+        @if (formulario.hasta().touched() && formulario.hasta().invalid()) {
+          <span class="ui-error">{{ formulario.hasta().errors()[0].message }}</span>
+        }
+      </div>
+    </div>
+    <div class="ui-campo">
+      <label for="lic-motivo">Motivo</label>
+      <textarea id="lic-motivo" class="ui-input area" rows="4" placeholder="Ej. Cita médica, viaje familiar…" [formField]="formulario.motivo"></textarea>
+      @if (formulario.motivo().touched() && formulario.motivo().invalid()) {
+        <span class="ui-error">{{ formulario.motivo().errors()[0].message }}</span>
+      }
+    </div>
+    <div class="ui-campo">
+      <label for="lic-archivo">Respaldo <span class="ui-ayuda">(opcional: certificado médico, carta…)</span></label>
+      <input id="lic-archivo" type="file" class="ui-input archivo" accept=".pdf,.jpg,.jpeg,.png" (change)="elegirArchivo($event)" />
+    </div>
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="solicitar()">{{ guardando() ? 'Enviando…' : 'Enviar solicitud' }}</button>
+  </ng-container>
+</app-drawer>
