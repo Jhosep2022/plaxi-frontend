@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
 import { MatButton } from '@angular/material/button';
 import { DatePipe } from '@angular/common';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-my-courses-student',
@@ -13,6 +14,7 @@ import { DatePipe } from '@angular/common';
     imports: [MatButton, RouterLink, DatePipe]
 })
 export class MyCoursesStudentComponent implements OnInit {
+  protected readonly session = inject(SessionService);
   private router = inject(Router);
   private inscripcionService = inject(InscripcionService);
   private snackBar = inject(MatSnackBar);
@@ -99,11 +101,11 @@ export class MyCoursesStudentComponent implements OnInit {
 
   // Abrir un curso (redirigir a una vista de detalles del curso)
   openCourse(course: any) {
-    this.router.navigate(['/course-details', course.id]);
+    this.router.navigate(this.session.rutaRol('cursos', course.id));
   }
 
   // Abrir el formulario de crear curso (si es necesario)
   openCourseForm(): void {
-    this.router.navigate(['/create-course']);
+    this.router.navigate(this.session.rutaRol('catalogo'));
   }
 }

@@ -103,7 +103,7 @@ export class RegistrarUsuarioComponent implements OnInit {
     this.authService.registerUser(usuarioDto, personaDto).subscribe({
       next: (response) => {
         console.log('Registro exitoso:', response);
-        this.router.navigate(['/login']);
+        this.router.navigate(['/auth/login']);
       },
       error: (err) => {
         console.error('Error en el registro:', err);
@@ -118,7 +118,7 @@ export class RegistrarUsuarioComponent implements OnInit {
   }
 
   redirectToLogin() {
-    this.router.navigate(['/login']);
+    this.router.navigate(['/auth/login']);
   }
 
   validateNumberInput(event: KeyboardEvent): void {

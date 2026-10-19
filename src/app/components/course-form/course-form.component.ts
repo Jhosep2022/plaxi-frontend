@@ -6,6 +6,7 @@ import { CategoriaService } from 'src/app/services/categoria.service';
 import { CourseService } from 'src/app/services/course.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { Categoria } from 'src/app/models/categoriaDto';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-course-form',
@@ -14,6 +15,7 @@ import { Categoria } from 'src/app/models/categoriaDto';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseFormComponent implements OnInit, AfterViewChecked {
+  protected readonly session = inject(SessionService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
@@ -150,7 +152,7 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
             duration: 3000
           });
           setTimeout(() => {
-            this.router.navigate(['/my-courses']); // Redirigir a la lista de cursos
+            this.router.navigate(this.session.rutaRol('contenido', 'cursos')); // Redirigir a la lista de cursos
           }, 500);
         },
         error: (error) => {
@@ -170,7 +172,7 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
 
   // Método para cancelar la creación del curso y redirigir
   onCancel() {
-    this.router.navigate(['/my-courses']);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos'));
   }
 
   // Obtener mensaje de error para un campo específico

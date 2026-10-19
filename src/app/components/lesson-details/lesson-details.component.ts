@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
 import { LeccionService } from '../../services/leccion.service';
 import { TemaService } from 'src/app/services/tema.service';
 import { TemaDto } from 'src/app/models/TemaDto';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-lesson-details',
@@ -13,7 +14,9 @@ import { TemaDto } from 'src/app/models/TemaDto';
     imports: [RouterLink]
 })
 export class LessonDetailsComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
+  readonly leccionId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private temaService = inject(TemaService);
   private leccionService = inject(LeccionService);
@@ -24,11 +27,10 @@ export class LessonDetailsComponent implements OnInit {
   readonly temas = signal<TemaDto[]>([]);
   ngOnInit(): void {
     // Captura el `courseId` de los parámetros de consulta
-    const courseIdParam = this.route.snapshot.queryParamMap.get('courseId');
-    this.courseId = courseIdParam ? Number(courseIdParam) : null;
+    this.courseId = this.cursoId();
 
     // Captura el `lessonId` de los parámetros de la URL
-    const lessonId = Number(this.route.snapshot.paramMap.get('id'));
+    const lessonId = this.leccionId();
     if (lessonId) {
       this.loadLessonDetails(lessonId);
       this.loadTemas(lessonId);
@@ -63,7 +65,7 @@ export class LessonDetailsComponent implements OnInit {
   // Método para volver al detalle del curso
   goBack(): void {
     if (this.courseId !== null) {
-      this.router.navigate(['/course-details', this.courseId]); // Navegar a la pantalla del curso
+      this.router.navigate(this.session.rutaRol('cursos', this.cursoId())); // Navegar a la pantalla del curso
     } else {
       console.error('No se encontró el ID del curso');
     }

@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TemaDto } from 'src/app/models/TemaDto';
 import { TemaService } from 'src/app/services/tema.service';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-tema-details-tutor',
@@ -12,7 +13,10 @@ import { TemaService } from 'src/app/services/tema.service';
     imports: [RouterLink]
 })
 export class TemaDetailsTutorComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
+  readonly leccionId = input.required({ transform: numberAttribute });
+  readonly temaId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private temaService = inject(TemaService);
   private snackBar = inject(MatSnackBar);
@@ -23,7 +27,7 @@ export class TemaDetailsTutorComponent implements OnInit {
   userId: number | null = null;
 
   ngOnInit(): void {
-    const temaId = Number(this.route.snapshot.paramMap.get('id'));
+    const temaId = this.temaId();
     if (temaId) {
       this.loadTemaDetails(temaId);
     }
@@ -47,7 +51,7 @@ export class TemaDetailsTutorComponent implements OnInit {
 
   // Lógica para volver a la lista de cursos
   goBack(): void {
-    this.router.navigate(['/my-courses']);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', this.leccionId()));
   }
 
   deleteTema() {
@@ -61,7 +65,7 @@ export class TemaDetailsTutorComponent implements OnInit {
       this.snackBar.open('Tema eliminado exitosamente', 'Cerrar', {
         duration: 3000
       });
-      this.router.navigate(['/my-courses']);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', this.leccionId()));
     }
   }
 }

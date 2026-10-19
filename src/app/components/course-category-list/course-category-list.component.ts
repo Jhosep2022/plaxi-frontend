@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
 import { CategoriaService } from 'src/app/services/categoria.service';
+import { SessionService } from '../../core/auth/session.service';
 
 // Interfaz para la categoría
 interface Category {
@@ -17,6 +18,7 @@ interface Category {
     imports: [RouterLink]
 })
 export class CourseCategoryListComponent implements OnInit {
+  protected readonly session = inject(SessionService);
   private router = inject(Router);
   private cursoService = inject(CourseService);
   private categoriaService = inject(CategoriaService);
@@ -94,6 +96,6 @@ export class CourseCategoryListComponent implements OnInit {
 
   // Redirigir a la página de detalles del curso
   viewCourse(course: CursoDto): void {
-    this.router.navigate(['/course-details', course.idCurso]);
+    this.router.navigate(this.session.rutaRol('catalogo', course.idCurso));
   }
 }

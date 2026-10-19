@@ -6,6 +6,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 import { MatDialog } from '@angular/material/dialog';
 import { NgClass } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-perfil',
@@ -14,6 +15,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [NgClass, FaIconComponent]
 })
 export class PerfilComponent implements OnInit {
+  protected readonly session = inject(SessionService);
   private perfilService = inject(ProfileService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
@@ -32,7 +34,7 @@ export class PerfilComponent implements OnInit {
     if (idUsuario) {
       this.cargarPerfil(Number(idUsuario));
     } else {
-      this.router.navigate(['/login']);  // Redirige al login si no hay idUsuario
+      this.session.cerrarSesion();  // Redirige al login si no hay idUsuario
     }
   }
 
@@ -67,7 +69,7 @@ export class PerfilComponent implements OnInit {
           this.perfilService.deleteProfile(Number(idUsuario)).subscribe({
             next: (response) => {
               console.log('Cuenta eliminada correctamente:', response);
-              this.router.navigate(['/login']);
+              this.session.cerrarSesion();
             },
             error: (err) => {
               console.error('Error al eliminar la cuenta:', err);
@@ -81,7 +83,6 @@ export class PerfilComponent implements OnInit {
 
   // Función para cerrar sesión y redirigir al login
   cerrarSesion() {
-    localStorage.removeItem('idUsuario');  // Eliminar el ID de usuario de localStorage
-    this.router.navigate(['/login']);  // Redirige al login
+    this.session.cerrarSesion();  // Redirige al login
   }
 }

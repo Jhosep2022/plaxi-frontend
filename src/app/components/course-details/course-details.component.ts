@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router } from '@angular/router';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
@@ -7,6 +7,7 @@ import { PaginadoDto } from 'src/app/models/PaginadoDto';
 import { LeccionService } from '../../services/leccion.service';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-course-details',
@@ -14,7 +15,8 @@ import { CourseService } from 'src/app/services/course.service';
     styleUrls: ['./course-details.component.css'],
 })
 export class CourseDetailsComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private cursoService = inject(CourseService);
   private inscripcionService = inject(InscripcionService);
@@ -26,15 +28,9 @@ export class CourseDetailsComponent implements OnInit {
   userId: number | null = null;
   readonly lecciones = signal<LeccionDto[]>([]);
   ngOnInit(): void {
-    const storedUserId = localStorage.getItem('idUsuario');
-    if (storedUserId) {
-      this.userId = Number(storedUserId);
-    } else {
-      this.router.navigate(['/login']);
-      return;
-    }
+    this.userId = this.session.usuarioId();
 
-    const courseId = Number(this.route.snapshot.paramMap.get('id'));
+    const courseId = this.cursoId();
     if (courseId) {
       this.loadCourseDetails(courseId);
       this.loadLessons(courseId); // Cargar lecciones del curso
@@ -104,18 +100,13 @@ export class CourseDetailsComponent implements OnInit {
 
 
   lessonDetails(leccionId: number): void {
-    const courseId = this.route.snapshot.paramMap.get('id');
-    if (courseId) {
-      this.router.navigate(['/lesson-details', leccionId], {
-        queryParams: { courseId: courseId }
-      });
-    }
+    this.router.navigate(this.session.rutaRol('cursos', this.cursoId(), 'lecciones', leccionId));
   }
 
 
   // Lógica para volver a la lista de cursos
   goBack(): void {
-    this.router.navigate(['/course-categories']);
+    this.router.navigate(this.session.rutaRol('catalogo'));
   }
 
   noenrollInCourse() {
@@ -129,7 +120,7 @@ export class CourseDetailsComponent implements OnInit {
       this.snackBar.open('Desinscripción exitosa', 'Cerrar', {
         duration: 3000
       });
-      this.router.navigate(['/course-categories']);
+      this.router.navigate(this.session.rutaRol('catalogo'));
     }
   }
 }

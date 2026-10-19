@@ -16,7 +16,7 @@
               <p>Dificultad: {{ curso.dificultad }}</p>
             </div>
           </div>
-          <a class="open-link" [routerLink]="['/course-details', curso.idCurso]">Abrir <span>→</span></a>
+          <a class="open-link" [routerLink]="cursoLink(curso.idCurso)">Abrir <span>→</span></a>
         </div>
       }
     </div>
@@ -38,7 +38,7 @@
               <p>{{ curso.descripcion }}</p>
               <p>Dificultad: {{ curso.dificultad }}</p>
             </div>
-            <a class="student-action-link" [routerLink]="['/course-details', curso.idCurso]">→</a>
+            <a class="student-action-link" [routerLink]="session.rutaRol('cursos', curso.idCurso)">→</a>
           </div>
         }
       </div>
@@ -108,7 +108,7 @@
             <h3>{{ curso.nombre }}</h3>
             <p>{{ curso.descripcion }}</p>
             <p class="course-difficulty">Dificultad: {{ curso.dificultad }}</p>
-            <button class="view-course-btn" [routerLink]="['/course-details', curso.idCurso]">Ver Curso</button>
+            <button class="view-course-btn" [routerLink]="cursoLink(curso.idCurso)">Ver Curso</button>
           </div>
         </div>
       }

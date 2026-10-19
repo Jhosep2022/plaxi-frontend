@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { ProfileService } from 'src/app/services/profile.service';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-updateperfil',
@@ -14,6 +15,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [FormsModule, FaIconComponent]
 })
 export class UpdateperfilComponent implements OnInit {
+  protected readonly session = inject(SessionService);
   private router = inject(Router);
   private perfilService = inject(ProfileService);
 
@@ -59,7 +61,7 @@ export class UpdateperfilComponent implements OnInit {
         }
       });
     } else {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/auth/login']);
     }
   }
 
@@ -94,7 +96,7 @@ export class UpdateperfilComponent implements OnInit {
       this.perfilService.updateProfile(Number(idUsuario), this.perfilDto()).subscribe({
         next: (response) => {
           console.log('Perfil actualizado:', response);
-          this.router.navigate(['/perfil']);
+          this.router.navigate(this.session.ruta('perfil'));
         },
         error: (err) => {
           console.error('Error al actualizar el perfil:', err);
@@ -104,6 +106,6 @@ export class UpdateperfilComponent implements OnInit {
   }
 
   cancelar() {
-    this.router.navigate(['/perfil']);
+    this.router.navigate(this.session.ruta('perfil'));
   }
 }

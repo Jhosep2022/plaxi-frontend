@@ -6,6 +6,7 @@ import { InscripcionResponseDto } from 'src/app/models/inscripcionDto';
 import { CourseService } from 'src/app/services/course.service';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-home',
@@ -14,6 +15,7 @@ import { DatePipe } from '@angular/common';
     imports: [RouterLink, DatePipe]
 })
 export class HomeComponent implements OnInit {
+  protected readonly session = inject(SessionService);
   private inscripcionService = inject(InscripcionService);
   private authService = inject(AuthService);
   private courseService = inject(CourseService);
@@ -191,6 +193,13 @@ export class HomeComponent implements OnInit {
   // Método para filtrar estudiantes (ejemplo con dummy data)
   get filteredStudents() {
     return this.students.filter(student => student.course === this.activeCourse);
+  }
+
+  // Link a un curso según el rol: el docente va a su contenido, el estudiante al catálogo
+  cursoLink(idCurso: number): (string | number)[] {
+    return this.session.rolActivo() === 'docente'
+      ? this.session.rutaRol('contenido', 'cursos', idCurso)
+      : this.session.rutaRol('catalogo', idCurso);
   }
 
   selectCourse(course: string): void {

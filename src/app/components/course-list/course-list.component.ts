@@ -3,12 +3,14 @@ import { Router } from '@angular/router';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { AuthService } from 'src/app/services/auth.service';
 import { CourseService } from 'src/app/services/course.service';
+import { SessionService } from '../../core/auth/session.service';
 @Component({
     selector: 'app-course-list',
     templateUrl: './course-list.component.html',
     styleUrls: ['./course-list.component.css'],
 })
 export class CourseListComponent implements OnInit {
+  protected readonly session = inject(SessionService);
   private router = inject(Router);
   private cursoService = inject(CourseService);
   private authService = inject(AuthService);
@@ -26,7 +28,7 @@ export class CourseListComponent implements OnInit {
       this.loadCoursesByUser(this.userId);
     } else {
       console.error('No se encontró el ID del usuario logueado en localStorage. Redirigiendo al login.');
-      this.router.navigate(['/login']);
+      this.router.navigate(['/auth/login']);
     }
   }
 
@@ -45,12 +47,12 @@ export class CourseListComponent implements OnInit {
 
   // Redirigir a la vista de detalles del curso
   openCourse(course: CursoDto) {
-    this.router.navigate(['/course-details-tutor', course.idCurso]);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos', course.idCurso));
   }
 
 
   // Redirigir al formulario de creación de curso
   openCourseForm(): void {
-    this.router.navigate(['/create-course']);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos', 'nuevo'));
   }
 }

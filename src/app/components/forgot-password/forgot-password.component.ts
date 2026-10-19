@@ -30,7 +30,7 @@ export class ForgotPasswordComponent {
     this.authService.resetPassword(this.email()).subscribe({
       next: (response) => {
         alert('Se ha enviado un enlace de restablecimiento de contraseña a tu correo.');
-        this.router.navigate(['/login']);  // Redirige al login después de enviar el correo
+        this.router.navigate(['/auth/login']);  // Redirige al login después de enviar el correo
       },
       error: (err) => {
         console.error('Error al enviar el correo de restablecimiento:', err);

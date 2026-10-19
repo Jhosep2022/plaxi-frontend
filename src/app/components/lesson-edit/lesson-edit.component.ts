@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, inject, input, numberAttribute } from '@angular/core';
+import { Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { MatLabel, MatInput, MatError, MatFormField } from '@angular/material/input';
 import { MatSelect, MatOption } from '@angular/material/select';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-lesson-edit',
@@ -16,7 +17,8 @@ import { MatSelect, MatOption } from '@angular/material/select';
     imports: [FormsModule, ReactiveFormsModule, MatLabel, MatInput, MatError, MatFormField, MatSelect, MatOption]
 })
 export class LessonEditComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private leccionService = inject(LeccionService);
   private snackBar = inject(MatSnackBar);
@@ -24,7 +26,7 @@ export class LessonEditComponent implements OnInit {
   private dialog = inject(MatDialog);
 
   lessonForm!: FormGroup;
-  leccionId!: number;
+  readonly leccionId = input.required({ transform: numberAttribute });
   leccionData!: LeccionDto;
 
   ngOnInit(): void {
@@ -37,17 +39,14 @@ export class LessonEditComponent implements OnInit {
       estado: [true, Validators.required]
     });
 
-    // Get the leccion ID from the route
-    this.leccionId = Number(this.route.snapshot.paramMap.get('id'));
-
-    if (this.leccionId) {
+    if (this.leccionId()) {
       // Load leccion details
-      this.loadLeccionDetails(this.leccionId);
+      this.loadLeccionDetails(this.leccionId());
     } else {
       this.snackBar.open('ID de lección no proporcionado.', 'Cerrar', {
         duration: 3000
       });
-      this.router.navigate(['/']);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos'));
     }
   }
 
@@ -82,7 +81,7 @@ export class LessonEditComponent implements OnInit {
   onSubmit(): void {
     if (this.lessonForm.valid) {
       const updatedLeccion: LeccionDto = {
-        idLeccion: this.leccionId,
+        idLeccion: this.leccionId(),
         cursoId: this.leccionData.cursoId,
         ...this.lessonForm.value
       };
@@ -118,7 +117,7 @@ export class LessonEditComponent implements OnInit {
 
   // Cancel editing
   onCancel(): void {
-    this.router.navigate(['/lesson-details', this.leccionData.idLeccion]);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', this.leccionId()));
   }
 
   getErrorMessage(field: string): string {
@@ -138,7 +137,7 @@ export class LessonEditComponent implements OnInit {
         this.snackBar.open('Lección actualizada con éxito.', 'Cerrar', {
           duration: 3000
         });
-        this.router.navigate(['/lesson-details', this.leccionData.idLeccion]);
+        this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', this.leccionId()));
       },
       error: (error) => {
         console.error('Error al actualizar la lección:', error);

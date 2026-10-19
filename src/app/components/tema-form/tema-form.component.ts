@@ -1,5 +1,5 @@
-import { Component, OnInit, AfterViewChecked, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, AfterViewChecked, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { TemaService } from '../../services/tema.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -7,6 +7,7 @@ import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } 
 import { AuthService } from 'src/app/services/auth.service';
 import { LeccionDto } from 'src/app/models/LeccionDto';
 import { TemaDto } from 'src/app/models/TemaDto';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-tema-form',
@@ -15,7 +16,9 @@ import { TemaDto } from 'src/app/models/TemaDto';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class TemaFormComponent implements OnInit, AfterViewChecked {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
+  readonly leccionId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private temaService = inject(TemaService);
   private leccionService = inject(LeccionService);
@@ -55,7 +58,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
     }
 
     // Obtener el ID del curso de la URL
-    const leccionId = Number(this.route.snapshot.paramMap.get('id'));
+    const leccionId = this.leccionId();
     if (leccionId) {
       // Cargar los detalles del curso usando el servicio
       this.loadLeccionDetails(leccionId);
@@ -128,7 +131,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
   onSubmit() {
     console.log('Botón de enviar presionado.');
 
-    const leccionId = Number(this.route.snapshot.paramMap.get('id')); // Obtén el ID de la lección
+    const leccionId = this.leccionId(); // Obtén el ID de la lección
 
     if (this.temaForm.valid && this.selectedFile) {
       // Construir el objeto TemaDto
@@ -154,7 +157,7 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
           });
 
           // Redirigir a la ruta lesson-details-tutor con el ID de la lección
-          this.router.navigate([`/lesson-details-tutor/${leccionId}`]);
+          this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', leccionId));
         },
         error: (error) => {
           console.error('Error al crear el tema:', error);
@@ -173,10 +176,10 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
 
   // Método para cancelar la creación de la lección y redirigir
   onCancel() {
-    const leccionId = Number(this.route.snapshot.paramMap.get('id'));
+    const leccionId = this.leccionId();
 
     if (leccionId) {
-      this.router.navigate([`/leccion-details/${leccionId}`]); // Redirige a la leccion con el ID correcto
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', leccionId)); // Redirige a la leccion con el ID correcto
     } else {
       console.error('No se encontró el ID de la lección para redirigir.');
     }

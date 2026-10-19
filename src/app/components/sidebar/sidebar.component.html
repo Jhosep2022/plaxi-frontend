@@ -1,7 +1,7 @@
 <aside class="sidebar" [class.collapsed]="collapsed()">
   <!-- Riel de íconos: módulos principales -->
   <nav class="rail" aria-label="Módulos">
-    <a routerLink="/home" class="rail-logo" title="QuizWiz">
+    <a routerLink="/" class="rail-logo" title="QuizWiz">
       <img src="assets/Logo_icon.png" alt="QuizWiz" />
     </a>
 
@@ -29,8 +29,8 @@
     </ul>
 
     <div class="rail-bottom">
-      @if (rol === 'Tutor') {
-        <a routerLink="/create-course" class="rail-btn rail-btn--accent" title="Crear curso" aria-label="Crear curso">
+      @if (rol() === 'docente') {
+        <a [routerLink]="link('docente/contenido/cursos/nuevo')" class="rail-btn rail-btn--accent" title="Crear curso" aria-label="Crear curso">
           <fa-icon [icon]="faPlus" />
         </a>
       }
@@ -40,7 +40,7 @@
         <button
           type="button"
           class="avatar"
-          (click)="toggleUserMenu()"
+          (click)="userMenuOpen.set(!userMenuOpen())"
           aria-haspopup="menu"
           [attr.aria-expanded]="userMenuOpen()"
           [attr.aria-label]="'Menú de ' + fullName()">
@@ -55,12 +55,14 @@
           <div class="user-menu" role="menu">
             <div class="user-menu-header">
               <span class="user-name">{{ fullName() }}</span>
-              <span class="user-role">{{ rol }}</span>
+              @if (rol(); as rol) {
+                <span class="user-role">{{ rolLabel[rol] }}</span>
+              }
             </div>
-            <a role="menuitem" routerLink="/perfil" (click)="userMenuOpen.set(false)">
+            <a role="menuitem" [routerLink]="link('perfil')" (click)="cerrarMenus()">
               <fa-icon [icon]="faUserCircle" /> Ver perfil
             </a>
-            <a role="menuitem" routerLink="/updateperfil" (click)="userMenuOpen.set(false)">
+            <a role="menuitem" [routerLink]="link('perfil/editar')" (click)="cerrarMenus()">
               <fa-icon [icon]="faEdit" /> Editar perfil
             </a>
             <button type="button" role="menuitem" class="logout" (click)="logout()">
@@ -73,34 +75,72 @@
   </nav>
 
   <!-- Panel: navegación del módulo activo -->
-  @if (!collapsed()) {
-    <nav class="panel" [attr.aria-label]="activeModule().label">
+  @if (!collapsed() && activeModule(); as modulo) {
+    <nav class="panel" [attr.aria-label]="modulo.label">
+      <!-- Selector de espacio (colegio / academia) -->
+      @if (espacio(); as espacio) {
+        <div class="espacio-wrapper">
+          <button
+            type="button"
+            class="espacio-btn"
+            (click)="espacioMenuOpen.set(!espacioMenuOpen())"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="espacioMenuOpen()">
+            <span class="espacio-icono">
+              <fa-icon [icon]="espacio.tipo === 'colegio' ? faSchool : faChalkboardTeacher" />
+            </span>
+            <span class="espacio-texto">
+              <strong>{{ espacio.nombre }}</strong>
+              @if (rol(); as rol) {
+                <small>{{ tipoLabel[espacio.tipo] }} · {{ rolLabel[rol] }}</small>
+              }
+            </span>
+            <fa-icon [icon]="faChevronDown" class="espacio-chevron" />
+          </button>
+
+          @if (espacioMenuOpen()) {
+            <div class="espacio-menu" role="menu">
+              @for (m of session.membresias(); track m.espacio.id) {
+                <a role="menuitem" [routerLink]="session.rutaInicio(m)" [class.actual]="m.espacio.id === espacio.id" (click)="cerrarMenus()">
+                  <fa-icon [icon]="m.espacio.tipo === 'colegio' ? faSchool : faChalkboardTeacher" />
+                  <span>{{ m.espacio.nombre }} <small>{{ rolLabel[m.rol] }}</small></span>
+                </a>
+              }
+              <a role="menuitem" routerLink="/espacios" class="todos" (click)="cerrarMenus()">
+                <fa-icon [icon]="faTableCells" /> Ver todos mis espacios
+              </a>
+            </div>
+          }
+        </div>
+      }
+
       <header class="panel-header">
-        <h2>{{ activeModule().label }}</h2>
+        <h2>{{ modulo.label }}</h2>
         <button type="button" class="collapse-btn" (click)="toggleCollapsed()" title="Contraer menú" aria-label="Contraer menú">
           <fa-icon [icon]="faAnglesLeft" />
         </button>
       </header>
 
       <div class="panel-body">
-        @for (section of activeModule().sections; track $index) {
+        @for (section of modulo.sections; track $index) {
           <section class="panel-section">
             @if (section.title) {
               <h3 class="section-title">
                 {{ section.title }}
-                @if (section.emptyText) {
+                @if (section.misCursos) {
                   <span class="count">{{ section.items.length }}</span>
                 }
               </h3>
             }
 
             <ul>
-              @for (item of section.items; track item.label) {
+              @for (item of section.items; track item.route) {
                 <li>
                   <a
                     class="panel-link"
-                    [routerLink]="item.route"
+                    [routerLink]="link(item.route)"
                     routerLinkActive="active"
+                    [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                     ariaCurrentWhenActive="page">
                     <fa-icon [icon]="item.icon" class="link-icon" />
                     <span class="link-label">{{ item.label }}</span>
@@ -116,13 +156,15 @@
         }
       </div>
 
-      <!-- Tarjeta destacada (reemplaza el botón "Join Quiz" del navbar) -->
-      <div class="panel-card">
-        <fa-icon [icon]="faWandMagicSparkles" class="card-icon" />
-        <h4>Únete a un Quiz</h4>
-        <p>Ingresa el código que te compartió tu docente y empieza a jugar.</p>
-        <button type="button" class="card-btn">Unirme ahora</button>
-      </div>
+      @if (espacio()?.tipo === 'academia' || rol() === 'estudiante') {
+        <!-- Tarjeta destacada -->
+        <div class="panel-card">
+          <fa-icon [icon]="faWandMagicSparkles" class="card-icon" />
+          <h4>Únete a un Quiz</h4>
+          <p>Ingresa el código que te compartió tu docente y empieza a jugar.</p>
+          <button type="button" class="card-btn">Unirme ahora</button>
+        </div>
+      }
     </nav>
   }
 </aside>

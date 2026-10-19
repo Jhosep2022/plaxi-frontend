@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
 import { PaginadoDto } from 'src/app/models/PaginadoDto';
@@ -7,6 +7,7 @@ import { LeccionService } from '../../services/leccion.service';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
 import { InscripcionService } from 'src/app/services/inscripcion.service';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-course-details-tutor',
@@ -15,7 +16,8 @@ import { InscripcionService } from 'src/app/services/inscripcion.service';
     imports: [RouterLink]
 })
 export class CourseDetailsTutorComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private inscripcionService = inject(InscripcionService);
   private cursoService = inject(CourseService);
@@ -28,7 +30,7 @@ export class CourseDetailsTutorComponent implements OnInit {
   userId: number | null = null;
 
   ngOnInit(): void {
-    const courseId = Number(this.route.snapshot.paramMap.get('id'));
+    const courseId = this.cursoId();
     if (courseId) {
       this.loadCourseDetails(courseId);
       this.loadLessons(courseId);
@@ -60,17 +62,7 @@ export class CourseDetailsTutorComponent implements OnInit {
   editCourse() {
     const course = this.course();
     if (course) {
-      this.router.navigate(['/course-edit-tutor'], {
-        queryParams: {
-          id: course.idCurso,
-          name: course.nombre,
-          descripcion: course.descripcion,
-          dificultad: course.dificultad,
-          estado: course.estado,
-          categoriaId: course.categoriaId,
-          portada: course.portada
-        }
-      });
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos', course.idCurso, 'editar'));
     }
   }
 
@@ -120,13 +112,13 @@ export class CourseDetailsTutorComponent implements OnInit {
       this.snackBar.open('Curso eliminado exitosamente', 'Cerrar', {
         duration: 3000
       });
-      this.router.navigate(['/my-courses']);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos'));
     }
   }
 
   // Lógica para volver a la lista de cursos
   goBack(): void {
-    this.router.navigate(['/my-courses']);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos'));
   }
 
   
@@ -142,7 +134,7 @@ export class CourseDetailsTutorComponent implements OnInit {
       this.snackBar.open('Desinscripción exitosa', 'Cerrar', {
         duration: 3000
       });
-      this.router.navigate(['/course-categories']);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos'));
     }
   }
 }

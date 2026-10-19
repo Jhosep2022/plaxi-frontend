@@ -1,0 +1,99 @@
+/* Selector de espacio */
+.espacio-wrapper {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.espacio-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--text-light);
+  color: var(--dark-blue);
+  text-align: left;
+  cursor: pointer;
+}
+
+.espacio-btn:hover {
+  background: var(--hover);
+}
+
+.espacio-icono {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--dark-blue);
+  color: var(--lime-green);
+}
+
+.espacio-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.espacio-texto strong,
+.espacio-menu span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.espacio-texto small,
+.espacio-menu small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.espacio-chevron {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.espacio-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  padding: 6px;
+  background: var(--text-light);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(10, 10, 35, 0.15);
+  z-index: 1000;
+}
+
+.espacio-menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--dark-blue);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.espacio-menu a:hover,
+.espacio-menu a.actual {
+  background: var(--light-cream);
+}
+
+.espacio-menu span {
+  display: flex;
+  flex-direction: column;
+}
+
+.espacio-menu .todos {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  border-radius: 0 0 8px 8px;
+}

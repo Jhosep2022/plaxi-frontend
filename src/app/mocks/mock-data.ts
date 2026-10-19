@@ -10,6 +10,7 @@ import { TemaDto } from '../models/TemaDto';
 import { PerfilDto } from '../models/PerfilDto';
 import { InscripcionResponseDto } from '../models/inscripcionDto';
 import { Page } from '../models/page';
+import { ESCALA_POR_DEFECTO, Espacio, Rol } from '../core/models/espacio.model';
 
 // Simula la latencia de red (ms) para poder ver estados de carga
 export const MOCK_DELAY = 300;
@@ -52,7 +53,8 @@ export const MOCK_TEMAS: TemaDto[] = [
 export const MOCK_PERFILES: PerfilDto[] = [
   { idUsuario: 1, username: 'admin', gmail: 'admin@plaxi.com', status: true, nombre: 'Ana', primerApellido: 'Rojas', segundoApellido: 'Vargas', telefono: '70000001', ci: '1234567', imagenUrl: 'https://i.pravatar.cc/150?img=5', id_rol: '1' },
   { idUsuario: 2, username: 'estudiante', gmail: 'estudiante@plaxi.com', status: true, nombre: 'Luis', primerApellido: 'Mamani', segundoApellido: 'Quispe', telefono: '70000002', ci: '2345678', imagenUrl: 'https://i.pravatar.cc/150?img=12', id_rol: '2' },
-  { idUsuario: 3, username: 'tutor', gmail: 'tutor@plaxi.com', status: true, nombre: 'María', primerApellido: 'Fernández', segundoApellido: 'López', telefono: '70000003', ci: '3456789', imagenUrl: 'https://i.pravatar.cc/150?img=32', id_rol: '3' },
+  { idUsuario: 3, username: 'docente', gmail: 'docente@plaxi.com', status: true, nombre: 'María', primerApellido: 'Fernández', segundoApellido: 'López', telefono: '70000003', ci: '3456789', imagenUrl: 'https://i.pravatar.cc/150?img=32', id_rol: '3' },
+  { idUsuario: 6, username: 'padre', gmail: 'padre@plaxi.com', status: true, nombre: 'Rosa', primerApellido: 'Quispe', segundoApellido: 'Mamani', telefono: '70000006', ci: '6789012', imagenUrl: 'https://i.pravatar.cc/150?img=47', id_rol: '4' },
 ];
 
 export const MOCK_INSCRIPCIONES: InscripcionResponseDto[] = [
@@ -66,6 +68,22 @@ export const MOCK_INSCRIPCIONES: InscripcionResponseDto[] = [
 export const MOCK_CURSOS_POR_USUARIO: Record<number, number[]> = {
   3: [1, 2, 3, 4],
 };
+
+// Espacios: un colegio y la academia independiente de la docente María
+export const MOCK_ESPACIOS: Espacio[] = [
+  { id: 1, slug: 'colegio-san-jose', nombre: 'Colegio San José', tipo: 'colegio', escala: ESCALA_POR_DEFECTO },
+  { id: 2, slug: 'academia-maria', nombre: 'Academia de María', tipo: 'academia', escala: ESCALA_POR_DEFECTO },
+];
+
+// Rol de cada usuario en cada espacio (un usuario puede estar en varios)
+export const MOCK_MEMBRESIAS: { usuarioId: number; espacioId: number; rol: Rol }[] = [
+  { usuarioId: 1, espacioId: 1, rol: 'direccion' },
+  { usuarioId: 2, espacioId: 1, rol: 'estudiante' },
+  { usuarioId: 2, espacioId: 2, rol: 'estudiante' },
+  { usuarioId: 3, espacioId: 1, rol: 'docente' },
+  { usuarioId: 3, espacioId: 2, rol: 'docente' },
+  { usuarioId: 6, espacioId: 1, rol: 'padre' },
+];
 
 // Helper para armar respuestas paginadas como las de Spring
 export function toPage<T>(items: T[], page = 0, size = 10): Page<T> {

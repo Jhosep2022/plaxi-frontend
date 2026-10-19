@@ -1,0 +1,61 @@
+/* Estilos compartidos por las páginas de estado (404, 403, próximamente) */
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 32px 16px;
+  box-sizing: border-box;
+  background: var(--text-light);
+}
+
+.estado {
+  max-width: 440px;
+  text-align: center;
+  color: var(--dark-blue);
+}
+
+.icono {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 20px;
+  border-radius: 20px;
+  background: var(--light-cream);
+  font-size: 30px;
+}
+
+.codigo {
+  margin: 0;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  color: #6b6b80;
+}
+
+h1 {
+  margin: 6px 0 10px;
+  font-size: 26px;
+}
+
+p {
+  margin: 0 0 24px;
+  color: #4a4a60;
+  line-height: 1.5;
+}
+
+.boton {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: var(--lime-green);
+  color: var(--dark-blue);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.boton:hover {
+  background: var(--dark-blue);
+  color: var(--lime-green);
+}

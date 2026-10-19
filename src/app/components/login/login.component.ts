@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { faCheck, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
+import { SessionService } from '../../core/auth/session.service';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
@@ -14,6 +15,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 export class LoginComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private session = inject(SessionService);
 
   // Íconos (FontAwesome)
   faCheck = faCheck;
@@ -34,9 +36,10 @@ export class LoginComponent {
     this.authService.loginUser(this.username(), this.password()).subscribe({
       next: (response) => {
         if (response.success) {
-          localStorage.setItem('idUsuario', response.data.id_usuario.toString());
-          localStorage.setItem('userRole', response.data.id_rol.toString());
-          this.router.navigate(['/home']);
+          // Guarda la sesión, carga los espacios del usuario y entra a su inicio
+          this.session.iniciarSesion(response.data.id_usuario).subscribe(() => {
+            this.router.navigateByUrl(this.session.rutaPostLogin());
+          });
         } else {
           this.errorMessage.set('Inicio de sesión fallido. Usuario no encontrado.');
         }

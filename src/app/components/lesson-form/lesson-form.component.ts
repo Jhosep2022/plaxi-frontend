@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, inject, input, numberAttribute } from '@angular/core';
+import { Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { CourseService } from '../../services/course.service';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { CategoriaService } from 'src/app/services/categoria.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-lesson-form',
@@ -16,7 +17,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class LessonFormComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private cursoService = inject(CourseService);
   private leccionService = inject(LeccionService);
@@ -93,7 +95,7 @@ export class LessonFormComponent implements OnInit {
 
   // Cargar los detalles del curso desde la API
   private loadCourseDetails(): void {
-    const courseId = Number(this.route.snapshot.paramMap.get('id'));
+    const courseId = this.cursoId();
     if (courseId) {
       this.cursoService.getCursoById(courseId).subscribe({
         next: (data) => {
@@ -112,7 +114,7 @@ export class LessonFormComponent implements OnInit {
   // Método para enviar el formulario
   onSubmit(): void {
     console.log('Form submit triggered');
-    const courseId = Number(this.route.snapshot.paramMap.get('id'));
+    const courseId = this.cursoId();
 
     if (this.lessonForm.valid && this.userId !== null && courseId) {
       const leccionDto = {
@@ -134,7 +136,7 @@ export class LessonFormComponent implements OnInit {
           });
 
           // Redirigir a `CourseDetailsTutorComponent` con el `courseId`
-          this.router.navigate([`/course-details-tutor/${courseId}`]);
+          this.router.navigate(this.session.rutaRol('contenido', 'cursos', courseId));
         },
         error: (error) => {
           console.error('Error en la creación de la lección:', error);
@@ -153,9 +155,9 @@ export class LessonFormComponent implements OnInit {
 
   // Método para cancelar la creación de la lección y redirigir
   onCancel(): void {
-    const courseId = Number(this.route.snapshot.paramMap.get('id'));
+    const courseId = this.cursoId();
     if (courseId) {
-      this.router.navigate([`/course-details-tutor/${courseId}`]);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos', courseId));
     } else {
       console.error('No se encontró el ID del curso para redirigir.');
     }

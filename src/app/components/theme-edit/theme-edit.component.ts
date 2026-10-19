@@ -1,6 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input, numberAttribute } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { TemaService } from '../../services/tema.service';
 import { TemaDto } from '../../models/TemaDto';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { MatLabel, MatInput, MatError } from '@angular/material/input';
 import { MatSelect, MatOption } from '@angular/material/select';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-theme-edit',
@@ -16,15 +17,17 @@ import { MatSelect, MatOption } from '@angular/material/select';
     imports: [FormsModule, ReactiveFormsModule, MatLabel, MatInput, MatError, MatSelect, MatOption]
 })
 export class ThemeEditComponent implements OnInit {
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
+  readonly leccionId = input.required({ transform: numberAttribute });
   private fb = inject(FormBuilder);
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private temaService = inject(TemaService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
 
   themeForm!: FormGroup;
-  temaId!: number;
+  readonly temaId = input.required({ transform: numberAttribute });
   temaData!: TemaDto;
   selectedFile!: File | null;
 
@@ -37,15 +40,13 @@ export class ThemeEditComponent implements OnInit {
       recursoMultimedia: ['']
     });
 
-    this.temaId = Number(this.route.snapshot.paramMap.get('id'));
-
-    if (this.temaId) {
-      this.loadTemaDetails(this.temaId);
+    if (this.temaId()) {
+      this.loadTemaDetails(this.temaId());
     } else {
       this.snackBar.open('ID de tema no proporcionado.', 'Cerrar', {
         duration: 3000
       });
-      this.router.navigate(['/']);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos'));
     }
   }
 
@@ -96,7 +97,7 @@ export class ThemeEditComponent implements OnInit {
       const formValues = this.themeForm.value;
       console.log('Form values:', formValues);
       const updatedTema: TemaDto = {
-        idTema: this.temaId,
+        idTema: this.temaId(),
         leccionId: this.temaData.leccionId,
         titulo: formValues.titulo,
         descripcion: formValues.descripcion,
@@ -137,8 +138,8 @@ export class ThemeEditComponent implements OnInit {
   saveChanges(tema: TemaDto): void {
     const hasFile = this.selectedFile !== null; // Verifica si hay un archivo seleccionado
     const uploadObservable = hasFile
-      ? this.temaService.updateTemaWithFile(this.temaId, tema, this.selectedFile as File) // Asegura que no sea null
-      : this.temaService.updateTemaWithoutFile(this.temaId, tema);
+      ? this.temaService.updateTemaWithFile(this.temaId(), tema, this.selectedFile as File) // Asegura que no sea null
+      : this.temaService.updateTemaWithoutFile(this.temaId(), tema);
   
     uploadObservable.subscribe({
       next: () => {
@@ -146,7 +147,7 @@ export class ThemeEditComponent implements OnInit {
           duration: 3000
         });
         setTimeout(() => {
-          this.router.navigate(['/my-courses']);
+          this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', this.leccionId(), 'temas', this.temaId()));
         }, 500);
       },
       error: (error) => {
@@ -162,7 +163,7 @@ export class ThemeEditComponent implements OnInit {
 
   // Cancel editing
   onCancel(): void {
-    this.router.navigate(['/lesson-details', this.temaData.leccionId]);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId(), 'lecciones', this.leccionId()));
   }
 
   // Get error messages for form validation

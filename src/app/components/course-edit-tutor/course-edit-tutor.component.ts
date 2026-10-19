@@ -1,11 +1,12 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from 'src/app/services/course.service';
 import { CursoDto, ActualizarCursoDto } from 'src/app/models/CursoDto';
 import { CategoriaService } from 'src/app/services/categoria.service';
 import { Categoria } from 'src/app/models/categoriaDto';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-course-edit-tutor',
@@ -14,8 +15,9 @@ import { Categoria } from 'src/app/models/categoriaDto';
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseEditTutorComponent implements OnInit {
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
   private fb = inject(FormBuilder);
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
   private courseService = inject(CourseService);
@@ -29,7 +31,7 @@ export class CourseEditTutorComponent implements OnInit {
   readonly categorias = signal<Categoria[]>([]);
   ngOnInit(): void {
     // Obtener el ID del curso de la URL
-    this.courseId = Number(this.route.snapshot.paramMap.get('id'));
+    this.courseId = this.cursoId();
 
     // Inicializar el formulario
     this.courseForm = this.fb.group({
@@ -138,7 +140,7 @@ export class CourseEditTutorComponent implements OnInit {
             duration: 3000,
             verticalPosition: 'bottom',
           });
-          this.router.navigate(['/my-courses']);
+          this.router.navigate(this.session.rutaRol('contenido', 'cursos'));
         },
         error: (err) => {
           console.error('Error al actualizar el curso:', err);
@@ -158,7 +160,7 @@ export class CourseEditTutorComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate([`/course-details-tutor/${this.courseId}`]);
+    this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.courseId));
   }
 
 

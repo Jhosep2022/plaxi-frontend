@@ -5,74 +5,42 @@ import { Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
-  IconDefinition,
   faAnglesLeft,
   faAnglesRight,
   faBook,
-  faBookOpen,
   faChalkboardTeacher,
-  faChartLine,
-  faChartPie,
-  faClipboard,
-  faClipboardCheck,
-  faClipboardList,
-  faCog,
-  faComments,
+  faChevronDown,
   faEdit,
-  faHome,
   faPlus,
-  faQuestionCircle,
+  faSchool,
   faSignOutAlt,
-  faTasks,
-  faUser,
+  faTableCells,
   faUserCircle,
-  faUserGraduate,
-  faUsers,
   faWandMagicSparkles,
 } from '@fortawesome/free-solid-svg-icons';
-import { AuthService } from '../../services/auth.service';
+import { SessionService } from '../../core/auth/session.service';
+import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
 import { CourseService } from '../../services/course.service';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { ProfileService } from '../../services/profile.service';
 import { PerfilDto } from '../../models/PerfilDto';
+import { NavItem, NavModule, navegacion } from './sidebar.navigation';
 
-type Rol = 'Administrador' | 'Tutor' | 'Estudiante';
-
-interface NavItem {
-  label: string;
-  icon: IconDefinition;
-  route: string | (string | number)[];
-}
-
-interface NavSection {
-  title?: string;
-  items: NavItem[];
-  emptyText?: string;
-}
-
-interface NavModule {
-  id: string;
-  label: string;
-  icon: IconDefinition;
-  sections: NavSection[];
-}
-
-const ROLES: Record<string, Rol> = { '1': 'Administrador', '2': 'Estudiante', '3': 'Tutor' };
 const COLLAPSED_KEY = 'sidebarCollapsed';
 
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.css'],
+  styleUrls: ['./sidebar.component.css', './sidebar-espacio.css'],
   imports: [RouterLink, RouterLinkActive, FaIconComponent],
   host: {
     '(document:click)': 'onDocumentClick($event)',
-    '(document:keydown.escape)': 'userMenuOpen.set(false)',
+    '(document:keydown.escape)': 'cerrarMenus()',
   },
 })
 export class SidebarComponent {
   private router = inject(Router);
-  private authService = inject(AuthService);
+  protected readonly session = inject(SessionService);
   private profileService = inject(ProfileService);
   private courseService = inject(CourseService);
   private inscripcionService = inject(InscripcionService);
@@ -81,18 +49,26 @@ export class SidebarComponent {
   // Íconos usados directamente en la plantilla
   readonly faAnglesLeft = faAnglesLeft;
   readonly faAnglesRight = faAnglesRight;
+  readonly faChevronDown = faChevronDown;
   readonly faPlus = faPlus;
   readonly faUserCircle = faUserCircle;
   readonly faEdit = faEdit;
   readonly faSignOutAlt = faSignOutAlt;
+  readonly faTableCells = faTableCells;
   readonly faWandMagicSparkles = faWandMagicSparkles;
+  readonly faSchool = faSchool;
+  readonly faChalkboardTeacher = faChalkboardTeacher;
+  readonly rolLabel = ROL_LABEL;
+  readonly tipoLabel = TIPO_ESPACIO_LABEL;
 
-  // Usuario logueado
-  private readonly userId = Number(localStorage.getItem('idUsuario')) || null;
-  readonly rol: Rol = ROLES[localStorage.getItem('userRole') ?? ''] ?? 'Estudiante';
+  // Espacio y rol activos (el layout se recrea al cambiar de espacio)
+  readonly membresia = this.session.membresiaActiva;
+  readonly espacio = computed(() => this.membresia()?.espacio ?? null);
+  readonly rol = computed(() => this.membresia()?.rol ?? null);
+  private readonly slug = computed(() => this.espacio()?.slug ?? '');
 
   readonly profile = toSignal<PerfilDto | null>(
-    this.userId ? this.profileService.getProfile(this.userId) : of(null),
+    this.session.usuarioId() ? this.profileService.getProfile(this.session.usuarioId()!) : of(null),
     { initialValue: null }
   );
 
@@ -106,48 +82,19 @@ export class SidebarComponent {
     return p ? `${p.nombre.charAt(0)}${p.primerApellido.charAt(0)}`.toUpperCase() : '';
   });
 
-  // Cursos del usuario (inscritos si es estudiante, creados si es tutor)
-  private readonly myCourses = toSignal(this.loadMyCourses(), { initialValue: [] as NavItem[] });
+  // Cursos del usuario: creados (docente) o inscritos (estudiante)
+  private readonly misCursos = toSignal(this.cargarMisCursos(), { initialValue: [] as NavItem[] });
 
-  // Módulos del riel según el rol
-  readonly modules = computed<NavModule[]>(() => [
-    {
-      id: 'inicio',
-      label: 'Inicio',
-      icon: faHome,
-      sections: [
-        {
-          title: 'General',
-          items: [
-            { label: 'Dashboard', icon: faHome, route: '/home' },
-            { label: 'Explorar cursos', icon: faBookOpen, route: '/course-categories' },
-            { label: 'Quizzes', icon: faClipboard, route: '/quizzes' },
-          ],
-        },
-        {
-          title: 'Comunidad',
-          items: [
-            { label: 'Foro', icon: faComments, route: '/forum' },
-            { label: 'Ayuda', icon: faQuestionCircle, route: '/help' },
-          ],
-        },
-      ],
-    },
-    this.roleModule(),
-    {
-      id: 'cuenta',
-      label: 'Mi cuenta',
-      icon: faUser,
-      sections: [
-        {
-          items: [
-            { label: 'Ver perfil', icon: faUserCircle, route: '/perfil' },
-            { label: 'Editar perfil', icon: faEdit, route: '/updateperfil' },
-          ],
-        },
-      ],
-    },
-  ]);
+  // Módulos del riel según el tipo de espacio y el rol, con la lista de cursos ya completada
+  readonly modules = computed<NavModule[]>(() => {
+    const espacio = this.espacio();
+    const rol = this.rol();
+    if (!espacio || !rol) return [];
+    return navegacion(espacio.tipo, rol).map((modulo) => ({
+      ...modulo,
+      sections: modulo.sections.map((s) => (s.misCursos ? { ...s, items: this.misCursos() } : s)),
+    }));
+  });
 
   // URL actual como signal
   private readonly url = toSignal(
@@ -159,13 +106,19 @@ export class SidebarComponent {
   );
 
   // Módulo activo: sigue a la ruta, pero se puede cambiar a mano desde el riel
-  readonly activeModuleId = linkedSignal(() => this.moduleIdForUrl(this.url()));
+  readonly activeModuleId = linkedSignal(() => this.moduloParaUrl(this.url()));
   readonly activeModule = computed(
     () => this.modules().find((m) => m.id === this.activeModuleId()) ?? this.modules()[0]
   );
 
   readonly collapsed = signal(this.readCollapsed());
   readonly userMenuOpen = signal(false);
+  readonly espacioMenuOpen = signal(false);
+
+  // Link absoluto dentro del espacio activo
+  link(route: string): string {
+    return `/${this.slug()}/${route}`;
+  }
 
   selectModule(id: string): void {
     this.activeModuleId.set(id);
@@ -178,124 +131,61 @@ export class SidebarComponent {
     this.setCollapsed(!this.collapsed());
   }
 
-  toggleUserMenu(): void {
-    this.userMenuOpen.update((open) => !open);
+  cerrarMenus(): void {
+    this.userMenuOpen.set(false);
+    this.espacioMenuOpen.set(false);
   }
 
   logout(): void {
-    this.userMenuOpen.set(false);
-    this.authService.logout();
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('idUsuario');
-    this.router.navigate(['/login']);
+    this.cerrarMenus();
+    this.session.cerrarSesion();
   }
 
-  // Cierra el menú de usuario al hacer clic fuera de él
+  // Cierra los menús desplegables al hacer clic fuera de ellos
   onDocumentClick(event: MouseEvent): void {
-    if (!this.userMenuOpen()) return;
-    const menu = this.elementRef.nativeElement.querySelector('.user-menu-wrapper');
-    if (menu && !menu.contains(event.target as Node)) {
+    const target = event.target as Node;
+    const host = this.elementRef.nativeElement;
+    if (this.userMenuOpen() && !host.querySelector('.user-menu-wrapper')?.contains(target)) {
       this.userMenuOpen.set(false);
     }
-  }
-
-  private roleModule(): NavModule {
-    const courses: NavSection = {
-      title: this.rol === 'Tutor' ? 'Cursos creados' : 'Mis cursos',
-      items: this.myCourses(),
-      emptyText: this.rol === 'Tutor' ? 'Todavía no creaste cursos.' : 'Aún no estás inscrito en ningún curso.',
-    };
-
-    switch (this.rol) {
-      case 'Administrador':
-        return {
-          id: 'rol',
-          label: 'Administración',
-          icon: faUsers,
-          sections: [
-            {
-              items: [
-                { label: 'Gestión de usuarios', icon: faUsers, route: '/user-management' },
-                { label: 'Gestión de cursos', icon: faBook, route: '/course-management' },
-                { label: 'Reportes', icon: faChartLine, route: '/reports' },
-                { label: 'Configuración', icon: faCog, route: '/settings' },
-              ],
-            },
-          ],
-        };
-      case 'Tutor':
-        return {
-          id: 'rol',
-          label: 'Enseñanza',
-          icon: faChalkboardTeacher,
-          sections: [
-            {
-              title: 'Gestión',
-              items: [
-                { label: 'Mis cursos', icon: faChalkboardTeacher, route: '/my-courses' },
-                { label: 'Crear curso', icon: faPlus, route: '/create-course' },
-                { label: 'Estudiantes', icon: faUserGraduate, route: '/students' },
-                { label: 'Evaluaciones', icon: faClipboardCheck, route: '/evaluations' },
-              ],
-            },
-            courses,
-          ],
-        };
-      default:
-        return {
-          id: 'rol',
-          label: 'Mi aprendizaje',
-          icon: faUserGraduate,
-          sections: [
-            {
-              title: 'Accesos',
-              items: [
-                { label: 'Mis cursos', icon: faBook, route: '/my-courses-student' },
-                { label: 'Progreso', icon: faChartPie, route: '/progress' },
-                { label: 'Tareas', icon: faTasks, route: '/tasks' },
-                { label: 'Evaluaciones', icon: faClipboardList, route: '/evaluations' },
-              ],
-            },
-            courses,
-          ],
-        };
+    if (this.espacioMenuOpen() && !host.querySelector('.espacio-wrapper')?.contains(target)) {
+      this.espacioMenuOpen.set(false);
     }
   }
 
-  private loadMyCourses(): Observable<NavItem[]> {
-    if (!this.userId) return of([]);
+  private cargarMisCursos(): Observable<NavItem[]> {
+    const usuarioId = this.session.usuarioId();
+    const rol = this.rol();
+    if (!usuarioId) return of([]);
 
-    if (this.rol === 'Tutor') {
-      return this.courseService.getCursosByUsuario(this.userId).pipe(
-        map((cursos) =>
-          cursos.map((c) => ({ label: c.nombre, icon: faBook, route: ['/course-details-tutor', c.idCurso] }))
-        )
+    if (rol === 'docente') {
+      return this.courseService.getCursosByUsuario(usuarioId).pipe(
+        map((cursos) => cursos.map((c) => ({ label: c.nombre, icon: faBook, route: `docente/contenido/cursos/${c.idCurso}` })))
       );
     }
-
-    if (this.rol === 'Estudiante') {
-      return this.inscripcionService.getInscripcionesByUsuarioId(this.userId).pipe(
-        map((inscripciones) =>
-          inscripciones.map((i) => ({ label: i.cursoNombre, icon: faBook, route: ['/course-details', i.cursoId] }))
-        )
+    if (rol === 'estudiante') {
+      return this.inscripcionService.getInscripcionesByUsuarioId(usuarioId).pipe(
+        map((inscripciones) => inscripciones.map((i) => ({ label: i.cursoNombre, icon: faBook, route: `estudiante/cursos/${i.cursoId}` })))
       );
     }
-
     return of([]);
   }
 
-  // Elige el módulo cuyo menú contiene la ruta actual
-  private moduleIdForUrl(url: string): string {
-    const path = url.split('?')[0];
-    for (const module of this.modules()) {
-      const match = module.sections.some((section) =>
-        section.items.some((item) => typeof item.route === 'string' && path.startsWith(item.route))
-      );
-      if (match) return module.id;
+  // Elige el módulo con el link que mejor coincide con la ruta actual
+  private moduloParaUrl(url: string): string {
+    const ruta = url.split('?')[0].replace(`/${this.slug()}/`, '');
+    let mejor = { id: this.modules()[0]?.id ?? 'inicio', largo: -1 };
+    for (const modulo of this.modules()) {
+      for (const section of modulo.sections) {
+        for (const item of section.items) {
+          const coincide = ruta === item.route || ruta.startsWith(`${item.route}/`);
+          if (coincide && item.route.length > mejor.largo) {
+            mejor = { id: modulo.id, largo: item.route.length };
+          }
+        }
+      }
     }
-    // Detalles de cursos, lecciones y temas pertenecen al módulo del rol
-    if (/^\/(course|lesson|tema|theme|create-course)/.test(path)) return 'rol';
-    return 'inicio';
+    return mejor.id;
   }
 
   private readCollapsed(): boolean {

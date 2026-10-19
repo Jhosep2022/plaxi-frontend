@@ -1,38 +1,55 @@
 import { Routes } from '@angular/router';
+import { authGuard, espacioGuard, guestGuard, redirigirInicioGuard, rolGuard } from './core/guards/session.guards';
+import { proximamente } from './core/routing/proximamente';
+import { AppLayoutComponent } from './layouts/app-layout/app-layout.component';
 
-// Cada pantalla se carga de forma diferida (lazy loading): su código se descarga
-// solo cuando el usuario navega a esa ruta, lo que reduce el bundle inicial.
+// Estructura general:
+//   /auth/...                       pantallas públicas (sin sidebar)
+//   /unirse/:codigo                 link de invitación a una academia
+//   /espacios                       elegir espacio (si el usuario tiene varios)
+//   /:espacio/<rol>/...             todo lo demás, dentro de un colegio o academia
+// Cada área de rol se carga de forma diferida y está protegida por su guard.
 export const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', pathMatch: 'full', canActivate: [redirigirInicioGuard], children: [] },
 
-  // Autenticación
-  { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
-  { path: 'registrar', loadComponent: () => import('./components/registrar-usuario/registrar-usuario.component').then(m => m.RegistrarUsuarioComponent) },
-  { path: 'forgot-password', loadComponent: () => import('./components/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
+  {
+    path: 'auth',
+    canMatch: [guestGuard],
+    loadChildren: () => import('./features/auth/auth.routes'),
+  },
 
-  // Inicio y perfil
-  { path: 'home', loadComponent: () => import('./components/home/home.component').then(m => m.HomeComponent) },
-  { path: 'perfil', loadComponent: () => import('./components/perfil/perfil.component').then(m => m.PerfilComponent) },
-  { path: 'updateperfil', loadComponent: () => import('./components/updateperfil/updateperfil.component').then(m => m.UpdateperfilComponent) },
+  proximamente('unirse/:codigo', 'Unirse a una academia', 'Aquí podrás aceptar la invitación que te compartió tu docente.'),
 
-  // Cursos
-  { path: 'my-courses', loadComponent: () => import('./components/course-list/course-list.component').then(m => m.CourseListComponent) },
-  { path: 'create-course', loadComponent: () => import('./components/course-form/course-form.component').then(m => m.CourseFormComponent) },
-  { path: 'course-categories', loadComponent: () => import('./components/course-category-list/course-category-list.component').then(m => m.CourseCategoryListComponent) },
-  { path: 'course-details/:id', loadComponent: () => import('./components/course-details/course-details.component').then(m => m.CourseDetailsComponent) },
-  { path: 'my-courses-student', loadComponent: () => import('./components/my-courses-student/my-courses-student.component').then(m => m.MyCoursesStudentComponent) },
-  { path: 'course-details-tutor/:id', loadComponent: () => import('./components/course-details-tutor/course-details-tutor.component').then(m => m.CourseDetailsTutorComponent) },
-  { path: 'course-edit-tutor/:id', loadComponent: () => import('./components/course-edit-tutor/course-edit-tutor.component').then(m => m.CourseEditTutorComponent) },
+  {
+    path: 'espacios',
+    canMatch: [authGuard],
+    title: 'Mis espacios',
+    loadComponent: () => import('./shared/pages/seleccionar-espacio.component').then((m) => m.SeleccionarEspacioComponent),
+  },
 
-  // Lecciones
-  { path: 'lesson-form/:id', loadComponent: () => import('./components/lesson-form/lesson-form.component').then(m => m.LessonFormComponent) },
-  { path: 'lesson-details/:id', loadComponent: () => import('./components/lesson-details/lesson-details.component').then(m => m.LessonDetailsComponent) },
-  { path: 'lesson-details-tutor/:id', loadComponent: () => import('./components/lesson-details-tutor/lesson-details-tutor.component').then(m => m.LessonDetailsTutorComponent) },
-  { path: 'lesson-edit/:id', loadComponent: () => import('./components/lesson-edit/lesson-edit.component').then(m => m.LessonEditComponent) },
+  {
+    path: 'no-autorizado',
+    title: 'Sin acceso',
+    loadComponent: () => import('./shared/pages/no-autorizado.component').then((m) => m.NoAutorizadoComponent),
+  },
 
-  // Temas
-  { path: 'tema-form/:id', loadComponent: () => import('./components/tema-form/tema-form.component').then(m => m.TemaFormComponent) },
-  { path: 'theme-edit/:id', loadComponent: () => import('./components/theme-edit/theme-edit.component').then(m => m.ThemeEditComponent) },
-  { path: 'tema-details/:id', loadComponent: () => import('./components/tema-details/tema-details.component').then(m => m.TemaDetailsComponent) },
-  { path: 'tema-details-tutor/:id', loadComponent: () => import('./components/tema-details-tutor/tema-details-tutor.component').then(m => m.TemaDetailsTutorComponent) },
+  {
+    path: ':espacio',
+    canMatch: [authGuard, espacioGuard],
+    component: AppLayoutComponent,
+    children: [
+      { path: '', pathMatch: 'full', canActivate: [redirigirInicioGuard], children: [] },
+      { path: 'perfil', loadChildren: () => import('./features/perfil/perfil.routes') },
+      { path: 'docente', canActivate: [rolGuard('docente')], loadChildren: () => import('./features/docente/docente.routes') },
+      { path: 'estudiante', canActivate: [rolGuard('estudiante')], loadChildren: () => import('./features/estudiante/estudiante.routes') },
+      { path: 'direccion', canActivate: [rolGuard('direccion')], loadChildren: () => import('./features/direccion/direccion.routes') },
+      { path: 'padre', canActivate: [rolGuard('padre')], loadChildren: () => import('./features/padre/padre.routes') },
+    ],
+  },
+
+  {
+    path: '**',
+    title: 'Página no encontrada',
+    loadComponent: () => import('./shared/pages/no-encontrado.component').then((m) => m.NoEncontradoComponent),
+  },
 ];

@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
 import { LeccionService } from '../../services/leccion.service';
@@ -7,6 +7,7 @@ import { CursoDto } from 'src/app/models/CursoDto';
 import { TemaService } from 'src/app/services/tema.service';
 import { TemaDto } from 'src/app/models/TemaDto';
 import { PaginadoDto } from 'src/app/models/PaginadoDto';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-lesson-details-tutor',
@@ -15,7 +16,9 @@ import { PaginadoDto } from 'src/app/models/PaginadoDto';
     imports: [RouterLink]
 })
 export class LessonDetailsTutorComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
+  readonly leccionId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private temaService = inject(TemaService);
   private leccionService = inject(LeccionService);
@@ -27,16 +30,9 @@ export class LessonDetailsTutorComponent implements OnInit {
   readonly temas = signal<TemaDto[]>([]);
   readonly courseId = signal<number | null>(null);
   ngOnInit(): void {
-    const storedUserId = localStorage.getItem('idUsuario');
+    this.userId = this.session.usuarioId();
 
-    if (storedUserId) {
-      this.userId = Number(storedUserId);
-    } else {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    const lessonId = Number(this.route.snapshot.paramMap.get('id'));
+    const lessonId = this.leccionId();
 
     if (lessonId) {
       this.loadLessonDetails(lessonId);
@@ -76,7 +72,7 @@ export class LessonDetailsTutorComponent implements OnInit {
   // Lógica para volver a la página de detalles del curso
   goBack(): void {
     if (this.courseId()) {
-      this.router.navigate(['/course-details-tutor', this.courseId()]);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId()));
     } else {
       this.snackBar.open('No se pudo encontrar el curso relacionado.', 'Cerrar', {
         duration: 3000
@@ -95,7 +91,7 @@ export class LessonDetailsTutorComponent implements OnInit {
       this.snackBar.open('Leccion eliminada exitosamente', 'Cerrar', {
         duration: 3000
       });
-      this.router.navigate(['/my-courses']);
+      this.router.navigate(this.session.rutaRol('contenido', 'cursos', this.cursoId()));
     }
   }
 }

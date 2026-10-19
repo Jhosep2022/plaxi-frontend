@@ -30,7 +30,7 @@
   } @else {
     <div class="empty-state">
       <p>No tienes cursos inscritos.</p>
-      <button mat-raised-button color="primary" routerLink="/course-categories">Explora Cursos</button>
+      <button mat-raised-button color="primary" [routerLink]="session.rutaRol('catalogo')">Explora Cursos</button>
     </div>
   }
 

@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, inject, signal, input, numberAttribute } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TemaDto } from 'src/app/models/TemaDto';
 import { TemaService } from 'src/app/services/tema.service';
+import { SessionService } from '../../core/auth/session.service';
 
 @Component({
     selector: 'app-tema-details',
@@ -11,7 +12,10 @@ import { TemaService } from 'src/app/services/tema.service';
     styleUrls: ['./tema-details.component.css'],
 })
 export class TemaDetailsComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  protected readonly session = inject(SessionService);
+  readonly cursoId = input.required({ transform: numberAttribute });
+  readonly leccionId = input.required({ transform: numberAttribute });
+  readonly temaId = input.required({ transform: numberAttribute });
   private router = inject(Router);
   private temaService = inject(TemaService);
   private snackBar = inject(MatSnackBar);
@@ -22,7 +26,7 @@ export class TemaDetailsComponent implements OnInit {
   userId: number | null = null;
 
   ngOnInit(): void {
-    const temaId = Number(this.route.snapshot.paramMap.get('id'));
+    const temaId = this.temaId();
     if (temaId) {
       this.loadTemaDetails(temaId);
     }
@@ -46,6 +50,6 @@ export class TemaDetailsComponent implements OnInit {
 
   // Lógica para volver a la lista de cursos
   goBack(): void {
-    this.router.navigate(['/my-courses']);
+    this.router.navigate(this.session.rutaRol('cursos', this.cursoId(), 'lecciones', this.leccionId()));
   }
 }

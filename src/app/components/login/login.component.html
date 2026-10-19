@@ -31,10 +31,10 @@
 
         <button type="submit" class="login-btn">Iniciar Sesión <fa-icon [icon]="faCheck" class="btn-icon" /></button>
 
-        <button type="button" class="signup-btn" [routerLink]="['/registrar']">Registrarse</button>
+        <button type="button" class="signup-btn" routerLink="/auth/registro">Registrarse</button>
 
         <div class="forgot-password">
-          <a [routerLink]="['/forgot-password']">¿Olvidaste tu contraseña? <span class="highlight">haz clic aquí</span></a>
+          <a routerLink="/auth/recuperar-contrasena">¿Olvidaste tu contraseña? <span class="highlight">haz clic aquí</span></a>
         </div>
       </form>
     </div>
