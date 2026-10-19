@@ -1,0 +1,116 @@
+<app-page-header
+  miga="Académico"
+  titulo="Asignación docente"
+  descripcion="Elige un paralelo y asigna qué docente dicta cada materia. Los cambios se guardan al instante.">
+  <span class="ui-badge tono-lima"><fa-icon [icon]="faCheck" /> {{ resumen().asignadas }} de {{ resumen().total }} materias asignadas</span>
+</app-page-header>
+
+@if (!gestion.isLoading() && !gestion.value()) {
+  <div class="ui-card">
+    <app-empty-state [icono]="faCalendarDays" titulo="No hay una gestión activa" texto="Las asignaciones pertenecen a la gestión activa.">
+      <a class="ui-btn" [routerLink]="session.rutaRol('academico', 'gestion')">Ir a Gestión y periodos</a>
+    </app-empty-state>
+  </div>
+} @else {
+  <div class="distribucion">
+    <!-- Lista de paralelos -->
+    <aside class="ui-card lista">
+      @for (grupo of grupos(); track grupo.nivel) {
+        <h3>{{ grupo.nivel }}</h3>
+        <ul>
+          @for (item of grupo.paralelos; track item.paralelo.id) {
+            <li>
+              <button type="button" class="paralelo" [class.elegido]="item.paralelo.id === seleccionadoId()" (click)="seleccionadoId.set(item.paralelo.id)">
+                <span class="nombre">{{ paraleloLabel(item.paralelo) }}</span>
+                <span class="avance" [class.completo]="item.asignadas >= item.total">{{ item.asignadas }}/{{ item.total }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @empty {
+        <p class="vacio">No hay paralelos en la gestión activa.</p>
+      }
+    </aside>
+
+    <!-- Materias del paralelo elegido -->
+    <section class="ui-card">
+      @if (seleccionado(); as p) {
+        <header class="cabecera">
+          <h2>{{ paraleloLabel(p) }}</h2>
+          <span class="ui-ayuda">{{ filas().length }} materias del nivel</span>
+        </header>
+
+        @if (filas().length === 0) {
+          <app-empty-state titulo="Este nivel no tiene materias" texto="Agrega materias al nivel desde la pantalla Materias." />
+        } @else {
+          <div class="ui-tabla-contenedor">
+            <table class="ui-tabla">
+              <thead>
+                <tr>
+                  <th>Materia</th>
+                  <th>Horas</th>
+                  <th>Docente</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (fila of filas(); track fila.materia.id) {
+                  <tr>
+                    <td>
+                      <div class="materia">
+                        <span class="ui-icono" [class]="'tono-' + fila.materia.tono"><fa-icon [icon]="iconoMateria(fila.materia.icono)" /></span>
+                        <strong>{{ fila.materia.nombre }}</strong>
+                      </div>
+                    </td>
+                    <td>{{ fila.materia.horasSemanales }} h</td>
+                    <td>
+                      <div class="docente">
+                        <select
+                          class="ui-input"
+                          [class.sin-asignar]="!fila.docenteId"
+                          [disabled]="guardandoMateria() === fila.materia.id"
+                          (change)="asignar(fila.materia.id, +$any($event.target).value)"
+                          [attr.aria-label]="'Docente de ' + fila.materia.nombre">
+                          <option value="0" [selected]="!fila.docenteId">Sin asignar</option>
+                          @for (d of docentes.value(); track d.id) {
+                            <option [value]="'' + d.id" [selected]="d.id === fila.docenteId">{{ d.nombre }} · {{ d.especialidad }}</option>
+                          }
+                        </select>
+                        @if (!fila.docenteId) {
+                          <fa-icon [icon]="faTriangleExclamation" class="alerta" title="Materia sin docente" />
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      } @else {
+        <app-empty-state titulo="Elige un paralelo" texto="Selecciona un paralelo de la lista para ver sus materias." />
+      }
+    </section>
+  </div>
+
+  <!-- Carga horaria -->
+  <section class="ui-card carga">
+    <h2><fa-icon [icon]="faChalkboardTeacher" /> Carga horaria semanal</h2>
+    <div class="docentes">
+      @for (c of carga(); track c.docente.id) {
+        <div class="docente-carga">
+          <span class="avatar">{{ iniciales(c.docente.nombre) }}</span>
+          <div class="info">
+            <div class="linea">
+              <strong>{{ c.docente.nombre }}</strong>
+              <span [class.excedido]="c.horas > horasCompletas">{{ c.horas }} h · {{ c.paralelos }} paralelo{{ c.paralelos === 1 ? '' : 's' }}</span>
+            </div>
+            <div class="ui-barra" [class]="c.horas > horasCompletas ? 'tono-crema' : 'tono-lima'">
+              <span [style.width.%]="(c.horas / horasCompletas) * 100 > 100 ? 100 : (c.horas / horasCompletas) * 100"></span>
+            </div>
+            <small>{{ c.docente.especialidad }}</small>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+}

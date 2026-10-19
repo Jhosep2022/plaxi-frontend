@@ -1,0 +1,105 @@
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.materia {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cobertura {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+}
+
+.cobertura .ui-barra {
+  flex: 1;
+}
+
+.cobertura small {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.derecha {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.derecha .ui-btn + .ui-btn {
+  margin-left: 6px;
+}
+
+.cargando {
+  color: var(--muted);
+}
+
+/* Selector de ícono y color */
+.opciones {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.iconos {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.icono-opcion,
+.tono-opcion {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--dark-blue);
+}
+
+.icono-opcion.elegido,
+.tono-opcion.elegido {
+  border-color: var(--dark-blue);
+  box-shadow: 0 0 0 2px var(--lime-soft);
+}
+
+.icono-opcion input,
+.tono-opcion input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tonos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.muestra {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--tono-bar);
+}
+
+.vista-previa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}

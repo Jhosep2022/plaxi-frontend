@@ -432,7 +432,7 @@ export class ResumenService {
       progreso: [
         { titulo: 'Asistencia de estudiantes', icono: faUserGraduate, tono: 'lima', actual: 412, total: 450, unidad: 'presentes' },
         { titulo: 'Docentes que marcaron', icono: faQrcode, tono: 'azul', actual: 28, total: 32, unidad: 'docentes' },
-        { titulo: 'Avance del 2do trimestre', icono: faCalendarDays, tono: 'crema', actual: 34, total: 60, unidad: 'días' },
+        { titulo: 'Avance del 3er trimestre', icono: faCalendarDays, tono: 'crema', actual: 34, total: 60, unidad: 'días' },
       ],
       horario: {
         titulo: 'Actividades de hoy',

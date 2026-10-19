@@ -1,0 +1,127 @@
+<app-page-header
+  miga="Académico"
+  titulo="Aulas"
+  descripcion="Aulas, laboratorios y demás espacios físicos del colegio. Cada paralelo puede tener un aula fija.">
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nueva aula</button>
+</app-page-header>
+
+<!-- Indicadores -->
+<div class="indicadores">
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-lima"><fa-icon [icon]="faDoorOpen" /></span>
+    <div><strong>{{ resumen().total }}</strong><small>espacios activos</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-azul"><fa-icon [icon]="faUsers" /></span>
+    <div><strong>{{ resumen().capacidad }}</strong><small>personas de capacidad total</small></div>
+  </div>
+  <div class="ui-card indicador">
+    <span class="ui-icono tono-crema"><fa-icon [icon]="iconoAula.aula" /></span>
+    <div><strong>{{ resumen().libres }}</strong><small>aulas sin paralelo fijo</small></div>
+  </div>
+</div>
+
+<!-- Filtro por tipo -->
+<div class="ui-tabs filtros" role="tablist">
+  <button type="button" class="ui-tab" [class.activa]="filtro() === 'todas'" (click)="filtro.set('todas')">
+    Todas <span class="contador">{{ aulas.value().length }}</span>
+  </button>
+  @for (tipo of tipos; track tipo.id) {
+    @if (conteoPorTipo()[tipo.id]) {
+      <button type="button" class="ui-tab" [class.activa]="filtro() === tipo.id" (click)="filtro.set(tipo.id)">
+        {{ tipo.label }} <span class="contador">{{ conteoPorTipo()[tipo.id] }}</span>
+      </button>
+    }
+  }
+</div>
+
+@if (aulas.isLoading() && aulas.value().length === 0) {
+  <p class="cargando">Cargando aulas…</p>
+} @else {
+  <div class="grilla">
+    @for (aula of aulasFiltradas(); track aula.id) {
+      <article class="ui-card aula" [class.inactiva]="!aula.activa">
+        <header>
+          <span class="ui-icono" [class]="tonoAula[aula.tipo]"><fa-icon [icon]="iconoAula[aula.tipo]" /></span>
+          <div class="titulo">
+            <h3>{{ aula.nombre }}</h3>
+            <small>{{ tipoLabel(aula.tipo) }}@if (aula.ubicacion) { · {{ aula.ubicacion }} }</small>
+          </div>
+          <div class="acciones">
+            <button type="button" class="ui-btn ui-btn--icono" (click)="editar(aula)" [attr.aria-label]="'Editar ' + aula.nombre"><fa-icon [icon]="faPen" /></button>
+            <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(aula)" [attr.aria-label]="'Eliminar ' + aula.nombre"><fa-icon [icon]="faTrash" /></button>
+          </div>
+        </header>
+
+        <div class="datos">
+          <span><fa-icon [icon]="faUsers" /> {{ aula.capacidad }} personas</span>
+          @if (!aula.activa) {
+            <span class="ui-badge">Inactiva</span>
+          } @else if (ocupacion().get(aula.id); as paralelos) {
+            <span class="ui-badge tono-lima">Aula fija de {{ paralelos.join(', ') }}</span>
+          } @else {
+            <span class="ui-badge tono-crema">Sin paralelo fijo</span>
+          }
+        </div>
+      </article>
+    } @empty {
+      <div class="ui-card vacio">
+        <app-empty-state titulo="No hay espacios de este tipo" texto="Crea un aula, laboratorio u otro espacio para empezar.">
+          <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nueva aula</button>
+        </app-empty-state>
+      </div>
+    }
+  </div>
+}
+
+<!-- Formulario -->
+<app-drawer
+  [abierto]="drawerAbierto()"
+  [titulo]="editandoId() ? 'Editar aula' : 'Nueva aula'"
+  subtitulo="Los horarios usan las aulas para evitar dos clases en el mismo lugar."
+  (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-campo">
+      <label for="aula-nombre">Nombre</label>
+      <input id="aula-nombre" class="ui-input" placeholder="Ej. Aula 12" [formField]="formulario.nombre" />
+      @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+        <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span>
+      }
+    </div>
+
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="aula-tipo">Tipo</label>
+        <select id="aula-tipo" class="ui-input" [formField]="formulario.tipo">
+          @for (tipo of tipos; track tipo.id) {
+            <option [value]="tipo.id">{{ tipo.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="ui-campo">
+        <label for="aula-capacidad">Capacidad</label>
+        <input id="aula-capacidad" type="number" class="ui-input" [formField]="formulario.capacidad" />
+        @if (formulario.capacidad().touched() && formulario.capacidad().invalid()) {
+          <span class="ui-error">{{ formulario.capacidad().errors()[0].message }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="ui-campo">
+      <label for="aula-ubicacion">Ubicación <span class="ui-ayuda">(opcional)</span></label>
+      <input id="aula-ubicacion" class="ui-input" placeholder="Ej. Bloque A · Piso 1" [formField]="formulario.ubicacion" />
+    </div>
+
+    <label class="check">
+      <input type="checkbox" [formField]="formulario.activa" />
+      <span>Disponible para asignar a paralelos y horarios</span>
+    </label>
+  </form>
+
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : editandoId() ? 'Guardar cambios' : 'Crear aula' }}
+    </button>
+  </ng-container>
+</app-drawer>

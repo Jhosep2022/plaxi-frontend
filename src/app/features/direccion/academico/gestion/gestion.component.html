@@ -1,0 +1,153 @@
+<app-page-header
+  miga="Académico"
+  titulo="Gestión y periodos"
+  descripcion="El año escolar y sus periodos de evaluación. Los paralelos, horarios y calificaciones pertenecen a la gestión activa.">
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nueva gestión</button>
+</app-page-header>
+
+@if (gestiones.isLoading() && gestiones.value().length === 0) {
+  <p class="cargando">Cargando gestiones…</p>
+} @else {
+  <!-- Gestión activa -->
+  @if (activa(); as g) {
+    <section class="ui-card activa">
+      <header>
+        <div>
+          <h2>Gestión {{ g.anio }}</h2>
+          <div class="etiquetas">
+            <span class="ui-badge tono-lima"><fa-icon [icon]="faCheck" /> Activa</span>
+            <span class="ui-badge tono-azul">{{ tipoLabel(g.tipoPeriodo) }}</span>
+          </div>
+        </div>
+        <button type="button" class="ui-btn ui-btn--secundario" (click)="editar(g)"><fa-icon [icon]="faPen" /> Editar periodos</button>
+      </header>
+
+      <ol class="periodos">
+        @for (p of lineaDeTiempo(); track p.nombre) {
+          <li class="periodo" [class]="p.estado">
+            <div class="cabecera">
+              <strong>{{ p.nombre }}</strong>
+              @switch (p.estado) {
+                @case ('concluido') { <span class="ui-badge">Concluido</span> }
+                @case ('en-curso') { <span class="ui-badge tono-lima">En curso</span> }
+                @default { <span class="ui-badge tono-crema">Próximo</span> }
+              }
+            </div>
+            <span class="fechas"><fa-icon [icon]="faCalendarDays" /> {{ fecha(p.inicio) }} – {{ fecha(p.fin) }}</span>
+            <div class="ui-barra" [class]="p.estado === 'en-curso' ? 'tono-lima' : 'tono-azul'">
+              <span [style.width.%]="p.avance"></span>
+            </div>
+            <small>
+              @if (p.estado === 'en-curso') { {{ p.avance }}% avanzado · faltan {{ p.restantes }} días }
+              @else if (p.estado === 'concluido') { Periodo cerrado }
+              @else { Empieza el {{ fecha(p.inicio) }} }
+            </small>
+          </li>
+        }
+      </ol>
+    </section>
+  } @else {
+    <div class="ui-card">
+      <app-empty-state [icono]="faCalendarDays" titulo="No hay una gestión activa" texto="Crea la gestión del año escolar para empezar a registrar paralelos y horarios.">
+        <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nueva gestión</button>
+      </app-empty-state>
+    </div>
+  }
+
+  <!-- Otras gestiones -->
+  @if (otras().length) {
+    <section class="ui-card otras">
+      <h2>Otras gestiones</h2>
+      <div class="ui-tabla-contenedor">
+        <table class="ui-tabla">
+          <thead>
+            <tr>
+              <th>Año</th>
+              <th>Modalidad</th>
+              <th>Calendario</th>
+              <th>Estado</th>
+              <th class="derecha">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (g of otras(); track g.id) {
+              <tr>
+                <td><strong>{{ g.anio }}</strong></td>
+                <td>{{ tipoLabel(g.tipoPeriodo) }} · {{ g.periodos.length }} periodos</td>
+                <td>{{ fecha(g.periodos[0].inicio) }} – {{ fecha(g.periodos[g.periodos.length - 1].fin) }}</td>
+                <td><span class="ui-badge" [class.tono-crema]="g.estado === 'planificada'">{{ estadoLabel(g.estado) }}</span></td>
+                <td class="derecha">
+                  <button type="button" class="ui-btn ui-btn--secundario chico" (click)="activar(g)">Activar</button>
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="editar(g)" [attr.aria-label]="'Editar gestión ' + g.anio"><fa-icon [icon]="faPen" /></button>
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(g)" [attr.aria-label]="'Eliminar gestión ' + g.anio"><fa-icon [icon]="faTrash" /></button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}
+
+<!-- Formulario -->
+<app-drawer
+  [abierto]="drawerAbierto()"
+  [titulo]="editando() ? 'Editar gestión ' + editando()!.anio : 'Nueva gestión'"
+  [subtitulo]="editando() ? 'Ajusta las fechas de los periodos.' : (activa() ? 'Se creará como planificada; podrás activarla cuando empiece.' : 'Será la gestión activa.')"
+  (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="ges-anio">Año</label>
+        <input id="ges-anio" type="number" class="ui-input" [formField]="formulario.anio" />
+        @if (formulario.anio().touched() && formulario.anio().invalid()) {
+          <span class="ui-error">{{ formulario.anio().errors()[0].message }}</span>
+        }
+      </div>
+      <div class="ui-campo">
+        <label for="ges-tipo">Modalidad</label>
+        <select id="ges-tipo" class="ui-input" [formField]="formulario.tipoPeriodo" (change)="repartirFechas($any($event.target).value)">
+          @for (t of tiposPeriodo; track t.id) {
+            <option [value]="t.id">{{ t.label }} ({{ t.cantidad }})</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="periodos-form">
+      <div class="periodos-titulo">
+        <span class="ui-etiqueta">Periodos</span>
+        <button type="button" class="ui-btn ui-btn--secundario chico" (click)="repartirFechas()">
+          <fa-icon [icon]="faWandMagicSparkles" /> Repartir fechas
+        </button>
+      </div>
+
+      @for (p of formulario.periodos; track $index) {
+        <div class="periodo-form">
+          <input class="ui-input" [formField]="p.nombre" aria-label="Nombre del periodo" />
+          <div class="ui-fila">
+            <div class="ui-campo">
+              <label [for]="'ini-' + $index">Inicio</label>
+              <input [id]="'ini-' + $index" type="date" class="ui-input" [formField]="p.inicio" />
+            </div>
+            <div class="ui-campo">
+              <label [for]="'fin-' + $index">Fin</label>
+              <input [id]="'fin-' + $index" type="date" class="ui-input" [formField]="p.fin" />
+            </div>
+          </div>
+          @if (p.fin().invalid() && (p.fin().touched() || p.fin().dirty())) {
+            <span class="ui-error">{{ p.fin().errors()[0].message }}</span>
+          }
+        </div>
+      }
+    </div>
+  </form>
+
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Crear gestión' }}
+    </button>
+  </ng-container>
+</app-drawer>

@@ -7,11 +7,11 @@ export default [
   { path: 'inicio', title: 'Resumen', loadComponent: () => import('../resumen/resumen.component').then((m) => m.ResumenComponent) },
 
   // Académico
-  proximamente('academico/gestion', 'Gestión y periodos', 'Año escolar y sus periodos (trimestres o bimestres).'),
-  proximamente('academico/paralelos', 'Grados y paralelos', 'Grados, paralelos y sus estudiantes (ej. 3ro A).'),
-  proximamente('academico/materias', 'Materias', 'Materias que se dictan en cada grado.'),
-  proximamente('academico/aulas', 'Aulas', 'Aulas, laboratorios y espacios físicos con su capacidad.'),
-  proximamente('academico/asignaciones', 'Asignación docente', 'Qué docente dicta cada materia en cada paralelo.'),
+  { path: 'academico/gestion', title: 'Gestión y periodos', loadComponent: () => import('./academico/gestion/gestion.component').then((m) => m.GestionComponent) },
+  { path: 'academico/paralelos', title: 'Grados y paralelos', loadComponent: () => import('./academico/paralelos/paralelos.component').then((m) => m.ParalelosComponent) },
+  { path: 'academico/materias', title: 'Materias', loadComponent: () => import('./academico/materias/materias.component').then((m) => m.MateriasComponent) },
+  { path: 'academico/aulas', title: 'Aulas', loadComponent: () => import('./academico/aulas/aulas.component').then((m) => m.AulasComponent) },
+  { path: 'academico/asignaciones', title: 'Asignación docente', loadComponent: () => import('./academico/asignaciones/asignaciones.component').then((m) => m.AsignacionesComponent) },
   proximamente('academico/horarios', 'Horarios', 'Horario por paralelo, docente y aula, sin choques.'),
 
   // Personas

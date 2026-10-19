@@ -1,0 +1,287 @@
+/* ==========================================================================
+   Kit de interfaz de QuizWiz: piezas comunes de las pantallas de gestión.
+   Usa siempre las variables de la paleta definidas en styles.css.
+   ========================================================================== */
+
+/* Página: fondo y espaciado estándar (host class="ui-pagina") */
+.ui-pagina {
+  display: block;
+  min-height: 100%;
+  padding: 28px;
+  box-sizing: border-box;
+  background: var(--page-bg);
+  color: var(--dark-blue);
+}
+
+@media (max-width: 700px) {
+  .ui-pagina {
+    padding: 16px;
+  }
+}
+
+/* Tarjeta */
+.ui-card {
+  padding: 18px;
+  background: var(--text-light);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+/* Botones */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--lime-green);
+  color: var(--dark-blue);
+  font: inherit;
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ui-btn:hover {
+  background: var(--dark-blue);
+  color: var(--lime-green);
+}
+
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-btn--secundario {
+  background: var(--text-light);
+  border-color: var(--line);
+}
+
+.ui-btn--secundario:hover {
+  background: var(--page-bg);
+  color: var(--dark-blue);
+}
+
+.ui-btn--peligro {
+  background: var(--text-light);
+  border-color: #f0c9c4;
+  color: #c0392b;
+}
+
+.ui-btn--peligro:hover {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+.ui-btn--icono {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: var(--text-light);
+  border-color: var(--line);
+  font-weight: normal;
+}
+
+.ui-btn--icono:hover {
+  background: var(--page-bg);
+  color: var(--dark-blue);
+}
+
+/* Campos de formulario */
+.ui-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ui-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ui-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ui-campo > label,
+.ui-etiqueta {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--dark-blue);
+}
+
+.ui-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--text-light);
+  color: var(--dark-blue);
+  font: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.ui-input:focus {
+  outline: none;
+  border-color: var(--lime-green);
+  box-shadow: 0 0 0 3px var(--lime-soft);
+}
+
+.ui-input[aria-invalid='true'] {
+  border-color: #e3a49b;
+}
+
+.ui-ayuda {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ui-error {
+  font-size: 12px;
+  color: #c0392b;
+}
+
+.ui-aviso {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--cream-soft);
+  border: 1px solid var(--light-cream);
+  color: var(--cream-strong);
+  font-size: 13px;
+}
+
+/* Tabla */
+.ui-tabla-contenedor {
+  overflow-x: auto;
+}
+
+.ui-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ui-tabla th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.ui-tabla td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.ui-tabla tr:last-child td {
+  border-bottom: none;
+}
+
+.ui-tabla tbody tr:hover {
+  background: var(--page-bg);
+}
+
+/* Insignias (combinar con tono-lima / tono-azul / tono-crema) */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--tono-bg, var(--page-bg));
+  color: var(--tono-fg, var(--muted));
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* Pestañas */
+.ui-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--text-light);
+  border: 1px solid var(--line);
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.ui-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ui-tab.activa {
+  background: var(--dark-blue);
+  color: var(--text-light);
+  font-weight: bold;
+}
+
+.ui-tab .contador {
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--page-bg);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ui-tab.activa .contador {
+  background: var(--lime-green);
+  color: var(--dark-blue);
+}
+
+/* Ícono cuadrado con tono */
+.ui-icono {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--tono-bg, var(--page-bg));
+  color: var(--tono-fg, var(--dark-blue));
+}
+
+/* Barra de progreso simple */
+.ui-barra {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.ui-barra > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--tono-bar, var(--lime-green));
+}

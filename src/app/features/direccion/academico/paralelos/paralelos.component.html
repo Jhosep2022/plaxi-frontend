@@ -1,0 +1,155 @@
+<app-page-header
+  miga="Académico"
+  [titulo]="'Grados y paralelos'"
+  [descripcion]="gestion.value() ? 'Paralelos de la gestión ' + gestion.value()!.anio + ', agrupados por nivel y grado.' : 'Paralelos de la gestión activa, agrupados por nivel y grado.'">
+  @if (gestion.value()) {
+    <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo paralelo</button>
+  }
+</app-page-header>
+
+@if (!gestion.isLoading() && !gestion.value()) {
+  <div class="ui-card">
+    <app-empty-state [icono]="faCalendarDays" titulo="No hay una gestión activa" texto="Primero crea y activa la gestión del año escolar; los paralelos pertenecen a una gestión.">
+      <a class="ui-btn" [routerLink]="session.rutaRol('academico', 'gestion')">Ir a Gestión y periodos</a>
+    </app-empty-state>
+  </div>
+} @else {
+  <div class="ui-tabs niveles" role="tablist">
+    @for (n of niveles; track n.id) {
+      <button type="button" class="ui-tab" [class.activa]="nivel() === n.id" (click)="nivel.set(n.id)">
+        {{ n.label }} <span class="contador">{{ conteoPorNivel()[n.id] ?? 0 }}</span>
+      </button>
+    }
+  </div>
+
+  @for (grupo of grupos(); track grupo.grado) {
+    <section class="grado">
+      <h2>{{ gradoLabel(nivel(), grupo.grado) }} <small>· {{ grupo.paralelos.length }} paralelo{{ grupo.paralelos.length === 1 ? '' : 's' }}</small></h2>
+      <div class="grilla">
+        @for (p of grupo.paralelos; track p.id) {
+          @let materiasTotal = materiasPorNivel()[p.nivel] ?? 0;
+          @let materiasAsignadas = asignadasPorParalelo().get(p.id) ?? 0;
+          <article class="ui-card paralelo">
+            <header>
+              <span class="letra">{{ p.letra }}</span>
+              <div class="titulo">
+                <h3>{{ paraleloLabel(p) }}</h3>
+                <span class="ui-badge tono-azul">Turno {{ turnoLabel(p.turno) }}</span>
+              </div>
+              <div class="acciones">
+                <button type="button" class="ui-btn ui-btn--icono" (click)="editar(p)" [attr.aria-label]="'Editar ' + paraleloLabel(p)"><fa-icon [icon]="faPen" /></button>
+                <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(p)" [attr.aria-label]="'Eliminar ' + paraleloLabel(p)"><fa-icon [icon]="faTrash" /></button>
+              </div>
+            </header>
+
+            <div class="dato">
+              <fa-icon [icon]="faDoorOpen" />
+              @if (p.aulaId && nombreAula().get(p.aulaId)) {
+                <span>Aula fija: <strong>{{ nombreAula().get(p.aulaId) }}</strong></span>
+              } @else {
+                <span class="alerta"><fa-icon [icon]="faTriangleExclamation" /> Sin aula fija</span>
+              }
+            </div>
+
+            <div class="dato columna">
+              <span><fa-icon [icon]="faUsers" /> {{ p.estudiantes }} de {{ p.capacidad }} estudiantes</span>
+              <div class="ui-barra" [class]="p.estudiantes >= p.capacidad ? 'tono-crema' : 'tono-lima'">
+                <span [style.width.%]="p.capacidad ? (p.estudiantes / p.capacidad) * 100 : 0"></span>
+              </div>
+            </div>
+
+            <div class="dato columna">
+              <span><fa-icon [icon]="faSitemap" /> {{ materiasAsignadas }} de {{ materiasTotal }} materias con docente</span>
+              <div class="ui-barra" [class]="materiasAsignadas < materiasTotal ? 'tono-crema' : 'tono-azul'">
+                <span [style.width.%]="materiasTotal ? (materiasAsignadas / materiasTotal) * 100 : 0"></span>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  } @empty {
+    <div class="ui-card">
+      <app-empty-state [icono]="faSitemap" titulo="Este nivel todavía no tiene paralelos" texto="Crea el primer paralelo de este nivel.">
+        <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo paralelo</button>
+      </app-empty-state>
+    </div>
+  }
+}
+
+<!-- Formulario -->
+<app-drawer
+  [abierto]="drawerAbierto()"
+  [titulo]="editandoId() ? 'Editar paralelo' : 'Nuevo paralelo'"
+  [subtitulo]="gestion.value() ? 'Gestión ' + gestion.value()!.anio : ''"
+  (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="par-nivel">Nivel</label>
+        <select id="par-nivel" class="ui-input" [formField]="formulario.nivel" (change)="ajustarGrado($any($event.target).value)">
+          @for (n of niveles; track n.id) {
+            <option [value]="n.id">{{ n.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="ui-campo">
+        <label for="par-grado">Grado</label>
+        <select id="par-grado" class="ui-input" [formField]="formulario.grado">
+          @for (g of gradosDelNivel(); track g) {
+            <option [value]="'' + g">{{ gradoLabel(modelo().nivel, g) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="par-letra">Paralelo</label>
+        <input id="par-letra" class="ui-input mayusculas" placeholder="A" [formField]="formulario.letra" />
+        @if (formulario.letra().touched() && formulario.letra().invalid()) {
+          <span class="ui-error">{{ formulario.letra().errors()[0].message }}</span>
+        }
+      </div>
+      <div class="ui-campo">
+        <label for="par-turno">Turno</label>
+        <select id="par-turno" class="ui-input" [formField]="formulario.turno">
+          @for (t of turnos; track t.id) {
+            <option [value]="t.id">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="ui-campo">
+      <label for="par-aula">Aula fija</label>
+      <select id="par-aula" class="ui-input" [formField]="formulario.aulaId">
+        <option value="0">Sin aula fija</option>
+        @for (a of aulasDisponibles(); track a.id) {
+          <option [value]="'' + a.id">{{ a.nombre }} · {{ a.capacidad }} personas</option>
+        }
+      </select>
+      <span class="ui-ayuda">Es el aula por defecto en el horario; cada clase puede cambiarla (ej. laboratorio).</span>
+      @if (choqueDeAula(); as otro) {
+        <span class="ui-aviso"><fa-icon [icon]="faTriangleExclamation" /> Esta aula ya es el aula fija de {{ paraleloLabel(otro) }} en el mismo turno.</span>
+      }
+    </div>
+
+    <div class="ui-campo">
+      <label for="par-capacidad">Capacidad de estudiantes</label>
+      <input id="par-capacidad" type="number" class="ui-input" [formField]="formulario.capacidad" />
+      @if (formulario.capacidad().touched() && formulario.capacidad().invalid()) {
+        <span class="ui-error">{{ formulario.capacidad().errors()[0].message }}</span>
+      }
+    </div>
+
+    <p class="vista">Se guardará como <strong>{{ gradoLabel(modelo().nivel, +modelo().grado) }} {{ modelo().letra.toUpperCase() || '?' }}</strong></p>
+  </form>
+
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : editandoId() ? 'Guardar cambios' : 'Crear paralelo' }}
+    </button>
+  </ng-container>
+</app-drawer>

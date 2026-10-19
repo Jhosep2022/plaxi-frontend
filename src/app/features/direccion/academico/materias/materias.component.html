@@ -1,0 +1,137 @@
+<app-page-header
+  miga="Académico"
+  titulo="Materias"
+  descripcion="Materias que se dictan en cada nivel, con sus horas semanales. Los horarios usan estas horas para repartir las clases.">
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nueva materia</button>
+</app-page-header>
+
+<div class="barra">
+  <div class="ui-tabs" role="tablist">
+    @for (n of niveles; track n.id) {
+      <button type="button" class="ui-tab" [class.activa]="nivel() === n.id" (click)="nivel.set(n.id)">
+        {{ n.label }} <span class="contador">{{ conteoPorNivel()[n.id] ?? 0 }}</span>
+      </button>
+    }
+  </div>
+  <span class="ui-badge tono-azul">{{ horasDelNivel() }} horas semanales en total</span>
+</div>
+
+<div class="ui-card">
+  @if (materias.isLoading() && materias.value().length === 0) {
+    <p class="cargando">Cargando materias…</p>
+  } @else if (materiasDelNivel().length === 0) {
+    <app-empty-state [icono]="faBook" titulo="Este nivel todavía no tiene materias" texto="Agrega las materias que se dictan en este nivel.">
+      <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nueva materia</button>
+    </app-empty-state>
+  } @else {
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla">
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Horas semanales</th>
+            <th>Paralelos con docente</th>
+            <th class="derecha">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (materia of materiasDelNivel(); track materia.id) {
+            @let asignados = cobertura().porMateria.get(materia.id) ?? 0;
+            <tr>
+              <td>
+                <div class="materia">
+                  <span class="ui-icono" [class]="'tono-' + materia.tono"><fa-icon [icon]="iconoMateria(materia.icono)" /></span>
+                  <strong>{{ materia.nombre }}</strong>
+                </div>
+              </td>
+              <td>{{ materia.horasSemanales }} h</td>
+              <td>
+                <div class="cobertura">
+                  <div class="ui-barra" [class]="asignados < cobertura().total ? 'tono-crema' : 'tono-lima'">
+                    <span [style.width.%]="cobertura().total ? (asignados / cobertura().total) * 100 : 0"></span>
+                  </div>
+                  <small>{{ asignados }} de {{ cobertura().total }}</small>
+                </div>
+              </td>
+              <td class="derecha">
+                <button type="button" class="ui-btn ui-btn--icono" (click)="editar(materia)" [attr.aria-label]="'Editar ' + materia.nombre"><fa-icon [icon]="faPen" /></button>
+                <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(materia)" [attr.aria-label]="'Eliminar ' + materia.nombre"><fa-icon [icon]="faTrash" /></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Formulario -->
+<app-drawer
+  [abierto]="drawerAbierto()"
+  [titulo]="editandoId() ? 'Editar materia' : 'Nueva materia'"
+  subtitulo="El ícono y el color se usan en horarios, resúmenes y boletines."
+  (cerrar)="drawerAbierto.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-campo">
+      <label for="materia-nombre">Nombre</label>
+      <input id="materia-nombre" class="ui-input" placeholder="Ej. Matemáticas" [formField]="formulario.nombre" />
+      @if (formulario.nombre().touched() && formulario.nombre().invalid()) {
+        <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span>
+      }
+    </div>
+
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="materia-nivel">Nivel</label>
+        <select id="materia-nivel" class="ui-input" [formField]="formulario.nivel">
+          @for (n of niveles; track n.id) {
+            <option [value]="n.id">{{ n.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="ui-campo">
+        <label for="materia-horas">Horas semanales</label>
+        <input id="materia-horas" type="number" class="ui-input" [formField]="formulario.horasSemanales" />
+        @if (formulario.horasSemanales().touched() && formulario.horasSemanales().invalid()) {
+          <span class="ui-error">{{ formulario.horasSemanales().errors()[0].message }}</span>
+        }
+      </div>
+    </div>
+
+    <fieldset class="ui-campo opciones">
+      <legend class="ui-etiqueta">Ícono</legend>
+      <div class="iconos">
+        @for (i of iconos; track i.id) {
+          <label class="icono-opcion" [title]="i.label" [class.elegido]="modelo().icono === i.id">
+            <input type="radio" [value]="i.id" [formField]="formulario.icono" />
+            <fa-icon [icon]="i.icono" />
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="ui-campo opciones">
+      <legend class="ui-etiqueta">Color</legend>
+      <div class="tonos">
+        @for (t of tonos; track t.id) {
+          <label class="tono-opcion" [class]="'tono-' + t.id" [class.elegido]="modelo().tono === t.id">
+            <input type="radio" [value]="t.id" [formField]="formulario.tono" />
+            <span class="muestra"></span> {{ t.label }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <div class="vista-previa">
+      <span class="ui-icono" [class]="'tono-' + modelo().tono"><fa-icon [icon]="iconoMateria(modelo().icono)" /></span>
+      <strong>{{ modelo().nombre || 'Nombre de la materia' }}</strong>
+    </div>
+  </form>
+
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : editandoId() ? 'Guardar cambios' : 'Crear materia' }}
+    </button>
+  </ng-container>
+</app-drawer>

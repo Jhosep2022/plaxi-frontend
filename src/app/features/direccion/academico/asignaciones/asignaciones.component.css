@@ -1,0 +1,174 @@
+.distribucion {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .distribucion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.lista h3 {
+  margin: 0 0 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lista h3:not(:first-child) {
+  margin-top: 14px;
+}
+
+.lista ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.paralelo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--dark-blue);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.paralelo:hover {
+  background: var(--page-bg);
+}
+
+.paralelo.elegido {
+  background: var(--light-cream);
+  font-weight: bold;
+}
+
+.avance {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--light-cream);
+  color: var(--cream-strong);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.avance.completo {
+  background: var(--lime-soft);
+  color: var(--lime-strong);
+}
+
+.vacio {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+}
+
+.materia {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.docente {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 240px;
+}
+
+.docente .sin-asignar {
+  border-color: var(--light-cream);
+  background: var(--cream-soft);
+  color: var(--cream-strong);
+}
+
+.alerta {
+  color: var(--cream-strong);
+}
+
+.carga {
+  margin-top: 16px;
+}
+
+.carga h2 {
+  margin-bottom: 14px;
+}
+
+.docentes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.docente-carga {
+  display: flex;
+  gap: 12px;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--light-cream);
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linea {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.linea span {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.linea .excedido {
+  color: var(--cream-strong);
+  font-weight: bold;
+}
+
+.info small {
+  color: var(--muted);
+  font-size: 12px;
+}
