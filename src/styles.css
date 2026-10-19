@@ -32,11 +32,6 @@ body {
   transition: background-color 9999s ease-in-out 0s;
 }
 
-.navbar-container {
-  width: 100%;
-  background-color: var(--dark-blue);
-}
-
 .content {
   flex-grow: 1;
   display: flex;

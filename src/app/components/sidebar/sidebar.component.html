@@ -1,0 +1,128 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+  <!-- Riel de íconos: módulos principales -->
+  <nav class="rail" aria-label="Módulos">
+    <a routerLink="/home" class="rail-logo" title="QuizWiz">
+      <img src="assets/Logo_icon.png" alt="QuizWiz" />
+    </a>
+
+    @if (collapsed()) {
+      <button type="button" class="rail-btn" (click)="toggleCollapsed()" title="Expandir menú" aria-label="Expandir menú">
+        <fa-icon [icon]="faAnglesRight" />
+      </button>
+    }
+
+    <ul class="rail-modules">
+      @for (module of modules(); track module.id) {
+        <li>
+          <button
+            type="button"
+            class="rail-btn"
+            [class.active]="module.id === activeModuleId()"
+            [attr.aria-pressed]="module.id === activeModuleId()"
+            [attr.aria-label]="module.label"
+            [title]="module.label"
+            (click)="selectModule(module.id)">
+            <fa-icon [icon]="module.icon" />
+          </button>
+        </li>
+      }
+    </ul>
+
+    <div class="rail-bottom">
+      @if (rol === 'Tutor') {
+        <a routerLink="/create-course" class="rail-btn rail-btn--accent" title="Crear curso" aria-label="Crear curso">
+          <fa-icon [icon]="faPlus" />
+        </a>
+      }
+
+      <!-- Avatar + menú de usuario -->
+      <div class="user-menu-wrapper">
+        <button
+          type="button"
+          class="avatar"
+          (click)="toggleUserMenu()"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="userMenuOpen()"
+          [attr.aria-label]="'Menú de ' + fullName()">
+          @if (profile()?.imagenUrl; as imagenUrl) {
+            <img [src]="imagenUrl" alt="" />
+          } @else {
+            {{ initials() }}
+          }
+        </button>
+
+        @if (userMenuOpen()) {
+          <div class="user-menu" role="menu">
+            <div class="user-menu-header">
+              <span class="user-name">{{ fullName() }}</span>
+              <span class="user-role">{{ rol }}</span>
+            </div>
+            <a role="menuitem" routerLink="/perfil" (click)="userMenuOpen.set(false)">
+              <fa-icon [icon]="faUserCircle" /> Ver perfil
+            </a>
+            <a role="menuitem" routerLink="/updateperfil" (click)="userMenuOpen.set(false)">
+              <fa-icon [icon]="faEdit" /> Editar perfil
+            </a>
+            <button type="button" role="menuitem" class="logout" (click)="logout()">
+              <fa-icon [icon]="faSignOutAlt" /> Cerrar sesión
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <!-- Panel: navegación del módulo activo -->
+  @if (!collapsed()) {
+    <nav class="panel" [attr.aria-label]="activeModule().label">
+      <header class="panel-header">
+        <h2>{{ activeModule().label }}</h2>
+        <button type="button" class="collapse-btn" (click)="toggleCollapsed()" title="Contraer menú" aria-label="Contraer menú">
+          <fa-icon [icon]="faAnglesLeft" />
+        </button>
+      </header>
+
+      <div class="panel-body">
+        @for (section of activeModule().sections; track $index) {
+          <section class="panel-section">
+            @if (section.title) {
+              <h3 class="section-title">
+                {{ section.title }}
+                @if (section.emptyText) {
+                  <span class="count">{{ section.items.length }}</span>
+                }
+              </h3>
+            }
+
+            <ul>
+              @for (item of section.items; track item.label) {
+                <li>
+                  <a
+                    class="panel-link"
+                    [routerLink]="item.route"
+                    routerLinkActive="active"
+                    ariaCurrentWhenActive="page">
+                    <fa-icon [icon]="item.icon" class="link-icon" />
+                    <span class="link-label">{{ item.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+
+            @if (section.items.length === 0 && section.emptyText) {
+              <p class="empty">{{ section.emptyText }}</p>
+            }
+          </section>
+        }
+      </div>
+
+      <!-- Tarjeta destacada (reemplaza el botón "Join Quiz" del navbar) -->
+      <div class="panel-card">
+        <fa-icon [icon]="faWandMagicSparkles" class="card-icon" />
+        <h4>Únete a un Quiz</h4>
+        <p>Ingresa el código que te compartió tu docente y empieza a jugar.</p>
+        <button type="button" class="card-btn">Unirme ahora</button>
+      </div>
+    </nav>
+  }
+</aside>

@@ -2,16 +2,16 @@ import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
-import { NavbarComponent } from './components/navbar/navbar.component';
+import { SidebarComponent } from './components/sidebar/sidebar.component';
 
-// Rutas donde no se muestra el navbar
-const RUTAS_SIN_NAVBAR = ['/login', '/registrar', '/forgot-password'];
+// Rutas donde no se muestra el sidebar (pantallas de autenticación)
+const RUTAS_SIN_SIDEBAR = ['/login', '/registrar', '/forgot-password'];
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
-    imports: [NavbarComponent, RouterOutlet]
+    imports: [SidebarComponent, RouterOutlet]
 })
 export class AppComponent {
   private router = inject(Router);
@@ -25,5 +25,5 @@ export class AppComponent {
     { initialValue: this.router.url }
   );
 
-  readonly showNavbar = computed(() => !RUTAS_SIN_NAVBAR.some((ruta) => this.url().includes(ruta)));
+  readonly showSidebar = computed(() => !RUTAS_SIN_SIDEBAR.some((ruta) => this.url().includes(ruta)));
 }

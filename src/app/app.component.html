@@ -1,7 +1,9 @@
-@if (showNavbar()) {
-  <app-navbar />
-}
+<div class="layout">
+  @if (showSidebar()) {
+    <app-sidebar />
+  }
 
-<div id="app">
-  <router-outlet />
+  <main id="app" class="main">
+    <router-outlet />
+  </main>
 </div>
