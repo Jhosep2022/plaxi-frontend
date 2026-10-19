@@ -51,15 +51,15 @@
           <input id="portada" type="file" (change)="onFileSelected($event)" accept=".jpg, .jpeg, .png" />
         </div>
         <!-- Mensaje de error para el campo de portada -->
-        @if (fileError) {
+        @if (fileError()) {
           <span class="error-message">
-            {{ fileError }}
+            {{ fileError() }}
           </span>
         }
       </div>
 
       <!-- Mostrar la imagen de vista previa si existe -->
-      @if (previewUrl) {
+      @if (previewUrl(); as previewUrl) {
         <div class="image-preview">
           <img [src]="previewUrl" alt="Vista previa de la imagen" class="preview-image" />
         </div>
@@ -96,7 +96,7 @@
           <select id="Categoria_id_categoria" formControlName="Categoria_id_categoria" (change)="onCategoryChange($event)">
             <option value="" disabled selected>Selecciona una categoría</option>
             <!-- Modificado para utilizar idCategoria -->
-            @for (categoria of categorias; track categoria) {
+            @for (categoria of categorias(); track categoria.idCategoria) {
               <option [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
             }
           </select>

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { TemaService } from '../../services/tema.service';
@@ -12,7 +12,6 @@ import { TemaDto } from 'src/app/models/TemaDto';
     selector: 'app-tema-form',
     templateUrl: './tema-form.component.html',
     styleUrls: ['./tema-form.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class TemaFormComponent implements OnInit, AfterViewChecked {
@@ -29,8 +28,8 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
   userId: number | null = null;
   temaForm!: FormGroup;
   selectedFile: File | null = null; // Archivo seleccionado
-  fileError: string | null = null; // Error relacionado con el archivo
-  previewUrl: string | ArrayBuffer | null = null; // URL de vista previa de la imagen
+  readonly fileError = signal<string | null>(null); // Error relacionado con el archivo
+  readonly previewUrl = signal<string | ArrayBuffer | null>(null); // URL de vista previa de la imagen
   snackBarRef: any;
 
   ngOnInit(): void {
@@ -97,30 +96,30 @@ export class TemaFormComponent implements OnInit, AfterViewChecked {
 
       if (validExtensions.includes(file.type)) {
         this.selectedFile = file;
-        this.fileError = null;
+        this.fileError.set(null);
 
         const reader = new FileReader();
 
         // Verificar si el archivo es una imagen para mostrar la vista previa
         if (file.type.startsWith('image/')) {
           reader.onload = () => {
-            this.previewUrl = reader.result; // Mostrar vista previa de la imagen
+            this.previewUrl.set(reader.result); // Mostrar vista previa de la imagen
           };
           reader.readAsDataURL(file);
           console.log('Vista previa de la imagen lista');
         } else if (file.type === 'application/pdf') {
           // Puedes agregar una lógica para manejar vistas previas de PDF si es necesario
-          this.previewUrl = null;
+          this.previewUrl.set(null);
           console.log('Archivo PDF seleccionado');
         } else if (file.type.startsWith('video/')) {
           // Para videos, se puede reproducir directamente o manejar como se prefiera
-          this.previewUrl = null;
+          this.previewUrl.set(null);
           console.log('Archivo de video seleccionado');
         }
       } else {
-        this.fileError = 'Por favor, selecciona un archivo con formato .jpg, .jpeg, .png, .mp4 o .pdf';
+        this.fileError.set('Por favor, selecciona un archivo con formato .jpg, .jpeg, .png, .mp4 o .pdf');
         this.selectedFile = null;
-        this.previewUrl = null;
+        this.previewUrl.set(null);
         console.error('Formato de archivo inválido:', file.type);
       }
     }

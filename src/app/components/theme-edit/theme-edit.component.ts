@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TemaService } from '../../services/tema.service';
@@ -13,7 +13,6 @@ import { MatSelect, MatOption } from '@angular/material/select';
     selector: 'app-theme-edit',
     templateUrl: './theme-edit.component.html',
     styleUrls: ['./theme-edit.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, ReactiveFormsModule, MatLabel, MatInput, MatError, MatSelect, MatOption]
 })
 export class ThemeEditComponent implements OnInit {

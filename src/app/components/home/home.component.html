@@ -6,7 +6,7 @@
       <!-- <a class="quiz-directory-link" href="#">Ver Todos <span>→</span></a> -->
     </div>
     <div class="upcoming-quizzes-container">
-      @for (curso of recentCursos; track curso) {
+      @for (curso of recentCursos(); track curso.idCurso) {
         <div class="quiz">
           <div class="quiz-info">
             <img [src]="curso.portada" alt="{{ curso.nombre }}" class="quiz-image">
@@ -24,13 +24,13 @@
 
 
   <!-- Cursos Inscritos (Solo para Estudiantes) -->
-  @if (isStudent) {
+  @if (isStudent()) {
     <div class="students-list">
       <div class="header">
         <h2>Mis Cursos Inscritos</h2>
       </div>
       <div class="student-card-container">
-        @for (curso of enrolledCursos; track curso) {
+        @for (curso of enrolledCursos(); track curso.idCurso) {
           <div class="student-card">
             <img [src]="curso.portada" alt="{{ curso.nombre }}" class="student-image">
             <div class="student-info">
@@ -45,16 +45,16 @@
     </div>
   }
 
-  @if (userRole === 'Tutor') {
+  @if (userRole() === 'Tutor') {
     <div class="students-list">
       <div class="header">
         <h2>Lista de Estudiantes Inscritos</h2>
       </div>
       <!-- Cursos creados por el tutor -->
       <div class="group-tabs">
-        @for (curso of cursosCreados; track curso) {
+        @for (curso of cursosCreados(); track curso.idCurso) {
           <button
-            [class.active]="curso.idCurso === activeCourseId"
+            [class.active]="curso.idCurso === activeCourseId()"
             (click)="loadEstudiantesInscritos(curso.idCurso)"
             >
             {{ curso.nombre }}
@@ -62,17 +62,17 @@
         }
       </div>
       <!-- Contador de estudiantes -->
-      @if (activeCourseId !== null) {
+      @if (activeCourseId() !== null) {
         <div class="student-count">
           <p>
-            Número de estudiantes inscritos: {{ estudiantesInscritos.length }}
+            Número de estudiantes inscritos: {{ estudiantesInscritos().length }}
           </p>
         </div>
       }
       <!-- Estudiantes inscritos en el curso seleccionado -->
-      @if (estudiantesInscritos.length > 0) {
+      @if (estudiantesInscritos().length > 0) {
         <div class="student-card-container">
-          @for (estudiante of estudiantesInscritos; track estudiante) {
+          @for (estudiante of estudiantesInscritos(); track estudiante.idInscripcion) {
             <div class="student-card">
               <img [src]="'assets/perfil.jpeg'" alt="Student Photo" class="student-image" />
               <div class="student-info">
@@ -85,7 +85,7 @@
         </div>
       }
       <!-- Mensaje si no hay estudiantes -->
-      @if (estudiantesInscritos.length === 0 && activeCourseId) {
+      @if (estudiantesInscritos().length === 0 && activeCourseId()) {
         <div>
           <p>No hay estudiantes inscritos en este curso.</p>
         </div>
@@ -101,7 +101,7 @@
     <h2>Cursos Recomendados</h2>
     <!-- Lista de Cursos -->
     <div class="course-list">
-      @for (curso of recommendedCursos; track curso) {
+      @for (curso of recommendedCursos(); track curso.idCurso) {
         <div class="course-card">
           <img [src]="curso.portada" alt="{{ curso.nombre }}" />
           <div class="course-details">
@@ -113,7 +113,7 @@
         </div>
       }
     </div>
-    @if (recommendedCursos.length === 0) {
+    @if (recommendedCursos().length === 0) {
       <div class="no-recommended-courses">
         <p>Aún no te has inscrito a un curso para ver sus referencias.</p>
       </div>

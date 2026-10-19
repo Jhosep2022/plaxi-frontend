@@ -1,4 +1,4 @@
-@if (course) {
+@if (course(); as course) {
   <div class="course-details-container">
     <!-- Contenedor para la imagen y el título superpuesto -->
     <div class="course-image">
@@ -11,20 +11,20 @@
       <p><strong>Categoría:</strong> {{ course.categoriaId }}</p>
     </div>
     <div class="button-container">
-      @if (!isEnrolled) {
+      @if (!isEnrolled()) {
         <button class="enroll-btn" (click)="enrollInCourse()">Inscribirse en el Curso</button>
       }
-      @if (isEnrolled) {
+      @if (isEnrolled()) {
         <p class="enrolled-message">Ya estás inscrito en este curso</p>
       }
       <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>
     </div>
     <!-- Lista de lecciones -->
-    @if (lecciones.length > 0) {
+    @if (lecciones().length > 0) {
       <div class="lessons-list">
         <h3>Lecciones:</h3>
         <ul>
-          @for (leccion of lecciones; track leccion) {
+          @for (leccion of lecciones(); track leccion.idLeccion) {
             <li>
               <h4>{{ leccion.titulo }}</h4>
               <p><strong>Orden:</strong> {{ leccion.orden }}</p>
@@ -42,13 +42,13 @@
         </ul>
       </div>
     }
-    @if (lecciones.length === 0) {
+    @if (lecciones().length === 0) {
       <p>No hay lecciones disponibles para este curso.</p>
     }
   </div>
 }
 
-@if (!course) {
+@if (!course()) {
   <div class="no-course-message">
     <p>Curso no encontrado.</p>
     <button class="back-btn" (click)="goBack()">Volver a la lista de cursos</button>

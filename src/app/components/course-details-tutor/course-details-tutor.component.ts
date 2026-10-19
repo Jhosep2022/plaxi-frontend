@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LeccionDto } from '../../models/LeccionDto';
@@ -12,7 +12,6 @@ import { InscripcionService } from 'src/app/services/inscripcion.service';
     selector: 'app-course-details-tutor',
     templateUrl: './course-details-tutor.component.html',
     styleUrls: ['./course-details-tutor.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [RouterLink]
 })
 export class CourseDetailsTutorComponent implements OnInit {
@@ -23,9 +22,9 @@ export class CourseDetailsTutorComponent implements OnInit {
   private leccionService = inject(LeccionService);
   private snackBar = inject(MatSnackBar);
 
-  course: CursoDto | null = null;
-  lecciones: LeccionDto[] = [];
-  isEnrolled: boolean = false;
+  readonly course = signal<CursoDto | null>(null);
+  readonly lecciones = signal<LeccionDto[]>([]);
+  readonly isEnrolled = signal<boolean>(false);
   userId: number | null = null;
 
   ngOnInit(): void {
@@ -39,7 +38,7 @@ export class CourseDetailsTutorComponent implements OnInit {
   // Método para cargar los detalles del curso
   loadCourseDetails(courseId: number): void {
     this.cursoService.getCursoById(courseId).subscribe({
-      next: (data: CursoDto) => this.course = data,
+      next: (data: CursoDto) => this.course.set(data),
       error: (error) => console.error('Error al cargar los detalles del curso:', error)
     });
   }
@@ -49,7 +48,7 @@ export class CourseDetailsTutorComponent implements OnInit {
     const paginadoDto: PaginadoDto = { page: 0, size: 10, sortBy: 'orden', sortDir: 'desc' };
     this.leccionService.getLeccionesByCurso(courseId, paginadoDto).subscribe(
       (response) => {
-        this.lecciones = response.content;
+        this.lecciones.set(response.content);
       },
       (error) => {
         console.error('Error al cargar las lecciones del curso:', error);
@@ -59,31 +58,33 @@ export class CourseDetailsTutorComponent implements OnInit {
 
   // Función para redirigir a la vista de edición con los datos del curso
   editCourse() {
-    if (this.course) {
+    const course = this.course();
+    if (course) {
       this.router.navigate(['/course-edit-tutor'], {
         queryParams: {
-          id: this.course.idCurso,
-          name: this.course.nombre,
-          descripcion: this.course.descripcion,
-          dificultad: this.course.dificultad,
-          estado: this.course.estado,
-          categoriaId: this.course.categoriaId,
-          portada: this.course.portada
+          id: course.idCurso,
+          name: course.nombre,
+          descripcion: course.descripcion,
+          dificultad: course.dificultad,
+          estado: course.estado,
+          categoriaId: course.categoriaId,
+          portada: course.portada
         }
       });
     }
   }
 
   enrollInCourse(): void {
-    if (this.course && this.userId !== null) {
+    const course = this.course();
+    if (course && this.userId !== null) {
       const inscripcionDto = {
         usuarioId: this.userId,
-        cursoId: this.course.idCurso
+        cursoId: course.idCurso
       };
 
       this.inscripcionService.createInscripcion(inscripcionDto).subscribe({
         next: (data) => {
-          this.isEnrolled = true;
+          this.isEnrolled.set(true);
           this.snackBar.open('¡Te has inscrito en el curso exitosamente!', 'Cerrar', {
             duration: 3000,
             horizontalPosition: 'center',
@@ -109,13 +110,13 @@ export class CourseDetailsTutorComponent implements OnInit {
   }
 
   deleteCourse() {
-    if (confirm(`¿Estás seguro de que deseas eliminar el curso: ${this.course?.nombre}?`)) {
-      this.cursoService.deleteCurso(this.course?.idCurso!).subscribe({
+    if (confirm(`¿Estás seguro de que deseas eliminar el curso: ${this.course()?.nombre}?`)) {
+      this.cursoService.deleteCurso(this.course()?.idCurso!).subscribe({
         next: () => console.log('Curso eliminado exitosamente'),
         error: (error) => console.error('Error al eliminar el curso:', error)
       });
 
-      console.log(`Curso con ID ${this.course?.idCurso} eliminado`);
+      console.log(`Curso con ID ${this.course()?.idCurso} eliminado`);
       this.snackBar.open('Curso eliminado exitosamente', 'Cerrar', {
         duration: 3000
       });
@@ -131,13 +132,13 @@ export class CourseDetailsTutorComponent implements OnInit {
   
 
   noenrollInCourse() {
-    if (confirm(`¿Estás seguro de que deseas desincribirte del curso: ${this.course?.nombre}?`)) {
-      this.inscripcionService.deleteInscripcion(this.course?.idCurso!).subscribe({
+    if (confirm(`¿Estás seguro de que deseas desincribirte del curso: ${this.course()?.nombre}?`)) {
+      this.inscripcionService.deleteInscripcion(this.course()?.idCurso!).subscribe({
         next: () => console.log('Curso eliminado exitosamente'),
         error: (error) => console.error('Error al desinscribirse del curso:', error)
       });
 
-      console.log(`Curso con ID ${this.course?.idCurso} eliminado`);
+      console.log(`Curso con ID ${this.course()?.idCurso} eliminado`);
       this.snackBar.open('Desinscripción exitosa', 'Cerrar', {
         duration: 3000
       });

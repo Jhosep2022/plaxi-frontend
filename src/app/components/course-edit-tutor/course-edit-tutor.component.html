@@ -46,14 +46,14 @@
         <div class="input-wrapper">
           <input id="portada" type="file" (change)="onFileSelected($event)" accept=".jpg, .jpeg, .png" />
         </div>
-        @if (fileError) {
+        @if (fileError()) {
           <span class="error-message">
-            {{ fileError }}
+            {{ fileError() }}
           </span>
         }
       </div>
 
-      @if (previewUrl) {
+      @if (previewUrl(); as previewUrl) {
         <div class="image-preview">
           <img [src]="previewUrl" alt="Vista previa de la imagen" class="preview-image" />
         </div>
@@ -86,7 +86,7 @@
         <label for="Categoria_id_categoria">Categoría</label>
         <div class="input-wrapper">
           <select id="Categoria_id_categoria" formControlName="Categoria_id_categoria" class="form-control">
-            @for (categoria of categorias; track categoria) {
+            @for (categoria of categorias(); track categoria.idCategoria) {
               <option [value]="categoria.idCategoria">
                 {{ categoria.nombre }}
               </option>

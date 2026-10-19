@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { CourseService } from '../../services/course.service';
@@ -13,7 +13,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     selector: 'app-lesson-form',
     templateUrl: './lesson-form.component.html',
     styleUrls: ['./lesson-form.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class LessonFormComponent implements OnInit {

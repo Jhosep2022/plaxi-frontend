@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
 import { MatButton } from '@angular/material/button';
 
@@ -10,7 +10,6 @@ import { MatButton } from '@angular/material/button';
       color: white;
     }
   `],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [MatButton]
 })
 export class SnackBarComponent {

@@ -50,15 +50,15 @@
           <input id="file" type="file" (change)="onFileSelected($event)" accept=".jpg, .jpeg, .png, .mp4, .pdf" />
         </div>
         <!-- Mensaje de error para el campo de portada -->
-        @if (fileError) {
+        @if (fileError()) {
           <span class="error-message">
-            {{ fileError }}
+            {{ fileError() }}
           </span>
         }
       </div>
 
       <!-- Mostrar la imagen de vista previa si existe -->
-      @if (previewUrl) {
+      @if (previewUrl(); as previewUrl) {
         <div class="image-preview">
           <img [src]="previewUrl" alt="Vista previa de la imagen" class="preview-image" />
         </div>

@@ -7,7 +7,7 @@
   </div>
 
   <div class="navbar-center">
-    <h1 class="navbar-title">{{ title }}</h1>
+    <h1 class="navbar-title">{{ title() }}</h1>
   </div>
 
   <div class="navbar-right">
@@ -25,22 +25,22 @@
     </div>
 
     <div class="user-info-container" (click)="toggleDropdown()">
-      @if (userProfile?.imagenUrl) {
-        <img [src]="$safeNavigationMigration(userProfile?.imagenUrl)" class="user-image" alt="User Image" />
+      @if (userProfile()?.imagenUrl) {
+        <img [src]="userProfile()?.imagenUrl" class="user-image" alt="User Image" />
       } @else {
         <img src="assets/perfil.jpeg" class="user-image" alt="Default User Image" />
       }
 
 
       <div class="user-info">
-        <span class="username">{{ userProfile?.nombre }} {{ userProfile?.primerApellido }}</span>
-        <span class="role">{{ userRole }}</span>
+        <span class="username">{{ userProfile()?.nombre }} {{ userProfile()?.primerApellido }}</span>
+        <span class="role">{{ userRole() }}</span>
       </div>
 
       <fa-icon [icon]="faChevronDown" class="dropdown-arrow" />
     </div>
 
-    <div class="profile-dropdown" [class.show]="isDropdownOpen">
+    <div class="profile-dropdown" [class.show]="isDropdownOpen()">
       <ul>
         <li (click)="viewProfile()">
           <fa-icon [icon]="faUserCircle" class="dropdown-icon" /> View Profile
@@ -59,34 +59,34 @@
   </div>
 </div>
 
-<div class="sidebar" [class.sidebar-open]="isSidebarOpen">
+<div class="sidebar" [class.sidebar-open]="isSidebarOpen()">
   <!-- Pestañas comunes -->
   <ul class="sidebar-list">
-    <li class="sidebar-item" [class.active]="currentRoute === '/home'" (click)="navigateTo('home')">
+    <li class="sidebar-item" [class.active]="currentRoute() === '/home'" (click)="navigateTo('home')">
       <div class="sidebar-icon-container">
         <fa-icon [icon]="faHome" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Home</span>
     </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/quizzes'" (click)="navigateTo('quizzes')">
+    <li class="sidebar-item" [class.active]="currentRoute() === '/quizzes'" (click)="navigateTo('quizzes')">
       <div class="sidebar-icon-container">
         <fa-icon [icon]="faClipboard" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Quizzes</span>
     </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/course-categories'" (click)="navigateTo('course-categories')">
+    <li class="sidebar-item" [class.active]="currentRoute() === '/course-categories'" (click)="navigateTo('course-categories')">
       <div class="sidebar-icon-container">
         <fa-icon [icon]="faBookOpen" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Cursos</span>
     </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/forum'" (click)="navigateTo('forum')">
+    <li class="sidebar-item" [class.active]="currentRoute() === '/forum'" (click)="navigateTo('forum')">
       <div class="sidebar-icon-container">
         <fa-icon [icon]="faComments" class="sidebar-icon" />
       </div>
       <span class="sidebar-text">Foro</span>
     </li>
-    <li class="sidebar-item" [class.active]="currentRoute === '/help'" (click)="navigateTo('help')">
+    <li class="sidebar-item" [class.active]="currentRoute() === '/help'" (click)="navigateTo('help')">
       <div class="sidebar-icon-container">
         <fa-icon [icon]="faQuestionCircle" class="sidebar-icon" />
       </div>
@@ -95,27 +95,27 @@
   </ul>
 
   <!-- Pestañas para Administradores -->
-  @if (userRole === 'Administrador') {
+  @if (userRole() === 'Administrador') {
     <ul class="sidebar-list">
-      <li class="sidebar-item" [class.active]="currentRoute === '/user-management'" (click)="navigateTo('user-management')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/user-management'" (click)="navigateTo('user-management')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faUsers" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Gestión de Usuarios</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/course-management'" (click)="navigateTo('course-management')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/course-management'" (click)="navigateTo('course-management')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faBook" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Gestión de Cursos</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/reports'" (click)="navigateTo('reports')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/reports'" (click)="navigateTo('reports')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faChartLine" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Reportes</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/settings'" (click)="navigateTo('settings')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/settings'" (click)="navigateTo('settings')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faCog" class="sidebar-icon" />
         </div>
@@ -125,21 +125,21 @@
   }
 
   <!-- Pestañas para Tutores -->
-  @if (userRole === 'Tutor') {
+  @if (userRole() === 'Tutor') {
     <ul class="sidebar-list">
-      <li class="sidebar-item" [class.active]="currentRoute === '/my-courses'" (click)="navigateTo('my-courses')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/my-courses'" (click)="navigateTo('my-courses')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faChalkboardTeacher" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Mis Cursos</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/students'" (click)="navigateTo('students')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/students'" (click)="navigateTo('students')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faUserGraduate" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Estudiantes</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/evaluations'" (click)="navigateTo('evaluations')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faClipboardCheck" class="sidebar-icon" />
         </div>
@@ -149,27 +149,27 @@
   }
 
   <!-- Pestañas para Estudiantes -->
-  @if (userRole === 'Estudiante') {
+  @if (userRole() === 'Estudiante') {
     <ul class="sidebar-list">
-      <li class="sidebar-item" [class.active]="currentRoute === '/my-courses-student'" (click)="navigateTo('my-courses-student')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/my-courses-student'" (click)="navigateTo('my-courses-student')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faBook" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Mis Cursos</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/progress'" (click)="navigateTo('progress')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/progress'" (click)="navigateTo('progress')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faChartPie" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Progreso</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/tasks'" (click)="navigateTo('tasks')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/tasks'" (click)="navigateTo('tasks')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faTasks" class="sidebar-icon" />
         </div>
         <span class="sidebar-text">Tareas</span>
       </li>
-      <li class="sidebar-item" [class.active]="currentRoute === '/evaluations'" (click)="navigateTo('evaluations')">
+      <li class="sidebar-item" [class.active]="currentRoute() === '/evaluations'" (click)="navigateTo('evaluations')">
         <div class="sidebar-icon-container">
           <fa-icon [icon]="faClipboardList" class="sidebar-icon" />
         </div>

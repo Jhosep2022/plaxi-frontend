@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeccionService } from '../../services/leccion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -13,7 +13,6 @@ import { MatSelect, MatOption } from '@angular/material/select';
     selector: 'app-lesson-edit',
     templateUrl: './lesson-edit.component.html',
     styleUrls: ['./lesson-edit.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, ReactiveFormsModule, MatLabel, MatInput, MatError, MatFormField, MatSelect, MatOption]
 })
 export class LessonEditComponent implements OnInit {

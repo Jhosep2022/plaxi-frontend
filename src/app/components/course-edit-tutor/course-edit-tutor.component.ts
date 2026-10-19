@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -11,7 +11,6 @@ import { Categoria } from 'src/app/models/categoriaDto';
     selector: 'app-course-edit-tutor',
     templateUrl: './course-edit-tutor.component.html',
     styleUrls: ['./course-edit-tutor.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseEditTutorComponent implements OnInit {
@@ -24,11 +23,10 @@ export class CourseEditTutorComponent implements OnInit {
 
   courseForm!: FormGroup;
   selectedFile: File | null = null;
-  fileError: string | null = null;
-  previewUrl: string | ArrayBuffer | null = null;
+  readonly fileError = signal<string | null>(null);
+  readonly previewUrl = signal<string | ArrayBuffer | null>(null);
   courseId!: number; // ID del curso a editar
-  categorias: Categoria[] = [];
-
+  readonly categorias = signal<Categoria[]>([]);
   ngOnInit(): void {
     // Obtener el ID del curso de la URL
     this.courseId = Number(this.route.snapshot.paramMap.get('id'));
@@ -58,7 +56,7 @@ export class CourseEditTutorComponent implements OnInit {
           estado: data.estado,
           Categoria_id_categoria: data.categoriaId,
         });
-        this.previewUrl = data.portada || null; // Mostrar la imagen actual si existe
+        this.previewUrl.set(data.portada || null); // Mostrar la imagen actual si existe
       },
       error: (err) => {
         console.error('Error al cargar los datos del curso:', err);
@@ -74,8 +72,8 @@ export class CourseEditTutorComponent implements OnInit {
   private loadCategorias(): void {
     this.categoriaService.getAllCategorias().subscribe({
       next: (data: Categoria[]) => {
-        this.categorias = data;
-        console.log('Categorías cargadas:', this.categorias);
+        this.categorias.set(data);
+        console.log('Categorías cargadas:', this.categorias());
       },
       error: (err) => {
         console.error('Error al cargar las categorías:', err);
@@ -95,17 +93,17 @@ export class CourseEditTutorComponent implements OnInit {
       const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
       if (validExtensions.includes(file.type)) {
         this.selectedFile = file;
-        this.fileError = null;
+        this.fileError.set(null);
 
         const reader = new FileReader();
         reader.onload = () => {
-          this.previewUrl = reader.result as string;
+          this.previewUrl.set(reader.result as string);
         };
         reader.readAsDataURL(file);
       } else {
-        this.fileError = 'Por favor, selecciona un archivo con formato .jpg, .jpeg o .png';
+        this.fileError.set('Por favor, selecciona un archivo con formato .jpg, .jpeg o .png');
         this.selectedFile = null;
-        this.previewUrl = null;
+        this.previewUrl.set(null);
       }
     }
   }

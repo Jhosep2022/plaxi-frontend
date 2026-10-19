@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -11,7 +11,6 @@ import { Categoria } from 'src/app/models/categoriaDto';
     selector: 'app-course-form',
     templateUrl: './course-form.component.html',
     styleUrls: ['./course-form.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormsModule, ReactiveFormsModule]
 })
 export class CourseFormComponent implements OnInit, AfterViewChecked {
@@ -24,9 +23,9 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
 
   courseForm!: FormGroup;
   selectedFile: File | null = null; // Archivo seleccionado
-  fileError: string | null = null; // Error relacionado con el archivo
-  previewUrl: string | ArrayBuffer | null = null; // URL de vista previa de la imagen
-  categorias: Categoria[] = []; // Almacenar las categorías obtenidas de la API
+  readonly fileError = signal<string | null>(null); // Error relacionado con el archivo
+  readonly previewUrl = signal<string | ArrayBuffer | null>(null); // URL de vista previa de la imagen
+  readonly categorias = signal<Categoria[]>([]); // Almacenar las categorías obtenidas de la API
   userId: number | null = null; // Almacenar el ID del usuario logueado
   snackBarRef: any;
 
@@ -72,8 +71,8 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
   loadCategorias(): void {
     this.categoriaService.getAllCategorias().subscribe({
       next: (data) => {
-        this.categorias = data;
-        console.log('Categorías cargadas exitosamente:', this.categorias);
+        this.categorias.set(data);
+        console.log('Categorías cargadas exitosamente:', this.categorias());
       },
       error: (error) => {
         console.error('Error al cargar las categorías:', error);
@@ -90,19 +89,19 @@ export class CourseFormComponent implements OnInit, AfterViewChecked {
       const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
       if (validExtensions.includes(file.type)) {
         this.selectedFile = file;
-        this.fileError = null;
+        this.fileError.set(null);
 
         // Mostrar vista previa de la imagen seleccionada
         const reader = new FileReader();
         reader.onload = () => {
-          this.previewUrl = reader.result;
+          this.previewUrl.set(reader.result);
         };
         reader.readAsDataURL(file);
         console.log('Vista previa de la imagen lista');
       } else {
-        this.fileError = 'Por favor, selecciona un archivo con formato .jpg, .jpeg o .png';
+        this.fileError.set('Por favor, selecciona un archivo con formato .jpg, .jpeg o .png');
         this.selectedFile = null;
-        this.previewUrl = null;
+        this.previewUrl.set(null);
         console.error('Formato de archivo inválido:', file.type);
       }
     }

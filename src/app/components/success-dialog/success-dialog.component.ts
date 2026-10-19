@@ -1,11 +1,10 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
     selector: 'app-success-dialog',
     templateUrl: './success-dialog.component.html',
     styleUrls: ['./success-dialog.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class SuccessDialogComponent {
   dialogRef = inject<MatDialogRef<SuccessDialogComponent>>(MatDialogRef);

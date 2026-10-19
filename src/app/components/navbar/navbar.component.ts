@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { faBars, faBell, faEnvelope, faChevronDown, faUserCircle, faEdit, faCog, faSignOutAlt, faHome, faClipboard, faChartBar, faQuestionCircle, faPlusCircle, faBookOpen, faComments, faUser, faUsers, faBook, faChartLine, faChalkboardTeacher, faUserGraduate, faClipboardCheck, faChartPie, faTasks, faClipboardList } from '@fortawesome/free-solid-svg-icons';
 import { Router, NavigationEnd } from '@angular/router';
 import { ProfileService } from '../../services/profile.service';
@@ -10,7 +11,6 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'app-navbar',
     templateUrl: './navbar.component.html',
     styleUrls: ['./navbar.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FaIconComponent]
 })
 
@@ -18,6 +18,7 @@ export class NavbarComponent implements OnInit {
   private router = inject(Router);
   private perfilService = inject(ProfileService);
   private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
   // Iconos
   faBars = faBars;
@@ -47,19 +48,23 @@ export class NavbarComponent implements OnInit {
   faClipboardList = faClipboardList;
 
   // Propiedades del componente
-  title: string = 'Dashboard';
-  isDropdownOpen = false;
-  isSidebarOpen = false;
-  currentRoute: string = '';
-  userProfile: PerfilDto | null = null;
-  userRole: string = '';
+  readonly title = signal<string>('Dashboard');
+  readonly isDropdownOpen = signal(false);
+  readonly isSidebarOpen = signal(false);
+  readonly currentRoute = signal<string>('');
+  readonly userProfile = signal<PerfilDto | null>(null);
+  readonly userRole = signal<string>('');
 
   ngOnInit(): void {
-    // Actualizar título y ruta según la navegación
-    this.router.events.subscribe((event) => {
+    // Ruta inicial: el navbar se crea después de la primera navegación
+    this.updateTitleBasedOnRoute(this.router.url);
+    this.currentRoute.set(this.router.url);
+
+    // Actualizar título y ruta en cada navegación (se cancela al destruir el navbar)
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.updateTitleBasedOnRoute(event.urlAfterRedirects);
-        this.currentRoute = event.urlAfterRedirects;
+        this.currentRoute.set(event.urlAfterRedirects);
       }
     });
 
@@ -74,9 +79,9 @@ export class NavbarComponent implements OnInit {
     if (userId) {
       this.perfilService.getProfile(Number(userId)).subscribe(
         (response) => {
-          this.userProfile = response;
-          if (!localStorage.getItem('userRole') && this.userProfile) {
-            localStorage.setItem('userRole', this.userProfile.id_rol.toString());
+          this.userProfile.set(response);
+          if (!localStorage.getItem('userRole') && response) {
+            localStorage.setItem('userRole', response.id_rol.toString());
             this.obtenerRolUsuario();
           }
         },
@@ -93,21 +98,21 @@ export class NavbarComponent implements OnInit {
     if (storedUserRole) {
       switch (storedUserRole) {
         case '1':
-          this.userRole = 'Administrador';
+          this.userRole.set('Administrador');
           break;
         case '2':
-          this.userRole = 'Estudiante';
+          this.userRole.set('Estudiante');
           break;
         case '3':
-          this.userRole = 'Tutor';
+          this.userRole.set('Tutor');
           break;
         default:
-          this.userRole = 'Estudiante';
+          this.userRole.set('Estudiante');
       }
     } else {
-      this.userRole = 'Estudiante';
+      this.userRole.set('Estudiante');
     }
-    console.log('Rol de usuario:', this.userRole); // Verificar rol en la consola
+    console.log('Rol de usuario:', this.userRole()); // Verificar rol en la consola
   }
 
   // Actualizar título según la ruta actual
@@ -134,40 +139,40 @@ export class NavbarComponent implements OnInit {
 
     for (let [route, title] of routeTitleMap.entries()) {
       if (url.includes(route)) {
-        this.title = title;
+        this.title.set(title);
         return;
       }
     }
 
-    this.title = 'Dashboard';
+    this.title.set('Dashboard');
   }
 
   // Control de apertura y cierre de dropdown
   toggleDropdown() {
-    this.isDropdownOpen = !this.isDropdownOpen;
+    this.isDropdownOpen.set(!this.isDropdownOpen());
   }
 
   // Control de apertura y cierre de sidebar
   toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
+    this.isSidebarOpen.set(!this.isSidebarOpen());
   }
 
   // Navegación entre rutas
   navigateTo(route: string) {
     this.router.navigate([route]);
-    this.isSidebarOpen = false;
+    this.isSidebarOpen.set(false);
   }
 
   // Ver perfil del usuario
   viewProfile() {
     this.router.navigate(['/perfil']);
-    this.isDropdownOpen = false;
+    this.isDropdownOpen.set(false);
   }
 
   // Editar perfil del usuario
   editProfile() {
     this.router.navigate(['/updateperfil']);
-    this.isDropdownOpen = false;
+    this.isDropdownOpen.set(false);
   }
 
   // Abrir configuraciones

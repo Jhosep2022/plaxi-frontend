@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CursoDto } from 'src/app/models/CursoDto';
 import { InscripcionService } from 'src/app/services/inscripcion.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -11,7 +11,6 @@ import { DatePipe } from '@angular/common';
     selector: 'app-home',
     templateUrl: './home.component.html',
     styleUrls: ['./home.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [RouterLink, DatePipe]
 })
 export class HomeComponent implements OnInit {
@@ -20,17 +19,15 @@ export class HomeComponent implements OnInit {
   private courseService = inject(CourseService);
 
   // Propiedades de cursos
-  cursosCreados: CursoDto[] = []; // Cursos creados por el tutor
-  estudiantesInscritos: InscripcionResponseDto[] = []; // Estudiantes inscritos en el curso seleccionado
-  recentCursos: CursoDto[] = [];
-  recommendedCursos: CursoDto[] = [];
-  enrolledCursos: CursoDto[] = []; // Cursos inscritos
-  userRole: string = '';
-  isStudent: boolean = false;
+  readonly cursosCreados = signal<CursoDto[]>([]); // Cursos creados por el tutor
+  readonly estudiantesInscritos = signal<InscripcionResponseDto[]>([]); // Estudiantes inscritos en el curso seleccionado
+  readonly recentCursos = signal<CursoDto[]>([]);
+  readonly recommendedCursos = signal<CursoDto[]>([]);
+  readonly enrolledCursos = signal<CursoDto[]>([]); // Cursos inscritos
+  readonly userRole = signal<string>('');
+  readonly isStudent = signal<boolean>(false);
   activeCourse: string = '';
-  activeCourseId: number | null = null;
-
-  // Lista de estudiantes (dummy data)
+  readonly activeCourseId = signal<number | null>(null); // Lista de estudiantes (dummy data)
   students = [
     {
       name: 'Emmanuel James',
@@ -66,10 +63,10 @@ export class HomeComponent implements OnInit {
     this.identifyUserRole();
     this.loadRecentCursos();
     this.loadRecommendedCursos();
-    if (this.isStudent) {
+    if (this.isStudent()) {
       this.loadEnrolledCursos();
     }
-    if (this.userRole === 'Tutor') {
+    if (this.userRole() === 'Tutor') {
       this.loadCursosCreados();
     }
   }
@@ -81,33 +78,33 @@ export class HomeComponent implements OnInit {
     if (storedUserRole) {
       switch (storedUserRole) {
         case '1':
-          this.userRole = 'Administrador';
-          this.isStudent = false;
+          this.userRole.set('Administrador');
+          this.isStudent.set(false);
           break;
         case '2':
-          this.userRole = 'Estudiante';
-          this.isStudent = true;
+          this.userRole.set('Estudiante');
+          this.isStudent.set(true);
           break;
         case '3':
-          this.userRole = 'Tutor';
-          this.isStudent = false;
+          this.userRole.set('Tutor');
+          this.isStudent.set(false);
           break;
         default:
-          this.userRole = 'Estudiante';
-          this.isStudent = true;
+          this.userRole.set('Estudiante');
+          this.isStudent.set(true);
       }
     } else {
-      this.userRole = 'Estudiante';
-      this.isStudent = true;
+      this.userRole.set('Estudiante');
+      this.isStudent.set(true);
     }
-    console.log('Rol de usuario:', this.userRole);
+    console.log('Rol de usuario:', this.userRole());
   }
 
   // Método para cargar los cursos recientes desde el servicio
   loadRecentCursos(): void {
     this.courseService.getRecentCursos().subscribe({
       next: (data) => {
-        this.recentCursos = data;
+        this.recentCursos.set(data);
       },
       error: (err) => {
         console.error('Error al cargar los cursos recientes:', err);
@@ -121,7 +118,7 @@ export class HomeComponent implements OnInit {
     if (userId) {
       this.courseService.getRecommendedCursosByUserId(userId).subscribe({
         next: (data) => {
-          this.recommendedCursos = data;
+          this.recommendedCursos.set(data);
         },
         error: (err) => {
           console.error('Error al cargar los cursos recomendados:', err);
@@ -138,7 +135,7 @@ export class HomeComponent implements OnInit {
     if (userId) {
       this.inscripcionService.getInscripcionesByUsuarioId(userId).subscribe({
         next: (data: InscripcionResponseDto[]) => {
-          this.enrolledCursos = data.map((inscripcion) => ({
+          this.enrolledCursos.set(data.map((inscripcion) => ({
             idCurso: inscripcion.cursoId,
             nombre: inscripcion.cursoNombre,
             descripcion: inscripcion.cursoDescripcion,
@@ -146,8 +143,8 @@ export class HomeComponent implements OnInit {
             estado: true, // Valor predeterminado
             categoriaId: 0, // Valor predeterminado
             portada: inscripcion.cursoPortadaUrl || '', // Manejo de null
-          }));
-          console.log('Cursos inscritos:', this.enrolledCursos);
+          })));
+          console.log('Cursos inscritos:', this.enrolledCursos());
         },
         error: (err) => {
           console.error('Error al cargar los cursos inscritos:', err);
@@ -164,8 +161,8 @@ export class HomeComponent implements OnInit {
     if (tutorId) {
       this.courseService.getCursosByUsuario(tutorId).subscribe({
         next: (data: CursoDto[]) => {
-          this.cursosCreados = data;
-          console.log('Cursos creados por el tutor:', this.cursosCreados); // Verifica aquí
+          this.cursosCreados.set(data);
+          console.log('Cursos creados por el tutor:', this.cursosCreados()); // Verifica aquí
         },
         error: (err) => {
           console.error('Error al cargar los cursos creados:', err);
@@ -179,11 +176,11 @@ export class HomeComponent implements OnInit {
 
   // Cargar estudiantes inscritos en el curso seleccionado
   loadEstudiantesInscritos(cursoId: number): void {
-    this.activeCourseId = cursoId;
+    this.activeCourseId.set(cursoId);
     this.inscripcionService.getInscripcionesByCursoId(cursoId).subscribe({
       next: (data: InscripcionResponseDto[]) => {
-        this.estudiantesInscritos = data;
-        console.log('Estudiantes inscritos en el curso:', this.estudiantesInscritos); // Verifica los datos aquí
+        this.estudiantesInscritos.set(data);
+        console.log('Estudiantes inscritos en el curso:', this.estudiantesInscritos()); // Verifica los datos aquí
       },
       error: (err) => {
         console.error('Error al cargar los estudiantes inscritos:', err);
