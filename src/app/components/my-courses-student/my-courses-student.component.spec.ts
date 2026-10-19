@@ -5,7 +5,8 @@ import { InscripcionService } from '../../services/inscripcion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('MyCoursesStudentComponent', () => {
   let component: MyCoursesStudentComponent;
@@ -28,15 +29,18 @@ describe('MyCoursesStudentComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [MyCoursesStudentComponent],
-      providers: [
+    declarations: [MyCoursesStudentComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Ignorar errores de elementos desconocidos (útil para simplificar el componente en pruebas)
+    ,
+    imports: [],
+    providers: [
         { provide: Router, useValue: mockRouter },
         { provide: InscripcionService, useValue: mockInscripcionService },
-        { provide: MatSnackBar, useValue: mockSnackBar }
-      ],
-      imports: [HttpClientTestingModule],
-      schemas: [NO_ERRORS_SCHEMA] // Ignorar errores de elementos desconocidos (útil para simplificar el componente en pruebas)
-    }).compileComponents();
+        { provide: MatSnackBar, useValue: mockSnackBar },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(MyCoursesStudentComponent);
     component = fixture.componentInstance;

@@ -3,9 +3,10 @@ import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';  // Importación de FormsModule para ngModel
-import { NO_ERRORS_SCHEMA } from '@angular/core'; 
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'; 
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -21,17 +22,18 @@ describe('LoginComponent', () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      declarations: [LoginComponent],
-      imports: [
-        HttpClientTestingModule,
-        FormsModule // Agregamos FormsModule para permitir el uso de ngModel
-      ],
-      providers: [
+    declarations: [LoginComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Añadido NO_ERRORS_SCHEMA
+    ,
+    imports: [FormsModule // Agregamos FormsModule para permitir el uso de ngModel
+    ],
+    providers: [
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter }
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Añadido NO_ERRORS_SCHEMA
-    }).compileComponents();
+        { provide: Router, useValue: mockRouter },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;

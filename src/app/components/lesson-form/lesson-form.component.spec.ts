@@ -6,7 +6,8 @@ import { CourseService } from '../../services/course.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { of } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('LessonFormComponent', () => {
   let component: LessonFormComponent;
@@ -38,17 +39,19 @@ describe('LessonFormComponent', () => {
     };
 
     TestBed.configureTestingModule({
-      declarations: [LessonFormComponent],
-      imports: [HttpClientTestingModule, ReactiveFormsModule],
-      providers: [
+    declarations: [LessonFormComponent],
+    imports: [ReactiveFormsModule],
+    providers: [
         FormBuilder,
         { provide: Router, useValue: mockRouter },
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
         { provide: LeccionService, useValue: mockLeccionService },
         { provide: CourseService, useValue: mockCourseService },
-        { provide: MatSnackBar, useValue: mockSnackBar }
-      ]
-    });
+        { provide: MatSnackBar, useValue: mockSnackBar },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+});
 
     fixture = TestBed.createComponent(LessonFormComponent);
     component = fixture.componentInstance;

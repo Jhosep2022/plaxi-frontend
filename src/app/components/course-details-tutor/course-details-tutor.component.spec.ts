@@ -4,8 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { RouterTestingModule } from '@angular/router/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CourseDetailsTutorComponent', () => {
   let component: CourseDetailsTutorComponent;
@@ -28,15 +29,18 @@ describe('CourseDetailsTutorComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [CourseDetailsTutorComponent],
-      providers: [
+    declarations: [CourseDetailsTutorComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
+    ,
+    imports: [RouterTestingModule],
+    providers: [
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
-        { provide: ActivatedRoute, useValue: activatedRouteStub }
-      ],
-      imports: [RouterTestingModule, HttpClientTestingModule],
-      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
-    }).compileComponents();
+        { provide: ActivatedRoute, useValue: activatedRouteStub },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(CourseDetailsTutorComponent);
     component = fixture.componentInstance;

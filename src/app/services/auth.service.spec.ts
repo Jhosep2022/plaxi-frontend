@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 import { PersonaDto, UsuarioDto } from '../models/PersonaDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -12,10 +13,11 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [AuthService],
-      schemas: [NO_ERRORS_SCHEMA] // Ignora errores de propiedades desconocidas en el DOM
-    });
+    schemas: [NO_ERRORS_SCHEMA] // Ignora errores de propiedades desconocidas en el DOM
+    ,
+    imports: [],
+    providers: [AuthService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
   });

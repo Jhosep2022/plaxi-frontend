@@ -3,9 +3,10 @@ import { ForgotPasswordComponent } from './forgot-password.component';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';  // Importación de FormsModule para ngModel
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ForgotPasswordComponent', () => {
   let component: ForgotPasswordComponent;
@@ -25,17 +26,18 @@ describe('ForgotPasswordComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [ForgotPasswordComponent],
-      imports: [
-        HttpClientTestingModule,
-        FormsModule // Agregamos FormsModule para permitir el uso de ngModel
-      ],
-      providers: [
+    declarations: [ForgotPasswordComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Incluimos NO_ERRORS_SCHEMA para evitar errores por enlaces desconocidos
+    ,
+    imports: [FormsModule // Agregamos FormsModule para permitir el uso de ngModel
+    ],
+    providers: [
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter }
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Incluimos NO_ERRORS_SCHEMA para evitar errores por enlaces desconocidos
-    }).compileComponents();
+        { provide: Router, useValue: mockRouter },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ForgotPasswordComponent);
     component = fixture.componentInstance;

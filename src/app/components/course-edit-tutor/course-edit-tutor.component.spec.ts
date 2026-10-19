@@ -5,8 +5,9 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { RouterTestingModule } from '@angular/router/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CourseEditTutorComponent', () => {
   let component: CourseEditTutorComponent;
@@ -22,16 +23,18 @@ describe('CourseEditTutorComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [CourseEditTutorComponent],
-      imports: [ReactiveFormsModule, RouterTestingModule, HttpClientTestingModule],
-      providers: [
+    declarations: [CourseEditTutorComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    imports: [ReactiveFormsModule, RouterTestingModule],
+    providers: [
         FormBuilder,
         { provide: ActivatedRoute, useValue: activatedRouteStub },
         { provide: Router, useValue: routerSpy },
-        { provide: MatSnackBar, useValue: snackBarSpy }
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(CourseEditTutorComponent);
     component = fixture.componentInstance;

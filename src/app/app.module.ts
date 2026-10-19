@@ -1,7 +1,7 @@
 import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CommonModule } from '@angular/common';
@@ -43,57 +43,50 @@ import {LessonDetailsTutorComponent} from './components/lesson-details-tutor/les
 import { TemaDetailsComponent } from './components/tema-details/tema-details.component';
 import { TemaDetailsTutorComponent } from './components/tema-details-tutor/tema-details-tutor.component';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    NavbarComponent,
-    LoginComponent,
-    RegistrarUsuarioComponent,
-    ForgotPasswordComponent,
-    PerfilComponent,
-    UpdateperfilComponent,
-    ConfirmDialogComponent,
-    HomeComponent,
-    CourseFormComponent,
-    CourseListComponent,
-    CourseCategoryListComponent,
-    CourseDetailsComponent,
-    MyCoursesStudentComponent,
-    SuccessDialogComponent,
-    CourseDetailsTutorComponent,
-    CourseEditTutorComponent,
-    LessonFormComponent,
-    LessonDetailsComponent,
-    LessonEditComponent,
-    ConfirmationDialogComponent,
-    ThemeEditComponent,
-    TemaFormComponent,
-    SnackBarComponent,
-    LessonDetailsTutorComponent,
-    TemaDetailsComponent,
-    TemaDetailsTutorComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    ReactiveFormsModule,
-    HttpClientModule,
-    AppRoutingModule,
-    RouterModule,
-    FontAwesomeModule,
-    CommonModule,
-    MatDialogModule,
-    BrowserAnimationsModule,
-    MatSnackBarModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatCardModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent],
-  schemas: [NO_ERRORS_SCHEMA]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        NavbarComponent,
+        LoginComponent,
+        RegistrarUsuarioComponent,
+        ForgotPasswordComponent,
+        PerfilComponent,
+        UpdateperfilComponent,
+        ConfirmDialogComponent,
+        HomeComponent,
+        CourseFormComponent,
+        CourseListComponent,
+        CourseCategoryListComponent,
+        CourseDetailsComponent,
+        MyCoursesStudentComponent,
+        SuccessDialogComponent,
+        CourseDetailsTutorComponent,
+        CourseEditTutorComponent,
+        LessonFormComponent,
+        LessonDetailsComponent,
+        LessonEditComponent,
+        ConfirmationDialogComponent,
+        ThemeEditComponent,
+        TemaFormComponent,
+        SnackBarComponent,
+        LessonDetailsTutorComponent,
+        TemaDetailsComponent,
+        TemaDetailsTutorComponent
+    ],
+    bootstrap: [AppComponent],
+    schemas: [NO_ERRORS_SCHEMA], imports: [BrowserModule,
+        FormsModule,
+        ReactiveFormsModule,
+        AppRoutingModule,
+        RouterModule,
+        FontAwesomeModule,
+        CommonModule,
+        MatDialogModule,
+        BrowserAnimationsModule,
+        MatSnackBarModule,
+        MatToolbarModule,
+        MatButtonModule,
+        MatInputModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatCardModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

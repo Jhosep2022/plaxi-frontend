@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProfileService } from './profile.service';
 import { environment } from '../../environments/environment';
 import { PerfilDto, ActualizarPerfilDto } from '../models/PerfilDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 describe('ProfileService', () => {
   let service: ProfileService;
   let httpMock: HttpTestingController;
@@ -11,10 +12,10 @@ describe('ProfileService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [ProfileService],
-      schemas: [NO_ERRORS_SCHEMA]
-    });
+    schemas: [NO_ERRORS_SCHEMA],
+    imports: [],
+    providers: [ProfileService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
     service = TestBed.inject(ProfileService);
     httpMock = TestBed.inject(HttpTestingController);
   });

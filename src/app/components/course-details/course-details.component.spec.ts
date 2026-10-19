@@ -6,8 +6,9 @@ import { InscripcionService } from 'src/app/services/inscripcion.service';
 import { LeccionService } from 'src/app/services/leccion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CourseDetailsComponent', () => {
   let component: CourseDetailsComponent;
@@ -29,18 +30,20 @@ describe('CourseDetailsComponent', () => {
     const activatedRouteStub = { snapshot: { paramMap: { get: () => '1' } } };
 
     await TestBed.configureTestingModule({
-      declarations: [CourseDetailsComponent],
-      imports: [HttpClientTestingModule],
-      providers: [
+    declarations: [CourseDetailsComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    imports: [],
+    providers: [
         { provide: CourseService, useValue: courseServiceSpy },
         { provide: InscripcionService, useValue: inscripcionServiceSpy },
         { provide: LeccionService, useValue: leccionServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(CourseDetailsComponent);
     component = fixture.componentInstance;

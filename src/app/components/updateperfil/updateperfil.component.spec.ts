@@ -4,8 +4,9 @@ import { ProfileService } from 'src/app/services/profile.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('UpdateperfilComponent', () => {
   let component: UpdateperfilComponent;
@@ -33,18 +34,18 @@ describe('UpdateperfilComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [ UpdateperfilComponent ],
-      imports: [
-        HttpClientTestingModule,
-        FormsModule,
+    declarations: [UpdateperfilComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    imports: [FormsModule,
         ReactiveFormsModule // Añade FormsModule y ReactiveFormsModule
-      ],
-      providers: [
+    ],
+    providers: [
         { provide: ProfileService, useValue: mockProfileService },
-        { provide: Router, useValue: mockRouter }
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    })
+        { provide: Router, useValue: mockRouter },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+})
     .compileComponents();
   });
 

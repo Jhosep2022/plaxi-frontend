@@ -2,7 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SuccessDialogComponent } from './success-dialog.component';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SuccessDialogComponent', () => {
   let component: SuccessDialogComponent;
@@ -16,14 +17,17 @@ describe('SuccessDialogComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [SuccessDialogComponent],
-      imports: [HttpClientTestingModule],
-      providers: [
+    declarations: [SuccessDialogComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Ignora errores relacionados con plantillas externas
+    ,
+    imports: [],
+    providers: [
         { provide: MatDialogRef, useValue: mockDialogRef },
-        { provide: MAT_DIALOG_DATA, useValue: { message: 'Operation successful!' } }
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Ignora errores relacionados con plantillas externas
-    }).compileComponents();
+        { provide: MAT_DIALOG_DATA, useValue: { message: 'Operation successful!' } },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(SuccessDialogComponent);
     component = fixture.componentInstance;

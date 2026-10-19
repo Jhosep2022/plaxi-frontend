@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CourseFormComponent } from './course-form.component';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CourseFormComponent', () => {
   let component: CourseFormComponent;
@@ -28,18 +29,21 @@ describe('CourseFormComponent', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [CourseFormComponent],
-      imports: [ReactiveFormsModule, HttpClientTestingModule, BrowserAnimationsModule],
-      providers: [
+    declarations: [CourseFormComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
+    ,
+    imports: [ReactiveFormsModule, BrowserAnimationsModule],
+    providers: [
         FormBuilder,
         { provide: CategoriaService, useValue: categoriaServiceSpy },
         { provide: CourseService, useValue: courseServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Incluye NO_ERRORS_SCHEMA
-    }).compileComponents();
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(CourseFormComponent);
     component = fixture.componentInstance;

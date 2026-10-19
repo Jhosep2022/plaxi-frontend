@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CategoriaService } from './categoria.service';
 import { environment } from '../../environments/environment';
 import { Categoria } from '../models/categoriaDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CategoriaService', () => {
   let service: CategoriaService;
@@ -11,10 +12,11 @@ describe('CategoriaService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [CategoriaService],
-      schemas: [NO_ERRORS_SCHEMA] // Añadido para ignorar errores de elementos desconocidos
-    });
+    schemas: [NO_ERRORS_SCHEMA] // Añadido para ignorar errores de elementos desconocidos
+    ,
+    imports: [],
+    providers: [CategoriaService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
     service = TestBed.inject(CategoriaService);
     httpMock = TestBed.inject(HttpTestingController);
   });

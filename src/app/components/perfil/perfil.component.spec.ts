@@ -4,7 +4,8 @@ import { ProfileService } from '../../services/profile.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('PerfilComponent', () => {
   let component: PerfilComponent;
@@ -26,14 +27,16 @@ describe('PerfilComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [PerfilComponent],
-      imports: [HttpClientTestingModule],
-      providers: [
+    declarations: [PerfilComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    imports: [],
+    providers: [
         { provide: ProfileService, useValue: mockProfileService },
-        { provide: Router, useValue: mockRouter }
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
+        { provide: Router, useValue: mockRouter },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(PerfilComponent);
     component = fixture.componentInstance;

@@ -4,7 +4,8 @@ import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('RegistrarUsuarioComponent', () => {
   let component: RegistrarUsuarioComponent;
@@ -24,14 +25,17 @@ describe('RegistrarUsuarioComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [RegistrarUsuarioComponent],
-      imports: [HttpClientTestingModule],
-      providers: [
+    declarations: [RegistrarUsuarioComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Ignorar errores de plantillas no relacionadas con este test
+    ,
+    imports: [],
+    providers: [
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter }
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Ignorar errores de plantillas no relacionadas con este test
-    }).compileComponents();
+        { provide: Router, useValue: mockRouter },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(RegistrarUsuarioComponent);
     component = fixture.componentInstance;

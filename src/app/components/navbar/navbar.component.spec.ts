@@ -6,7 +6,8 @@ import { AuthService } from '../../services/auth.service';
 import { of } from 'rxjs';
 import { PerfilDto } from '../../models/PerfilDto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -35,15 +36,17 @@ describe('NavbarComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [NavbarComponent],
-      imports: [HttpClientTestingModule],
-      providers: [
+    declarations: [NavbarComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    imports: [],
+    providers: [
         { provide: Router, useValue: mockRouter },
         { provide: ProfileService, useValue: mockProfileService },
-        { provide: AuthService, useValue: mockAuthService }
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
+        { provide: AuthService, useValue: mockAuthService },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(NavbarComponent);
     component = fixture.componentInstance;

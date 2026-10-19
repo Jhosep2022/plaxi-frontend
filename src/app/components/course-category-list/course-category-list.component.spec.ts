@@ -3,8 +3,9 @@ import { CourseCategoryListComponent } from './course-category-list.component';
 import { CourseService } from 'src/app/services/course.service';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CourseCategoryListComponent', () => {
   let component: CourseCategoryListComponent;
@@ -17,14 +18,17 @@ describe('CourseCategoryListComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      declarations: [CourseCategoryListComponent],
-      imports: [HttpClientTestingModule],
-      providers: [
+    declarations: [CourseCategoryListComponent],
+    schemas: [NO_ERRORS_SCHEMA] // Agrega NO_ERRORS_SCHEMA para manejar propiedades no reconocidas
+    ,
+    imports: [],
+    providers: [
         { provide: CourseService, useValue: courseServiceSpy },
-        { provide: Router, useValue: routerSpy }
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Agrega NO_ERRORS_SCHEMA para manejar propiedades no reconocidas
-    }).compileComponents();
+        { provide: Router, useValue: routerSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(CourseCategoryListComponent);
     component = fixture.componentInstance;
