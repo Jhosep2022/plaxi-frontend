@@ -92,7 +92,7 @@
             <span class="espacio-texto">
               <strong>{{ espacio.nombre }}</strong>
               @if (rol(); as rol) {
-                <small>{{ tipoLabel[espacio.tipo] }} · {{ rolLabel[rol] }}</small>
+                <small [title]="tipoLabel[espacio.tipo] + ' · ' + rolLabel[rol]">{{ tipoLabel[espacio.tipo] }} · {{ rolLabel[rol] }}</small>
               }
             </span>
             <fa-icon [icon]="faChevronDown" class="espacio-chevron" />

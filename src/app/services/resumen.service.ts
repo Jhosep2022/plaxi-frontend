@@ -5,21 +5,35 @@ import {
   faAtom,
   faBolt,
   faBookOpen,
+  faBullhorn,
   faCalculator,
+  faCalendarDays,
+  faChartLine,
+  faCheck,
+  faClipboardCheck,
+  faClock,
   faCode,
   faCompass,
+  faDoorOpen,
+  faFileSignature,
   faFire,
+  faFlag,
   faFlask,
   faLink,
   faListCheck,
   faPalette,
+  faPeopleGroup,
   faPersonRunning,
   faPlus,
   faQrcode,
+  faSitemap,
   faStar,
+  faTriangleExclamation,
   faTrophy,
   faUserCheck,
+  faUserGraduate,
   faUserPlus,
+  faUserXmark,
   faVideo,
 } from '@fortawesome/free-solid-svg-icons';
 import { Membresia } from '../core/models/espacio.model';
@@ -33,6 +47,10 @@ import { ProfileService } from './profile.service';
 
 // MOCK: estudiantes de ejemplo para los avatares
 const ESTUDIANTES = ['Luis Mamani', 'Carla Gutiérrez', 'Pedro Choque', 'Ana Rojas', 'Jorge Vargas'];
+const DOCENTES = ['Jorge Vargas', 'Carlos Lima', 'Ana Rojas', 'Sofía Paredes'];
+
+// MOCK: hijo de cada padre (usuarioId del padre -> usuarioId del hijo)
+const HIJO_DE: Record<number, number> = { 6: 2 };
 const TONOS: Tono[] = ['lima', 'azul', 'crema'];
 
 // Arma los datos del Resumen según el rol y el tipo de espacio.
@@ -60,6 +78,14 @@ export class ResumenService {
     if (membresia.rol === 'estudiante') {
       return forkJoin([perfil$, this.inscripcionService.getInscripcionesByUsuarioId(usuarioId)]).pipe(
         map(([perfil, inscripciones]) => this.estudianteAcademia(membresia, perfil, inscripciones))
+      );
+    }
+    if (membresia.rol === 'direccion') {
+      return perfil$.pipe(map((perfil) => this.direccion(membresia, perfil)));
+    }
+    if (membresia.rol === 'padre' && HIJO_DE[usuarioId]) {
+      return forkJoin([perfil$, this.profileService.getProfile(HIJO_DE[usuarioId])]).pipe(
+        map(([perfil, hijo]) => this.padre(membresia, perfil, hijo))
       );
     }
     return throwError(() => new Error(`Resumen no disponible para el rol ${membresia.rol}`));
@@ -393,6 +419,155 @@ export class ResumenService {
         ],
       },
       asistente: { sugerencia: 'Resúmeme la última lección de mi curso en palabras sencillas' },
+    };
+  }
+
+  // MOCK: dirección del colegio (indicadores del día, alertas y paralelos)
+  private direccion({ espacio }: Membresia, perfil: PerfilDto): ResumenData {
+    const base = `/${espacio.slug}/direccion`;
+    return {
+      saludo: `¡Buen día, ${perfil.nombre}!`,
+      subtitulo: `Así está ${espacio.nombre} hoy.`,
+      accion: { label: 'Reporte del día', icono: faChartLine, link: `${base}/reportes` },
+      progreso: [
+        { titulo: 'Asistencia de estudiantes', icono: faUserGraduate, tono: 'lima', actual: 412, total: 450, unidad: 'presentes' },
+        { titulo: 'Docentes que marcaron', icono: faQrcode, tono: 'azul', actual: 28, total: 32, unidad: 'docentes' },
+        { titulo: 'Avance del 2do trimestre', icono: faCalendarDays, tono: 'crema', actual: 34, total: 60, unidad: 'días' },
+      ],
+      horario: {
+        titulo: 'Actividades de hoy',
+        desde: '07:30',
+        hasta: '16:30',
+        eventos: [
+          { titulo: 'Izado de bandera', detalle: 'Patio central', inicio: '07:45', fin: '08:15', icono: faFlag, tono: 'lima' },
+          { titulo: 'Reunión de coordinación', detalle: 'Sala de profesores', inicio: '10:00', fin: '11:00', icono: faPeopleGroup, tono: 'azul' },
+          { titulo: 'Visita distrital', detalle: 'Dirección', inicio: '11:30', fin: '12:30', icono: faClipboardCheck, tono: 'crema' },
+          { titulo: 'Consejo de padres', detalle: 'Salón de actos', inicio: '15:00', fin: '16:00', icono: faPeopleGroup, tono: 'lima' },
+        ],
+      },
+      proximos: {
+        titulo: 'Alertas de hoy',
+        verTodo: `${base}/asistencia/personal`,
+        items: [
+          {
+            titulo: '4 docentes sin marcar', icono: faTriangleExclamation, horario: 'Entrada 07:30', detalle: 'Tolerancia vencida',
+            participantes: DOCENTES, totalParticipantes: 4,
+            accion: { label: 'Ver marcaciones', icono: faQrcode, link: `${base}/asistencia/personal` },
+          },
+          { titulo: '3ro B · 6 ausentes', icono: faUserXmark, horario: 'Primera hora', detalle: 'Matemáticas', participantes: ESTUDIANTES, totalParticipantes: 6 },
+          { titulo: 'Aula 14 sin docente', icono: faDoorOpen, horario: '11:30 – 12:15', detalle: 'Reemplazo pendiente', participantes: DOCENTES.slice(2), totalParticipantes: 1 },
+        ],
+      },
+      lista: {
+        titulo: 'Asistencia por paralelo',
+        verTodo: `${base}/academico/paralelos`,
+        items: [
+          { titulo: '3ro A · Secundaria', subtitulo: '31 de 32 presentes · Aula 12', icono: faSitemap, tono: 'lima', meta: '97%', link: `${base}/asistencia/estudiantes` },
+          { titulo: '3ro B · Secundaria', subtitulo: '24 de 30 presentes · Aula 14', icono: faSitemap, tono: 'crema', meta: '80%', link: `${base}/asistencia/estudiantes` },
+          { titulo: '4to B · Secundaria', subtitulo: '27 de 28 presentes · Aula 16', icono: faSitemap, tono: 'azul', meta: '96%', link: `${base}/asistencia/estudiantes` },
+          { titulo: '5to A · Secundaria', subtitulo: '23 de 25 presentes · Aula 18', icono: faSitemap, tono: 'lima', meta: '92%', link: `${base}/asistencia/estudiantes` },
+        ],
+      },
+      perfil: {
+        nombre: `${perfil.nombre} ${perfil.primerApellido}`,
+        organizacion: espacio.nombre,
+        insignia: 'Dirección',
+        imagenUrl: perfil.imagenUrl,
+        semana: {
+          valor: 94,
+          texto: '% de asistencia del personal esta semana',
+          dias: [
+            { etiqueta: 'Lu', estado: 'ok' },
+            { etiqueta: 'Ma', estado: 'ok' },
+            { etiqueta: 'Mi', estado: 'atraso' },
+            { etiqueta: 'Ju', estado: 'ok' },
+            { etiqueta: 'Vi', estado: 'hoy' },
+          ],
+        },
+      },
+      actividad: {
+        titulo: 'Novedades de la institución',
+        items: [
+          { titulo: 'Notas cerradas', detalle: '1er trimestre · Secundaria', icono: faFileSignature, tono: 'lima', meta: 'Hoy' },
+          { titulo: 'Nueva inscripción', detalle: 'Carla Gutiérrez · 3ro A', icono: faUserPlus, tono: 'azul', meta: 'Ayer' },
+          { titulo: 'Horario actualizado', detalle: '4to B · Laboratorio de física', icono: faCalendarDays, tono: 'crema', meta: 'Lun' },
+        ],
+      },
+      asistente: { sugerencia: 'Resume la asistencia de esta semana y dime qué paralelos necesitan atención' },
+    };
+  }
+
+  // MOCK: padre o tutor legal; el resumen gira en torno a su hijo
+  private padre({ espacio }: Membresia, perfil: PerfilDto, hijo: PerfilDto): ResumenData {
+    const base = `/${espacio.slug}/padre`;
+    return {
+      saludo: `¡Hola, ${perfil.nombre}!`,
+      subtitulo: `Así le va a ${hijo.nombre} hoy en ${espacio.nombre}.`,
+      accion: { label: 'Comunicados (2)', icono: faBullhorn, link: `${base}/comunicados` },
+      progreso: [
+        { titulo: 'Matemáticas', icono: faCalculator, tono: 'lima', actual: 85, total: 100, unidad: 'pts' },
+        { titulo: 'Física', icono: faAtom, tono: 'azul', actual: 72, total: 100, unidad: 'pts' },
+        { titulo: 'Lenguaje', icono: faBookOpen, tono: 'crema', actual: 90, total: 100, unidad: 'pts' },
+      ],
+      horario: {
+        titulo: `Horario de ${hijo.nombre} hoy`,
+        desde: '07:30',
+        hasta: '14:30',
+        eventos: [
+          { titulo: 'Matemáticas', detalle: 'Aula 12 · Prof. María', inicio: '08:00', fin: '09:30', icono: faCalculator, tono: 'lima' },
+          { titulo: 'Lenguaje', detalle: 'Aula 12 · Prof. Jorge', inicio: '09:45', fin: '11:15', icono: faBookOpen, tono: 'crema' },
+          { titulo: 'Educación Física', detalle: 'Coliseo', inicio: '11:30', fin: '12:15', icono: faPersonRunning, tono: 'azul' },
+          { titulo: 'Física', detalle: 'Laboratorio de física', inicio: '12:30', fin: '14:00', icono: faAtom, tono: 'azul' },
+        ],
+      },
+      proximos: {
+        titulo: 'Próximos eventos',
+        verTodo: `${base}/comunicados`,
+        items: [
+          {
+            titulo: 'Reunión de padres · 3ro A', icono: faPeopleGroup, horario: 'Viernes 18:30', detalle: 'Salón de actos',
+            participantes: ESTUDIANTES, totalParticipantes: 32,
+            accion: { label: 'Confirmar asistencia', icono: faCheck, link: `${base}/comunicados` },
+          },
+          { titulo: 'Examen de Matemáticas', icono: faCalculator, horario: 'Lunes 08:00', detalle: 'Aula 12', participantes: ESTUDIANTES.slice(1), totalParticipantes: 32 },
+          { titulo: 'Feria de ciencias', icono: faFlask, horario: 'Jueves 10:00', detalle: 'Patio central', participantes: ESTUDIANTES.slice(2), totalParticipantes: 120 },
+        ],
+      },
+      lista: {
+        titulo: 'Comunicados',
+        verTodo: `${base}/comunicados`,
+        items: [
+          { titulo: 'Reunión de padres de familia', subtitulo: 'Dirección · Viernes 18:30', icono: faBullhorn, tono: 'lima', meta: 'Nuevo', link: `${base}/comunicados` },
+          { titulo: 'Materiales para la feria de ciencias', subtitulo: 'Prof. María Fernández', icono: faFlask, tono: 'azul', meta: 'Nuevo', link: `${base}/comunicados` },
+          { titulo: 'Cronograma de exámenes', subtitulo: 'Coordinación académica', icono: faCalendarDays, tono: 'crema', meta: 'Lun', link: `${base}/comunicados` },
+        ],
+      },
+      perfil: {
+        nombre: `${hijo.nombre} ${hijo.primerApellido}`,
+        organizacion: '3ro A · Secundaria',
+        insignia: 'Mi hijo',
+        imagenUrl: hijo.imagenUrl,
+        semana: {
+          valor: 4,
+          texto: `días que asistió ${hijo.nombre} esta semana`,
+          dias: [
+            { etiqueta: 'Lu', estado: 'ok' },
+            { etiqueta: 'Ma', estado: 'ok' },
+            { etiqueta: 'Mi', estado: 'atraso' },
+            { etiqueta: 'Ju', estado: 'ok' },
+            { etiqueta: 'Vi', estado: 'hoy' },
+          ],
+        },
+      },
+      actividad: {
+        titulo: `Novedades de ${hijo.nombre}`,
+        items: [
+          { titulo: 'Nota publicada', detalle: 'Matemáticas · Práctica 3', icono: faStar, tono: 'lima', meta: '85/100' },
+          { titulo: 'Atraso registrado', detalle: 'Miércoles · 10 minutos', icono: faClock, tono: 'crema', meta: 'Mié' },
+          { titulo: 'Tarea entregada', detalle: 'Lenguaje · Ensayo argumentativo', icono: faListCheck, tono: 'azul', meta: 'Hoy' },
+        ],
+      },
+      asistente: { sugerencia: `¿Cómo puedo ayudar a ${hijo.nombre} a mejorar en Física?` },
     };
   }
 }

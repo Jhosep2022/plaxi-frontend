@@ -41,6 +41,7 @@
 }
 
 .espacio-texto strong,
+.espacio-texto small,
 .espacio-menu span {
   overflow: hidden;
   text-overflow: ellipsis;

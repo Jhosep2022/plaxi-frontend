@@ -4,7 +4,7 @@ import { proximamente } from '../../core/routing/proximamente';
 // /:espacio/direccion/... (solo existe en colegios)
 export default [
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
-  proximamente('inicio', 'Panel de dirección', 'Asistencia del día, docentes marcados y alertas de la institución.'),
+  { path: 'inicio', title: 'Resumen', loadComponent: () => import('../resumen/resumen.component').then((m) => m.ResumenComponent) },
 
   // Académico
   proximamente('academico/gestion', 'Gestión y periodos', 'Año escolar y sus periodos (trimestres o bimestres).'),
