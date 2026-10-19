@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import {
   faAtom,
   faBolt,
@@ -37,20 +37,22 @@ import {
   faVideo,
 } from '@fortawesome/free-solid-svg-icons';
 import { Membresia } from '../core/models/espacio.model';
+import { aMinutos, aHora } from '../core/utils/jornada';
+import { DatosHorario, clasesDeDocente, itemsDeClases } from '../core/utils/horario';
+import { iconoMateria } from '../shared/ui/iconos-academicos';
 import { CursoDto } from '../models/CursoDto';
 import { InscripcionResponseDto } from '../models/inscripcionDto';
 import { PerfilDto } from '../models/PerfilDto';
-import { ResumenData, Tono } from '../shared/dashboard/dashboard.models';
+import { EventoHorario, ItemProximo, ResumenData, Tono } from '../shared/dashboard/dashboard.models';
+import { AcademicoService } from './academico.service';
 import { CourseService } from './course.service';
+import { HorariosService } from './horarios.service';
 import { InscripcionService } from './inscripcion.service';
 import { ProfileService } from './profile.service';
 
 // MOCK: estudiantes de ejemplo para los avatares
 const ESTUDIANTES = ['Luis Mamani', 'Carla Gutiérrez', 'Pedro Choque', 'Ana Rojas', 'Jorge Vargas'];
 const DOCENTES = ['Jorge Vargas', 'Carlos Lima', 'Ana Rojas', 'Sofía Paredes'];
-
-// MOCK: hijo de cada padre (usuarioId del padre -> usuarioId del hijo)
-const HIJO_DE: Record<number, number> = { 6: 2 };
 const TONOS: Tono[] = ['lima', 'azul', 'crema'];
 
 // Arma los datos del Resumen según el rol y el tipo de espacio.
@@ -60,12 +62,19 @@ export class ResumenService {
   private profileService = inject(ProfileService);
   private courseService = inject(CourseService);
   private inscripcionService = inject(InscripcionService);
+  private horarios = inject(HorariosService);
+  private academico = inject(AcademicoService);
 
   obtener(membresia: Membresia, usuarioId: number): Observable<ResumenData> {
     const perfil$ = this.profileService.getProfile(usuarioId);
 
     if (membresia.rol === 'docente' && membresia.espacio.tipo === 'colegio') {
-      return perfil$.pipe(map((perfil) => this.docenteColegio(membresia, perfil)));
+      return forkJoin([perfil$, this.horarios.datos(membresia.espacio.id)]).pipe(
+        map(([perfil, datos]) => {
+          const clases = clasesDeDocente(datos, usuarioId);
+          return this.docenteColegio(membresia, perfil, horarioDeHoy(datos, clases, 'docente', 'Mi horario de hoy'), proximasDeHoy(datos, clases, 'docente'));
+        })
+      );
     }
     if (membresia.rol === 'docente') {
       return forkJoin([perfil$, this.courseService.getCursosByUsuario(usuarioId)]).pipe(
@@ -73,7 +82,16 @@ export class ResumenService {
       );
     }
     if (membresia.rol === 'estudiante' && membresia.espacio.tipo === 'colegio') {
-      return perfil$.pipe(map((perfil) => this.estudianteColegio(membresia, perfil)));
+      return forkJoin([perfil$, this.horarios.datos(membresia.espacio.id), this.academico.paraleloDeEstudiante(usuarioId)]).pipe(
+        map(([perfil, datos, paraleloId]) =>
+          this.estudianteColegio(
+            membresia,
+            perfil,
+            horarioDeHoy(datos, datos.clases.filter((c) => c.paraleloId === paraleloId), 'paralelo', 'Mi horario de hoy'),
+            proximasDeHoy(datos, datos.clases.filter((c) => c.paraleloId === paraleloId), 'paralelo')
+          )
+        )
+      );
     }
     if (membresia.rol === 'estudiante') {
       return forkJoin([perfil$, this.inscripcionService.getInscripcionesByUsuarioId(usuarioId)]).pipe(
@@ -83,16 +101,22 @@ export class ResumenService {
     if (membresia.rol === 'direccion') {
       return perfil$.pipe(map((perfil) => this.direccion(membresia, perfil)));
     }
-    if (membresia.rol === 'padre' && HIJO_DE[usuarioId]) {
-      return forkJoin([perfil$, this.profileService.getProfile(HIJO_DE[usuarioId])]).pipe(
-        map(([perfil, hijo]) => this.padre(membresia, perfil, hijo))
+    if (membresia.rol === 'padre') {
+      return this.academico.hijosDe(usuarioId).pipe(
+        switchMap(([hijoId]) => {
+          if (!hijoId) return throwError(() => new Error('No hay estudiantes a cargo de este usuario.'));
+          return forkJoin([perfil$, this.profileService.getProfile(hijoId), this.horarios.datos(membresia.espacio.id), this.academico.paraleloDeEstudiante(hijoId)]);
+        }),
+        map(([perfil, hijo, datos, paraleloId]) =>
+          this.padre(membresia, perfil, hijo, horarioDeHoy(datos, datos.clases.filter((c) => c.paraleloId === paraleloId), 'paralelo', `Horario de ${hijo.nombre} hoy`))
+        )
       );
     }
     return throwError(() => new Error(`Resumen no disponible para el rol ${membresia.rol}`));
   }
 
   // MOCK: docente en un colegio (clases = materia + paralelo)
-  private docenteColegio({ espacio }: Membresia, perfil: PerfilDto): ResumenData {
+  private docenteColegio({ espacio }: Membresia, perfil: PerfilDto, horario: ResumenData['horario'], proximas: ItemProximo[]): ResumenData {
     const base = `/${espacio.slug}/docente`;
     return {
       saludo: `¡Hola de nuevo, ${perfil.nombre}!`,
@@ -103,29 +127,11 @@ export class ResumenService {
         { titulo: 'Física · 4to B', icono: faAtom, tono: 'azul', actual: 15, total: 28, unidad: 'temas' },
         { titulo: 'Química · 5to A', icono: faFlask, tono: 'crema', actual: 20, total: 26, unidad: 'temas' },
       ],
-      horario: {
-        titulo: 'Mi horario de hoy',
-        desde: '07:30',
-        hasta: '14:30',
-        eventos: [
-          { titulo: 'Matemáticas · 3ro A', detalle: 'Aula 12', inicio: '08:00', fin: '09:30', icono: faCalculator, tono: 'lima' },
-          { titulo: 'Física · 4to B', detalle: 'Laboratorio de física', inicio: '09:45', fin: '11:15', icono: faAtom, tono: 'azul' },
-          { titulo: 'Matemáticas · 3ro B', detalle: 'Aula 14', inicio: '11:30', fin: '12:15', icono: faCalculator, tono: 'lima' },
-          { titulo: 'Química · 5to A', detalle: 'Laboratorio de química', inicio: '12:30', fin: '14:00', icono: faFlask, tono: 'crema' },
-        ],
-      },
+      horario,
       proximos: {
         titulo: 'Próximas clases',
         verTodo: `${base}/horario`,
-        items: [
-          {
-            titulo: 'Matemáticas · 3ro A', icono: faCalculator, horario: '08:00 – 09:30', detalle: 'Aula 12',
-            participantes: ESTUDIANTES, totalParticipantes: 32,
-            accion: { label: 'Tomar asistencia', icono: faUserCheck, link: `${base}/asistencia` },
-          },
-          { titulo: 'Física · 4to B', icono: faAtom, horario: '09:45 – 11:15', detalle: 'Lab. física', participantes: ESTUDIANTES.slice(1), totalParticipantes: 28 },
-          { titulo: 'Química · 5to A', icono: faFlask, horario: '12:30 – 14:00', detalle: 'Lab. química', participantes: ESTUDIANTES.slice(2), totalParticipantes: 25 },
-        ],
+        items: conAccionEnLaPrimera(proximas, { label: 'Tomar asistencia', icono: faUserCheck, link: `${base}/asistencia` }),
       },
       lista: {
         titulo: 'Mis clases',
@@ -251,7 +257,7 @@ export class ResumenService {
   }
 
   // MOCK: estudiante de 3ro A en un colegio (materias, asistencia, notas)
-  private estudianteColegio({ espacio }: Membresia, perfil: PerfilDto): ResumenData {
+  private estudianteColegio({ espacio }: Membresia, perfil: PerfilDto, horario: ResumenData['horario'], proximas: ItemProximo[]): ResumenData {
     const base = `/${espacio.slug}/estudiante`;
     const companeros = ESTUDIANTES.filter((n) => !n.startsWith(perfil.nombre));
     return {
@@ -263,29 +269,11 @@ export class ResumenService {
         { titulo: 'Física', icono: faAtom, tono: 'azul', actual: 11, total: 18, unidad: 'lecciones' },
         { titulo: 'Lenguaje', icono: faBookOpen, tono: 'crema', actual: 19, total: 25, unidad: 'lecciones' },
       ],
-      horario: {
-        titulo: 'Mi horario de hoy',
-        desde: '07:30',
-        hasta: '14:30',
-        eventos: [
-          { titulo: 'Matemáticas', detalle: 'Aula 12 · Prof. María', inicio: '08:00', fin: '09:30', icono: faCalculator, tono: 'lima' },
-          { titulo: 'Lenguaje', detalle: 'Aula 12 · Prof. Jorge', inicio: '09:45', fin: '11:15', icono: faBookOpen, tono: 'crema' },
-          { titulo: 'Educación Física', detalle: 'Coliseo', inicio: '11:30', fin: '12:15', icono: faPersonRunning, tono: 'azul' },
-          { titulo: 'Física', detalle: 'Laboratorio de física', inicio: '12:30', fin: '14:00', icono: faAtom, tono: 'azul' },
-        ],
-      },
+      horario,
       proximos: {
         titulo: 'Próximas clases',
         verTodo: `${base}/horario`,
-        items: [
-          {
-            titulo: 'Matemáticas', icono: faCalculator, horario: '08:00 – 09:30', detalle: 'Aula 12',
-            participantes: companeros, totalParticipantes: 31,
-            accion: { label: 'Ver material', icono: faBookOpen, link: `${base}/cursos` },
-          },
-          { titulo: 'Lenguaje', icono: faBookOpen, horario: '09:45 – 11:15', detalle: 'Aula 12', participantes: companeros.slice(1), totalParticipantes: 31 },
-          { titulo: 'Física', icono: faAtom, horario: '12:30 – 14:00', detalle: 'Lab. física', participantes: companeros.slice(2), totalParticipantes: 31 },
-        ],
+        items: conAccionEnLaPrimera(proximas, { label: 'Ver material', icono: faBookOpen, link: `${base}/cursos` }),
       },
       lista: {
         titulo: 'Mis materias',
@@ -498,7 +486,7 @@ export class ResumenService {
   }
 
   // MOCK: padre o tutor legal; el resumen gira en torno a su hijo
-  private padre({ espacio }: Membresia, perfil: PerfilDto, hijo: PerfilDto): ResumenData {
+  private padre({ espacio }: Membresia, perfil: PerfilDto, hijo: PerfilDto, horario: ResumenData['horario']): ResumenData {
     const base = `/${espacio.slug}/padre`;
     return {
       saludo: `¡Hola, ${perfil.nombre}!`,
@@ -509,17 +497,7 @@ export class ResumenService {
         { titulo: 'Física', icono: faAtom, tono: 'azul', actual: 72, total: 100, unidad: 'pts' },
         { titulo: 'Lenguaje', icono: faBookOpen, tono: 'crema', actual: 90, total: 100, unidad: 'pts' },
       ],
-      horario: {
-        titulo: `Horario de ${hijo.nombre} hoy`,
-        desde: '07:30',
-        hasta: '14:30',
-        eventos: [
-          { titulo: 'Matemáticas', detalle: 'Aula 12 · Prof. María', inicio: '08:00', fin: '09:30', icono: faCalculator, tono: 'lima' },
-          { titulo: 'Lenguaje', detalle: 'Aula 12 · Prof. Jorge', inicio: '09:45', fin: '11:15', icono: faBookOpen, tono: 'crema' },
-          { titulo: 'Educación Física', detalle: 'Coliseo', inicio: '11:30', fin: '12:15', icono: faPersonRunning, tono: 'azul' },
-          { titulo: 'Física', detalle: 'Laboratorio de física', inicio: '12:30', fin: '14:00', icono: faAtom, tono: 'azul' },
-        ],
-      },
+      horario,
       proximos: {
         titulo: 'Próximos eventos',
         verTodo: `${base}/comunicados`,
@@ -570,4 +548,47 @@ export class ResumenService {
       asistente: { sugerencia: `¿Cómo puedo ayudar a ${hijo.nombre} a mejorar en Física?` },
     };
   }
+}
+
+// Clases de hoy como eventos de la línea de tiempo del resumen
+function horarioDeHoy(datos: DatosHorario, clases: DatosHorario['clases'], modo: 'docente' | 'paralelo', titulo: string): ResumenData['horario'] {
+  const hoy = ((new Date().getDay() + 6) % 7) + 1; // 1 = lunes … 7 = domingo
+  const eventos: EventoHorario[] = itemsDeClases(datos, clases.filter((c) => c.dia === hoy), modo)
+    .sort((a, b) => a.inicio.localeCompare(b.inicio))
+    .map((item) => ({
+      titulo: modo === 'docente' ? `${item.titulo} · ${item.detalle[0]}` : item.titulo,
+      detalle: modo === 'docente' ? item.detalle[1] : `${item.detalle[1]} · ${item.detalle[0]}`,
+      inicio: item.inicio,
+      fin: item.fin,
+      icono: iconoMateria(item.icono),
+      tono: item.tono,
+    }));
+  if (!eventos.length) return { titulo, desde: '07:00', hasta: '14:00', eventos };
+  const desde = Math.max(0, aMinutos(eventos[0].inicio) - 30);
+  const hasta = Math.min(24 * 60 - 1, Math.max(...eventos.map((e) => aMinutos(e.fin))) + 30);
+  return { titulo, desde: aHora(desde - (desde % 30)), hasta: aHora(hasta + ((30 - (hasta % 30)) % 30)), eventos };
+}
+
+// Clases que quedan hoy (o todas las de hoy si ya terminaron), para "Próximas clases"
+function proximasDeHoy(datos: DatosHorario, clases: DatosHorario['clases'], modo: 'docente' | 'paralelo'): ItemProximo[] {
+  const ahora = new Date();
+  const hoy = ((ahora.getDay() + 6) % 7) + 1;
+  const minutos = ahora.getHours() * 60 + ahora.getMinutes();
+  const deHoy = itemsDeClases(datos, clases.filter((c) => c.dia === hoy), modo).sort((a, b) => a.inicio.localeCompare(b.inicio));
+  const pendientes = deHoy.filter((i) => aMinutos(i.fin) > minutos);
+  return (pendientes.length ? pendientes : deHoy).slice(0, 3).map((item, i) => {
+    const paralelo = datos.paralelos.find((p) => p.id === item.paraleloId);
+    return {
+      titulo: modo === 'docente' ? `${item.titulo} · ${item.detalle[0]}` : item.titulo,
+      icono: iconoMateria(item.icono),
+      horario: `${item.inicio} – ${item.fin}`,
+      detalle: item.detalle[1], // aula
+      participantes: ESTUDIANTES.slice(i % 2),
+      totalParticipantes: paralelo?.estudiantes ?? ESTUDIANTES.length,
+    };
+  });
+}
+
+function conAccionEnLaPrimera(items: ItemProximo[], accion: NonNullable<ItemProximo['accion']>): ItemProximo[] {
+  return items.map((item, i) => (i === 0 ? { ...item, accion } : item));
 }

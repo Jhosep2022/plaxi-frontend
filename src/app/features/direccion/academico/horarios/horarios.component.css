@@ -300,3 +300,32 @@ h2 {
 .izquierda {
   margin-right: auto;
 }
+
+/* Vistas por docente y por aula */
+.vistas {
+  margin-bottom: 16px;
+}
+
+.distribucion.lectura {
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .distribucion.lectura {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.nombre-lista {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  text-align: left;
+}
+
+.nombre-lista small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: normal;
+}

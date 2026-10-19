@@ -40,7 +40,7 @@ export default [
 
   // Colegio: clases asignadas (materia + paralelo)
   proximamente('clases', 'Mis clases', 'Tus materias y paralelos asignados, con sus estudiantes.'),
-  proximamente('horario', 'Mi horario', 'Tu horario semanal de clases, con aulas y paralelos.'),
+  { path: 'horario', title: 'Mi horario', loadComponent: () => import('../horario/mi-horario.component').then((m) => m.MiHorarioComponent) },
   proximamente('marcacion', 'Marcación', 'Escanea el QR del punto de marcación para registrar tu entrada o salida (con validación GPS).', { canActivate: [tipoEspacioGuard('colegio')] }),
   proximamente('marcacion/historial', 'Mi historial de marcaciones', 'Tus entradas, salidas y atrasos.', { canActivate: [tipoEspacioGuard('colegio')] }),
 

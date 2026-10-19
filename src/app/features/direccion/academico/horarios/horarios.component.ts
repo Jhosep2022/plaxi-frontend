@@ -17,7 +17,19 @@ import {
   compararParalelos,
   paraleloLabel,
 } from '../../../../core/models/academico.model';
-import { ContextoHorario, bloquesDelTurno, buscarChoques, docenteDe } from '../../../../core/utils/horario';
+import {
+  ContextoHorario,
+  DatosHorario,
+  ItemVista,
+  bloquesDelTurno,
+  buscarChoques,
+  clasesDeDocente,
+  docenteDe,
+  filasParaTurnos,
+  itemsDeClases,
+  turnosDeClases,
+} from '../../../../core/utils/horario';
+import { HorarioSemanalComponent } from '../../../../shared/horario/horario-semanal.component';
 import { bloquesNecesarios, duracionLabel } from '../../../../core/utils/jornada';
 import { AcademicoService } from '../../../../services/academico.service';
 import { HorariosService } from '../../../../services/horarios.service';
@@ -36,7 +48,7 @@ interface CeldaEditada {
 @Component({
   selector: 'app-horarios',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent, HorarioSemanalComponent],
   templateUrl: './horarios.component.html',
   styleUrls: ['./horarios.component.css'],
 })
@@ -128,6 +140,49 @@ export class HorariosComponent {
   });
 
   readonly necesariosTotal = computed(() => this.cobertura().reduce((s, c) => s + c.necesarios, 0));
+
+  // ---------- Vistas por docente y por aula (solo lectura) ----------
+  readonly vista = signal<'paralelo' | 'docente' | 'aula'>('paralelo');
+
+  private readonly datosHorario = computed<DatosHorario | null>(() => {
+    const ctx = this.contexto();
+    return ctx ? { ...ctx, materias: this.materias.value(), docentes: this.docentes.value(), aulas: this.aulas.value() } : null;
+  });
+
+  // Docentes y aulas con la cantidad de clases que tienen en la semana
+  readonly listaDocentes = computed(() => {
+    const datos = this.datosHorario();
+    return this.docentes.value()
+      .map((d) => ({ id: d.id, nombre: d.nombre, detalle: d.especialidad, clases: datos ? clasesDeDocente(datos, d.id).length : 0 }))
+      .sort((a, b) => b.clases - a.clases || a.nombre.localeCompare(b.nombre));
+  });
+
+  readonly listaAulas = computed(() => {
+    const usadas = new Map<number, number>();
+    for (const c of this.clases.value()) usadas.set(c.aulaId, (usadas.get(c.aulaId) ?? 0) + 1);
+    return this.aulasActivas()
+      .map((a) => ({ id: a.id, nombre: a.nombre, detalle: `${a.capacidad} personas`, clases: usadas.get(a.id) ?? 0 }))
+      .sort((a, b) => b.clases - a.clases || a.nombre.localeCompare(b.nombre));
+  });
+
+  readonly docenteId = linkedSignal(() => this.listaDocentes()[0]?.id ?? 0);
+  readonly aulaId = linkedSignal(() => this.listaAulas()[0]?.id ?? 0);
+
+  // Clases, filas y celdas de la vista elegida
+  readonly vistaLectura = computed(() => {
+    const datos = this.datosHorario();
+    const modo = this.vista();
+    if (!datos || modo === 'paralelo') return { filas: [], items: [] as ItemVista[] };
+    const clases = modo === 'docente' ? clasesDeDocente(datos, this.docenteId()) : datos.clases.filter((c) => c.aulaId === this.aulaId());
+    const turnos = turnosDeClases(datos, clases);
+    return { filas: filasParaTurnos(datos.jornada, turnos.length ? turnos : ['manana']), items: itemsDeClases(datos, clases, modo) };
+  });
+
+  // Desde una vista de lectura, abre el horario editable del paralelo de esa clase
+  irAParalelo(item: ItemVista): void {
+    this.seleccionadoId.set(item.paraleloId);
+    this.vista.set('paralelo');
+  }
 
   // ---------- Edición de una celda ----------
   readonly editando = signal<CeldaEditada | null>(null);

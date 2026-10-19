@@ -1,4 +1,17 @@
-import { Asignacion, BloqueHorario, ClaseHorario, ConfigJornada, Paralelo, Turno } from '../models/academico.model';
+import {
+  Asignacion,
+  Aula,
+  BloqueHorario,
+  ClaseHorario,
+  ConfigJornada,
+  Docente,
+  IconoMateria,
+  Materia,
+  Paralelo,
+  Turno,
+  paraleloLabel as etiquetaParalelo,
+} from '../models/academico.model';
+import { Tono } from '../../shared/dashboard/dashboard.models';
 import { generarBloques, seCruzan } from './jornada';
 
 // Datos necesarios para ubicar clases en el tiempo y detectar choques
@@ -63,4 +76,76 @@ export function buscarChoques(ctx: ContextoHorario, propuesta: PropuestaClase): 
 // Clases que quedarían fuera si se aplica una nueva jornada (día o periodo que ya no existe)
 export function clasesFueraDeJornada(ctx: ContextoHorario): ClaseHorario[] {
   return ctx.clases.filter((clase) => !ctx.jornada.dias.includes(clase.dia) || !rangoDeBloque(ctx, clase.paraleloId, clase.bloque));
+}
+
+// ---------- Vistas de solo lectura (por docente, por aula, Mi horario) ----------
+
+// Todo lo necesario para mostrar horarios con nombres
+export interface DatosHorario extends ContextoHorario {
+  materias: Materia[];
+  docentes: Docente[];
+  aulas: Aula[];
+}
+
+export interface FilaVista {
+  tipo: 'clase' | 'recreo';
+  inicio: string;
+  fin: string;
+}
+
+export interface ItemVista {
+  dia: number;
+  inicio: string;
+  fin: string;
+  titulo: string;
+  detalle: string[];
+  icono: IconoMateria;
+  tono: Tono;
+  paraleloId: number;
+}
+
+// Qué se destaca en cada vista: en la del docente importa el paralelo; en la del estudiante, el docente
+export type ModoVista = 'paralelo' | 'docente' | 'aula';
+
+// Filas de la grilla: los periodos y recreos de los turnos involucrados, sin repetir y en orden
+export function filasParaTurnos(jornada: ConfigJornada, turnos: Turno[]): FilaVista[] {
+  const mapa = new Map<string, FilaVista>();
+  for (const turno of new Set(turnos)) {
+    for (const b of bloquesDelTurno(jornada, turno)) mapa.set(`${b.inicio}-${b.fin}`, { tipo: b.tipo, inicio: b.inicio, fin: b.fin });
+  }
+  return [...mapa.values()].sort((a, b) => a.inicio.localeCompare(b.inicio));
+}
+
+// Convierte clases en celdas con nombres legibles según la vista
+export function itemsDeClases(datos: DatosHorario, clases: ClaseHorario[], modo: ModoVista): ItemVista[] {
+  const materia = new Map(datos.materias.map((m) => [m.id, m]));
+  const docente = new Map(datos.docentes.map((d) => [d.id, d.nombre]));
+  const aula = new Map(datos.aulas.map((a) => [a.id, a.nombre]));
+  const paralelo = new Map(datos.paralelos.map((p) => [p.id, p]));
+
+  return clases.flatMap((clase) => {
+    const rango = rangoDeBloque(datos, clase.paraleloId, clase.bloque);
+    const m = materia.get(clase.materiaId);
+    const p = paralelo.get(clase.paraleloId);
+    if (!rango || !p) return [];
+    const nombreMateria = m?.nombre ?? 'Materia';
+    const nombreDocente = docente.get(docenteDe(datos.asignaciones, clase.paraleloId, clase.materiaId)) ?? 'Sin docente';
+    const nombreAula = aula.get(clase.aulaId) ?? 'Sin aula';
+    const detalle =
+      modo === 'docente' ? [etiquetaParalelo(p), nombreAula]
+      : modo === 'aula' ? [etiquetaParalelo(p), nombreDocente]
+      : [nombreDocente, nombreAula];
+    return [{ dia: clase.dia, ...rango, titulo: nombreMateria, detalle, icono: m?.icono ?? 'libro', tono: m?.tono ?? 'azul', paraleloId: p.id }];
+  });
+}
+
+// Turnos de los paralelos de un conjunto de clases (para saber qué filas mostrar)
+export function turnosDeClases(datos: DatosHorario, clases: ClaseHorario[]): Turno[] {
+  const turnos = clases.map((c) => datos.paralelos.find((p) => p.id === c.paraleloId)?.turno).filter((t): t is Turno => !!t);
+  return [...new Set(turnos)];
+}
+
+// Clases de un docente según sus asignaciones
+export function clasesDeDocente(datos: DatosHorario, docenteId: number): ClaseHorario[] {
+  return datos.clases.filter((c) => docenteDe(datos.asignaciones, c.paraleloId, c.materiaId) === docenteId);
 }

@@ -8,6 +8,6 @@ export default [
   proximamente('hijos', 'Mis hijos'),
   proximamente('calificaciones', 'Calificaciones', 'Notas de tus hijos por materia y periodo.'),
   proximamente('asistencia', 'Asistencia', 'Asistencia, faltas y atrasos de tus hijos.'),
-  proximamente('horario', 'Horario', 'Horario de clases de tus hijos.'),
+  { path: 'horario', title: 'Horario', loadComponent: () => import('../horario/mi-horario.component').then((m) => m.MiHorarioComponent) },
   proximamente('comunicados', 'Comunicados', 'Avisos de la institución y de los docentes.'),
 ] satisfies Routes;

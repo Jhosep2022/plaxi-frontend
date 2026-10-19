@@ -117,5 +117,16 @@ export const MOCK_CLASES: ClaseHorario[] = [
   c(5, 3, 0, 7, 1), c(5, 3, 1, 8, 8), c(5, 3, 2, 10, 1),
   c(5, 4, 1, 12, 1), c(5, 4, 2, 11, 1),
   c(5, 5, 0, 7, 1), c(5, 5, 1, 13, 11),
-  c(6, 1, 1, 7, 2), c(6, 1, 2, 10, 2), c(6, 2, 0, 13, 11), c(6, 3, 0, 7, 2),
+  c(6, 1, 1, 7, 2), c(6, 1, 2, 10, 2), c(6, 2, 0, 13, 11), c(6, 3, 2, 7, 2),
+];
+
+// ---------- Estudiantes y tutores legales ----------
+// Paralelo de cada estudiante en la gestión activa (usuarioId -> paraleloId)
+export const MOCK_MATRICULAS: { usuarioId: number; paraleloId: number }[] = [
+  { usuarioId: 2, paraleloId: 5 }, // Luis Mamani -> 3ro A
+];
+
+// Padre / tutor legal de cada estudiante
+export const MOCK_TUTORES: { padreId: number; estudianteId: number }[] = [
+  { padreId: 6, estudianteId: 2 }, // Rosa Quispe -> Luis Mamani
 ];

@@ -8,7 +8,9 @@ import {
   MOCK_DOCENTES,
   MOCK_GESTIONES,
   MOCK_MATERIAS,
+  MOCK_MATRICULAS,
   MOCK_PARALELOS,
+  MOCK_TUTORES,
 } from '../mocks/academico.mock';
 import { RepositorioMock } from './repositorio-mock';
 
@@ -115,6 +117,17 @@ export class AcademicoService {
       return throwError(() => new Error('La materia tiene docentes asignados. Quita las asignaciones primero.'));
     }
     return this.materiasRepo.eliminar(materia.id);
+  }
+
+  // ---------- Estudiantes y tutores ----------
+  // Paralelo en el que está inscrito un estudiante (0 si no tiene)
+  paraleloDeEstudiante(usuarioId: number): Observable<number> {
+    return of(MOCK_MATRICULAS.find((m) => m.usuarioId === usuarioId)?.paraleloId ?? 0);
+  }
+
+  // Estudiantes a cargo de un padre o tutor legal
+  hijosDe(padreId: number): Observable<number[]> {
+    return of(MOCK_TUTORES.filter((t) => t.padreId === padreId).map((t) => t.estudianteId));
   }
 
   // ---------- Docentes y asignaciones ----------

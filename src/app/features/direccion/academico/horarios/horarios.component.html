@@ -12,6 +12,37 @@
     </app-empty-state>
   </div>
 } @else {
+  <div class="ui-tabs vistas" role="tablist" aria-label="Ver horario">
+    <button type="button" class="ui-tab" [class.activa]="vista() === 'paralelo'" (click)="vista.set('paralelo')">Por paralelo</button>
+    <button type="button" class="ui-tab" [class.activa]="vista() === 'docente'" (click)="vista.set('docente')">Por docente</button>
+    <button type="button" class="ui-tab" [class.activa]="vista() === 'aula'" (click)="vista.set('aula')">Por aula</button>
+  </div>
+
+  @if (vista() !== 'paralelo') {
+    @let lista = vista() === 'docente' ? listaDocentes() : listaAulas();
+    @let elegido = vista() === 'docente' ? docenteId() : aulaId();
+    <div class="distribucion lectura">
+      <aside class="ui-card lista">
+        <h3>{{ vista() === 'docente' ? 'Docentes' : 'Aulas' }}</h3>
+        <ul>
+          @for (item of lista; track item.id) {
+            <li>
+              <button type="button" class="paralelo" [class.elegido]="item.id === elegido"
+                (click)="vista() === 'docente' ? docenteId.set(item.id) : aulaId.set(item.id)">
+                <span class="nombre-lista"><span>{{ item.nombre }}</span><small>{{ item.detalle }}</small></span>
+                <span class="ocupados">{{ item.clases }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </aside>
+      <section class="ui-card semana">
+        <p class="ui-ayuda">Toca una clase para abrir y editar el horario de su paralelo.</p>
+        <app-horario-semanal [dias]="dias()" [filas]="vistaLectura().filas" [items]="vistaLectura().items" [clicable]="true"
+          (elegir)="irAParalelo($event)" [vacio]="vista() === 'docente' ? 'Este docente no tiene clases en el horario.' : 'Esta aula no tiene clases en el horario.'" />
+      </section>
+    </div>
+  } @else {
   <div class="distribucion">
     <!-- Paralelos -->
     <aside class="ui-card lista">
@@ -135,6 +166,7 @@
       </ul>
     </aside>
   </div>
+  }
 }
 
 <!-- Edición de un periodo -->

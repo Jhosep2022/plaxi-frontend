@@ -1,0 +1,153 @@
+.contenedor {
+  overflow-x: auto;
+}
+
+.grilla {
+  width: 100%;
+  min-width: calc(80px + var(--dias) * 130px);
+  border-collapse: separate;
+  border-spacing: 6px;
+  table-layout: fixed;
+}
+
+.grilla th {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--muted);
+  text-align: center;
+}
+
+.grilla th .ui-badge {
+  margin-left: 6px;
+  font-size: 10px;
+}
+
+.grilla th.hoy {
+  color: var(--dark-blue);
+}
+
+.col-hora {
+  width: 64px;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  color: var(--dark-blue);
+}
+
+.col-hora small {
+  font-weight: normal;
+  color: var(--muted);
+}
+
+.grilla td {
+  height: 78px;
+  padding: 0;
+  vertical-align: top;
+}
+
+.clase,
+.libre {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.clase {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 8px 9px;
+  border: none;
+  border-left: 3px solid var(--tono-bar);
+  background: var(--tono-bg);
+  color: var(--dark-blue);
+  font: inherit;
+  text-align: left;
+  overflow: hidden;
+}
+
+button.clase {
+  cursor: pointer;
+}
+
+button.clase:hover {
+  box-shadow: 0 0 0 2px var(--tono-bar);
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.titulo fa-icon {
+  color: var(--tono-fg);
+}
+
+.clase small {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.libre {
+  border: 1px dashed var(--line);
+}
+
+td.hoy .libre {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+  opacity: 0.5;
+}
+
+.fila-recreo td {
+  height: auto;
+}
+
+.fila-recreo td:not(.col-hora) {
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--light-cream);
+  color: var(--cream-strong);
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.vacio {
+  padding: 32px 0 !important;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Celda con más de una clase a la misma hora */
+td.choque {
+  height: auto;
+  padding: 4px;
+  border: 2px solid #e3a49b;
+  border-radius: 12px;
+  background: #fdf0ee;
+}
+
+td.choque .clase {
+  height: auto;
+  margin-top: 4px;
+}
+
+.aviso-choque {
+  font-size: 11px;
+  font-weight: bold;
+  color: #c0392b;
+  text-align: center;
+}

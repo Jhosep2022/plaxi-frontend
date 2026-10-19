@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { ClaseHorario, ConfigJornada, paraleloLabel } from '../core/models/academico.model';
-import { ContextoHorario, buscarChoques, clasesFueraDeJornada } from '../core/utils/horario';
+import { ContextoHorario, DatosHorario, buscarChoques, clasesFueraDeJornada } from '../core/utils/horario';
 import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_DOCENTES, MOCK_JORNADAS, MOCK_PARALELOS } from '../mocks/academico.mock';
 import { AcademicoService } from './academico.service';
 import { RepositorioMock } from './repositorio-mock';
@@ -54,6 +54,19 @@ export class HorariosService {
       }
     }
     return this.clasesRepo.guardar({ ...clase, id: existente?.id });
+  }
+
+  // Todo lo necesario para mostrar horarios con nombres (vistas de solo lectura y resúmenes)
+  datos(espacioId: number): Observable<DatosHorario> {
+    return forkJoin({
+      jornada: this.jornada(espacioId),
+      paralelos: this.academico.paralelosActivos(espacioId),
+      asignaciones: this.academico.asignacionesActivas(espacioId),
+      clases: this.clasesActivas(espacioId),
+      materias: this.academico.materias(espacioId),
+      docentes: this.academico.docentes(espacioId),
+      aulas: this.academico.aulas(espacioId),
+    });
   }
 
   eliminarClase(id: number): Observable<void> {
