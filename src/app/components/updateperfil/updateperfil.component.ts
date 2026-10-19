@@ -6,9 +6,10 @@ import { HttpClient } from '@angular/common/http';
 import { ProfileService } from 'src/app/services/profile.service';
 
 @Component({
-  selector: 'app-updateperfil',
-  templateUrl: './updateperfil.component.html',
-  styleUrls: ['./updateperfil.component.css']
+    selector: 'app-updateperfil',
+    templateUrl: './updateperfil.component.html',
+    styleUrls: ['./updateperfil.component.css'],
+    standalone: false
 })
 export class UpdateperfilComponent implements OnInit {
   // Íconos (FontAwesome)

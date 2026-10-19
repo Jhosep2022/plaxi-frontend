@@ -4,9 +4,10 @@ import { CursoDto } from 'src/app/models/CursoDto';
 import { AuthService } from 'src/app/services/auth.service';
 import { CourseService } from 'src/app/services/course.service';
 @Component({
-  selector: 'app-course-list',
-  templateUrl: './course-list.component.html',
-  styleUrls: ['./course-list.component.css']
+    selector: 'app-course-list',
+    templateUrl: './course-list.component.html',
+    styleUrls: ['./course-list.component.css'],
+    standalone: false
 })
 export class CourseListComponent implements OnInit {
   courses: CursoDto[] = [];

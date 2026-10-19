@@ -6,9 +6,10 @@ import { TemaDto } from 'src/app/models/TemaDto';
 import { TemaService } from 'src/app/services/tema.service';
 
 @Component({
-  selector: 'app-tema-details-tutor',
-  templateUrl: './tema-details-tutor.component.html',
-  styleUrls: ['./tema-details-tutor.component.css']
+    selector: 'app-tema-details-tutor',
+    templateUrl: './tema-details-tutor.component.html',
+    styleUrls: ['./tema-details-tutor.component.css'],
+    standalone: false
 })
 export class TemaDetailsTutorComponent implements OnInit {
   tema: TemaDto | null = null;

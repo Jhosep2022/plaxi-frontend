@@ -9,9 +9,10 @@ import { CursoDto } from 'src/app/models/CursoDto';
 import { CourseService } from 'src/app/services/course.service';
 
 @Component({
-  selector: 'app-course-details',
-  templateUrl: './course-details.component.html',
-  styleUrls: ['./course-details.component.css']
+    selector: 'app-course-details',
+    templateUrl: './course-details.component.html',
+    styleUrls: ['./course-details.component.css'],
+    standalone: false
 })
 export class CourseDetailsComponent implements OnInit {
   course: CursoDto | null = null;

@@ -11,9 +11,10 @@ interface Category {
 }
 
 @Component({
-  selector: 'app-course-category-list',
-  templateUrl: './course-category-list.component.html',
-  styleUrls: ['./course-category-list.component.css']
+    selector: 'app-course-category-list',
+    templateUrl: './course-category-list.component.html',
+    styleUrls: ['./course-category-list.component.css'],
+    standalone: false
 })
 export class CourseCategoryListComponent implements OnInit {
   // Lista de categorías obtenida de la API

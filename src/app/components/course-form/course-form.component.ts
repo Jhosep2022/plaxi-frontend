@@ -8,9 +8,10 @@ import { AuthService } from 'src/app/services/auth.service';
 import { Categoria } from 'src/app/models/categoriaDto';
 
 @Component({
-  selector: 'app-course-form',
-  templateUrl: './course-form.component.html',
-  styleUrls: ['./course-form.component.css'],
+    selector: 'app-course-form',
+    templateUrl: './course-form.component.html',
+    styleUrls: ['./course-form.component.css'],
+    standalone: false
 })
 export class CourseFormComponent implements OnInit, AfterViewChecked {
   courseForm!: FormGroup;

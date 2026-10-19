@@ -5,9 +5,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
-  selector: 'app-my-courses-student',
-  templateUrl: './my-courses-student.component.html',
-  styleUrls: ['./my-courses-student.component.css']
+    selector: 'app-my-courses-student',
+    templateUrl: './my-courses-student.component.html',
+    styleUrls: ['./my-courses-student.component.css'],
+    standalone: false
 })
 export class MyCoursesStudentComponent implements OnInit {
   courses: any[] = [];

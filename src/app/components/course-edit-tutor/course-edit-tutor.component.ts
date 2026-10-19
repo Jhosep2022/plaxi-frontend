@@ -8,9 +8,10 @@ import { CategoriaService } from 'src/app/services/categoria.service';
 import { Categoria } from 'src/app/models/categoriaDto';
 
 @Component({
-  selector: 'app-course-edit-tutor',
-  templateUrl: './course-edit-tutor.component.html',
-  styleUrls: ['./course-edit-tutor.component.css'],
+    selector: 'app-course-edit-tutor',
+    templateUrl: './course-edit-tutor.component.html',
+    styleUrls: ['./course-edit-tutor.component.css'],
+    standalone: false
 })
 export class CourseEditTutorComponent implements OnInit {
   courseForm!: FormGroup;

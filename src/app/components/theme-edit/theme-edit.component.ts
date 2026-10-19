@@ -8,9 +8,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-theme-edit',
-  templateUrl: './theme-edit.component.html',
-  styleUrls: ['./theme-edit.component.css']
+    selector: 'app-theme-edit',
+    templateUrl: './theme-edit.component.html',
+    styleUrls: ['./theme-edit.component.css'],
+    standalone: false
 })
 export class ThemeEditComponent implements OnInit {
   themeForm!: FormGroup;

@@ -4,9 +4,10 @@ import { faCheck, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
+    standalone: false
 })
 export class LoginComponent {
   // Íconos (FontAwesome)

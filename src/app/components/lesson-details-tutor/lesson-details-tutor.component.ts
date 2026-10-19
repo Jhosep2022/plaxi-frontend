@@ -9,9 +9,10 @@ import { TemaDto } from 'src/app/models/TemaDto';
 import { PaginadoDto } from 'src/app/models/PaginadoDto';
 
 @Component({
-  selector: 'app-lesson-details-tutor',
-  templateUrl: './lesson-details-tutor.component.html',
-  styleUrls: ['./lesson-details-tutor.component.css']
+    selector: 'app-lesson-details-tutor',
+    templateUrl: './lesson-details-tutor.component.html',
+    styleUrls: ['./lesson-details-tutor.component.css'],
+    standalone: false
 })
 export class LessonDetailsTutorComponent implements OnInit {
   course: CursoDto | null = null;

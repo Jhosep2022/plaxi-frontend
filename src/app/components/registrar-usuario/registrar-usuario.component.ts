@@ -6,9 +6,10 @@ import { ProfileService } from '../../services/profile.service'; // Importar el 
 import { PerfilDto } from '../../models/PerfilDto'; // Importar el modelo de perfil
 
 @Component({
-  selector: 'app-registrar-usuario',
-  templateUrl: './registrar-usuario.component.html',
-  styleUrls: ['./registrar-usuario.component.css']
+    selector: 'app-registrar-usuario',
+    templateUrl: './registrar-usuario.component.html',
+    styleUrls: ['./registrar-usuario.component.css'],
+    standalone: false
 })
 export class RegistrarUsuarioComponent implements OnInit {
   // Íconos (FontAwesome)

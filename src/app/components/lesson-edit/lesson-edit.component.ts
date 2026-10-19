@@ -8,9 +8,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-lesson-edit',
-  templateUrl: './lesson-edit.component.html',
-  styleUrls: ['./lesson-edit.component.css']
+    selector: 'app-lesson-edit',
+    templateUrl: './lesson-edit.component.html',
+    styleUrls: ['./lesson-edit.component.css'],
+    standalone: false
 })
 export class LessonEditComponent implements OnInit {
   lessonForm!: FormGroup;

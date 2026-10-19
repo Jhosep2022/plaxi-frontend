@@ -10,9 +10,10 @@ import { CursoDto } from 'src/app/models/CursoDto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-lesson-form',
-  templateUrl: './lesson-form.component.html',
-  styleUrls: ['./lesson-form.component.css']
+    selector: 'app-lesson-form',
+    templateUrl: './lesson-form.component.html',
+    styleUrls: ['./lesson-form.component.css'],
+    standalone: false
 })
 export class LessonFormComponent implements OnInit {
   course: CursoDto | null = null;

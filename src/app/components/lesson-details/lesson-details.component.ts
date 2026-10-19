@@ -7,9 +7,10 @@ import { TemaService } from 'src/app/services/tema.service';
 import { TemaDto } from 'src/app/models/TemaDto';
 
 @Component({
-  selector: 'app-lesson-details',
-  templateUrl: './lesson-details.component.html',
-  styleUrls: ['./lesson-details.component.css']
+    selector: 'app-lesson-details',
+    templateUrl: './lesson-details.component.html',
+    styleUrls: ['./lesson-details.component.css'],
+    standalone: false
 })
 export class LessonDetailsComponent implements OnInit {
   courseId: number | null = null; // Captura el ID del curso

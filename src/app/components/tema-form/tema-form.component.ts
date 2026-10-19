@@ -9,9 +9,10 @@ import { LeccionDto } from 'src/app/models/LeccionDto';
 import { TemaDto } from 'src/app/models/TemaDto';
 
 @Component({
-  selector: 'app-tema-form',
-  templateUrl: './tema-form.component.html',
-  styleUrls: ['./tema-form.component.css']
+    selector: 'app-tema-form',
+    templateUrl: './tema-form.component.html',
+    styleUrls: ['./tema-form.component.css'],
+    standalone: false
 })
 export class TemaFormComponent implements OnInit, AfterViewChecked {
   leccion: LeccionDto | null = null;
