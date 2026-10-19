@@ -12,7 +12,7 @@ export default [
   { path: 'academico/materias', title: 'Materias', loadComponent: () => import('./academico/materias/materias.component').then((m) => m.MateriasComponent) },
   { path: 'academico/aulas', title: 'Aulas', loadComponent: () => import('./academico/aulas/aulas.component').then((m) => m.AulasComponent) },
   { path: 'academico/asignaciones', title: 'Asignación docente', loadComponent: () => import('./academico/asignaciones/asignaciones.component').then((m) => m.AsignacionesComponent) },
-  proximamente('academico/horarios', 'Horarios', 'Horario por paralelo, docente y aula, sin choques.'),
+  { path: 'academico/horarios', title: 'Horarios', loadComponent: () => import('./academico/horarios/horarios.component').then((m) => m.HorariosComponent) },
 
   // Personas
   proximamente('personas/docentes', 'Docentes'),
@@ -32,5 +32,6 @@ export default [
 
   proximamente('reportes', 'Reportes'),
   proximamente('institucion', 'Datos de la institución'),
+  { path: 'institucion/jornada', title: 'Jornada escolar', loadComponent: () => import('./institucion/jornada/jornada.component').then((m) => m.JornadaComponent) },
   proximamente('institucion/horario-laboral', 'Horario laboral', 'Horario de entrada y salida del personal y tolerancia de atraso.'),
 ] satisfies Routes;

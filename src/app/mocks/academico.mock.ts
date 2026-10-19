@@ -1,7 +1,7 @@
 // ============================================================================
 // DATOS MOCKEADOS del módulo Académico (Colegio San José, espacioId 1)
 // ============================================================================
-import { Asignacion, Aula, Docente, Gestion, Materia, Paralelo } from '../core/models/academico.model';
+import { Asignacion, Aula, ClaseHorario, ConfigJornada, Docente, Gestion, Materia, Paralelo } from '../core/models/academico.model';
 
 const E = 1; // espacio: Colegio San José
 
@@ -91,4 +91,31 @@ export const MOCK_ASIGNACIONES: Asignacion[] = [
   a(6, 7, 3), a(6, 10, 7), a(6, 13, 8),
   a(7, 8, 3), a(7, 7, 3), a(7, 11, 9),
   a(8, 9, 3), a(8, 14, 10),
+];
+
+// ---------- Jornada escolar y horarios ----------
+
+export const MOCK_JORNADAS: (ConfigJornada & { id: number })[] = [
+  {
+    id: E, espacioId: E, duracionPeriodoMin: 90, dias: [1, 2, 3, 4, 5],
+    turnos: [
+      { turno: 'manana', activo: true, inicio: '07:30', fin: '14:00', recreos: [{ inicio: '10:30', duracionMin: 20 }] },
+      { turno: 'tarde', activo: true, inicio: '14:30', fin: '21:00', recreos: [{ inicio: '17:30', duracionMin: 20 }] },
+      { turno: 'noche', activo: false, inicio: '18:30', fin: '22:30', recreos: [{ inicio: '20:00', duracionMin: 15 }] },
+    ],
+  },
+];
+
+let idClase = 0;
+const c = (paraleloId: number, dia: number, bloque: number, materiaId: number, aulaId: number): ClaseHorario =>
+  ({ id: ++idClase, espacioId: E, gestionId: 2, paraleloId, dia, bloque, materiaId, aulaId });
+
+// 3ro A (paralelo 5, Aula 12) y 3ro B (paralelo 6, Aula 14). Física usa el laboratorio y Ed. Física el coliseo.
+export const MOCK_CLASES: ClaseHorario[] = [
+  c(5, 1, 0, 7, 1), c(5, 1, 1, 10, 1), c(5, 1, 2, 8, 8), c(5, 1, 3, 11, 1),
+  c(5, 2, 0, 7, 1), c(5, 2, 1, 12, 1), c(5, 2, 2, 13, 11), c(5, 2, 3, 10, 1),
+  c(5, 3, 0, 7, 1), c(5, 3, 1, 8, 8), c(5, 3, 2, 10, 1),
+  c(5, 4, 1, 12, 1), c(5, 4, 2, 11, 1),
+  c(5, 5, 0, 7, 1), c(5, 5, 1, 13, 11),
+  c(6, 1, 1, 7, 2), c(6, 1, 2, 10, 2), c(6, 2, 0, 13, 11), c(6, 3, 0, 7, 2),
 ];

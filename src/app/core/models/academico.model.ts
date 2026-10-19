@@ -121,3 +121,60 @@ export interface Asignacion {
   materiaId: number;
   docenteId: number;
 }
+
+// ---------- Jornada escolar (configuración de horarios) ----------
+export const DIAS_SEMANA: { id: number; corto: string; largo: string }[] = [
+  { id: 1, corto: 'Lun', largo: 'Lunes' },
+  { id: 2, corto: 'Mar', largo: 'Martes' },
+  { id: 3, corto: 'Mié', largo: 'Miércoles' },
+  { id: 4, corto: 'Jue', largo: 'Jueves' },
+  { id: 5, corto: 'Vie', largo: 'Viernes' },
+  { id: 6, corto: 'Sáb', largo: 'Sábado' },
+  { id: 7, corto: 'Dom', largo: 'Domingo' },
+];
+
+export interface Recreo {
+  inicio: string; // "10:30": se ubica al terminar el periodo en curso a esa hora
+  duracionMin: number;
+}
+
+export interface ConfigTurno {
+  turno: Turno;
+  activo: boolean;
+  inicio: string; // "07:30"
+  fin: string; // "14:00"
+  recreos: Recreo[];
+}
+
+export interface ConfigJornada {
+  espacioId: number;
+  duracionPeriodoMin: number;
+  dias: number[]; // 1 = lunes … 7 = domingo
+  turnos: ConfigTurno[];
+}
+
+// Bloque del día calculado a partir de la configuración de un turno
+export interface BloqueHorario {
+  tipo: 'clase' | 'recreo';
+  indice: number; // número de periodo de clase (0, 1, 2…); -1 en recreos
+  inicio: string;
+  fin: string;
+}
+
+// Una clase en el horario semanal de un paralelo
+export interface ClaseHorario {
+  id: number;
+  espacioId: number;
+  gestionId: number;
+  paraleloId: number;
+  dia: number;
+  bloque: number; // índice del periodo de clase dentro del turno
+  materiaId: number;
+  aulaId: number; // aula de esta clase (por defecto, el aula fija del paralelo)
+}
+
+// Orden de presentación de paralelos: nivel (inicial → secundaria), grado y letra
+export function compararParalelos(a: Paralelo, b: Paralelo): number {
+  const nivel = (n: Nivel) => NIVELES.findIndex((x) => x.id === n);
+  return nivel(a.nivel) - nivel(b.nivel) || a.grado - b.grado || a.letra.localeCompare(b.letra);
+}

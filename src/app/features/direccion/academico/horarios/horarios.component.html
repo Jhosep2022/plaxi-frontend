@@ -1,0 +1,192 @@
+<app-page-header
+  miga="Académico"
+  titulo="Horarios"
+  descripcion="Arma la semana de cada paralelo. El sistema avisa si un docente o un aula ya están ocupados a esa hora en otro paralelo.">
+  <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('institucion', 'jornada')"><fa-icon [icon]="faGear" /> Configurar jornada</a>
+</app-page-header>
+
+@if (!gestion.isLoading() && !gestion.value()) {
+  <div class="ui-card">
+    <app-empty-state [icono]="faCalendarDays" titulo="No hay una gestión activa" texto="Los horarios pertenecen a la gestión activa.">
+      <a class="ui-btn" [routerLink]="session.rutaRol('academico', 'gestion')">Ir a Gestión y periodos</a>
+    </app-empty-state>
+  </div>
+} @else {
+  <div class="distribucion">
+    <!-- Paralelos -->
+    <aside class="ui-card lista">
+      @for (grupo of grupos(); track grupo.nivel) {
+        <h3>{{ grupo.nivel }}</h3>
+        <ul>
+          @for (item of grupo.paralelos; track item.paralelo.id) {
+            <li>
+              <button type="button" class="paralelo" [class.elegido]="item.paralelo.id === seleccionadoId()" (click)="seleccionadoId.set(item.paralelo.id)">
+                <span>{{ paraleloLabel(item.paralelo) }}</span>
+                <span class="ocupados">{{ item.ocupados }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @empty {
+        <p class="ui-ayuda">No hay paralelos en la gestión activa.</p>
+      }
+    </aside>
+
+    <!-- Grilla semanal -->
+    <section class="ui-card semana">
+      @if (seleccionado(); as p) {
+        <header class="cabecera">
+          <div>
+            <h2>{{ paraleloLabel(p) }}</h2>
+            <div class="etiquetas">
+              <span class="ui-badge tono-azul">Turno {{ turnoLabel(p.turno) }}</span>
+              <span class="ui-badge">Aula fija: {{ aulaFija(p) }}</span>
+              @if (jornada.value(); as j) {
+                <span class="ui-badge">Periodos de {{ duracionLabel(j.duracionPeriodoMin) }}</span>
+              }
+            </div>
+          </div>
+          <span class="ui-badge tono-lima">{{ celdas().size }} de {{ periodosPorSemana() }} periodos ocupados</span>
+        </header>
+
+        @if (bloques().length === 0) {
+          <app-empty-state [icono]="faGear" [titulo]="'El turno ' + turnoLabel(p.turno).toLowerCase() + ' no está configurado'" texto="Actívalo y define su horario en la jornada escolar.">
+            <a class="ui-btn" [routerLink]="session.rutaRol('institucion', 'jornada')">Configurar jornada</a>
+          </app-empty-state>
+        } @else {
+          <div class="grilla-contenedor">
+            <table class="grilla" [style.--dias]="dias().length">
+              <thead>
+                <tr>
+                  <th class="col-hora">Hora</th>
+                  @for (d of dias(); track d.id) {
+                    <th>{{ d.largo }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (b of bloques(); track $index) {
+                  @if (b.tipo === 'recreo') {
+                    <tr class="fila-recreo">
+                      <td class="col-hora">{{ b.inicio }}<br /><small>{{ b.fin }}</small></td>
+                      <td [attr.colspan]="dias().length"><fa-icon [icon]="faMugHot" /> Recreo</td>
+                    </tr>
+                  } @else {
+                    <tr>
+                      <td class="col-hora">{{ b.inicio }}<br /><small>{{ b.fin }}</small></td>
+                      @for (d of dias(); track d.id) {
+                        @let clase = celdas().get(d.id + '-' + b.indice);
+                        <td>
+                          @if (clase) {
+                            @let m = materia(clase.materiaId);
+                            <button type="button" class="clase" [class]="'tono-' + (m?.tono ?? 'azul')" (click)="abrirCelda(d.id, b)"
+                              [attr.aria-label]="(m?.nombre ?? 'Clase') + ', ' + d.largo + ' ' + b.inicio">
+                              <span class="clase-titulo">
+                                @if (m) { <fa-icon [icon]="iconoMateria(m.icono)" /> }
+                                {{ m?.nombre ?? 'Materia eliminada' }}
+                              </span>
+                              <small>{{ docenteCorto(clase) }}</small>
+                              @if (aulaDistinta(clase); as aula) {
+                                <small class="aula">{{ aula }}</small>
+                              }
+                            </button>
+                          } @else {
+                            <button type="button" class="vacia" (click)="abrirCelda(d.id, b)" [attr.aria-label]="'Agregar clase el ' + d.largo + ' a las ' + b.inicio">
+                              <fa-icon [icon]="faPlus" />
+                            </button>
+                          }
+                        </td>
+                      }
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      } @else {
+        <app-empty-state titulo="Elige un paralelo" texto="Selecciona un paralelo para ver y armar su horario." />
+      }
+    </section>
+
+    <!-- Cobertura por materia -->
+    <aside class="ui-card cobertura">
+      <h3>Periodos por materia</h3>
+      <p class="ui-ayuda">Necesarios según las horas semanales de cada materia.</p>
+      @if (necesariosTotal() > periodosPorSemana() && periodosPorSemana() > 0) {
+        <p class="ui-aviso"><fa-icon [icon]="faTriangleExclamation" /> Las materias necesitan {{ necesariosTotal() }} periodos y la jornada tiene {{ periodosPorSemana() }}.</p>
+      }
+      <ul>
+        @for (c of cobertura(); track c.materia.id) {
+          <li>
+            <div class="linea">
+              <span class="ui-icono chico" [class]="'tono-' + c.materia.tono"><fa-icon [icon]="iconoMateria(c.materia.icono)" /></span>
+              <span class="nombre">
+                <strong>{{ c.materia.nombre }}</strong>
+                <small>{{ c.docente || 'Sin docente asignado' }}</small>
+              </span>
+              <span class="cuenta" [class.completo]="c.usados >= c.necesarios" [class.excedido]="c.usados > c.necesarios">{{ c.usados }}/{{ c.necesarios }}</span>
+            </div>
+            <div class="ui-barra" [class]="c.usados >= c.necesarios ? 'tono-lima' : 'tono-crema'">
+              <span [style.width.%]="c.necesarios ? (c.usados / c.necesarios) * 100 : 0"></span>
+            </div>
+          </li>
+        }
+      </ul>
+    </aside>
+  </div>
+}
+
+<!-- Edición de un periodo -->
+<app-drawer
+  [abierto]="!!editando()"
+  [titulo]="editando() ? diaLargo(editando()!.dia) + ' · ' + (editando()!.bloque.indice + 1) + 'º periodo' : ''"
+  [subtitulo]="editando() ? editando()!.bloque.inicio + ' – ' + editando()!.bloque.fin + (seleccionado() ? ' · ' + paraleloLabel(seleccionado()!) : '') : ''"
+  (cerrar)="editando.set(null)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="ui-campo">
+      <label for="hor-materia">Materia</label>
+      <select id="hor-materia" class="ui-input" [formField]="formulario.materiaId">
+        <option value="">Elige una materia…</option>
+        @for (m of materiasDelNivel(); track m.id) {
+          <option [value]="'' + m.id">{{ m.nombre }} · {{ m.horasSemanales }} h</option>
+        }
+      </select>
+      @if (formulario.materiaId().touched() && formulario.materiaId().invalid()) {
+        <span class="ui-error">{{ formulario.materiaId().errors()[0].message }}</span>
+      }
+      @if (modelo().materiaId) {
+        @if (docenteElegido(); as docente) {
+          <span class="ui-ayuda">Docente: <strong>{{ docente }}</strong></span>
+        } @else {
+          <span class="ui-aviso">Esta materia no tiene docente asignado en el paralelo. Puedes asignarlo en Asignación docente.</span>
+        }
+      }
+    </div>
+
+    <div class="ui-campo">
+      <label for="hor-aula">Aula</label>
+      <select id="hor-aula" class="ui-input" [formField]="formulario.aulaId">
+        <option value="0">Sin aula</option>
+        @for (a of aulasActivas(); track a.id) {
+          <option [value]="'' + a.id">{{ a.nombre }}{{ a.id === seleccionado()?.aulaId ? ' (aula fija)' : '' }}</option>
+        }
+      </select>
+      <span class="ui-ayuda">Por defecto, el aula fija del paralelo. Cámbiala para laboratorios, coliseo, etc.</span>
+    </div>
+
+    @for (choque of choques(); track $index) {
+      <p class="choque"><fa-icon [icon]="faTriangleExclamation" /> {{ choque }}</p>
+    }
+  </form>
+
+  <ng-container pie>
+    @if (editando()?.clase) {
+      <button type="button" class="ui-btn ui-btn--peligro izquierda" (click)="quitar()">Quitar clase</button>
+    }
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="editando.set(null)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando() || choques().length > 0" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </ng-container>
+</app-drawer>

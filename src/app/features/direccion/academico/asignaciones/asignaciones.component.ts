@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboardTeacher, faCheck, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
-import { NIVELES, Paralelo, paraleloLabel } from '../../../../core/models/academico.model';
+import { NIVELES, Paralelo, compararParalelos, paraleloLabel } from '../../../../core/models/academico.model';
 import { AcademicoService } from '../../../../services/academico.service';
 import { AvisosService } from '../../../../shared/ui/avisos.service';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
@@ -45,7 +45,7 @@ export class AsignacionesComponent {
   // Paralelo elegido: por defecto el primero; se mantiene la elección mientras exista
   readonly seleccionadoId = linkedSignal<Paralelo[], number>({
     source: () => this.paralelos.value(),
-    computation: (lista, previo) => (previo && lista.some((p) => p.id === previo.value) ? previo.value : lista[0]?.id ?? 0),
+    computation: (lista, previo) => (previo && lista.some((p) => p.id === previo.value) ? previo.value : [...lista].sort(compararParalelos)[0]?.id ?? 0),
   });
 
   readonly seleccionado = computed(() => this.paralelos.value().find((p) => p.id === this.seleccionadoId()) ?? null);

@@ -1,0 +1,134 @@
+<app-page-header
+  miga="Institución"
+  titulo="Jornada escolar"
+  descripcion="Define cuánto dura cada periodo, qué días hay clases y el horario de cada turno con sus recreos. Los horarios se arman con esta configuración.">
+  <button type="button" class="ui-btn ui-btn--secundario" [disabled]="sinCambios()" (click)="descartar()">Descartar cambios</button>
+  <button type="button" class="ui-btn" [disabled]="guardando() || sinCambios()" (click)="guardar()">
+    {{ guardando() ? 'Guardando…' : 'Guardar jornada' }}
+  </button>
+</app-page-header>
+
+@if (jornada.isLoading() && !jornada.value()) {
+  <p class="cargando">Cargando configuración…</p>
+} @else {
+  <form class="secciones" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <!-- Duración del periodo -->
+    <section class="ui-card">
+      <h2>Duración del periodo de clase</h2>
+      <p class="ui-ayuda">Cuánto dura cada periodo. Las horas semanales de cada materia se reparten en periodos de esta duración.</p>
+      <div class="duracion">
+        <div class="ui-campo minutos">
+          <label for="jor-duracion">Minutos</label>
+          <input id="jor-duracion" type="number" class="ui-input" [formField]="formulario.duracionPeriodoMin" />
+        </div>
+        <div class="rapidas" role="group" aria-label="Duraciones frecuentes">
+          @for (d of duracionesRapidas; track d) {
+            <button type="button" class="chip" [class.elegido]="modelo().duracionPeriodoMin === d" (click)="usarDuracion(d)">{{ duracionLabel(d) }}</button>
+          }
+        </div>
+      </div>
+      @if (formulario.duracionPeriodoMin().invalid()) {
+        <span class="ui-error">{{ formulario.duracionPeriodoMin().errors()[0].message }}</span>
+      }
+    </section>
+
+    <!-- Días de clase -->
+    <section class="ui-card">
+      <h2>Días de clase</h2>
+      <p class="ui-ayuda">Los sábados y domingos son opcionales.</p>
+      <div class="dias">
+        @for (dia of formulario.dias; track $index) {
+          <label class="dia" [class.elegido]="modelo().dias[$index]">
+            <input type="checkbox" [formField]="dia" />
+            {{ diasSemana[$index].largo }}
+          </label>
+        }
+      </div>
+      @if (formulario.dias().invalid()) {
+        <span class="ui-error">{{ formulario.dias().errors()[0].message }}</span>
+      }
+    </section>
+
+    <!-- Turnos -->
+    <section class="ui-card">
+      <h2>Turnos</h2>
+      <p class="ui-ayuda">Activa los turnos que funcionan en el colegio. Cada recreo empieza al terminar el periodo que está en curso a su hora.</p>
+      @if (formulario.turnos().invalid() && formulario.turnos().errors().length) {
+        <span class="ui-error">{{ formulario.turnos().errors()[0].message }}</span>
+      }
+
+      <div class="turnos">
+        @for (t of formulario.turnos; track $index; let iTurno = $index) {
+          @let vista = previa()[iTurno];
+          <article class="turno" [class.inactivo]="!modelo().turnos[iTurno].activo">
+            <header>
+              <label class="interruptor">
+                <input type="checkbox" [formField]="t.activo" />
+                <span class="pista"></span>
+                <strong>Turno {{ turnoLabel(modelo().turnos[iTurno].turno) }}</strong>
+              </label>
+              @if (modelo().turnos[iTurno].activo) {
+                <span class="ui-badge tono-lima">{{ vista.periodos }} periodos por día · {{ vista.horasSemana }} h semanales</span>
+              }
+            </header>
+
+            @if (modelo().turnos[iTurno].activo) {
+              <div class="ui-fila">
+                <div class="ui-campo">
+                  <label [for]="'ini-' + iTurno">Inicio</label>
+                  <input [id]="'ini-' + iTurno" type="time" class="ui-input" [formField]="t.inicio" />
+                </div>
+                <div class="ui-campo">
+                  <label [for]="'fin-' + iTurno">Fin</label>
+                  <input [id]="'fin-' + iTurno" type="time" class="ui-input" [formField]="t.fin" />
+                </div>
+              </div>
+              @if (t.fin().invalid()) {
+                <span class="ui-error">{{ t.fin().errors()[0].message }}</span>
+              }
+
+              <div class="recreos">
+                <span class="ui-etiqueta">Recreos</span>
+                @for (r of t.recreos; track $index; let iRecreo = $index) {
+                  <div class="recreo">
+                    <fa-icon [icon]="faMugHot" class="taza" />
+                    <div class="ui-campo">
+                      <label [for]="'rec-' + iTurno + '-' + iRecreo">A las</label>
+                      <input [id]="'rec-' + iTurno + '-' + iRecreo" type="time" class="ui-input" [formField]="r.inicio" />
+                    </div>
+                    <div class="ui-campo">
+                      <label [for]="'dur-' + iTurno + '-' + iRecreo">Minutos</label>
+                      <input [id]="'dur-' + iTurno + '-' + iRecreo" type="number" class="ui-input" [formField]="r.duracionMin" />
+                    </div>
+                    <button type="button" class="ui-btn ui-btn--icono" (click)="quitarRecreo(iTurno, iRecreo)" aria-label="Quitar recreo"><fa-icon [icon]="faTrash" /></button>
+                  </div>
+                  @if (r.duracionMin().invalid()) {
+                    <span class="ui-error">{{ r.duracionMin().errors()[0].message }}</span>
+                  }
+                } @empty {
+                  <span class="ui-ayuda">Sin recreos.</span>
+                }
+                <button type="button" class="ui-btn ui-btn--secundario chico" (click)="agregarRecreo(iTurno)"><fa-icon [icon]="faPlus" /> Agregar recreo</button>
+              </div>
+
+              <!-- Vista previa del día -->
+              <div class="previa">
+                <span class="ui-etiqueta">Así queda el día</span>
+                <ol>
+                  @for (b of vista.bloques; track $index) {
+                    <li [class.recreo-bloque]="b.tipo === 'recreo'">
+                      <span class="hora">{{ b.inicio }} – {{ b.fin }}</span>
+                      <span>{{ b.tipo === 'clase' ? b.indice + 1 + 'º periodo' : 'Recreo' }}</span>
+                    </li>
+                  } @empty {
+                    <li class="vacio">No entra ningún periodo en este horario.</li>
+                  }
+                </ol>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    </section>
+  </form>
+}

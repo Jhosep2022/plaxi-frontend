@@ -212,6 +212,7 @@ function direccion(): NavModule[] {
       id: 'institucion', label: 'Institución', icon: faCog, sections: [{
         items: [
           item('Datos de la institución', faSchool, 'direccion/institucion', true),
+          item('Jornada escolar', faCalendarDays, 'direccion/institucion/jornada'),
           item('Horario laboral', faClock, 'direccion/institucion/horario-laboral'),
         ],
       }],
