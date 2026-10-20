@@ -1,0 +1,89 @@
+<a class="volver" [routerLink]="ruta('tareas')"><fa-icon [icon]="faArrowLeft" /> Tareas</a>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando entregas…</p>
+} @else if (tarea(); as t) {
+  <header class="encabezado">
+    <span class="ui-icono grande" [class]="'tono-' + t.materia.tono"><fa-icon [icon]="iconoMateria(t.materia.icono)" /></span>
+    <div class="titulos">
+      <h1>{{ t.titulo }}</h1>
+      <p>{{ t.materia.nombre }} · {{ t.curso }} · Entrega: {{ fechaLarga(t.entrega) }}, {{ t.hora }} ({{ venceLabel(t) }})</p>
+    </div>
+    @if (t.criterio) { <span class="ui-badge tono-azul"><fa-icon [icon]="faStar" /> Cuenta para nota · {{ t.criterio }}</span> }
+  </header>
+
+  @if (t.instrucciones) {
+    <p class="ui-card instrucciones">{{ t.instrucciones }}</p>
+  }
+  @if (cerrado()) {
+    <p class="ui-aviso">El periodo de esta actividad está cerrado: las notas ya no se pueden modificar.</p>
+  }
+
+  <div class="indicadores">
+    <div class="ui-card indicador destacado"><strong>{{ conteo().entregadas }}/{{ conteo().total }}</strong><small>entregaron</small></div>
+    <div class="ui-card indicador"><strong>{{ conteo().porRevisar }}</strong><small>por revisar</small></div>
+    <div class="ui-card indicador"><strong>{{ conteo().tarde }}</strong><small>entregaron tarde</small></div>
+    <div class="ui-card indicador"><strong>{{ conteo().revisadas }}</strong><small>revisadas</small></div>
+  </div>
+
+  <section class="ui-card">
+    <div class="ui-tabs filtros" role="tablist">
+      <button type="button" class="ui-tab" [class.activa]="filtro() === 'todos'" (click)="filtro.set('todos')">Todos <span class="contador">{{ conteo().total }}</span></button>
+      <button type="button" class="ui-tab" [class.activa]="filtro() === 'por-revisar'" (click)="filtro.set('por-revisar')">Por revisar <span class="contador">{{ conteo().porRevisar }}</span></button>
+      <button type="button" class="ui-tab" [class.activa]="filtro() === 'sin-entregar'" (click)="filtro.set('sin-entregar')">Sin entregar <span class="contador">{{ conteo().sinEntregar }}</span></button>
+    </div>
+
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla" id="tabla-entregas">
+        <thead>
+          <tr><th>Estudiante</th><th>Estado</th><th>Entrega</th>@if (conNota()) { <th class="num">Nota /{{ t.notaMaxima }}</th> } @else { <th class="num">Revisada</th> }<th>Comentario</th></tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.estudiante.id) {
+            @let e = edicion(f.estudiante.id);
+            <tr>
+              <td><span class="persona"><span class="avatar">{{ iniciales(f.estudiante.nombre) }}</span> <strong>{{ f.estudiante.nombre }}</strong></span></td>
+              <td><span class="ui-badge" [class]="estados[f.estado].tono">{{ estados[f.estado].label }}</span></td>
+              <td class="entrega">
+                @if (f.entrega?.entregadaEl) {
+                  <small class="cuando"><fa-icon [icon]="faClock" /> {{ entregadaLabel(f) }}</small>
+                  @if (f.entrega!.texto) { <span class="texto">{{ f.entrega!.texto }}</span> }
+                  @if (f.entrega!.archivo) { <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ f.entrega!.archivo }}</span> }
+                } @else {
+                  <span class="sin">—</span>
+                }
+              </td>
+              <td class="num">
+                @if (conNota()) {
+                  <input class="nota" inputmode="numeric" [value]="e.nota" [disabled]="cerrado()" [class.invalida]="notaInvalida(e.nota)"
+                    (input)="cambiar(f.estudiante.id, { nota: $any($event.target).value.trim() })" [attr.aria-label]="'Nota de ' + f.estudiante.nombre" />
+                } @else {
+                  <input type="checkbox" [checked]="e.revisada" (change)="cambiar(f.estudiante.id, { revisada: $any($event.target).checked })" [attr.aria-label]="'Revisada: ' + f.estudiante.nombre" />
+                }
+              </td>
+              <td>
+                <input class="ui-input comentario" placeholder="Comentario (opcional)" [value]="e.comentario"
+                  (input)="cambiar(f.estudiante.id, { comentario: $any($event.target).value })" [attr.aria-label]="'Comentario para ' + f.estudiante.nombre" />
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="vacio">Nadie en este filtro.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="pie">
+      <span class="ui-ayuda">
+        @if (hayErrores()) { <span class="ui-error">Hay notas fuera de rango (0 a {{ t.notaMaxima }}).</span> }
+        @else if (conNota()) { La nota se guarda en la actividad "{{ t.actividadNombre }}" de tu planilla ({{ t.criterio }}). }
+        @else { Esta tarea no cuenta para la nota: marca las entregas revisadas y deja un comentario. }
+      </span>
+      <button type="button" class="ui-btn" [disabled]="guardando() || hayErrores() || !cambios().length" (click)="guardar()">
+        {{ guardando() ? 'Guardando…' : cambios().length ? 'Guardar ' + cambios().length + (cambios().length === 1 ? ' revisión' : ' revisiones') : 'Sin cambios' }}
+      </button>
+    </footer>
+  </section>
+} @else {
+  <div class="ui-card"><app-empty-state [icono]="faTasks" titulo="No encontramos esta tarea" texto="Puede que haya sido eliminada." /></div>
+}

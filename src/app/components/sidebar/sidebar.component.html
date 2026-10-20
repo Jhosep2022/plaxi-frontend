@@ -60,10 +60,10 @@
               }
             </div>
             <a role="menuitem" [routerLink]="link('perfil')" (click)="cerrarMenus()">
-              <fa-icon [icon]="faUserCircle" /> Ver perfil
+              <fa-icon [icon]="faUserCircle" /> Mi perfil
             </a>
-            <a role="menuitem" [routerLink]="link('perfil/editar')" (click)="cerrarMenus()">
-              <fa-icon [icon]="faEdit" /> Editar perfil
+            <a role="menuitem" [routerLink]="link('perfil/seguridad')" (click)="cerrarMenus()">
+              <fa-icon [icon]="faEdit" /> Seguridad
             </a>
             <button type="button" role="menuitem" class="logout" (click)="logout()">
               <fa-icon [icon]="faSignOutAlt" /> Cerrar sesión

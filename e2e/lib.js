@@ -64,8 +64,10 @@ const SCRIPT_GEO = `(() => {
 async function abrirNavegador({ ancho = 1500, alto = 1100, fecha, geolocalizacion = false } = {}) {
   const perfil = fs.mkdtempSync(path.join(os.tmpdir(), 'quizwiz-e2e-'));
   const puerto = 9400 + Math.floor(Math.random() * 400);
+  // E2E_VISIBLE=1 abre la ventana de Chrome para ver la prueba mientras corre
+  const visible = !!process.env.E2E_VISIBLE;
   const proc = spawn(rutaChrome(), [
-    '--headless=new', '--disable-gpu', '--no-first-run', `--remote-debugging-port=${puerto}`,
+    ...(visible ? [] : ['--headless=new']), '--disable-gpu', '--no-first-run', `--remote-debugging-port=${puerto}`,
     `--user-data-dir=${perfil}`, `--window-size=${ancho},${alto}`, 'about:blank',
   ], { stdio: 'ignore' });
 

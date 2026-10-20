@@ -56,6 +56,16 @@ export function fechaLarga(fecha: string): string {
   return capitalizar(new Date(`${fecha}T12:00:00`).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' }));
 }
 
+// "5 de noviembre de 1986"
+export function fechaConAnio(fecha: string): string {
+  return new Date(`${fecha}T12:00:00`).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// "febrero de 2024"
+export function mesAnio(fecha: string): string {
+  return new Date(`${fecha}T12:00:00`).toLocaleDateString('es', { month: 'long', year: 'numeric' });
+}
+
 // "Vie, 16 oct"
 export function fechaCorta(fecha: string): string {
   return capitalizar(new Date(`${fecha}T12:00:00`).toLocaleDateString('es', { weekday: 'short', day: 'numeric', month: 'short' }));

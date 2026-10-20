@@ -15,6 +15,7 @@ import { AvisosService } from '../../../shared/ui/avisos.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { iconoMateria } from '../../../shared/ui/iconos-academicos';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
+import { AsistenciaAcademiaDocenteComponent } from '../../academia/asistencia-academia.component';
 import { mensajeError } from '../../direccion/academico/academico.ui';
 
 interface Marca {
@@ -25,7 +26,7 @@ interface Marca {
 @Component({
   selector: 'app-tomar-asistencia',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormsModule, PageHeaderComponent, EmptyStateComponent],
+  imports: [FaIconComponent, FormsModule, PageHeaderComponent, EmptyStateComponent, AsistenciaAcademiaDocenteComponent],
   templateUrl: './tomar-asistencia.component.html',
   styleUrls: ['./tomar-asistencia.component.css'],
 })

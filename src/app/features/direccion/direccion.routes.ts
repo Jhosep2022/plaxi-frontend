@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { proximamente } from '../../core/routing/proximamente';
 
 // /:espacio/direccion/... (solo existe en colegios)
 export default [
@@ -35,7 +34,8 @@ export default [
   { path: 'reportes/rendimiento', title: 'Rendimiento académico', loadComponent: () => import('./reportes/rendimiento.component').then((m) => m.RendimientoComponent) },
   { path: 'reportes/asistencia', title: 'Reporte de asistencia', loadComponent: () => import('./reportes/asistencia-reporte.component').then((m) => m.AsistenciaReporteComponent) },
   { path: 'reportes/puntualidad', title: 'Puntualidad del personal', loadComponent: () => import('./reportes/puntualidad.component').then((m) => m.PuntualidadComponent) },
-  proximamente('institucion', 'Datos de la institución'),
+  { path: 'comunicados', title: 'Comunicados', loadComponent: () => import('../comunicados/comunicados.component').then((m) => m.ComunicadosComponent) },
+  { path: 'institucion', title: 'Datos de la institución', loadComponent: () => import('./institucion/datos/datos-institucion.component').then((m) => m.DatosInstitucionComponent) },
   { path: 'institucion/jornada', title: 'Jornada escolar', loadComponent: () => import('./institucion/jornada/jornada.component').then((m) => m.JornadaComponent) },
   { path: 'institucion/horario-laboral', title: 'Horario laboral', loadComponent: () => import('./institucion/horario-laboral/horario-laboral.component').then((m) => m.HorarioLaboralComponent) },
 ] satisfies Routes;

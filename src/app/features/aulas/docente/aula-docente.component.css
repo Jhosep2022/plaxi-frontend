@@ -1,0 +1,469 @@
+.cargando {
+  color: var(--muted);
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.volver:hover {
+  color: var(--dark-blue);
+}
+
+/* Encabezado */
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.portada {
+  position: relative;
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.portada-acciones {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.chico {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.ui-btn--icono.chico {
+  width: 30px;
+  padding: 0;
+}
+
+.subir {
+  position: relative;
+  cursor: pointer;
+  background: var(--text-light);
+}
+
+.subir input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.titulos {
+  flex: 1;
+  min-width: 240px;
+}
+
+.titulos h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.titulos p {
+  margin: 4px 0 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.botones {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.botones a {
+  text-decoration: none;
+}
+
+.menu-nuevo {
+  position: relative;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 170px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--text-light);
+  box-shadow: 0 12px 28px rgba(10, 10, 35, 0.12);
+}
+
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--dark-blue);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu button:hover {
+  background: var(--lime-soft);
+}
+
+/* Pestañas (subrayadas, como la referencia) */
+.pestanas {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.pestanas button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 15px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pestanas button.activa {
+  border-bottom-color: var(--dark-blue);
+  color: var(--dark-blue);
+  font-weight: bold;
+}
+
+.contador {
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--page-bg);
+  font-size: 11px;
+}
+
+.pestanas button.activa .contador {
+  background: var(--lime-green);
+}
+
+/* Inicio */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.indicador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indicador div {
+  display: flex;
+  flex-direction: column;
+}
+
+.indicador strong {
+  font-size: 22px;
+}
+
+.indicador small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.indicador.destacado {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+}
+
+.alerta {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+.baja {
+  color: #c0392b;
+}
+
+.secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.sesiones,
+.pendientes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sesiones li {
+  display: grid;
+  grid-template-columns: 100px 110px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.sesiones li:nth-child(odd) {
+  background: var(--page-bg);
+}
+
+.sesiones li.proxima {
+  background: var(--lime-soft);
+}
+
+.sesiones small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pendientes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.pendientes a {
+  display: flex;
+  flex-direction: column;
+  color: var(--dark-blue);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.pendientes small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.vacio {
+  padding: 14px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Tareas y estudiantes */
+.barra-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.lista-tareas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fila-tarea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--dark-blue);
+  text-decoration: none;
+}
+
+.fila-tarea .texto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+.fila-tarea small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.buscar {
+  position: relative;
+}
+
+.buscar fa-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.buscar .ui-input {
+  width: 240px;
+  padding-left: 34px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--light-cream);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.avance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.avance .ui-barra {
+  flex: 1;
+}
+
+.avance small {
+  width: 36px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.num {
+  text-align: center !important;
+}
+
+/* Notas */
+.notas {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.notas a {
+  text-decoration: none;
+}
+
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.cifras div {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--page-bg);
+}
+
+.cifras strong {
+  font-size: 22px;
+}
+
+.cifras small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  .portada {
+    width: 100%;
+  }
+}
+
+/* Curso de academia */
+.curso-estudiantes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.solicitudes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.solicitudes li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.solicitudes .persona {
+  flex: 1;
+}
+
+.solicitudes .persona > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.solicitudes small {
+  font-size: 12px;
+  color: var(--muted);
+}

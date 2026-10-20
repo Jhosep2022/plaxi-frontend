@@ -1,0 +1,104 @@
+.cargando {
+  color: var(--muted);
+}
+
+.espacios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.espacio {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 2px solid transparent;
+}
+
+.espacio.actual {
+  border-color: var(--lime-green);
+}
+
+.espacio header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--dark-blue);
+  color: var(--lime-green);
+  font-size: 20px;
+}
+
+.logo.academia {
+  background: var(--light-cream);
+  color: var(--dark-blue);
+}
+
+.nombre {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.nombre small {
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.espacio footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.predeterminado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.botones {
+  display: flex;
+  gap: 8px;
+}
+
+.botones a {
+  text-decoration: none;
+}
+
+.salir:hover {
+  color: #b42318;
+  border-color: #f4c7c3;
+}
+
+.motivo {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.codigo {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: bold;
+}

@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { tipoEspacioGuard } from '../../core/guards/session.guards';
-import { proximamente } from '../../core/routing/proximamente';
 
 // /:espacio/docente/...
 export default [
@@ -11,46 +10,30 @@ export default [
     loadComponent: () => import('../resumen/resumen.component').then((m) => m.ResumenComponent),
   },
 
-  // Contenido digital: cursos -> lecciones -> temas (colegio y academia)
-  {
-    path: 'contenido/cursos',
-    children: [
-      { path: '', title: 'Mis cursos', loadComponent: () => import('../../components/course-list/course-list.component').then((m) => m.CourseListComponent) },
-      { path: 'nuevo', title: 'Crear curso', loadComponent: () => import('../../components/course-form/course-form.component').then((m) => m.CourseFormComponent) },
-      {
-        path: ':cursoId',
-        children: [
-          { path: '', title: 'Curso', loadComponent: () => import('../../components/course-details-tutor/course-details-tutor.component').then((m) => m.CourseDetailsTutorComponent) },
-          { path: 'editar', title: 'Editar curso', loadComponent: () => import('../../components/course-edit-tutor/course-edit-tutor.component').then((m) => m.CourseEditTutorComponent) },
-          { path: 'lecciones/nueva', title: 'Crear lección', loadComponent: () => import('../../components/lesson-form/lesson-form.component').then((m) => m.LessonFormComponent) },
-          {
-            path: 'lecciones/:leccionId',
-            children: [
-              { path: '', title: 'Lección', loadComponent: () => import('../../components/lesson-details-tutor/lesson-details-tutor.component').then((m) => m.LessonDetailsTutorComponent) },
-              { path: 'editar', title: 'Editar lección', loadComponent: () => import('../../components/lesson-edit/lesson-edit.component').then((m) => m.LessonEditComponent) },
-              { path: 'temas/nuevo', title: 'Crear tema', loadComponent: () => import('../../components/tema-form/tema-form.component').then((m) => m.TemaFormComponent) },
-              { path: 'temas/:temaId', title: 'Tema', loadComponent: () => import('../../components/tema-details-tutor/tema-details-tutor.component').then((m) => m.TemaDetailsTutorComponent) },
-              { path: 'temas/:temaId/editar', title: 'Editar tema', loadComponent: () => import('../../components/theme-edit/theme-edit.component').then((m) => m.ThemeEditComponent) },
-            ],
-          },
-        ],
-      },
-    ],
-  },
+  // Contenido digital: ahora vive dentro de cada aula (las rutas antiguas redirigen)
+  { path: 'contenido/cursos', pathMatch: 'full', redirectTo: 'clases' },
+  { path: 'contenido/cursos/nuevo', redirectTo: 'cursos/nuevo' },
+  { path: 'cursos/nuevo', title: 'Crear curso', canActivate: [tipoEspacioGuard('academia')], data: { crear: true }, loadComponent: () => import('../aulas/mis-aulas.component').then((m) => m.MisAulasComponent) },
 
   // Colegio: clases asignadas (materia + paralelo)
-  proximamente('clases', 'Mis clases', 'Tus materias y paralelos asignados, con sus estudiantes.'),
+  { path: 'clases', title: 'Mis clases', loadComponent: () => import('../aulas/mis-aulas.component').then((m) => m.MisAulasComponent) },
+  { path: 'clases/:asignacionId/quiz/:quizId', title: 'Quiz', loadComponent: () => import('../aulas/docente/quiz-editor.component').then((m) => m.QuizEditorComponent) },
+  { path: 'clases/:asignacionId/quiz/:quizId/resultados', title: 'Resultados del quiz', loadComponent: () => import('../aulas/docente/quiz-resultados.component').then((m) => m.QuizResultadosComponent) },
+  { path: 'clases/:asignacionId', title: 'Aula', loadComponent: () => import('../aulas/docente/aula-docente.component').then((m) => m.AulaDocenteComponent) },
   { path: 'horario', title: 'Mi horario', loadComponent: () => import('../horario/mi-horario.component').then((m) => m.MiHorarioComponent) },
   { path: 'marcacion', title: 'Marcación', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('./marcacion/marcacion.component').then((m) => m.MarcacionComponent) },
   { path: 'marcacion/historial', title: 'Mi historial de marcaciones', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('./marcacion/historial-marcacion.component').then((m) => m.HistorialMarcacionComponent) },
 
   // Academia: estudiantes, invitaciones y sesiones en vivo
-  proximamente('estudiantes', 'Estudiantes', 'Estudiantes inscritos en tus cursos.'),
-  proximamente('estudiantes/solicitudes', 'Solicitudes de inscripción'),
-  proximamente('invitaciones', 'Links de invitación', 'Genera links para que tus estudiantes se unan a tus cursos.', { canActivate: [tipoEspacioGuard('academia')] }),
-  proximamente('sesiones', 'Sesiones en vivo', 'Programa tus clases en vivo con su link de Meet o Zoom.', { canActivate: [tipoEspacioGuard('academia')] }),
+  { path: 'estudiantes', title: 'Estudiantes', canActivate: [tipoEspacioGuard('academia')], loadComponent: () => import('../aulas/docente/estudiantes-academia.component').then((m) => m.EstudiantesAcademiaComponent) },
+  { path: 'estudiantes/solicitudes', title: 'Solicitudes de inscripción', canActivate: [tipoEspacioGuard('academia')], data: { tab: 'solicitudes' }, loadComponent: () => import('../aulas/docente/estudiantes-academia.component').then((m) => m.EstudiantesAcademiaComponent) },
+  { path: 'invitaciones', title: 'Links de invitación', canActivate: [tipoEspacioGuard('academia')], data: { tab: 'invitaciones' }, loadComponent: () => import('../aulas/docente/estudiantes-academia.component').then((m) => m.EstudiantesAcademiaComponent) },
+  { path: 'sesiones', title: 'Sesiones en vivo', canActivate: [tipoEspacioGuard('academia')], loadComponent: () => import('../academia/sesiones-docente.component').then((m) => m.SesionesDocenteComponent) },
 
   // Seguimiento (ambos tipos de espacio)
+  { path: 'tareas', title: 'Tareas', loadComponent: () => import('./tareas/tareas-docente.component').then((m) => m.TareasDocenteComponent) },
+  { path: 'tareas/:tareaId', title: 'Revisar tarea', loadComponent: () => import('./tareas/detalle-tarea.component').then((m) => m.DetalleTareaComponent) },
+  { path: 'comunicados', title: 'Comunicados', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('../comunicados/comunicados.component').then((m) => m.ComunicadosComponent) },
   { path: 'asistencia', title: 'Asistencia', loadComponent: () => import('./asistencia/tomar-asistencia.component').then((m) => m.TomarAsistenciaComponent) },
   { path: 'calificaciones', title: 'Calificaciones', loadComponent: () => import('./calificaciones/registrar-notas.component').then((m) => m.RegistrarNotasComponent) },
 ] satisfies Routes;

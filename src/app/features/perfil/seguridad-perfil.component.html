@@ -1,0 +1,100 @@
+@let p = perfil();
+<div class="distribucion">
+  <div class="columna">
+    <!-- Contraseña -->
+    <section class="ui-card seccion">
+      <header class="seccion-cabecera">
+        <div>
+          <h2><span class="ui-icono chico tono-lima"><fa-icon [icon]="faKey" /></span> Contraseña</h2>
+          <p>Última actualización: {{ fechaConAnio(p.claveActualizada) }}.</p>
+        </div>
+        <button type="button" class="ui-btn ui-btn--icono" (click)="mostrar.set(!mostrar())" [attr.aria-label]="mostrar() ? 'Ocultar contraseñas' : 'Mostrar contraseñas'" [title]="mostrar() ? 'Ocultar' : 'Mostrar'">
+          <fa-icon [icon]="mostrar() ? faEyeSlash : faEye" />
+        </button>
+      </header>
+      <form class="ui-form" (submit)="$event.preventDefault(); cambiarClave()" novalidate>
+        <div class="ui-campo">
+          <label for="seg-actual">Contraseña actual</label>
+          <input id="seg-actual" class="ui-input" [type]="mostrar() ? 'text' : 'password'" autocomplete="current-password" [formField]="formulario.actual" />
+          @if (formulario.actual().touched() && formulario.actual().invalid()) { <span class="ui-error">{{ formulario.actual().errors()[0].message }}</span> }
+        </div>
+        <div class="ui-fila">
+          <div class="ui-campo">
+            <label for="seg-nueva">Nueva contraseña</label>
+            <input id="seg-nueva" class="ui-input" [type]="mostrar() ? 'text' : 'password'" autocomplete="new-password" [formField]="formulario.nueva" />
+            @if (formulario.nueva().touched() && formulario.nueva().invalid()) { <span class="ui-error">{{ formulario.nueva().errors()[0].message }}</span> }
+          </div>
+          <div class="ui-campo">
+            <label for="seg-repetir">Repite la nueva contraseña</label>
+            <input id="seg-repetir" class="ui-input" [type]="mostrar() ? 'text' : 'password'" autocomplete="new-password" [formField]="formulario.repetir" />
+            @if (formulario.repetir().touched() && formulario.repetir().invalid()) { <span class="ui-error">{{ formulario.repetir().errors()[0].message }}</span> }
+          </div>
+        </div>
+
+        <div class="fuerza" [attr.data-nivel]="fuerza().nivel">
+          <div class="barras">@for (n of [1, 2, 3, 4]; track n) { <span [class.llena]="fuerza().nivel >= n"></span> }</div>
+          <small>{{ fuerza().label || 'Escribe una contraseña para ver qué tan segura es' }}</small>
+        </div>
+        <ul class="reglas">
+          @for (r of reglas(); track r.label) {
+            <li [class.ok]="r.ok"><fa-icon [icon]="r.ok ? faCheck : faXmark" /> {{ r.label }}</li>
+          }
+        </ul>
+
+        <div class="acciones-form">
+          <button type="submit" class="ui-btn" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Cambiar contraseña' }}</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Dispositivos -->
+    <section class="ui-card seccion">
+      <header class="seccion-cabecera">
+        <div>
+          <h2>Dónde iniciaste sesión</h2>
+          <p>Si no reconoces un dispositivo, cierra su sesión y cambia tu contraseña.</p>
+        </div>
+        @if (otros()) {
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="cerrarOtros()">Cerrar las demás</button>
+        }
+      </header>
+      <ul class="dispositivos">
+        @for (d of p.dispositivos; track d.id) {
+          <li>
+            <span class="ui-icono" [class]="d.actual ? 'tono-lima' : 'tono-azul'"><fa-icon [icon]="icono(d)" /></span>
+            <div class="disp-texto">
+              <strong>{{ d.nombre }} @if (d.actual) { <span class="ui-badge tono-lima">Este dispositivo</span> }</strong>
+              <small>{{ d.ubicacion }} · {{ d.actual ? 'Activo ahora' : 'Último uso: ' + cuando(d.ultimoUso) }}</small>
+            </div>
+            @if (!d.actual) {
+              <button type="button" class="ui-btn ui-btn--secundario" (click)="cerrarDispositivo(d)" [attr.aria-label]="'Cerrar sesión en ' + d.nombre">Cerrar sesión</button>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+
+  <aside class="columna">
+    <section class="ui-card seccion peligro">
+      <h2><fa-icon [icon]="faTriangleExclamation" /> Zona de peligro</h2>
+      <p>Al dar de baja tu cuenta pierdes el acceso a todos tus espacios. Tus notas y tu asistencia quedan guardadas en la institución.</p>
+      <p class="ui-ayuda">Si solo quieres dejar una academia, usa "Salir" en Mis espacios.</p>
+      <button type="button" class="ui-btn ui-btn--peligro" (click)="abrirBaja()">Dar de baja mi cuenta</button>
+    </section>
+  </aside>
+</div>
+
+<app-drawer [abierto]="bajaAbierta()" titulo="Dar de baja mi cuenta" subtitulo="Esta acción no se puede deshacer desde la app." (cerrar)="bajaAbierta.set(false)">
+  <div class="ui-form">
+    <p class="ui-aviso aviso-baja"><fa-icon [icon]="faTriangleExclamation" /> Se cerrará tu sesión y no podrás volver a entrar con esta cuenta.</p>
+    <div class="ui-campo">
+      <label for="seg-confirmar">Para confirmar, escribe tu nombre de usuario: <strong>{{ p.username }}</strong></label>
+      <input id="seg-confirmar" class="ui-input" autocomplete="off" [value]="confirmacion()" (input)="confirmacion.set($any($event.target).value)" />
+    </div>
+  </div>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="bajaAbierta.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn ui-btn--peligro" [disabled]="!puedeDarDeBaja() || dandoDeBaja()" (click)="darDeBaja()">{{ dandoDeBaja() ? 'Dando de baja…' : 'Dar de baja' }}</button>
+  </ng-container>
+</app-drawer>

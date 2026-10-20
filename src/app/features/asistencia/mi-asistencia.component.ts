@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { FormField, form, minLength, required, submit, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBell, faCalendarCheck, faClock, faFileMedical, faPaperclip, faPlus, faUserCheck, faUserXmark } from '@fortawesome/free-solid-svg-icons';
@@ -10,12 +10,15 @@ import { ESTADO_DIA_LABEL, EstadoDia, EstadoLicencia } from '../../core/models/a
 import { contar, estadoDelDia, fechaCorta, hoyIso } from '../../core/utils/asistencia';
 import { AcademicoService } from '../../services/academico.service';
 import { AsistenciaService } from '../../services/asistencia.service';
+import { HijoActivoService } from '../../services/hijo-activo.service';
+import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
 import { ProfileService } from '../../services/profile.service';
 import { AvisosService } from '../../shared/ui/avisos.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { iconoMateria } from '../../shared/ui/iconos-academicos';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
+import { AsistenciaAcademiaEstudianteComponent } from '../academia/asistencia-academia.component';
 import { mensajeError } from '../direccion/academico/academico.ui';
 
 const LICENCIA_VACIA = { desde: '', hasta: '', motivo: '' };
@@ -25,7 +28,7 @@ const LICENCIA_VACIA = { desde: '', hasta: '', motivo: '' };
 @Component({
   selector: 'app-mi-asistencia',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent],
+  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, SelectorHijoComponent, AsistenciaAcademiaEstudianteComponent],
   templateUrl: './mi-asistencia.component.html',
   styleUrls: ['./mi-asistencia.component.css'],
 })
@@ -35,6 +38,7 @@ export class MiAsistenciaComponent {
   private academico = inject(AcademicoService);
   private perfiles = inject(ProfileService);
   private avisos = inject(AvisosService);
+  private hijoActivo = inject(HijoActivoService);
 
   readonly estadoDiaLabel = ESTADO_DIA_LABEL;
   readonly fechaCorta = fechaCorta;
@@ -54,10 +58,11 @@ export class MiAsistenciaComponent {
 
   // Estudiante del que se muestra la asistencia (el propio o el hijo)
   readonly estudiante = rxResource({
+    params: () => (this.esPadre ? this.hijoActivo.elegidoId() : 0),
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
-      const id$ = this.esPadre ? this.academico.hijosDe(this.usuarioId).pipe(map((h) => h[0] ?? 0)) : of(this.usuarioId);
-      return id$.pipe(switchMap((id) => (id ? this.perfiles.getProfile(id).pipe(map((p) => ({ id, nombre: p.nombre }))) : of(null))));
+      if (this.esPadre) return this.hijoActivo.activo().pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)));
+      return this.perfiles.getProfile(this.usuarioId).pipe(map((p) => ({ id: this.usuarioId, nombre: p.nombre })));
     },
   });
 

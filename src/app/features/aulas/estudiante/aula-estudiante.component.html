@@ -1,0 +1,176 @@
+<a class="volver" [routerLink]="ruta('aulas')"><fa-icon [icon]="faArrowLeft" /> {{ espacioEsColegio() ? 'Mis materias' : 'Mis cursos' }}</a>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando…</p>
+} @else if (aula(); as a) {
+  <header class="ui-card encabezado">
+    <app-portada-aula class="portada" [imagen]="a.portada" [icono]="a.icono" [tono]="a.tono" />
+    <div class="titulos">
+      <h1>{{ a.nombre }}</h1>
+      <p>Prof. {{ a.docente }} · {{ a.curso }}</p>
+      <div class="anillos">
+        <app-anillo etiqueta="Mi progreso" [valor]="progreso()" [umbral]="0" />
+        <app-anillo [etiqueta]="a.anillos[1].label" [valor]="a.anillos[1].valor" />
+      </div>
+    </div>
+    @if (siguiente(); as s) {
+      <button type="button" class="ui-btn continuar" (click)="pestana.set('contenido'); temaId.set(s.id)">
+        <fa-icon [icon]="faPlay" /> <span>Continuar<small>{{ s.titulo }}</small></span>
+      </button>
+    } @else if (totalTemas()) {
+      <span class="ui-badge tono-lima completo"><fa-icon [icon]="faCircleCheck" /> ¡Viste todo el contenido!</span>
+    }
+  </header>
+
+  <nav class="pestanas" role="tablist">
+    <button type="button" role="tab" [class.activa]="pestana() === 'contenido'" (click)="pestana.set('contenido')">Contenido <span class="contador">{{ vistos().size }}/{{ totalTemas() }}</span></button>
+    <button type="button" role="tab" [class.activa]="pestana() === 'quiz'" (click)="pestana.set('quiz')">Quiz @if (quizPendientes()) { <span class="contador">{{ quizPendientes() }}</span> }</button>
+    <button type="button" role="tab" [class.activa]="pestana() === 'tareas'" (click)="pestana.set('tareas')">Tareas <span class="contador">{{ tareas().length }}</span></button>
+    <button type="button" role="tab" [class.activa]="pestana() === 'notas'" (click)="pestana.set('notas')">Notas</button>
+  </nav>
+
+  @switch (pestana()) {
+    @case ('contenido') {
+      @if (!unidades().length) {
+        <div class="ui-card"><app-empty-state [icono]="faBookOpen" titulo="Todavía no hay contenido publicado" texto="Tu docente lo publicará pronto." /></div>
+      } @else {
+        <div class="distribucion">
+          <!-- Índice -->
+          <aside class="indice">
+            @for (u of unidades(); track u.id) {
+              <section class="ui-card unidad" [class.bloqueada]="u.bloqueada">
+                <header>
+                  <div>
+                    <h3>{{ u.titulo }}</h3>
+                    <small>{{ u.vistos }} de {{ u.temas.length }} vistos</small>
+                  </div>
+                  @if (u.bloqueada) { <fa-icon [icon]="faLock" class="candado" /> }
+                  @else if (u.temas.length && u.vistos === u.temas.length) { <fa-icon [icon]="faCircleCheck" class="hecho" /> }
+                </header>
+                <div class="ui-barra tono-lima"><span [style.width.%]="u.temas.length ? (u.vistos / u.temas.length) * 100 : 0"></span></div>
+                @if (u.bloqueada) {
+                  <p class="aviso-bloqueo"><fa-icon [icon]="faLock" /> Completa la unidad anterior para abrirla.</p>
+                }
+                <ul>
+                  @for (t of u.temas; track t.id) {
+                    <li>
+                      <button type="button" class="tema" [class.activo]="t.id === temaId()" [class.visto]="vistos().has(t.id)" [disabled]="u.bloqueada" (click)="abrir(t, u.bloqueada)">
+                        <span class="marca">@if (vistos().has(t.id)) { <fa-icon [icon]="faCheck" /> } @else { <fa-icon [icon]="iconoTema[t.tipo]" /> }</span>
+                        <span class="tema-texto"><strong>{{ t.titulo }}</strong><small>{{ t.duracionMin }} min</small></span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          </aside>
+
+          <!-- Visor del tema -->
+          <article class="ui-card visor">
+            @if (tema(); as t) {
+              <small class="miga">{{ unidadDelTema()?.titulo }}</small>
+              <h2>{{ t.titulo }}</h2>
+              <span class="ui-badge"><fa-icon [icon]="faClock" /> {{ t.duracionMin }} min</span>
+
+              @switch (t.tipo) {
+                @case ('video') {
+                  @if (esVideoDirecto(t.url)) {
+                    <video class="video" [src]="t.url" controls preload="metadata"></video>
+                  } @else {
+                    <a class="ui-btn recurso" [href]="t.url" target="_blank" rel="noopener"><fa-icon [icon]="faPlay" /> Ver el video</a>
+                  }
+                }
+                @case ('pdf') {
+                  <div class="archivo"><fa-icon [icon]="iconoTema.pdf" /> <span>{{ t.url }}</span> <button type="button" class="ui-btn ui-btn--secundario" (click)="marcarVisto(t)"><fa-icon [icon]="faDownload" /> Descargar</button></div>
+                }
+                @case ('enlace') {
+                  <a class="ui-btn recurso" [href]="t.url" target="_blank" rel="noopener"><fa-icon [icon]="faLink" /> Abrir el recurso</a>
+                }
+              }
+              <p class="contenido">{{ t.contenido }}</p>
+
+              <footer class="pie">
+                @if (vistos().has(t.id)) {
+                  <span class="ui-badge tono-lima"><fa-icon [icon]="faCircleCheck" /> Visto</span>
+                } @else {
+                  <button type="button" class="ui-btn ui-btn--secundario" [disabled]="marcando()" (click)="marcarVisto(t)"><fa-icon [icon]="faCheck" /> Marcar como visto</button>
+                }
+                @if (hayOtro()) {
+                  <button type="button" class="ui-btn" (click)="irAlSiguiente()">Siguiente tema <fa-icon [icon]="faArrowRight" /></button>
+                }
+              </footer>
+            } @else {
+              <app-empty-state [icono]="faBookOpen" titulo="Elige un tema" />
+            }
+          </article>
+        </div>
+      }
+    }
+
+    @case ('quiz') {
+      <div class="lista-tareas">
+        @for (q of quizzes.value(); track q.id) {
+          <a class="ui-card fila-tarea quiz" [routerLink]="ruta('aulas', a.id, 'quiz', q.id)">
+            <span class="ui-icono" [class]="q.estado === 'pendiente' ? 'tono-lima' : q.estado === 'cerrado' ? '' : 'tono-azul'"><fa-icon [icon]="faCircleQuestion" /></span>
+            <span class="texto">
+              <strong>{{ q.titulo }}</strong>
+              <small>{{ q.preguntas }} preguntas · {{ q.tiempoMin ? q.tiempoMin + ' min' : 'sin límite de tiempo' }} · {{ q.cerrado ? 'cerró' : 'cierra' }} el {{ fechaCortaQuiz(q.cierre) }}</small>
+            </span>
+            @if (q.mejor; as m) { <span class="ui-badge tono-azul">Mejor: {{ m.puntaje }}/{{ m.puntajeMax }}</span> }
+            <span class="ui-badge" [class]="estadoQuiz[q.estado].tono">{{ estadoQuiz[q.estado].label }}</span>
+            @if (q.estado === 'pendiente') { <span class="ui-btn chico">Comenzar</span> }
+          </a>
+        } @empty {
+          <div class="ui-card"><app-empty-state [icono]="faCircleQuestion" titulo="No hay quiz por ahora" texto="Cuando tu docente publique uno, aparecerá aquí." /></div>
+        }
+      </div>
+    }
+
+    @case ('tareas') {
+      <div class="lista-tareas">
+        @for (t of tareas(); track t.tarea.id) {
+          <a class="ui-card fila-tarea" [routerLink]="ruta('tareas')">
+            <span class="ui-icono tono-lima"><fa-icon [icon]="faListCheck" /></span>
+            <span class="texto"><strong>{{ t.tarea.titulo }}</strong><small>{{ venceLabel(t.tarea) }}</small></span>
+            <span class="ui-badge" [class]="estados[t.estado].tono">{{ estados[t.estado].label }}</span>
+            @if (t.nota !== null) { <span class="ui-badge tono-azul">{{ t.nota }}/{{ t.tarea.notaMaxima }}</span> }
+          </a>
+        } @empty {
+          <div class="ui-card"><app-empty-state [icono]="faListCheck" [titulo]="a.tipo === 'clase' ? 'No hay tareas en esta materia' : 'No hay tareas en este curso'" /></div>
+        }
+      </div>
+    }
+
+    @case ('notas') {
+      @if (resultado(); as r) {
+        <section class="ui-card notas">
+          <div class="nota-final">
+            <span class="numero" [class.baja]="r.final !== null && r.final < r.config.notaAprobacion">{{ r.final ?? '—' }}</span>
+            <div><strong>Tu nota del {{ r.periodo }}</strong><small>Sobre {{ r.config.notaMaxima }} · se aprueba con {{ r.config.notaAprobacion }}@if (!r.completo) { · provisional }</small></div>
+          </div>
+          <ul class="criterios">
+            @for (c of r.porCriterio; track c.criterio.id) {
+              <li>
+                <span>{{ c.criterio.nombre }} <small>{{ c.criterio.porcentaje }}%</small></span>
+                <div class="ui-barra" [class]="c.promedio !== null && c.promedio < r.config.notaAprobacion ? 'tono-crema' : 'tono-lima'"><span [style.width.%]="c.promedio !== null ? porcentajeNota(c.promedio) : 0"></span></div>
+                <strong>{{ c.promedio ?? '—' }}</strong>
+              </li>
+            }
+          </ul>
+          <a class="ui-btn ui-btn--secundario" [routerLink]="ruta('calificaciones')"><fa-icon [icon]="faStar" /> Ver todas mis calificaciones</a>
+        </section>
+      } @else {
+        @if (a.tipo === 'curso') {
+          <section class="ui-card notas">
+            <p class="ui-ayuda">Tus notas en este curso salen de los quiz. Revisa la pestaña Quiz o todas tus calificaciones.</p>
+            <a class="ui-btn ui-btn--secundario" [routerLink]="ruta('calificaciones')"><fa-icon [icon]="faStar" /> Ver mis calificaciones</a>
+          </section>
+        } @else {
+          <div class="ui-card"><app-empty-state [icono]="faStar" titulo="Sin notas por ahora" /></div>
+        }
+      }
+    }
+  }
+} @else {
+  <div class="ui-card"><app-empty-state [icono]="faBookOpen" titulo="No encontramos esta materia" texto="Puede que no estés inscrito en ella." /></div>
+}

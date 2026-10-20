@@ -1,0 +1,92 @@
+<app-page-header [miga]="esPadre ? 'Seguimiento' : 'Aprendizaje'" [titulo]="titulo()"
+  [descripcion]="esPadre ? 'Las tareas que le asignaron sus docentes y si ya las entregó.' : espacio.tipo === 'colegio' ? 'Tus tareas pendientes, lo que ya entregaste y las notas de tus docentes.' : 'Los trabajos de tus cursos: lo que tienes pendiente, lo que entregaste y los comentarios de tu docente.'" />
+@if (esPadre) { <app-selector-hijo /> }
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando tareas…</p>
+} @else if (!datos.value()) {
+  <div class="ui-card"><app-empty-state [icono]="faTasks" titulo="Sin tareas" texto="No hay un estudiante asociado a tu cuenta." /></div>
+} @else {
+  @if (vencidas()) {
+    <p class="ui-aviso vencidas">{{ vencidas() }} {{ vencidas() === 1 ? 'tarea venció' : 'tareas vencieron' }} sin entregar.{{ esPadre ? '' : ' Todavía puedes entregarlas, pero quedarán como entregadas tarde.' }}</p>
+  }
+  <div class="ui-tabs pestanas" role="tablist">
+    <button type="button" class="ui-tab" [class.activa]="pestana() === 'por-entregar'" (click)="pestana.set('por-entregar')">Por entregar <span class="contador">{{ grupos()['por-entregar'].length }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="pestana() === 'entregadas'" (click)="pestana.set('entregadas')">Entregadas <span class="contador">{{ grupos().entregadas.length }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="pestana() === 'revisadas'" (click)="pestana.set('revisadas')">Revisadas <span class="contador">{{ grupos().revisadas.length }}</span></button>
+  </div>
+
+  <div class="tareas">
+    @for (t of visibles(); track t.tarea.id) {
+      <article class="ui-card tarea" [class.vencida]="t.estado === 'no-entregada'">
+        <header>
+          <span class="ui-icono" [class]="'tono-' + t.tarea.materia.tono"><fa-icon [icon]="iconoMateria(t.tarea.materia.icono)" /></span>
+          <div class="titulo">
+            <strong>{{ t.tarea.titulo }}</strong>
+            <small>{{ t.tarea.materia.nombre }} · Prof. {{ t.tarea.docente }}</small>
+          </div>
+          <span class="ui-badge" [class]="estados[t.estado].tono">{{ estados[t.estado].label }}</span>
+        </header>
+
+        <div class="chips">
+          <span class="ui-badge" [class]="t.estado === 'no-entregada' ? 'alerta' : urgente(t.tarea) && t.estado === 'pendiente' ? 'tono-crema' : ''"><fa-icon [icon]="faClock" /> {{ venceLabel(t.tarea) }}</span>
+          @if (t.tarea.criterio) { <span class="ui-badge tono-azul"><fa-icon [icon]="faStar" /> Cuenta para la nota</span> }
+        </div>
+
+        @if (t.tarea.instrucciones) { <p class="instrucciones">{{ t.tarea.instrucciones }}</p> }
+
+        @if (t.entrega?.entregadaEl) {
+          <div class="mi-entrega">
+            <small>{{ esPadre ? 'Entregó' : 'Entregaste' }} el {{ entregadaLabel(t) }}</small>
+            @if (t.entrega!.texto) { <span>{{ t.entrega!.texto }}</span> }
+            @if (t.entrega!.archivo) { <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ t.entrega!.archivo }}</span> }
+          </div>
+        }
+
+        @if (t.estado === 'revisada') {
+          <div class="revision">
+            @if (t.nota !== null) { <span class="nota">{{ t.nota }}<small>/{{ t.tarea.notaMaxima }}</small></span> }
+            <div>
+              <strong>{{ t.nota !== null ? 'Nota del docente' : 'Revisada por el docente' }}</strong>
+              @if (t.entrega?.comentario) { <span><fa-icon [icon]="faCommentDots" /> “{{ t.entrega!.comentario }}”</span> }
+            </div>
+          </div>
+        }
+
+        @if (!esPadre && t.estado !== 'revisada') {
+          <footer class="acciones">
+            <button type="button" class="ui-btn" [class.ui-btn--secundario]="!!t.entrega?.entregadaEl" (click)="abrirEntrega(t)">
+              <fa-icon [icon]="faPaperPlane" /> {{ t.entrega?.entregadaEl ? 'Editar entrega' : 'Entregar' }}
+            </button>
+          </footer>
+        }
+      </article>
+    } @empty {
+      <div class="ui-card vacio">
+        <app-empty-state [icono]="faTasks" [titulo]="pestana() === 'por-entregar' ? '¡Nada pendiente! 🎉' : 'Nada por aquí todavía'"
+          [texto]="pestana() === 'por-entregar' ? 'Todas las tareas están entregadas.' : 'Cuando haya tareas en este estado aparecerán aquí.'" />
+      </div>
+    }
+  </div>
+}
+
+<app-drawer [abierto]="!!entregando()" [titulo]="entregando()?.entrega ? 'Editar entrega' : 'Entregar tarea'" [subtitulo]="entregando()?.tarea?.titulo ?? ''" (cerrar)="entregando.set(null)">
+  @if (entregando(); as t) {
+    <form class="ui-form" (submit)="$event.preventDefault(); entregar()" novalidate>
+      <p class="ui-aviso">{{ venceLabel(t.tarea) }}. Puedes editar tu entrega hasta que el docente la revise.</p>
+      <div class="ui-campo">
+        <label for="ent-texto">Comentario o respuesta</label>
+        <textarea id="ent-texto" class="ui-input area" rows="5" placeholder="Escribe tu respuesta o un comentario para tu docente" [value]="texto()" (input)="texto.set($any($event.target).value)"></textarea>
+      </div>
+      <div class="ui-campo">
+        <label for="ent-archivo">Archivo <span class="ui-ayuda">(foto, PDF o documento)</span></label>
+        <input id="ent-archivo" type="file" class="ui-input archivo-input" (change)="elegirArchivo($event)" />
+        @if (archivo()) { <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ archivo() }}</span> }
+      </div>
+    </form>
+  }
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="entregando.set(null)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="enviando() || (!texto().trim() && !archivo())" (click)="entregar()"><fa-icon [icon]="faPaperPlane" /> {{ enviando() ? 'Enviando…' : 'Entregar' }}</button>
+  </ng-container>
+</app-drawer>

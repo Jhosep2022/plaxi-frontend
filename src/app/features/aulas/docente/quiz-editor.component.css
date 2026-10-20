@@ -1,0 +1,252 @@
+.cargando {
+  color: var(--muted);
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.cabecera h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.cabecera p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.botones {
+  display: flex;
+  gap: 10px;
+}
+
+.error-general {
+  margin: 0 0 14px;
+  background: #fdf0ee;
+  border-color: #f2c9c2;
+  color: #c0392b;
+}
+
+.distribucion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .distribucion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.preguntas {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pregunta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pregunta header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.numero {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--dark-blue);
+  color: var(--lime-green);
+  font-weight: bold;
+}
+
+.tipo {
+  width: 200px;
+}
+
+.puntos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.puntos .ui-input {
+  width: 70px;
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.enunciado {
+  height: auto;
+  padding-top: 10px;
+  font-size: 15px;
+  resize: vertical;
+}
+
+.opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opciones li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.marcar {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--text-light);
+  color: var(--dark-blue);
+  cursor: pointer;
+}
+
+.opciones li.correcta .marcar {
+  border-color: var(--lime-green);
+  background: var(--lime-green);
+}
+
+.opciones li.correcta .ui-input {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+}
+
+.mini {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--text-light);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.mini:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pie-pregunta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.agregar {
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: var(--lime-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.vf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.opcion-vf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--text-light);
+  color: var(--dark-blue);
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.opcion-vf.activa {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+}
+
+.agregar-pregunta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.configuracion {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.configuracion h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.area {
+  height: auto;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}

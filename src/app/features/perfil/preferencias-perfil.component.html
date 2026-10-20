@@ -1,0 +1,61 @@
+<div class="distribucion">
+  <section class="ui-card seccion">
+    <header class="seccion-cabecera">
+      <div>
+        <h2><span class="ui-icono chico tono-lima"><fa-icon [icon]="faBell" /></span> Avisos</h2>
+        <p>Elige qué te avisamos y por dónde. Los avisos importantes de seguridad siempre te llegan por correo.</p>
+      </div>
+    </header>
+
+    <div class="tabla-avisos" role="table" aria-label="Preferencias de avisos">
+      <div class="fila cabeza" role="row">
+        <span role="columnheader">Aviso</span>
+        <span role="columnheader" class="canal">
+          <fa-icon [icon]="faEnvelope" /> Correo
+          <button type="button" class="todos" (click)="todos('correo', !todosActivos('correo'))">{{ todosActivos('correo') ? 'Ninguno' : 'Todos' }}</button>
+        </span>
+        <span role="columnheader" class="canal">
+          <fa-icon [icon]="faMobileScreen" /> En la app
+          <button type="button" class="todos" (click)="todos('app', !todosActivos('app'))">{{ todosActivos('app') ? 'Ninguno' : 'Todos' }}</button>
+        </span>
+      </div>
+      @for (t of tipos(); track t.id) {
+        <div class="fila" role="row" [attr.data-aviso]="t.id">
+          <span role="cell" class="aviso">
+            <strong>{{ t.label }}</strong>
+            <small>{{ t.descripcion }}</small>
+          </span>
+          <span role="cell" class="canal">
+            <label class="switch"><input type="checkbox" [checked]="notificaciones()[t.id].correo" (change)="alternar(t.id, 'correo')" [attr.aria-label]="t.label + ' por correo'" /><span></span></label>
+          </span>
+          <span role="cell" class="canal">
+            <label class="switch"><input type="checkbox" [checked]="notificaciones()[t.id].app" (change)="alternar(t.id, 'app')" [attr.aria-label]="t.label + ' en la app'" /><span></span></label>
+          </span>
+        </div>
+      }
+    </div>
+
+    <footer class="pie">
+      @if (sinGuardar()) { <span class="ui-badge tono-crema">Cambios sin guardar</span> }
+      <span class="espacio"></span>
+      @if (sinGuardar()) { <button type="button" class="ui-btn ui-btn--secundario" (click)="descartar()">Descartar</button> }
+      <button type="button" class="ui-btn" [disabled]="!sinGuardar() || guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : 'Guardar preferencias' }}</button>
+    </footer>
+  </section>
+
+  <aside class="columna">
+    <section class="ui-card seccion">
+      <header class="seccion-cabecera">
+        <div>
+          <h2><span class="ui-icono chico tono-azul"><fa-icon [icon]="faGlobe" /></span> Idioma y región</h2>
+          <p>Por ahora la plataforma está disponible en español.</p>
+        </div>
+      </header>
+      <dl class="datos una">
+        <div><dt>Idioma</dt><dd>Español</dd></div>
+        <div><dt>Zona horaria</dt><dd>Bolivia (GMT-4)</dd></div>
+        <div><dt>Formato de fecha</dt><dd>19 de octubre de 2026</dd></div>
+      </dl>
+    </section>
+  </aside>
+</div>

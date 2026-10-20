@@ -1,0 +1,109 @@
+.cargando {
+  color: var(--muted);
+}
+
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-weight: bold;
+}
+
+.filtros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filtros select {
+  width: 240px;
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 14px;
+}
+
+.vacio {
+  grid-column: 1 / -1;
+}
+
+.tarea {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--dark-blue);
+  text-decoration: none;
+}
+
+.titulo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.titulo strong {
+  font-size: 15px;
+}
+
+.titulo small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.progreso {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.linea {
+  display: flex;
+  justify-content: space-between;
+}
+
+.progreso small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.por-revisar {
+  color: var(--cream-strong);
+  font-weight: bold;
+}
+
+.acciones {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.acciones a {
+  text-decoration: none;
+}
+
+.area {
+  height: auto;
+  padding-top: 10px;
+  resize: vertical;
+}

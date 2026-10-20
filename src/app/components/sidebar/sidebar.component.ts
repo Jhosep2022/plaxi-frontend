@@ -1,5 +1,5 @@
 import { Component, ElementRef, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
@@ -22,6 +22,9 @@ import { SessionService } from '../../core/auth/session.service';
 import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
 import { CourseService } from '../../services/course.service';
 import { InscripcionService } from '../../services/inscripcion.service';
+import { AulasService } from '../../services/aulas.service';
+import { iconoMateria } from '../../shared/ui/iconos-academicos';
+import { PerfilService } from '../../services/perfil.service';
 import { ProfileService } from '../../services/profile.service';
 import { PerfilDto } from '../../models/PerfilDto';
 import { NavItem, NavModule, navegacion } from './sidebar.navigation';
@@ -43,8 +46,10 @@ export class SidebarComponent {
   private router = inject(Router);
   protected readonly session = inject(SessionService);
   private profileService = inject(ProfileService);
+  private perfilService = inject(PerfilService);
   private courseService = inject(CourseService);
   private inscripcionService = inject(InscripcionService);
+  private aulas = inject(AulasService);
   private elementRef = inject(ElementRef<HTMLElement>);
 
   // Íconos usados directamente en la plantilla
@@ -68,10 +73,12 @@ export class SidebarComponent {
   readonly rol = computed(() => this.membresia()?.rol ?? null);
   private readonly slug = computed(() => this.espacio()?.slug ?? '');
 
-  readonly profile = toSignal<PerfilDto | null>(
-    this.session.usuarioId() ? this.profileService.getProfile(this.session.usuarioId()!) : of(null),
-    { initialValue: null }
-  );
+  // Se vuelve a cargar cuando el usuario cambia su nombre o su foto en "Mi perfil"
+  private readonly perfilRecurso = rxResource({
+    params: () => ({ id: this.session.usuarioId(), version: this.perfilService.version() }),
+    stream: ({ params }) => (params.id ? this.profileService.getProfile(params.id) : of(null)),
+  });
+  readonly profile = computed<PerfilDto | null>(() => this.perfilRecurso.value() ?? null);
 
   readonly fullName = computed(() => {
     const p = this.profile();
@@ -167,14 +174,16 @@ export class SidebarComponent {
     const rol = this.rol();
     if (!usuarioId) return of([]);
 
+    const espacioId = this.session.espacioActivo()?.id;
+    if (!espacioId) return of([]);
     if (rol === 'docente') {
-      return this.courseService.getCursosByUsuario(usuarioId).pipe(
-        map((cursos) => cursos.map((c) => ({ label: c.nombre, icon: faBook, route: `docente/contenido/cursos/${c.idCurso}` })))
+      return this.aulas.aulasDocente(espacioId, usuarioId).pipe(
+        map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: iconoMateria(a.icono), route: `docente/clases/${a.id}` })))
       );
     }
     if (rol === 'estudiante') {
-      return this.inscripcionService.getInscripcionesByUsuarioId(usuarioId).pipe(
-        map((inscripciones) => inscripciones.map((i) => ({ label: i.cursoNombre, icon: faBook, route: `estudiante/cursos/${i.cursoId}` })))
+      return this.aulas.aulasEstudiante(espacioId, usuarioId).pipe(
+        map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: iconoMateria(a.icono), route: `estudiante/aulas/${a.id}` })))
       );
     }
     return of([]);

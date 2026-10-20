@@ -1,0 +1,64 @@
+.cargando {
+  color: var(--muted);
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.barra select {
+  width: 240px;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.area {
+  height: auto;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.ui-fila.tres {
+  grid-template-columns: 1.4fr 1fr 1fr;
+}
+
+.asistentes {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asistentes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.asistentes small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.vacio {
+  color: var(--muted);
+  font-size: 14px;
+}

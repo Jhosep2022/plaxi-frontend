@@ -1,4 +1,4 @@
-<app-page-header miga="Seguimiento" titulo="Calificaciones" descripcion="Registra las notas de cada actividad. El promedio por criterio y la nota final se calculan solos con la ponderación del colegio.">
+<app-page-header miga="Seguimiento" titulo="Calificaciones" [descripcion]="espacio.tipo === 'colegio' ? 'Registra las notas de cada actividad. El promedio por criterio y la nota final se calculan solos con la ponderación del colegio.' : 'Las notas de tus cursos salen de los quiz: se corrigen solos y aquí ves el resultado de cada estudiante.'">
   @if (gestion(); as g) {
     <div class="ui-tabs" role="tablist" aria-label="Periodo">
       @for (p of g.periodos; track $index) {
@@ -12,9 +12,7 @@
 </app-page-header>
 
 @if (espacio.tipo !== 'colegio') {
-  <div class="ui-card">
-    <app-empty-state [icono]="faStar" titulo="Calificaciones de la academia" texto="Muy pronto podrás calificar las evaluaciones de tus cursos (Exámenes, Prácticas y Tareas)." />
-  </div>
+  <app-calificaciones-academia-docente />
 } @else if (clases.isLoading() && !clases.value()) {
   <p class="cargando">Cargando tus clases…</p>
 } @else if (misClases().length === 0) {

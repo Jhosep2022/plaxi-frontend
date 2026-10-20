@@ -1,6 +1,7 @@
 // Ejecuta las pruebas e2e contra la app corriendo (por defecto http://localhost:4200).
 // Uso:  npm start   (en otra terminal)   y luego   npm run e2e
 //       npm run e2e -- horarios          (solo las suites cuyo nombre contenga "horarios")
+//       E2E_VISIBLE=1 npm run e2e -- clases   (abre Chrome para ver la prueba; en PowerShell: $env:E2E_VISIBLE=1)
 const { BASE, crearReporte } = require('./lib');
 
 const SUITES = {
@@ -12,6 +13,15 @@ const SUITES = {
   calificaciones: require('./calificaciones.e2e'),
   personas: require('./personas.e2e'),
   reportes: require('./reportes.e2e'),
+  clases: require('./clases.e2e'),
+  institucion: require('./institucion.e2e'),
+  comunicados: require('./comunicados.e2e'),
+  tareas: require('./tareas.e2e'),
+  inicio: require('./inicio.e2e'),
+  quiz: require('./quiz.e2e'),
+  academia: require('./academia.e2e'),
+  sesiones: require('./sesiones.e2e'),
+  perfil: require('./perfil.e2e'),
 };
 
 async function main() {

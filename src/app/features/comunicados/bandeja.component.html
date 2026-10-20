@@ -1,0 +1,68 @@
+@if (cargando()) {
+  <p class="cargando">Cargando comunicados…</p>
+} @else if (lista().length === 0) {
+  <div class="ui-card"><app-empty-state [icono]="faBullhorn" titulo="Todavía no recibiste comunicados" texto="Aquí verás los avisos de la dirección y de los docentes." /></div>
+} @else {
+  @if (conteo().porConfirmar) {
+    <p class="ui-aviso por-confirmar"><fa-icon [icon]="faHandshake" /> Tienes {{ conteo().porConfirmar }} {{ conteo().porConfirmar === 1 ? 'comunicado que pide' : 'comunicados que piden' }} confirmar que lo recibiste.</p>
+  }
+  <div class="ui-tabs filtros" role="tablist">
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'todos'" (click)="filtro.set('todos')">Todos <span class="contador">{{ conteo().todos }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'no-leidos'" (click)="filtro.set('no-leidos')">No leídos <span class="contador">{{ conteo().noLeidos }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'importantes'" (click)="filtro.set('importantes')">Importantes <span class="contador">{{ conteo().importantes }}</span></button>
+  </div>
+
+  <div class="bandeja" [class.con-detalle]="abierto()">
+    <ul class="ui-card lista">
+      @for (x of visibles(); track x.comunicado.id) {
+        <li>
+          <button type="button" class="item" [class.no-leido]="!x.lectura" [class.elegido]="x.comunicado.id === abiertoId()" (click)="abrir(x)">
+            <span class="punto" aria-hidden="true"></span>
+            <span class="contenido">
+              <span class="linea">
+                <strong class="titulo-item">{{ x.comunicado.titulo }}</strong>
+                <small class="fecha">{{ cuando(x.comunicado.enviado) }}</small>
+              </span>
+              <small class="autor">{{ x.comunicado.autorNombre }} · {{ x.comunicado.autorRol === 'direccion' ? 'Dirección' : 'Docente' }}</small>
+              <span class="chips">
+                <span class="ui-badge" [class]="categoria(x.comunicado.categoria).tono">{{ categoria(x.comunicado.categoria).label }}</span>
+                @if (x.comunicado.importante) { <span class="ui-badge importante"><fa-icon [icon]="faExclamation" /> Importante</span> }
+                @if (x.comunicado.pideConfirmacion && !x.lectura?.confirmado) { <span class="ui-badge tono-crema">Confirmar</span> }
+              </span>
+            </span>
+          </button>
+        </li>
+      } @empty {
+        <li class="vacio">No hay comunicados con este filtro.</li>
+      }
+    </ul>
+
+    <article class="ui-card detalle">
+      @if (abierto(); as x) {
+        <button type="button" class="ui-btn ui-btn--secundario volver" (click)="abiertoId.set(0)">← Volver a la lista</button>
+        <span class="chips">
+          <span class="ui-badge" [class]="categoria(x.comunicado.categoria).tono">{{ categoria(x.comunicado.categoria).label }}</span>
+          @if (x.comunicado.importante) { <span class="ui-badge importante"><fa-icon [icon]="faExclamation" /> Importante</span> }
+        </span>
+        <h2>{{ x.comunicado.titulo }}</h2>
+        <p class="meta">De <strong>{{ x.comunicado.autorNombre }}</strong> ({{ x.comunicado.autorRol === 'direccion' ? 'Dirección' : 'Docente' }}) · {{ fechaLarga(x.comunicado.enviado.slice(0, 10)) }}, {{ x.comunicado.enviado.slice(11, 16) }}</p>
+        @if (x.comunicado.fechaEvento) {
+          <div class="evento"><fa-icon [icon]="faCalendarDays" /> <span>Fecha: <strong>{{ fechaLarga(x.comunicado.fechaEvento) }}</strong></span></div>
+        }
+        <p class="mensaje">{{ x.comunicado.mensaje }}</p>
+        @if (x.comunicado.pideConfirmacion) {
+          <footer class="confirmacion">
+            @if (x.lectura?.confirmado) {
+              <span class="ui-badge tono-lima"><fa-icon [icon]="faCircleCheck" /> Confirmaste que lo recibiste</span>
+            } @else {
+              <span class="ui-ayuda">La {{ x.comunicado.autorRol === 'direccion' ? 'dirección' : 'docente' }} pide que confirmes que lo recibiste.</span>
+              <button type="button" class="ui-btn" [disabled]="confirmando()" (click)="confirmar(x)"><fa-icon [icon]="faHandshake" /> Enterado</button>
+            }
+          </footer>
+        }
+      } @else {
+        <app-empty-state [icono]="faBullhorn" titulo="Elige un comunicado" texto="Selecciona un comunicado de la lista para leerlo." />
+      }
+    </article>
+  </div>
+}
