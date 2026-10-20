@@ -1,0 +1,115 @@
+<app-page-header [miga]="espacio.tipo === 'colegio' ? 'Mis clases' : 'Seguimiento'" titulo="Tareas"
+  [descripcion]="espacio.tipo === 'colegio' ? 'Asigna tareas a tus clases, revisa las entregas y califícalas. Si una tarea cuenta para la nota, su calificación pasa a la planilla.' : 'Pide trabajos prácticos en tus cursos, revisa lo que entregan tus estudiantes y déjales un comentario.'">
+  <button type="button" class="ui-btn" (click)="nueva()"><fa-icon [icon]="faPlus" /> Nueva tarea</button>
+</app-page-header>
+
+@if (conteo().entregasPorRevisar) {
+  <p class="ui-aviso aviso"><fa-icon [icon]="faClipboardCheck" /> Tienes {{ conteo().entregasPorRevisar }} {{ conteo().entregasPorRevisar === 1 ? 'entrega' : 'entregas' }} por revisar.</p>
+}
+
+<div class="filtros">
+  <div class="ui-tabs" role="tablist">
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'activas'" (click)="filtro.set('activas')">Activas <span class="contador">{{ conteo().activas }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'por-revisar'" (click)="filtro.set('por-revisar')">Por revisar <span class="contador">{{ conteo().porRevisar }}</span></button>
+    <button type="button" class="ui-tab" [class.activa]="filtro() === 'todas'" (click)="filtro.set('todas')">Todas <span class="contador">{{ conteo().todas }}</span></button>
+  </div>
+  <select class="ui-input" aria-label="Clase" (change)="claseFiltro.set($any($event.target).value)">
+    <option value="" [selected]="claseFiltro() === ''">{{ espacio.tipo === 'colegio' ? 'Todas mis clases' : 'Todos mis cursos' }}</option>
+    @for (c of clases(); track c.valor) {
+      <option [value]="c.valor" [selected]="claseFiltro() === c.valor">{{ c.label }}</option>
+    }
+  </select>
+</div>
+
+@if (tareas.isLoading() && tareas.value().length === 0) {
+  <p class="cargando">Cargando tareas…</p>
+} @else {
+  <div class="grilla">
+    @for (t of visibles(); track t.id) {
+      <article class="ui-card tarea">
+        <a class="cabecera" [routerLink]="ruta('tareas', t.id)">
+          <span class="ui-icono" [class]="'tono-' + t.materia.tono"><fa-icon [icon]="iconoMateria(t.materia.icono)" /></span>
+          <span class="titulo">
+            <strong>{{ t.titulo }}</strong>
+            <small>{{ t.materia.nombre }} · {{ t.curso }}</small>
+          </span>
+        </a>
+        <div class="chips">
+          <span class="ui-badge" [class]="vencida(t) ? '' : urgente(t) ? 'tono-crema' : 'tono-lima'"><fa-icon [icon]="faClock" /> {{ venceLabel(t) }}</span>
+          @if (t.criterio) { <span class="ui-badge tono-azul"><fa-icon [icon]="faStar" /> Cuenta para nota · {{ t.criterio }}</span> }
+        </div>
+        <div class="progreso">
+          <div class="linea"><span>{{ t.entregadas }} de {{ t.estudiantes }} entregaron</span><strong>{{ porcentaje(t.entregadas, t.estudiantes) }}%</strong></div>
+          <div class="ui-barra tono-lima"><span [style.width.%]="porcentaje(t.entregadas, t.estudiantes)"></span></div>
+          <small>
+            @if (t.porRevisar) { <span class="por-revisar">{{ t.porRevisar }} por revisar</span> · }
+            {{ t.revisadas }} revisadas@if (t.tarde) { · {{ t.tarde }} tarde }
+          </small>
+        </div>
+        <footer class="acciones">
+          <a class="ui-btn" [class.ui-btn--secundario]="!t.porRevisar" [routerLink]="ruta('tareas', t.id)">{{ t.porRevisar ? 'Revisar entregas' : 'Ver entregas' }}</a>
+          <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(t)" [attr.aria-label]="'Eliminar ' + t.titulo"><fa-icon [icon]="faTrash" /></button>
+        </footer>
+      </article>
+    } @empty {
+      <div class="ui-card vacio">
+        <app-empty-state [icono]="faTasks" titulo="No hay tareas con este filtro" texto="Asigna una tarea a tus estudiantes con su fecha de entrega.">
+          <button type="button" class="ui-btn" (click)="nueva()"><fa-icon [icon]="faPlus" /> Nueva tarea</button>
+        </app-empty-state>
+      </div>
+    }
+  </div>
+}
+
+<app-drawer [abierto]="creando()" titulo="Nueva tarea" subtitulo="Tus estudiantes la verán en su lista de tareas." (cerrar)="creando.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); crear()" novalidate>
+    <div class="ui-campo">
+      <label for="tar-clase">{{ espacio.tipo === 'colegio' ? 'Clase' : 'Curso' }}</label>
+      <select id="tar-clase" class="ui-input" [formField]="formulario.clase">
+        <option value="">Elige una clase</option>
+        @for (c of clases(); track c.valor) {
+          <option [value]="c.valor" [selected]="modelo().clase === c.valor">{{ c.label }}</option>
+        }
+      </select>
+      @if (formulario.clase().touched() && formulario.clase().invalid()) { <span class="ui-error">{{ formulario.clase().errors()[0].message }}</span> }
+    </div>
+    <div class="ui-campo">
+      <label for="tar-titulo">Título</label>
+      <input id="tar-titulo" class="ui-input" placeholder="Ej. Ejercicios de la guía 4" [formField]="formulario.titulo" />
+      @if (formulario.titulo().touched() && formulario.titulo().invalid()) { <span class="ui-error">{{ formulario.titulo().errors()[0].message }}</span> }
+    </div>
+    <div class="ui-campo">
+      <label for="tar-inst">Instrucciones <span class="ui-ayuda">(opcional)</span></label>
+      <textarea id="tar-inst" class="ui-input area" rows="4" placeholder="Qué deben hacer y cómo entregarlo" [formField]="formulario.instrucciones"></textarea>
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="tar-fecha">Fecha de entrega</label>
+        <input id="tar-fecha" type="date" class="ui-input" [min]="hoy" [formField]="formulario.entrega" />
+        @if (formulario.entrega().touched() && formulario.entrega().invalid()) { <span class="ui-error">{{ formulario.entrega().errors()[0].message }}</span> }
+      </div>
+      <div class="ui-campo">
+        <label for="tar-hora">Hora límite</label>
+        <input id="tar-hora" type="time" class="ui-input" [formField]="formulario.hora" />
+      </div>
+    </div>
+    @if (cuentaParaNota()) {
+    <div class="ui-campo">
+      <label for="tar-criterio">¿Cuenta para la nota?</label>
+      <select id="tar-criterio" class="ui-input" [formField]="formulario.criterioId">
+        <option value="0" [selected]="modelo().criterioId === '0'">No, solo práctica</option>
+        @for (c of criterios(); track c.id) {
+          <option [value]="'' + c.id" [selected]="modelo().criterioId === '' + c.id">Sí, en el criterio {{ c.nombre }} ({{ c.porcentaje }}%)</option>
+        }
+      </select>
+      <span class="ui-ayuda">Si cuenta para la nota, se crea una actividad en tu planilla de Calificaciones y la nota que pongas al revisar se guarda ahí.</span>
+    </div>
+    } @else if (espacio.tipo !== 'colegio') {
+      <p class="ui-ayuda">Al revisar cada entrega podrás dejarle un comentario al estudiante.</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="creando.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="crear()">{{ guardando() ? 'Asignando…' : 'Asignar tarea' }}</button>
+  </ng-container>
+</app-drawer>

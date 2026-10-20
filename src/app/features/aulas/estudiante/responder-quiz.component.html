@@ -1,0 +1,124 @@
+<a class="volver" [routerLink]="rutaAula()"><fa-icon [icon]="faArrowLeft" /> Volver al aula</a>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando…</p>
+} @else if (quiz(); as q) {
+  @switch (fase()) {
+    <!-- ===== Inicio ===== -->
+    @case ('inicio') {
+      <section class="ui-card inicio">
+        <span class="icono"><fa-icon [icon]="faCircleQuestion" /></span>
+        <h1>{{ q.titulo }}</h1>
+        @if (q.descripcion) { <p class="descripcion">{{ q.descripcion }}</p> }
+        <dl class="datos">
+          <div><dt>Preguntas</dt><dd>{{ q.preguntas }}</dd></div>
+          <div><dt>Tiempo</dt><dd>{{ q.tiempoMin ? q.tiempoMin + ' min' : 'Sin límite' }}</dd></div>
+          <div><dt>Intentos</dt><dd>{{ q.intentosHechos }} de {{ q.intentos }}</dd></div>
+          <div><dt>{{ q.cerrado ? 'Cerró' : 'Cierra' }}</dt><dd>{{ fechaCorta(q.cierre) }}, {{ q.horaCierre }}</dd></div>
+        </dl>
+        @if (q.mejor; as m) {
+          <p class="mejor">Tu mejor resultado: <strong>{{ m.puntaje }}/{{ m.puntajeMax }} ({{ porcentaje(m) }}%)</strong></p>
+        }
+        @if (puedeResponder()) {
+          @if (q.tiempoMin) { <p class="ui-aviso">Al comenzar empieza a correr el tiempo. Si se acaba, tus respuestas se envían solas.</p> }
+          <button type="button" class="ui-btn grande" (click)="comenzar()">{{ q.intentosHechos ? 'Intentar de nuevo' : 'Comenzar' }} <fa-icon [icon]="faArrowRight" /></button>
+        } @else {
+          <p class="ui-aviso">{{ q.cerrado ? 'Este quiz ya cerró.' : 'Ya usaste todos tus intentos.' }}</p>
+        }
+      </section>
+    }
+
+    <!-- ===== Respondiendo ===== -->
+    @case ('respondiendo') {
+      <section class="respondiendo">
+        <header class="barra">
+          <strong>Pregunta {{ indice() + 1 }} de {{ preguntas().length }}</strong>
+          <div class="ui-barra tono-lima progreso"><span [style.width.%]="((indice() + 1) / preguntas().length) * 100"></span></div>
+          @if (q.tiempoMin) { <span class="reloj" [class.poco]="restante() <= 60"><fa-icon [icon]="faClock" /> {{ relojTexto() }}</span> }
+        </header>
+
+        @if (actual(); as p) {
+          <article class="ui-card pregunta">
+            <small class="puntos">{{ p.puntos }} {{ p.puntos === 1 ? 'punto' : 'puntos' }}</small>
+            <h2>{{ p.enunciado }}</h2>
+            @switch (p.tipo) {
+              @case ('opcion') {
+                <div class="opciones">
+                  @for (o of p.opciones; track $index; let k = $index) {
+                    <button type="button" class="opcion" [class.elegida]="respuestas().get(p.id) === k" (click)="responder(k)">
+                      <span class="letra">{{ letras[k] }}</span> {{ o }}
+                    </button>
+                  }
+                </div>
+              }
+              @case ('vf') {
+                <div class="opciones dos">
+                  <button type="button" class="opcion" [class.elegida]="respuestas().get(p.id) === 0" (click)="responder(0)"><fa-icon [icon]="faCheck" /> Verdadero</button>
+                  <button type="button" class="opcion" [class.elegida]="respuestas().get(p.id) === 1" (click)="responder(1)"><fa-icon [icon]="faXmark" /> Falso</button>
+                </div>
+              }
+              @case ('corta') {
+                <input class="ui-input corta" id="respuesta-corta" placeholder="Escribe tu respuesta" [value]="respuestas().get(p.id) ?? ''" (input)="responder($any($event.target).value)" />
+              }
+            }
+          </article>
+        }
+
+        <nav class="puntos-nav" aria-label="Preguntas">
+          @for (p of preguntas(); track p.id; let i = $index) {
+            <button type="button" [class.actual]="i === indice()" [class.respondida]="respondida(p.id)" (click)="ir(i)" [attr.aria-label]="'Ir a la pregunta ' + (i + 1)">{{ i + 1 }}</button>
+          }
+        </nav>
+
+        <footer class="navegacion">
+          <button type="button" class="ui-btn ui-btn--secundario" [disabled]="indice() === 0" (click)="ir(indice() - 1)"><fa-icon [icon]="faArrowLeft" /> Anterior</button>
+          <span class="ui-ayuda">{{ respondidas() }} de {{ preguntas().length }} respondidas</span>
+          @if (indice() < preguntas().length - 1) {
+            <button type="button" class="ui-btn" (click)="ir(indice() + 1)">Siguiente <fa-icon [icon]="faArrowRight" /></button>
+          } @else {
+            <button type="button" class="ui-btn" [disabled]="enviando()" (click)="enviar()"><fa-icon [icon]="faPaperPlane" /> {{ enviando() ? 'Enviando…' : 'Enviar respuestas' }}</button>
+          }
+        </footer>
+      </section>
+    }
+
+    <!-- ===== Resultado ===== -->
+    @case ('resultado') {
+      @if (intento(); as i) {
+        <section class="ui-card resultado">
+          <div class="puntaje" [class.bajo]="porcentaje(i) < 51">
+            <strong>{{ porcentaje(i) }}%</strong>
+            <span>{{ i.puntaje }} de {{ i.puntajeMax }} puntos</span>
+          </div>
+          <h1>{{ mensaje(i) }}</h1>
+          <p class="descripcion">{{ correctas(i) }} de {{ i.respuestas.length }} respuestas correctas.@if (q.actividadId) { Tu mejor puntaje ya está en tus calificaciones. }</p>
+          <div class="botones">
+            <a class="ui-btn ui-btn--secundario" [routerLink]="rutaAula()">Volver al aula</a>
+            @if (puedeResponder()) { <button type="button" class="ui-btn" (click)="comenzar()"><fa-icon [icon]="faRotateRight" /> Intentar de nuevo ({{ q.intentosHechos }} de {{ q.intentos }})</button> }
+          </div>
+        </section>
+
+        @if (q.mostrarRespuestas) {
+          <section class="ui-card revision">
+            <h2>Revisa tus respuestas</h2>
+            <ol>
+              @for (r of i.respuestas; track r.preguntaId) {
+                @if (preguntaDe(r.preguntaId); as p) {
+                  <li [class.bien]="r.correcta" [class.mal]="!r.correcta">
+                    <span class="marca"><fa-icon [icon]="r.correcta ? faCheck : faXmark" /></span>
+                    <div>
+                      <strong>{{ p.enunciado }}</strong>
+                      <small>Tu respuesta: {{ textoRespuesta(p, r.valor) }}@if (!r.correcta) { · Correcta: {{ respuestaCorrecta(p) }} }</small>
+                    </div>
+                  </li>
+                }
+              }
+            </ol>
+          </section>
+        }
+      }
+    }
+  }
+} @else {
+  <div class="ui-card"><app-empty-state [icono]="faCircleQuestion" titulo="Este quiz no está disponible" texto="Puede que tu docente todavía no lo haya publicado." /></div>
+}

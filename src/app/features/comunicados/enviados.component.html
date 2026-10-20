@@ -1,0 +1,129 @@
+<div class="barra-enviados">
+  <span class="ui-ayuda">{{ esDireccion() ? 'Todos los comunicados del colegio, de la dirección y de los docentes.' : 'Comunicados que enviaste a los padres y estudiantes de tus cursos.' }}</span>
+  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo comunicado</button>
+</div>
+
+@if (enviados.isLoading() && enviados.value().length === 0) {
+  <p class="cargando">Cargando comunicados…</p>
+} @else {
+  <div class="enviados">
+    @for (c of enviados.value(); track c.id) {
+      <article class="ui-card enviado">
+        <header>
+          <div>
+            <span class="chips">
+              <span class="ui-badge" [class]="categoria(c.categoria).tono">{{ categoria(c.categoria).label }}</span>
+              @if (c.importante) { <span class="ui-badge importante">Importante</span> }
+            </span>
+            <h3>{{ c.titulo }}</h3>
+            <small class="autor">{{ cuando(c.enviado) }}@if (esDireccion()) { · {{ c.autorNombre }} ({{ c.autorRol === 'direccion' ? 'Dirección' : 'Docente' }}) }</small>
+          </div>
+        </header>
+        <p class="para"><fa-icon [icon]="faUsers" /> Para {{ publicoLabel(c.publico) }} · {{ cursosLabel(c) }}</p>
+        <div class="alcance">
+          <div class="linea"><span>Leído por {{ c.alcance.leidos }} de {{ c.alcance.destinatarios }}</span><strong>{{ porcentaje(c.alcance.leidos, c.alcance.destinatarios) }}%</strong></div>
+          <div class="ui-barra tono-lima"><span [style.width.%]="porcentaje(c.alcance.leidos, c.alcance.destinatarios)"></span></div>
+          @if (c.pideConfirmacion) {
+            <small class="confirmados">{{ c.alcance.confirmados }} confirmaron "Enterado"</small>
+          }
+        </div>
+        <footer class="acciones-enviado">
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="detalle.set(c)"><fa-icon [icon]="faEye" /> Ver detalle</button>
+          @if (puedeEliminar(c)) {
+            <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(c)" [attr.aria-label]="'Eliminar ' + c.titulo"><fa-icon [icon]="faTrash" /></button>
+          }
+        </footer>
+      </article>
+    } @empty {
+      <div class="ui-card vacio-enviados">
+        <app-empty-state [icono]="faBullhorn" titulo="Todavía no enviaste comunicados" texto="Avisa a las familias sobre exámenes, reuniones o eventos." >
+          <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo comunicado</button>
+        </app-empty-state>
+      </div>
+    }
+  </div>
+}
+
+<!-- Redactar -->
+<app-drawer [abierto]="redactando()" titulo="Nuevo comunicado" subtitulo="Llega a la bandeja de cada destinatario en la app." (cerrar)="redactando.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); enviar()" novalidate>
+    <div class="ui-campo">
+      <label for="com-titulo">Título</label>
+      <input id="com-titulo" class="ui-input" placeholder="Ej. Reunión de padres" [formField]="formulario.titulo" />
+      @if (formulario.titulo().touched() && formulario.titulo().invalid()) { <span class="ui-error">{{ formulario.titulo().errors()[0].message }}</span> }
+    </div>
+    <div class="ui-campo">
+      <label for="com-mensaje">Mensaje</label>
+      <textarea id="com-mensaje" class="ui-input area" rows="6" [formField]="formulario.mensaje"></textarea>
+      @if (formulario.mensaje().touched() && formulario.mensaje().invalid()) { <span class="ui-error">{{ formulario.mensaje().errors()[0].message }}</span> }
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="com-cat">Categoría</label>
+        <select id="com-cat" class="ui-input" [formField]="formulario.categoria">
+          @for (c of categorias; track c.id) { <option [value]="c.id" [selected]="modelo().categoria === c.id">{{ c.label }}</option> }
+        </select>
+      </div>
+      <div class="ui-campo">
+        <label for="com-evento">Fecha del evento <span class="ui-ayuda">(opcional)</span></label>
+        <input id="com-evento" type="date" class="ui-input" [min]="hoy" [formField]="formulario.fechaEvento" />
+      </div>
+    </div>
+
+    <span class="ui-etiqueta">Para</span>
+    <div class="opciones">
+      @for (p of publicos(); track p.id) {
+        <label class="opcion" [class.activa]="publico().includes(p.id)">
+          <input type="checkbox" [id]="'com-pub-' + p.id" [checked]="publico().includes(p.id)" (change)="alternarPublico(p.id, $any($event.target).checked)" /> {{ p.label }}
+        </label>
+      }
+    </div>
+
+    <span class="ui-etiqueta">Cursos</span>
+    @if (esDireccion()) {
+      <label class="check"><input type="checkbox" id="com-todos" [checked]="todoElColegio()" (change)="todoElColegio.set($any($event.target).checked)" /> Todo el colegio</label>
+    }
+    @if (!esDireccion() || !todoElColegio()) {
+      <div class="opciones">
+        @for (p of cursosDisponibles(); track p.id) {
+          <label class="opcion" [class.activa]="paraleloIds().includes(p.id)">
+            <input type="checkbox" [id]="'com-curso-' + p.id" [checked]="paraleloIds().includes(p.id)" (change)="alternarCurso(p.id, $any($event.target).checked)" /> {{ paraleloLabel(p) }}
+          </label>
+        }
+      </div>
+    }
+
+    <label class="check"><input type="checkbox" id="com-importante" [formField]="formulario.importante" /> Marcar como importante</label>
+    <label class="check"><input type="checkbox" id="com-confirmar" [formField]="formulario.pideConfirmacion" /> Pedir que confirmen que lo recibieron ("Enterado")</label>
+
+    <p class="alcance-previo" [class.nadie]="!alcance()"><fa-icon [icon]="faUsers" /> {{ alcance() ? 'Llegará a ' + alcance() + ' personas' : 'Elige a quién va dirigido' }}</p>
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="redactando.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="enviando() || !alcance()" (click)="enviar()"><fa-icon [icon]="faPaperPlane" /> {{ enviando() ? 'Enviando…' : 'Enviar' }}</button>
+  </ng-container>
+</app-drawer>
+
+<!-- Detalle -->
+<app-drawer [abierto]="!!detalle()" [titulo]="detalle()?.titulo ?? ''" [subtitulo]="detalle() ? 'Enviado por ' + detalle()!.autorNombre + ' · ' + cuando(detalle()!.enviado) : ''" (cerrar)="detalle.set(null)">
+  @if (detalle(); as c) {
+    @if (c.fechaEvento) {
+      <div class="evento"><fa-icon [icon]="faCalendarDays" /> <span>Fecha: <strong>{{ fechaLarga(c.fechaEvento) }}</strong></span></div>
+    }
+    <p class="mensaje">{{ c.mensaje }}</p>
+    <div class="ficha-alcance">
+      <div><strong>{{ c.alcance.destinatarios }}</strong><small>destinatarios</small></div>
+      <div><strong>{{ c.alcance.leidos }}</strong><small>lo leyeron</small></div>
+      @if (c.pideConfirmacion) { <div><strong>{{ c.alcance.confirmados }}</strong><small>confirmaron</small></div> }
+    </div>
+    <h3 class="sub">{{ c.pideConfirmacion ? 'Falta que confirmen' : 'Todavía no lo leyeron' }} ({{ pendientes.value().length }})</h3>
+    <ul class="pendientes">
+      @for (p of pendientes.value().slice(0, 50); track p.nombre + p.tipo) {
+        <li><span>{{ p.nombre }}</span><small>{{ p.tipo }}</small></li>
+      } @empty {
+        <li class="vacio">¡Todos lo recibieron! 🎉</li>
+      }
+      @if (pendientes.value().length > 50) { <li class="vacio">y {{ pendientes.value().length - 50 }} más…</li> }
+    </ul>
+  }
+</app-drawer>

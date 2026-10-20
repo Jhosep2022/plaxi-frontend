@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { forkJoin, of } from 'rxjs';
+import { of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboard, faClock, faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
@@ -10,7 +10,8 @@ import { DatosHorario, clasesDeDocente, filasParaTurnos, itemsDeClases, turnosDe
 import { duracionLabel } from '../../core/utils/jornada';
 import { AcademicoService } from '../../services/academico.service';
 import { HorariosService } from '../../services/horarios.service';
-import { ProfileService } from '../../services/profile.service';
+import { HijoActivoService } from '../../services/hijo-activo.service';
+import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
 import { HorarioSemanalComponent } from '../../shared/horario/horario-semanal.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
@@ -29,12 +30,13 @@ interface VistaMiHorario {
 @Component({
   selector: 'app-mi-horario',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, HorarioSemanalComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, HorarioSemanalComponent, SelectorHijoComponent],
   styles: `
     .resumen { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
     .cargando { color: var(--muted); }
   `,
   template: `
+    @if (esPadre) { <app-selector-hijo /> }
     @if (vista.isLoading() && !vista.value()) {
       <p class="cargando">Cargando horario…</p>
     } @else if (vista.value(); as v) {
@@ -60,7 +62,7 @@ export class MiHorarioComponent {
   private session = inject(SessionService);
   private horarios = inject(HorariosService);
   private academico = inject(AcademicoService);
-  private perfiles = inject(ProfileService);
+  private hijoActivo = inject(HijoActivoService);
 
   readonly faCalendarDays = faCalendarDays;
   readonly faChalkboard = faChalkboard;
@@ -71,6 +73,7 @@ export class MiHorarioComponent {
   private readonly rol = this.session.rolActivo();
   private readonly usuarioId = this.session.usuarioId()!;
 
+  readonly esPadre = this.rol === 'padre';
   readonly miga = computed(() => (this.rol === 'padre' ? 'Seguimiento' : 'Horario'));
   readonly mensajeVacio = computed(() =>
     this.espacio.tipo === 'academia'
@@ -79,7 +82,8 @@ export class MiHorarioComponent {
   );
 
   // Carga los datos del horario y elige qué clases mostrar según el rol
-  readonly vista = rxResource<VistaMiHorario | null, unknown>({
+  readonly vista = rxResource<VistaMiHorario | null, number>({
+    params: () => (this.rol === 'padre' ? this.hijoActivo.elegidoId() : 0),
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
       const datos$ = this.horarios.datos(this.espacio.id);
@@ -92,14 +96,12 @@ export class MiHorarioComponent {
         })));
       }
 
-      // Estudiante: su paralelo. Padre: el paralelo de su (primer) hijo.
-      const estudianteId$ = this.rol === 'padre' ? this.academico.hijosDe(this.usuarioId).pipe(map((h) => h[0] ?? 0)) : of(this.usuarioId);
-      return estudianteId$.pipe(
-        switchMap((estudianteId) => forkJoin({
-          datos: datos$,
-          paraleloId: estudianteId ? this.academico.paraleloDeEstudiante(estudianteId) : of(0),
-          hijo: this.rol === 'padre' && estudianteId ? this.perfiles.getProfile(estudianteId) : of(null),
-        })),
+      // Estudiante: su paralelo. Padre: el paralelo del hijo elegido.
+      const quien$ = this.rol === 'padre'
+        ? this.hijoActivo.activo().pipe(map((h) => ({ paraleloId: h?.paraleloId ?? 0, hijo: h })))
+        : this.academico.paraleloDeEstudiante(this.usuarioId).pipe(map((paraleloId) => ({ paraleloId, hijo: null })));
+      return quien$.pipe(
+        switchMap(({ paraleloId, hijo }) => datos$.pipe(map((datos) => ({ datos, paraleloId, hijo })))),
         map(({ datos, paraleloId, hijo }) => {
           const paralelo = datos.paralelos.find((p) => p.id === paraleloId);
           if (!paralelo) return null;

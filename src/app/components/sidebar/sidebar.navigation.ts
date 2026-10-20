@@ -1,5 +1,6 @@
 import {
   IconDefinition,
+  faBell,
   faBook,
   faBookOpen,
   faBullhorn,
@@ -12,7 +13,6 @@ import {
   faClipboardList,
   faClock,
   faDoorOpen,
-  faEdit,
   faFileSignature,
   faFolderOpen,
   faHome,
@@ -22,6 +22,7 @@ import {
   faPlus,
   faQrcode,
   faSchool,
+  faShieldHalved,
   faSitemap,
   faStar,
   faTasks,
@@ -63,7 +64,14 @@ const CUENTA: NavModule = {
   id: 'cuenta',
   label: 'Mi cuenta',
   icon: faUser,
-  sections: [{ items: [item('Ver perfil', faUserCircle, 'perfil', true), item('Editar perfil', faEdit, 'perfil/editar')] }],
+  sections: [{
+    items: [
+      item('Mi perfil', faUserCircle, 'perfil', true),
+      item('Mis espacios', faSchool, 'perfil/espacios'),
+      item('Seguridad', faShieldHalved, 'perfil/seguridad'),
+      item('Preferencias', faBell, 'perfil/preferencias'),
+    ],
+  }],
 };
 
 // Menú del sidebar según el tipo de espacio y el rol del usuario en él
@@ -84,9 +92,10 @@ function docenteColegio(): NavModule[] {
         items: [
           item('Mis clases', faChalkboard, 'docente/clases'),
           item('Asistencia', faUserCheck, 'docente/asistencia'),
+          item('Tareas', faTasks, 'docente/tareas'),
           item('Calificaciones', faStar, 'docente/calificaciones'),
         ],
-      }],
+      }, { title: 'Mis aulas', items: [], misCursos: true, emptyText: 'Todavía no tienes clases asignadas.' }],
     },
     { id: 'horario', label: 'Horario', icon: faCalendarDays, sections: [{ items: [item('Mi horario', faCalendarDays, 'docente/horario')] }] },
     {
@@ -97,7 +106,7 @@ function docenteColegio(): NavModule[] {
         ],
       }],
     },
-    contenidoDocente('Contenido', faFolderOpen, []),
+    { id: 'comunicados', label: 'Comunicados', icon: faBullhorn, sections: [{ items: [item('Comunicados', faBullhorn, 'docente/comunicados')] }] },
   ];
 }
 
@@ -116,7 +125,7 @@ function docenteAcademia(): NavModule[] {
     { id: 'sesiones', label: 'Sesiones', icon: faVideo, sections: [{ items: [item('Sesiones en vivo', faVideo, 'docente/sesiones')] }] },
     {
       id: 'seguimiento', label: 'Seguimiento', icon: faClipboardCheck, sections: [{
-        items: [item('Asistencia', faUserCheck, 'docente/asistencia'), item('Calificaciones', faStar, 'docente/calificaciones')],
+        items: [item('Tareas', faTasks, 'docente/tareas'), item('Asistencia', faUserCheck, 'docente/asistencia'), item('Calificaciones', faStar, 'docente/calificaciones')],
       }],
     },
   ];
@@ -129,8 +138,8 @@ function contenidoDocente(label: string, icon: IconDefinition, extras: NavItem[]
       {
         title: 'Gestión',
         items: [
-          item('Mis cursos', faChalkboardTeacher, 'docente/contenido/cursos', true),
-          item('Crear curso', faPlus, 'docente/contenido/cursos/nuevo'),
+          item('Mis cursos', faChalkboardTeacher, 'docente/clases', true),
+          item('Crear curso', faPlus, 'docente/cursos/nuevo'),
           ...extras,
         ],
       },
@@ -147,18 +156,24 @@ function estudiante(tipo: TipoEspacio): NavModule[] {
       id: 'aprendizaje', label: cursos, icon: faBook, sections: [
         {
           items: [
-            item(cursos, faBook, 'estudiante/cursos', true),
-            item('Catálogo', faBookOpen, 'estudiante/catalogo'),
+            item(cursos, faBook, 'estudiante/aulas', true),
+            ...(tipo === 'academia' ? [item('Catálogo', faBookOpen, 'estudiante/catalogo')] : []),
             item('Tareas', faTasks, 'estudiante/tareas'),
           ],
         },
         { title: cursos, items: [], misCursos: true, emptyText: 'Aún no estás inscrito en ningún curso.' },
       ],
     },
-    { id: 'horario', label: 'Horario', icon: faCalendarDays, sections: [{ items: [item('Mi horario', faCalendarDays, 'estudiante/horario')] }] },
+    tipo === 'colegio'
+      ? { id: 'horario', label: 'Horario', icon: faCalendarDays, sections: [{ items: [item('Mi horario', faCalendarDays, 'estudiante/horario')] }] }
+      : { id: 'sesiones', label: 'Sesiones', icon: faVideo, sections: [{ items: [item('Sesiones en vivo', faVideo, 'estudiante/sesiones')] }] },
     {
       id: 'seguimiento', label: 'Seguimiento', icon: faClipboardCheck, sections: [{
-        items: [item('Calificaciones', faStar, 'estudiante/calificaciones'), item('Asistencia', faUserCheck, 'estudiante/asistencia')],
+        items: [
+          item('Calificaciones', faStar, 'estudiante/calificaciones'),
+          item('Asistencia', faUserCheck, 'estudiante/asistencia'),
+          ...(tipo === 'colegio' ? [item('Comunicados', faBullhorn, 'estudiante/comunicados')] : []),
+        ],
       }],
     },
   ];
@@ -217,6 +232,7 @@ function direccion(): NavModule[] {
         ],
       }],
     },
+    { id: 'comunicados', label: 'Comunicados', icon: faBullhorn, sections: [{ items: [item('Comunicados', faBullhorn, 'direccion/comunicados')] }] },
     {
       id: 'institucion', label: 'Institución', icon: faCog, sections: [{
         items: [
@@ -238,6 +254,7 @@ function padre(): NavModule[] {
         items: [
           item('Calificaciones', faStar, 'padre/calificaciones'),
           item('Asistencia', faUserCheck, 'padre/asistencia'),
+          item('Tareas', faTasks, 'padre/tareas'),
           item('Horario', faCalendarDays, 'padre/horario'),
         ],
       }],

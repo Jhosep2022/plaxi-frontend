@@ -1,0 +1,58 @@
+<div class="distribucion">
+  <section class="columna">
+    @if (espacios.isLoading() && !espacios.value().length) {
+      <p class="cargando">Cargando tus espacios…</p>
+    }
+    <div class="espacios">
+      @for (e of espacios.value(); track e.espacioId) {
+        <article class="ui-card espacio" [class.actual]="esActual(e)">
+          <header>
+            <span class="logo" [class.academia]="e.tipo === 'academia'"><fa-icon [icon]="e.tipo === 'colegio' ? faSchool : faChalkboardTeacher" /></span>
+            <div class="nombre">
+              <strong>{{ e.nombre }}</strong>
+              <small>{{ tipoLabel[e.tipo] }}@if (e.desde) { · desde {{ mesAnio(e.desde) }} }</small>
+            </div>
+          </header>
+          <div class="chips">
+            @if (esActual(e)) { <span class="ui-badge tono-lima">Estás aquí</span> }
+            <span class="ui-badge tono-azul">{{ rolLabel[e.rol] }}</span>
+            @if (predeterminado() === e.slug) { <span class="ui-badge tono-crema"><fa-icon [icon]="faStar" /> Se abre al iniciar sesión</span> }
+          </div>
+          <footer>
+            <label class="predeterminado">
+              <span class="switch"><input type="checkbox" [checked]="predeterminado() === e.slug" (change)="fijar(e)" [attr.aria-label]="'Abrir ' + e.nombre + ' al iniciar sesión'" /><span></span></span>
+              Abrir al iniciar sesión
+            </label>
+            <div class="botones">
+              @if (e.puedeSalir) {
+                <button type="button" class="ui-btn ui-btn--secundario salir" (click)="salir(e)"><fa-icon [icon]="faDoorOpen" /> Salir</button>
+              }
+              @if (!esActual(e)) {
+                <a class="ui-btn" [routerLink]="rutaInicio(e)">Ir <fa-icon [icon]="faArrowRight" /></a>
+              }
+            </div>
+          </footer>
+          @if (!e.puedeSalir) { <p class="motivo">{{ e.motivo }}</p> }
+        </article>
+      }
+    </div>
+  </section>
+
+  <aside class="columna">
+    <section class="ui-card seccion">
+      <header class="seccion-cabecera">
+        <div>
+          <h2><span class="ui-icono chico tono-lima"><fa-icon [icon]="faKey" /></span> Unirme con un código</h2>
+          <p>Si un docente te compartió el código de su curso, escríbelo aquí.</p>
+        </div>
+      </header>
+      <form class="ui-form" (submit)="$event.preventDefault(); unirme()" novalidate>
+        <div class="ui-campo">
+          <label for="per-codigo">Código del curso</label>
+          <input id="per-codigo" class="ui-input codigo" placeholder="ANG-7K2Q" maxlength="8" [value]="codigo()" (input)="codigo.set($any($event.target).value)" />
+        </div>
+        <button type="submit" class="ui-btn" [disabled]="!codigo().trim()">Buscar curso</button>
+      </form>
+    </section>
+  </aside>
+</div>

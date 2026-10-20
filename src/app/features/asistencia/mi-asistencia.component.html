@@ -1,9 +1,8 @@
 @if (espacio.tipo !== 'colegio') {
-  <app-page-header miga="Seguimiento" titulo="Mi asistencia" />
-  <div class="ui-card">
-    <app-empty-state [icono]="faUserCheck" titulo="Asistencia de sesiones en vivo" texto="Muy pronto verás aquí tu asistencia a las sesiones de la academia." />
-  </div>
+  <app-page-header miga="Seguimiento" titulo="Mi asistencia" descripcion="Tu asistencia a las sesiones en vivo de tus cursos." />
+  <app-asistencia-academia-estudiante />
 } @else if ((estudiante.isLoading() || datos.isLoading()) && !datos.value()) {
+  @if (esPadre) { <app-selector-hijo /> }
   <p class="cargando">Cargando asistencia…</p>
 } @else if (!estudiante.value()) {
   <app-page-header miga="Seguimiento" titulo="Asistencia" />
@@ -17,6 +16,8 @@
       <button type="button" class="ui-btn" (click)="abrirSolicitud()"><fa-icon [icon]="faPlus" /> Solicitar licencia</button>
     }
   </app-page-header>
+
+  @if (esPadre) { <app-selector-hijo /> }
 
   <!-- Indicadores -->
   <div class="indicadores">

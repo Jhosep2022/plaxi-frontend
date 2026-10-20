@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { authGuard, espacioGuard, guestGuard, redirigirInicioGuard, rolGuard } from './core/guards/session.guards';
-import { proximamente } from './core/routing/proximamente';
 import { AppLayoutComponent } from './layouts/app-layout/app-layout.component';
 
 // Estructura general:
@@ -18,7 +17,7 @@ export const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.routes'),
   },
 
-  proximamente('unirse/:codigo', 'Unirse a una academia', 'Aquí podrás aceptar la invitación que te compartió tu docente.'),
+  { path: 'unirse/:codigo', title: 'Unirse a un curso', loadComponent: () => import('./features/aulas/unirse.component').then((m) => m.UnirseComponent) },
 
   {
     path: 'espacios',

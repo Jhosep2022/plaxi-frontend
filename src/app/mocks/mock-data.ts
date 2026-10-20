@@ -62,6 +62,9 @@ export const MOCK_INSCRIPCIONES: InscripcionResponseDto[] = [
   { idInscripcion: 2, fechaInscripcion: '2026-09-10', estadoInscripcion: 'ACTIVA', usuarioId: 2, usuarioNombre: 'Luis Mamani', usuarioGmail: 'estudiante@plaxi.com', cursoId: 3, cursoNombre: 'Fundamentos de UI/UX', usuarioCreadorId: 3, cursoDescripcion: MOCK_CURSOS[2].descripcion, cursoPortadaUrl: MOCK_CURSOS[2].portada ?? null },
   { idInscripcion: 3, fechaInscripcion: '2026-09-15', estadoInscripcion: 'ACTIVA', usuarioId: 4, usuarioNombre: 'Carla Gutiérrez', usuarioGmail: 'carla@plaxi.com', cursoId: 1, cursoNombre: 'Angular desde cero', usuarioCreadorId: 3, cursoDescripcion: MOCK_CURSOS[0].descripcion, cursoPortadaUrl: MOCK_CURSOS[0].portada ?? null },
   { idInscripcion: 4, fechaInscripcion: '2026-10-02', estadoInscripcion: 'ACTIVA', usuarioId: 5, usuarioNombre: 'Pedro Choque', usuarioGmail: 'pedro@plaxi.com', cursoId: 2, cursoNombre: 'Java y Spring Boot', usuarioCreadorId: 3, cursoDescripcion: MOCK_CURSOS[1].descripcion, cursoPortadaUrl: MOCK_CURSOS[1].portada ?? null },
+  // Solicitudes pendientes para el curso privado "Figma avanzado"
+  { idInscripcion: 5, fechaInscripcion: '2026-10-17', estadoInscripcion: 'PENDIENTE', usuarioId: 5, usuarioNombre: 'Pedro Choque', usuarioGmail: 'pedro@plaxi.com', cursoId: 4, cursoNombre: 'Figma avanzado', usuarioCreadorId: 3, cursoDescripcion: MOCK_CURSOS[3].descripcion, cursoPortadaUrl: MOCK_CURSOS[3].portada ?? null },
+  { idInscripcion: 6, fechaInscripcion: '2026-10-18', estadoInscripcion: 'PENDIENTE', usuarioId: 20, usuarioNombre: 'Valeria Quiroga', usuarioGmail: 'valeria.q@gmail.com', cursoId: 4, cursoNombre: 'Figma avanzado', usuarioCreadorId: 3, cursoDescripcion: MOCK_CURSOS[3].descripcion, cursoPortadaUrl: MOCK_CURSOS[3].portada ?? null },
 ];
 
 // Cursos creados por cada usuario (tutor id 3 es el creador de los cursos 1-4)

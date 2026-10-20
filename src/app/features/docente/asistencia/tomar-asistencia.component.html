@@ -8,9 +8,7 @@
 </app-page-header>
 
 @if (espacio.tipo !== 'colegio') {
-  <div class="ui-card">
-    <app-empty-state [icono]="faUserCheck" titulo="Asistencia de sesiones en vivo" texto="Muy pronto podrás registrar la asistencia de las sesiones de tu academia." />
-  </div>
+  <app-asistencia-academia-docente />
 } @else if (datos.isLoading() && !datos.value()) {
   <p class="cargando">Cargando tus clases…</p>
 } @else {

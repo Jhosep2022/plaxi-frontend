@@ -1,0 +1,135 @@
+<a class="volver" [routerLink]="ruta()" [queryParams]="{ tab: 'quiz' }"><fa-icon [icon]="faArrowLeft" /> {{ datos.value()?.aula?.nombre ?? 'Aula' }}</a>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando…</p>
+} @else if (!esNuevo() && !datos.value()?.existente) {
+  <div class="ui-card"><app-empty-state [icono]="faCircleQuestion" titulo="No encontramos este quiz" /></div>
+} @else {
+  <header class="cabecera">
+    <div>
+      <h1>{{ esNuevo() ? 'Nuevo quiz' : 'Editar quiz' }}</h1>
+      <p>{{ preguntas().length }} {{ preguntas().length === 1 ? 'pregunta' : 'preguntas' }} · {{ puntajeTotal() }} puntos</p>
+    </div>
+    <div class="botones">
+      <button type="button" class="ui-btn ui-btn--secundario" [disabled]="guardando()" (click)="guardar(false)">Guardar borrador</button>
+      <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar(true)"><fa-icon [icon]="faCheck" /> {{ datos.value()?.existente?.quiz?.publicado ? 'Guardar' : 'Publicar' }}</button>
+    </div>
+  </header>
+  @if (error()) { <p class="ui-aviso error-general">{{ error() }}</p> }
+
+  <div class="distribucion">
+    <!-- Preguntas -->
+    <section class="preguntas">
+      @for (p of preguntas(); track p.clave; let i = $index; let primera = $first; let ultima = $last) {
+        <article class="ui-card pregunta">
+          <header>
+            <span class="numero">{{ i + 1 }}</span>
+            <select class="ui-input tipo" [attr.aria-label]="'Tipo de la pregunta ' + (i + 1)" (change)="cambiarTipo(i, $any($event.target).value)">
+              @for (t of tipos; track t.id) { <option [value]="t.id" [selected]="p.tipo === t.id">{{ t.label }}</option> }
+            </select>
+            <label class="puntos">Puntos <input type="number" class="ui-input" min="1" [value]="p.puntos" (input)="actualizar(i, { puntos: +$any($event.target).value })" /></label>
+            <span class="acciones">
+              <button type="button" class="ui-btn ui-btn--icono" [disabled]="primera" (click)="mover(i, -1)" aria-label="Subir pregunta"><fa-icon [icon]="faArrowUp" /></button>
+              <button type="button" class="ui-btn ui-btn--icono" [disabled]="ultima" (click)="mover(i, 1)" aria-label="Bajar pregunta"><fa-icon [icon]="faArrowDown" /></button>
+              <button type="button" class="ui-btn ui-btn--icono" (click)="quitar(i)" aria-label="Quitar pregunta"><fa-icon [icon]="faTrash" /></button>
+            </span>
+          </header>
+          <textarea class="ui-input enunciado" rows="2" placeholder="Escribe la pregunta" [id]="'q-enunciado-' + i" [value]="p.enunciado" (input)="actualizar(i, { enunciado: $any($event.target).value })"></textarea>
+
+          @switch (p.tipo) {
+            @case ('opcion') {
+              <ul class="opciones">
+                @for (o of p.opciones; track $index; let k = $index) {
+                  <li [class.correcta]="p.correcta === k">
+                    <button type="button" class="marcar" [attr.aria-label]="'Marcar como correcta la opción ' + (k + 1)" [attr.aria-pressed]="p.correcta === k" (click)="actualizar(i, { correcta: k })">
+                      @if (p.correcta === k) { <fa-icon [icon]="faCheck" /> }
+                    </button>
+                    <input class="ui-input" [placeholder]="'Opción ' + (k + 1)" [id]="'q-' + i + '-op-' + k" [value]="o" (input)="cambiarOpcion(i, k, $any($event.target).value)" />
+                    <button type="button" class="mini" [disabled]="p.opciones.length <= 2" (click)="quitarOpcion(i, k)" aria-label="Quitar opción"><fa-icon [icon]="faXmark" /></button>
+                  </li>
+                }
+              </ul>
+              <div class="pie-pregunta">
+                <button type="button" class="agregar" (click)="agregarOpcion(i)"><fa-icon [icon]="faPlus" /> Agregar opción</button>
+                <span class="ui-ayuda">Marca con ✓ la opción correcta.</span>
+              </div>
+            }
+            @case ('vf') {
+              <div class="vf">
+                <button type="button" class="opcion-vf" [class.activa]="p.correcta === 0" [id]="'q-' + i + '-v'" (click)="actualizar(i, { correcta: 0 })"><fa-icon [icon]="faCheck" /> Verdadero</button>
+                <button type="button" class="opcion-vf" [class.activa]="p.correcta === 1" [id]="'q-' + i + '-f'" (click)="actualizar(i, { correcta: 1 })"><fa-icon [icon]="faXmark" /> Falso</button>
+                <span class="ui-ayuda">Elige la respuesta correcta.</span>
+              </div>
+            }
+            @case ('corta') {
+              <div class="ui-campo">
+                <label [for]="'q-' + i + '-aceptadas'">Respuestas válidas <span class="ui-ayuda">(separadas por comas; no importan mayúsculas ni tildes)</span></label>
+                <input class="ui-input" [id]="'q-' + i + '-aceptadas'" placeholder="Ej. caída libre, caida libre" [value]="p.aceptadas.join(', ')" (input)="cambiarAceptadas(i, $any($event.target).value)" />
+              </div>
+            }
+          }
+        </article>
+      } @empty {
+        <div class="ui-card"><app-empty-state [icono]="faCircleQuestion" titulo="Sin preguntas" texto="Agrega la primera pregunta con los botones de abajo." /></div>
+      }
+      <div class="agregar-pregunta">
+        <span>Agregar pregunta:</span>
+        @for (t of tipos; track t.id) {
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="agregar(t.id)"><fa-icon [icon]="faPlus" /> {{ t.label }}</button>
+        }
+      </div>
+    </section>
+
+    <!-- Configuración -->
+    <aside class="ui-card configuracion">
+      <h2>Configuración</h2>
+      <div class="ui-campo">
+        <label for="quiz-titulo">Título</label>
+        <input id="quiz-titulo" class="ui-input" [value]="config().titulo" (input)="cambiarConfig('titulo', $any($event.target).value)" />
+      </div>
+      <div class="ui-campo">
+        <label for="quiz-desc">Instrucciones <span class="ui-ayuda">(opcional)</span></label>
+        <textarea id="quiz-desc" class="ui-input area" rows="3" [value]="config().descripcion" (input)="cambiarConfig('descripcion', $any($event.target).value)"></textarea>
+      </div>
+      <div class="ui-fila">
+        <div class="ui-campo">
+          <label for="quiz-tiempo">Tiempo (min)</label>
+          <input id="quiz-tiempo" type="number" min="0" class="ui-input" [value]="config().tiempoMin" (input)="cambiarConfig('tiempoMin', +$any($event.target).value)" />
+          <span class="ui-ayuda">0 = sin límite</span>
+        </div>
+        <div class="ui-campo">
+          <label for="quiz-intentos">Intentos</label>
+          <input id="quiz-intentos" type="number" min="1" class="ui-input" [value]="config().intentos" (input)="cambiarConfig('intentos', +$any($event.target).value)" />
+        </div>
+      </div>
+      <div class="ui-fila">
+        <div class="ui-campo">
+          <label for="quiz-cierre">Cierra el</label>
+          <input id="quiz-cierre" type="date" class="ui-input" [value]="config().cierre" (change)="cambiarConfig('cierre', $any($event.target).value)" />
+        </div>
+        <div class="ui-campo">
+          <label for="quiz-hora">A las</label>
+          <input id="quiz-hora" type="time" class="ui-input" [value]="config().horaCierre" (change)="cambiarConfig('horaCierre', $any($event.target).value)" />
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="quiz-mezclar" [checked]="config().mezclar" (change)="cambiarConfig('mezclar', $any($event.target).checked)" /> Mostrar las preguntas en orden aleatorio</label>
+      <label class="check"><input type="checkbox" id="quiz-respuestas" [checked]="config().mostrarRespuestas" (change)="cambiarConfig('mostrarRespuestas', $any($event.target).checked)" /> Mostrar las respuestas correctas al terminar</label>
+      @if (datos.value()?.aula?.tipo === 'clase') {
+        <div class="ui-campo">
+          <label for="quiz-criterio">¿Cuenta para la nota?</label>
+          @if (yaCuenta()) {
+            <span class="ui-badge tono-azul">Ya cuenta para la nota en la planilla</span>
+          } @else {
+            <select id="quiz-criterio" class="ui-input" (change)="criterioId.set($any($event.target).value)">
+              <option value="0" [selected]="criterioId() === '0'">No, es de práctica</option>
+              @for (c of datos.value()?.config?.criterios ?? []; track c.id) {
+                <option [value]="'' + c.id" [selected]="criterioId() === '' + c.id">Sí, en {{ c.nombre }} ({{ c.porcentaje }}%)</option>
+              }
+            </select>
+            <span class="ui-ayuda">El mejor puntaje de cada estudiante se convierte en su nota (sobre {{ datos.value()?.config?.notaMaxima }}).</span>
+          }
+        </div>
+      }
+    </aside>
+  </div>
+}

@@ -9,11 +9,14 @@ import { fechaCorta, hoyIso } from '../../core/utils/asistencia';
 import { aprobado, calcularNota, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/calificaciones';
 import { AcademicoService } from '../../services/academico.service';
 import { CalificacionesService } from '../../services/calificaciones.service';
+import { HijoActivoService } from '../../services/hijo-activo.service';
+import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
 import { ProfileService } from '../../services/profile.service';
 import { BoletinComponent } from '../../shared/calificaciones/boletin.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { iconoMateria } from '../../shared/ui/iconos-academicos';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
+import { CalificacionesAcademiaEstudianteComponent } from '../academia/calificaciones-academia.component';
 
 const BOLETIN = -1; // pestaña del boletín
 
@@ -22,7 +25,7 @@ const BOLETIN = -1; // pestaña del boletín
 @Component({
   selector: 'app-mis-calificaciones',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, BoletinComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, BoletinComponent, SelectorHijoComponent, CalificacionesAcademiaEstudianteComponent],
   templateUrl: './mis-calificaciones.component.html',
   styleUrls: ['./mis-calificaciones.component.css'],
 })
@@ -31,6 +34,7 @@ export class MisCalificacionesComponent {
   private academico = inject(AcademicoService);
   private calificaciones = inject(CalificacionesService);
   private perfiles = inject(ProfileService);
+  private hijoActivo = inject(HijoActivoService);
 
   readonly BOLETIN = BOLETIN;
   readonly faStar = faStar;
@@ -48,9 +52,10 @@ export class MisCalificacionesComponent {
 
   // Estudiante (el propio o el hijo) y los datos de su paralelo
   readonly vista = rxResource({
+    params: () => (this.esPadre ? this.hijoActivo.elegidoId() : 0),
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
-      const id$ = this.esPadre ? this.academico.hijosDe(this.usuarioId).pipe(map((h) => h[0] ?? 0)) : of(this.usuarioId);
+      const id$ = this.esPadre ? this.hijoActivo.activo().pipe(map((h) => h?.id ?? 0)) : of(this.usuarioId);
       return id$.pipe(
         switchMap((id) =>
           !id

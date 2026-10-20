@@ -1,0 +1,76 @@
+@if (datos.isLoading() && !perfil()) {
+  <p class="cargando">Cargando tu perfil…</p>
+} @else if (perfil(); as p) {
+  <!-- Cabecera -->
+  <section class="ui-card cabecera">
+    <div class="banner" aria-hidden="true">
+      <svg viewBox="0 0 800 160" preserveAspectRatio="xMidYMid slice">
+        <circle cx="690" cy="20" r="90" class="c1" />
+        <circle cx="770" cy="140" r="54" class="c2" />
+        <circle cx="560" cy="150" r="26" class="c3" />
+        <path d="M0 120 Q 200 70 400 110 T 800 90" class="onda" />
+      </svg>
+    </div>
+
+    <div class="identidad">
+      <div class="avatar-zona">
+        <div class="avatar">
+          @if (p.imagenUrl) {
+            <img [src]="p.imagenUrl" [alt]="'Foto de ' + nombreCompleto()" />
+          } @else {
+            <span>{{ iniciales() }}</span>
+          }
+        </div>
+        <label class="cambiar-foto" [title]="p.imagenUrl ? 'Cambiar foto' : 'Subir foto'">
+          <fa-icon [icon]="faCamera" />
+          <span class="sr">{{ p.imagenUrl ? 'Cambiar foto' : 'Subir foto' }}</span>
+          <input id="perfil-foto" type="file" accept="image/*" (change)="elegirFoto($event)" />
+        </label>
+      </div>
+
+      <div class="texto">
+        <h1>{{ nombreCompleto() }}</h1>
+        <p class="usuario">&#64;{{ p.username }}</p>
+        <div class="chips">
+          <span class="ui-badge tono-lima">{{ rolLabel }}</span>
+          <span class="ui-badge">{{ membresia.espacio.nombre }}</span>
+          @if (p.miembroDesde) { <span class="ui-badge tono-crema"><fa-icon [icon]="faCalendarDays" /> Miembro desde {{ mesAnio(p.miembroDesde) }}</span> }
+        </div>
+      </div>
+
+      @if (p.imagenUrl) {
+        <button type="button" class="ui-btn ui-btn--secundario quitar-foto" (click)="guardarFoto('', 'Quitaste tu foto de perfil.')"><fa-icon [icon]="faTrash" /> Quitar foto</button>
+      }
+    </div>
+
+    @if (indicadores.value().length) {
+      <div class="indicadores">
+        @for (i of indicadores.value(); track i.label) {
+          <div class="indicador" [class]="'tono-' + i.tono">
+            <strong>{{ i.valor }}</strong>
+            <span>{{ i.label }}</span>
+            <small>{{ i.detalle }}</small>
+          </div>
+        }
+      </div>
+    } @else if (indicadores.isLoading()) {
+      <div class="indicadores"><p class="cargando">Cargando tu actividad…</p></div>
+    }
+  </section>
+
+  <!-- Pestañas -->
+  <nav class="ui-tabs pestanas" aria-label="Secciones del perfil">
+    @for (t of pestanas; track t.id) {
+      <a class="ui-tab" [class.activa]="tab() === t.id" [routerLink]="t.link" [attr.aria-current]="tab() === t.id ? 'page' : null">{{ t.label }}</a>
+    }
+  </nav>
+
+  @switch (tab()) {
+    @case ('espacios') { <app-espacios-perfil /> }
+    @case ('seguridad') { <app-seguridad-perfil [perfil]="p" (cambio)="actualizado($event)" /> }
+    @case ('preferencias') { <app-preferencias-perfil [perfil]="p" [membresia]="membresia" (cambio)="actualizado($event)" /> }
+    @default { <app-datos-perfil [perfil]="p" [membresia]="membresia" (cambio)="actualizado($event)" /> }
+  }
+} @else {
+  <p class="cargando">No encontramos tu perfil.</p>
+}

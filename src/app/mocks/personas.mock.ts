@@ -20,11 +20,11 @@ const elegir = <T>(lista: T[], semilla: string): T => lista[Math.floor(azar(semi
 const digitos = (semilla: string, n: number) =>
   String(Math.floor(azar(`${semilla}-a`) * 10000) * 1000 + Math.floor(azar(`${semilla}-b`) * 1000)).padStart(7, '0').slice(-n);
 
-// Rosa Quispe (usuaria 6, con cuenta de padre) es la madre de Luis Mamani
+// Rosa Quispe (usuaria 6, con cuenta de padre) es la madre de Luis Mamani (3ro A) y de Sofía Mamani (6to A)
 const ROSA: Tutor = { id: 6, nombre: 'Rosa Quispe', ci: '4567123', telefono: '70012345', email: 'rosa.quispe@gmail.com', ocupacion: 'Comerciante' };
 
 // Un padre o madre por estudiante inscrito (los estudiantes nuevos todavía no tienen tutor registrado)
-const generados = MOCK_ESTUDIANTES.filter((e) => e.id !== 2 && e.paraleloId !== 0).map((e) => {
+const generados = MOCK_ESTUDIANTES.filter((e) => e.id !== 2 && e.id !== 1400 && e.paraleloId !== 0).map((e) => {
   const apellido = e.nombre.split(' ').slice(1).join(' ');
   const parentesco: Parentesco = azar(`par-${e.id}`) < 0.55 ? 'madre' : azar(`tut-${e.id}`) < 0.9 ? 'padre' : 'tutor';
   const nombre = parentesco === 'padre'
@@ -46,5 +46,6 @@ export const MOCK_PADRES: Tutor[] = [ROSA, ...generados.map((g) => g.tutor)].sor
 let idVinculo = 0;
 export const MOCK_VINCULOS: Vinculo[] = [
   { id: ++idVinculo, padreId: 6, estudianteId: 2, parentesco: 'madre' },
+  { id: ++idVinculo, padreId: 6, estudianteId: 1400, parentesco: 'madre' },
   ...generados.map((g) => ({ id: ++idVinculo, padreId: g.tutor.id, estudianteId: g.estudianteId, parentesco: g.parentesco })),
 ];

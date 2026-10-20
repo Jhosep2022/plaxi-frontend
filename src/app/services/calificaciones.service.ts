@@ -127,6 +127,25 @@ export class CalificacionesService {
   }
 
   // ---------- Notas ----------
+  notasDeActividad(actividadId: number): Observable<Nota[]> {
+    return this.notasRepo.listar((n) => n.actividadId === actividadId);
+  }
+
+  notasDeEstudiante(estudianteId: number): Observable<Nota[]> {
+    return this.notasRepo.listar((n) => n.estudianteId === estudianteId);
+  }
+
+  // Actividad por id (lectura síncrona para otros servicios mock)
+  actividad(actividadId: number): Actividad | undefined {
+    return this.actividadesRepo.ahora((a) => a.id === actividadId)[0];
+  }
+
+  // ¿El periodo de esta actividad está cerrado? (lectura síncrona para otros servicios mock)
+  actividadCerrada(actividadId: number): boolean {
+    const act = this.actividadesRepo.ahora((a) => a.id === actividadId)[0];
+    return !!act && this.estaCerrado(act.gestionId, act.periodo);
+  }
+
   guardarNotas(espacioId: number, cambios: CambioNota[]): Observable<number> {
     const config = this.configRepo.ahora((c) => c.id === espacioId)[0];
     const maxima = config?.notaMaxima ?? 100;

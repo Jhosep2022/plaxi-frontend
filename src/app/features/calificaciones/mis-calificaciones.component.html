@@ -1,9 +1,8 @@
 @if (espacio.tipo !== 'colegio') {
-  <app-page-header miga="Seguimiento" titulo="Mis calificaciones" />
-  <div class="ui-card">
-    <app-empty-state [icono]="faStar" titulo="Calificaciones de la academia" texto="Muy pronto verás aquí tus notas de Exámenes, Prácticas y Tareas." />
-  </div>
+  <app-page-header miga="Seguimiento" titulo="Mis calificaciones" descripcion="Tus resultados en los quiz de cada curso." />
+  <app-calificaciones-academia-estudiante />
 } @else if (vista.isLoading() && !vista.value()) {
+  @if (esPadre) { <app-selector-hijo /> }
   <p class="cargando">Cargando calificaciones…</p>
 } @else if (vista.value(); as v) {
   <app-page-header class="no-imprimir" miga="Seguimiento" [titulo]="esPadre ? 'Calificaciones de ' + v.estudiante.nombre : 'Mis calificaciones'"
@@ -20,6 +19,8 @@
       </button>
     </div>
   </app-page-header>
+
+  @if (esPadre) { <app-selector-hijo class="no-imprimir" /> }
 
   @if (pestana() === BOLETIN) {
     <app-boletin [datos]="v.datos" [estudiante]="v.estudiante" [espacio]="espacio.nombre" />

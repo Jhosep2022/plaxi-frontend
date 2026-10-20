@@ -1,0 +1,130 @@
+.datos .ancho {
+  grid-column: 1 / -1;
+}
+
+.bio {
+  font-weight: normal;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.enlaces a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--blue-soft);
+  color: var(--dark-blue);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.enlaces a:hover {
+  background: var(--lime-soft);
+}
+
+.enlaces .vacio {
+  color: var(--muted);
+  font-weight: normal;
+  font-style: italic;
+}
+
+h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+}
+
+.faltan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.faltan li {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--light-cream);
+  color: var(--cream-strong);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Vista previa del perfil público */
+.tarjeta-docente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 16px;
+  border-radius: 14px;
+  background: var(--dark-blue);
+  color: var(--text-light);
+  text-align: center;
+}
+
+.mini-avatar {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  overflow: hidden;
+  border: 3px solid var(--lime-green);
+  border-radius: 50%;
+  background: var(--light-cream);
+  color: var(--dark-blue);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tarjeta-docente small {
+  color: var(--lime-green);
+  font-weight: bold;
+}
+
+.tarjeta-docente p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.iconos-enlaces {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.iconos-enlaces a {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--lime-green);
+}
+
+.iconos-enlaces a:hover {
+  background: var(--lime-green);
+  color: var(--dark-blue);
+}

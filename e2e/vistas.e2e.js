@@ -31,7 +31,7 @@ module.exports = async function vistas({ verificar }) {
     verificar('Mi horario del docente: 8 clases', (await b.evaluar(`document.querySelectorAll('app-horario-semanal .clase').length`)) === 8);
     await b.sesion('padre');
     await b.ir('/colegio-san-jose/padre/horario');
-    verificar('el padre ve el horario de su hijo', (await b.texto('app-page-header h1')) === 'Horario de Luis');
+    verificar('el padre ve el horario de su hijo', (await b.texto('app-page-header h1')) === 'Horario de Luis Mamani');
 
     // Resúmenes con el horario real
     await b.sesion('docente');

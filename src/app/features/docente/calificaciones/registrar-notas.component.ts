@@ -1,4 +1,4 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { FormField, form, required, submit, validate } from '@angular/forms/signals';
@@ -16,6 +16,7 @@ import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { iconoMateria } from '../../../shared/ui/iconos-academicos';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
+import { CalificacionesAcademiaDocenteComponent } from '../../academia/calificaciones-academia.component';
 import { mensajeError } from '../../direccion/academico/academico.ui';
 
 const clave = (actividadId: number, estudianteId: number) => `${actividadId}-${estudianteId}`;
@@ -24,7 +25,7 @@ const clave = (actividadId: number, estudianteId: number) => `${actividadId}-${e
 @Component({
   selector: 'app-registrar-notas',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent],
+  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, CalificacionesAcademiaDocenteComponent],
   templateUrl: './registrar-notas.component.html',
   styleUrls: ['./registrar-notas.component.css'],
 })
@@ -69,7 +70,12 @@ export class RegistrarNotasComponent {
       .sort((a, b) => a.materia.nombre.localeCompare(b.materia.nombre) || paraleloLabel(a.paralelo).localeCompare(paraleloLabel(b.paralelo)));
   });
 
-  readonly seleccionadaId = linkedSignal(() => this.misClases()[0]?.asignacion.id ?? 0);
+  // Clase elegida: la que llega en ?clase= (desde Mis clases) o la primera
+  readonly clase = input<string>();
+  readonly seleccionadaId = linkedSignal(() => {
+    const pedida = Number(this.clase());
+    return this.misClases().find((c) => c.asignacion.id === pedida)?.asignacion.id ?? this.misClases()[0]?.asignacion.id ?? 0;
+  });
   readonly seleccionada = computed(() => this.misClases().find((c) => c.asignacion.id === this.seleccionadaId()) ?? null);
 
   readonly gestion = computed(() => this.clases.value()?.gestion);

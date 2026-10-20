@@ -1,10 +1,12 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPrint, faSchool } from '@fortawesome/free-solid-svg-icons';
 import { paraleloLabel } from '../../core/models/academico.model';
 import { aprobado, boletinDe, indiceNotas, promedio } from '../../core/utils/calificaciones';
 import { fechaLarga, hoyIso } from '../../core/utils/asistencia';
 import { DatosParalelo } from '../../services/calificaciones.service';
+import { InstitucionService } from '../../services/institucion.service';
 import { iconoMateria } from '../ui/iconos-academicos';
 
 // Boletín de calificaciones de un estudiante (pantalla e impresión / PDF).
@@ -16,11 +18,13 @@ import { iconoMateria } from '../ui/iconos-academicos';
   template: `
     <article class="ui-card boletin">
       <header class="encabezado">
-        <span class="escudo"><fa-icon [icon]="faSchool" /></span>
+        <span class="escudo">
+          @if (institucion()?.logo; as logo) { <img [src]="logo" alt="" /> } @else { <fa-icon [icon]="faSchool" /> }
+        </span>
         <div class="titulos">
-          <small>{{ espacio() }}</small>
+          <small>{{ institucion()?.nombre ?? espacio() }}@if (institucion()?.codigoSie; as sie) { · SIE {{ sie }} }</small>
           <h2>Boletín de calificaciones</h2>
-          <span>Gestión {{ datos().gestion.anio }}</span>
+          <span>Gestión {{ datos().gestion.anio }}@if (institucion()?.lema; as lema) { · “{{ lema }}” }</span>
         </div>
         <button type="button" class="ui-btn ui-btn--secundario no-imprimir" (click)="imprimir()"><fa-icon [icon]="faPrint" /> Imprimir / PDF</button>
       </header>
@@ -83,6 +87,15 @@ import { iconoMateria } from '../ui/iconos-academicos';
       </div>
 
       <p class="nota-pie">Las notas de los periodos en curso son provisionales y pueden cambiar hasta el cierre del periodo.</p>
+
+      @if (institucion()?.director; as director) {
+        <footer class="firmas">
+          <div><span class="linea"></span><strong>{{ director }}</strong><small>Director(a)</small></div>
+          @if (institucion()?.subdirector; as sub) {
+            <div><span class="linea"></span><strong>{{ sub }}</strong><small>Subdirector(a)</small></div>
+          }
+        </footer>
+      }
     </article>
   `,
 })
@@ -95,6 +108,11 @@ export class BoletinComponent {
   readonly faSchool = faSchool;
   readonly iconoMateria = iconoMateria;
   readonly emitido = fechaLarga(hoyIso());
+
+  // Logo, nombre, lema y autoridades de la institución
+  private institucionService = inject(InstitucionService);
+  private readonly institucionRes = rxResource({ params: () => this.datos().paralelo.espacioId, stream: ({ params }) => this.institucionService.datos(params) });
+  readonly institucion = computed(() => this.institucionRes.value());
 
   readonly curso = computed(() => paraleloLabel(this.datos().paralelo));
   readonly filas = computed(() => boletinDe(this.datos(), indiceNotas(this.datos().notas), this.estudiante().id));

@@ -1,0 +1,175 @@
+.cargando {
+  color: var(--muted);
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.ui-icono.grande {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  font-size: 22px;
+}
+
+.titulos {
+  flex: 1;
+  min-width: 240px;
+}
+
+.titulos h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.titulos p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.instrucciones {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.indicador {
+  display: flex;
+  flex-direction: column;
+}
+
+.indicador strong {
+  font-size: 22px;
+}
+
+.indicador small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.indicador.destacado {
+  border-color: var(--lime-green);
+  background: var(--lime-soft);
+}
+
+.filtros {
+  margin-bottom: 10px;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--light-cream);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.alerta {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+.entrega {
+  max-width: 320px;
+}
+
+.entrega > * {
+  display: block;
+}
+
+.cuando,
+.sin {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.texto {
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+.archivo {
+  font-size: 12px;
+  color: var(--lime-strong);
+  font-weight: bold;
+}
+
+.num {
+  text-align: center !important;
+}
+
+.nota {
+  width: 60px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  text-align: center;
+}
+
+.nota.invalida {
+  border-color: #c0392b;
+  background: #fdf0ee;
+}
+
+.comentario {
+  min-width: 200px;
+  height: 34px;
+}
+
+.vacio {
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.pie {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px -18px -18px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 16px 16px;
+  background: var(--text-light);
+}

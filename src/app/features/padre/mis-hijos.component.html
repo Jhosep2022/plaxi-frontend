@@ -1,0 +1,65 @@
+<app-page-header miga="Mis hijos" titulo="Mis hijos" descripcion="Cómo les va a cada uno de tus hijos: asistencia, notas del periodo y lo que necesita tu atención." />
+
+@if (fichas.isLoading() && fichas.value().length === 0) {
+  <p class="cargando">Cargando…</p>
+} @else if (fichas.value().length === 0) {
+  <div class="ui-card"><app-empty-state [icono]="faChild" titulo="No tienes estudiantes vinculados" texto="Pide a la dirección que vincule tu cuenta con la de tus hijos." /></div>
+} @else {
+  @if (sinLeer.value()) {
+    <a class="ui-aviso aviso-comunicados" [routerLink]="ruta('comunicados')"><fa-icon [icon]="faBullhorn" /> Tienes {{ sinLeer.value() }} {{ sinLeer.value() === 1 ? 'comunicado sin leer' : 'comunicados sin leer' }}. Ver comunicados →</a>
+  }
+
+  <div class="hijos">
+    @for (f of fichas.value(); track f.hijo.id) {
+      <article class="ui-card hijo">
+        <header>
+          <span class="avatar">{{ iniciales(f.hijo.nombre) }}</span>
+          <div class="nombre">
+            <h2>{{ f.hijo.nombre }}</h2>
+            <small>{{ f.hijo.curso }} · {{ f.edad }} años · {{ parentesco(f.hijo) }}</small>
+          </div>
+          @if (f.alertas.length) {
+            <span class="ui-badge alerta"><fa-icon [icon]="faTriangleExclamation" /> {{ f.alertas.length }} {{ f.alertas.length === 1 ? 'alerta' : 'alertas' }}</span>
+          } @else {
+            <span class="ui-badge tono-lima"><fa-icon [icon]="faCircleCheck" /> Todo en orden</span>
+          }
+        </header>
+
+        <dl class="datos">
+          <div>
+            <dt><fa-icon [icon]="faUserCheck" /> Asistencia</dt>
+            <dd [class.baja]="f.asistencia.total && f.asistencia.porcentaje < 85">{{ f.asistencia.total ? f.asistencia.porcentaje + '%' : '—' }}</dd>
+            <small>{{ f.asistencia.total ? f.asistencia.ausente + (f.asistencia.ausente === 1 ? ' falta · ' : ' faltas · ') + f.asistencia.atraso + (f.asistencia.atraso === 1 ? ' atraso' : ' atrasos') : 'Sin registros' }}</small>
+          </div>
+          <div>
+            <dt><fa-icon [icon]="faChartLine" /> Promedio</dt>
+            <dd>{{ f.promedio ?? '—' }}</dd>
+            <small>{{ f.periodo }}</small>
+          </div>
+          <div>
+            <dt><fa-icon [icon]="faStar" /> En riesgo</dt>
+            <dd [class.baja]="f.reprobadas.length">{{ f.reprobadas.length }}</dd>
+            <small>{{ f.reprobadas.length === 1 ? 'materia' : 'materias' }}</small>
+          </div>
+        </dl>
+
+        @if (f.alertas.length) {
+          <ul class="alertas">
+            @for (a of f.alertas; track a.texto) {
+              <li [class]="'alerta-' + a.tipo">
+                <fa-icon [icon]="a.tipo === 'nota' ? faStar : a.tipo === 'falta' ? faUserXmark : a.tipo === 'tarea' ? faTasks : faFileMedical" />
+                {{ a.texto }}
+              </li>
+            }
+          </ul>
+        }
+
+        <footer class="acciones">
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="ir(f.hijo, 'asistencia')"><fa-icon [icon]="faUserCheck" /> Asistencia</button>
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="ir(f.hijo, 'calificaciones')"><fa-icon [icon]="faStar" /> Notas</button>
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="ir(f.hijo, 'horario')"><fa-icon [icon]="faCalendarDays" /> Horario</button>
+        </footer>
+      </article>
+    }
+  </div>
+}

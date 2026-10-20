@@ -1,0 +1,166 @@
+<div class="barra">
+  <span class="resumen">{{ unidades.value().length }} unidades · {{ totalTemas() }} temas · {{ duracionTotal() }} min de contenido</span>
+  @if (hermanas.value().length) {
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="abrirCopia()" [disabled]="!unidades.value().length"><fa-icon [icon]="faCopy" /> Copiar a otro paralelo</button>
+  }
+  <button type="button" class="ui-btn ui-btn--secundario" (click)="nuevoTema()" [disabled]="!unidades.value().length"><fa-icon [icon]="faPlus" /> Tema</button>
+  <button type="button" class="ui-btn" (click)="nuevaUnidad()"><fa-icon [icon]="faPlus" /> Unidad</button>
+</div>
+
+@if (unidades.isLoading() && unidades.value().length === 0) {
+  <p class="cargando">Cargando contenido…</p>
+} @else {
+  <div class="unidades">
+    @for (u of unidades.value(); track u.id; let primera = $first; let ultima = $last) {
+      <section class="ui-card unidad" [class.borrador]="!u.publicada">
+        <header>
+          <span class="orden">{{ u.orden }}</span>
+          <div class="titulo">
+            <h3>{{ u.titulo }}</h3>
+            @if (u.descripcion) { <p>{{ u.descripcion }}</p> }
+            <div class="chips">
+              @if (u.publicada) { <span class="ui-badge tono-lima">Publicada</span> } @else { <span class="ui-badge"><fa-icon [icon]="faEyeSlash" /> Borrador</span> }
+              @if (u.requiereAnterior) { <span class="ui-badge tono-crema"><fa-icon [icon]="faLock" /> Se abre al completar la anterior</span> }
+              <span class="ui-badge">{{ u.temas.length }} {{ u.temas.length === 1 ? 'tema' : 'temas' }}</span>
+            </div>
+          </div>
+          <div class="acciones">
+            <button type="button" class="ui-btn ui-btn--secundario chico" (click)="alternarPublicada(u)">{{ u.publicada ? 'Pasar a borrador' : 'Publicar' }}</button>
+            <button type="button" class="ui-btn ui-btn--icono" [disabled]="primera" (click)="moverUnidad(u, -1)" aria-label="Subir unidad"><fa-icon [icon]="faArrowUp" /></button>
+            <button type="button" class="ui-btn ui-btn--icono" [disabled]="ultima" (click)="moverUnidad(u, 1)" aria-label="Bajar unidad"><fa-icon [icon]="faArrowDown" /></button>
+            <button type="button" class="ui-btn ui-btn--icono" (click)="editarUnidad(u)" [attr.aria-label]="'Editar ' + u.titulo"><fa-icon [icon]="faPen" /></button>
+            <button type="button" class="ui-btn ui-btn--icono" (click)="eliminarUnidad(u)" [attr.aria-label]="'Eliminar ' + u.titulo"><fa-icon [icon]="faTrash" /></button>
+          </div>
+        </header>
+
+        <ul class="temas">
+          @for (t of u.temas; track t.id; let tp = $first; let tu = $last) {
+            <li [class.borrador]="!t.publicado">
+              <span class="ui-icono chico" [class]="t.tipo === 'video' ? 'tono-azul' : t.tipo === 'pdf' ? 'tono-crema' : 'tono-lima'"><fa-icon [icon]="iconoTema[t.tipo]" /></span>
+              <span class="tema-texto">
+                <strong>{{ t.titulo }}</strong>
+                <small>{{ tipoLabel(t.tipo) }} · {{ t.duracionMin }} min@if (!t.publicado) { · borrador }</small>
+              </span>
+              <span class="tema-acciones">
+                <button type="button" class="mini" [disabled]="tp" (click)="moverTema(t, -1)" aria-label="Subir tema"><fa-icon [icon]="faArrowUp" /></button>
+                <button type="button" class="mini" [disabled]="tu" (click)="moverTema(t, 1)" aria-label="Bajar tema"><fa-icon [icon]="faArrowDown" /></button>
+                <button type="button" class="mini" (click)="editarTema(t)" [attr.aria-label]="'Editar ' + t.titulo"><fa-icon [icon]="faPen" /></button>
+                <button type="button" class="mini" (click)="eliminarTema(t)" [attr.aria-label]="'Eliminar ' + t.titulo"><fa-icon [icon]="faTrash" /></button>
+              </span>
+            </li>
+          } @empty {
+            <li class="vacio">Esta unidad todavía no tiene temas.</li>
+          }
+        </ul>
+        <button type="button" class="agregar" (click)="nuevoTema(u)"><fa-icon [icon]="faPlus" /> Agregar tema a esta unidad</button>
+      </section>
+    } @empty {
+      <div class="ui-card">
+        <app-empty-state [icono]="faBookOpen" titulo="Todavía no hay contenido" texto="Organiza tu materia en unidades y agrega temas: lecturas, videos, documentos o enlaces.">
+          <button type="button" class="ui-btn" (click)="nuevaUnidad()"><fa-icon [icon]="faPlus" /> Crear la primera unidad</button>
+        </app-empty-state>
+      </div>
+    }
+  </div>
+}
+
+<!-- Unidad -->
+<app-drawer [abierto]="drawerUnidad()" [titulo]="editandoUnidad() ? 'Editar unidad' : 'Nueva unidad'" subtitulo="Agrupa los temas de un mismo bloque de contenido." (cerrar)="drawerUnidad.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardarUnidad()" novalidate>
+    <div class="ui-campo">
+      <label for="uni-titulo">Título</label>
+      <input id="uni-titulo" class="ui-input" [formField]="formUnidad.titulo" />
+      @if (formUnidad.titulo().touched() && formUnidad.titulo().invalid()) { <span class="ui-error">{{ formUnidad.titulo().errors()[0].message }}</span> }
+    </div>
+    <div class="ui-campo">
+      <label for="uni-desc">Descripción <span class="ui-ayuda">(opcional)</span></label>
+      <textarea id="uni-desc" class="ui-input area" rows="3" [formField]="formUnidad.descripcion"></textarea>
+    </div>
+    <label class="check"><input type="checkbox" id="uni-publicada" [formField]="formUnidad.publicada" /> Publicada (los estudiantes la ven)</label>
+    <label class="check" [class.deshabilitado]="esPrimera()">
+      <input type="checkbox" id="uni-bloqueo" [formField]="formUnidad.requiereAnterior" />
+      Se abre solo cuando el estudiante completa la unidad anterior
+    </label>
+    @if (esPrimera()) { <span class="ui-ayuda">La primera unidad siempre está abierta.</span> }
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerUnidad.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" (click)="guardarUnidad()">{{ editandoUnidad() ? 'Guardar cambios' : 'Crear unidad' }}</button>
+  </ng-container>
+</app-drawer>
+
+<!-- Tema -->
+<app-drawer [abierto]="drawerTema()" [titulo]="editandoTema() ? 'Editar tema' : 'Nuevo tema'" subtitulo="Una lectura, un video, un documento o un enlace." (cerrar)="drawerTema.set(false)">
+  <form class="ui-form" (submit)="$event.preventDefault(); guardarTema()" novalidate>
+    <div class="ui-campo">
+      <label for="tema-unidad">Unidad</label>
+      <select id="tema-unidad" class="ui-input" [formField]="formTema.unidadId">
+        @for (u of unidades.value(); track u.id) {
+          <option [value]="'' + u.id" [selected]="modeloTema().unidadId === '' + u.id">{{ u.titulo }}</option>
+        }
+      </select>
+    </div>
+    <div class="ui-campo">
+      <label for="tema-titulo">Título</label>
+      <input id="tema-titulo" class="ui-input" [formField]="formTema.titulo" />
+      @if (formTema.titulo().touched() && formTema.titulo().invalid()) { <span class="ui-error">{{ formTema.titulo().errors()[0].message }}</span> }
+    </div>
+    <span class="ui-etiqueta">Tipo</span>
+    <div class="tipos">
+      @for (tp of tipos; track tp.id) {
+        <label class="tipo" [class.activo]="modeloTema().tipo === tp.id">
+          <input type="radio" name="tipo-tema" [id]="'tema-tipo-' + tp.id" [checked]="modeloTema().tipo === tp.id" (change)="modeloTema.update((m) => ({ ...m, tipo: tp.id }))" />
+          <fa-icon [icon]="iconoTema[tp.id]" /> {{ tp.label }}
+        </label>
+      }
+    </div>
+    @switch (modeloTema().tipo) {
+      @case ('video') {
+        <div class="ui-campo"><label for="tema-url">Enlace del video</label><input id="tema-url" class="ui-input" placeholder="https://youtube.com/… o un archivo .mp4" [formField]="formTema.url" /></div>
+      }
+      @case ('enlace') {
+        <div class="ui-campo"><label for="tema-url">Enlace</label><input id="tema-url" class="ui-input" placeholder="https://" [formField]="formTema.url" /></div>
+      }
+      @case ('pdf') {
+        <div class="ui-campo">
+          <label for="tema-pdf">Documento</label>
+          <input id="tema-pdf" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx" class="ui-input archivo" (change)="elegirPdf($event)" />
+          @if (modeloTema().url) { <span class="ui-ayuda">Archivo: {{ modeloTema().url }}</span> }
+        </div>
+      }
+    }
+    <div class="ui-campo">
+      <label for="tema-contenido">{{ modeloTema().tipo === 'texto' ? 'Contenido de la lectura' : 'Descripción o indicaciones' }}</label>
+      <textarea id="tema-contenido" class="ui-input area" [attr.rows]="modeloTema().tipo === 'texto' ? 8 : 3" [formField]="formTema.contenido"></textarea>
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo">
+        <label for="tema-duracion">Duración estimada (min)</label>
+        <input id="tema-duracion" type="number" class="ui-input" [formField]="formTema.duracionMin" />
+      </div>
+      <label class="check alineado"><input type="checkbox" id="tema-publicado" [formField]="formTema.publicado" /> Publicado</label>
+    </div>
+  </form>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerTema.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" (click)="guardarTema()">{{ editandoTema() ? 'Guardar cambios' : 'Agregar tema' }}</button>
+  </ng-container>
+</app-drawer>
+
+<!-- Copiar -->
+<app-drawer [abierto]="drawerCopiar()" titulo="Copiar contenido" subtitulo="Las unidades se copian como borrador al final del contenido de cada paralelo." (cerrar)="drawerCopiar.set(false)">
+  <div class="ui-form">
+    <span class="ui-etiqueta">Unidades</span>
+    @for (u of unidades.value(); track u.id) {
+      <label class="check"><input type="checkbox" [id]="'copiar-u-' + u.id" [checked]="unidadesACopiar().includes(u.id)" (change)="alternar(unidadesACopiar, u.id, $any($event.target).checked)" /> {{ u.titulo }} ({{ u.temas.length }} temas)</label>
+    }
+    <span class="ui-etiqueta">Copiar a</span>
+    @for (h of hermanas.value(); track h.id) {
+      <label class="check"><input type="checkbox" [id]="'copiar-a-' + h.id" [checked]="destinos().includes(h.id)" (change)="alternar(destinos, h.id, $any($event.target).checked)" /> {{ h.nombre }}</label>
+    }
+  </div>
+  <ng-container pie>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerCopiar.set(false)">Cancelar</button>
+    <button type="button" class="ui-btn" [disabled]="copiando() || !unidadesACopiar().length || !destinos().length" (click)="copiar()"><fa-icon [icon]="faCopy" /> {{ copiando() ? 'Copiando…' : 'Copiar' }}</button>
+  </ng-container>
+</app-drawer>

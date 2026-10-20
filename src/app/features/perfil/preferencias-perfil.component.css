@@ -1,0 +1,76 @@
+.tabla-avisos {
+  display: flex;
+  flex-direction: column;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 120px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.fila.cabeza {
+  padding-top: 0;
+  border-top: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.aviso {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.aviso small {
+  color: var(--muted);
+}
+
+.canal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.todos {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--lime-strong);
+  font: inherit;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.pie .espacio {
+  flex: 1;
+}
+
+.datos.una {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 560px) {
+  .fila {
+    grid-template-columns: minmax(0, 1fr) 64px 64px;
+  }
+}

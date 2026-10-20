@@ -65,7 +65,7 @@ module.exports = async function asistencia({ verificar }) {
     // ---------- Padre: seguimiento y licencias ----------
     await b.sesion('padre');
     await b.ir('/colegio-san-jose/padre/asistencia');
-    verificar('el padre ve la asistencia de su hijo', (await b.texto('app-page-header h1')) === 'Asistencia de Luis');
+    verificar('el padre ve la asistencia de su hijo', (await b.texto('app-page-header h1')) === 'Asistencia de Luis Mamani');
     const avisos = await b.evaluar(`[...document.querySelectorAll('.avisos li strong')].map(s => s.textContent.trim())`);
     verificar('avisos de falta y de atraso', avisos.includes('Faltó a algunas clases') && avisos.includes('Con atraso'), avisos.join(' | '));
     verificar('lista sus licencias (1 pendiente y 1 aprobada)', (await b.evaluar(`document.querySelectorAll('.licencias li').length`)) === 2);

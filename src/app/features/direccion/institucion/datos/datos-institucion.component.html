@@ -1,0 +1,191 @@
+<app-page-header miga="Institución" titulo="Datos de la institución" descripcion="Información general de la unidad educativa. Aparece en los boletines, los reportes y el selector de espacios.">
+  @if (sinGuardar()) {
+    <span class="ui-badge tono-crema">Cambios sin guardar</span>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="descartar()">Descartar</button>
+  }
+  <button type="button" class="ui-btn" [disabled]="guardando() || !sinGuardar()" (click)="guardar()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+</app-page-header>
+
+@if (datos.isLoading() && !datos.value()) {
+  <p class="cargando">Cargando datos…</p>
+} @else {
+  <div class="distribucion">
+    <form class="secciones" (submit)="$event.preventDefault(); guardar()" novalidate>
+      <!-- Identidad -->
+      <section class="ui-card">
+        <h2>Identidad</h2>
+        <div class="logo-fila">
+          <div class="logo">
+            @if (modelo().logo) {
+              <img [src]="modelo().logo" alt="Logo de la institución" />
+            } @else {
+              <fa-icon [icon]="faSchool" />
+            }
+          </div>
+          <div class="logo-acciones">
+            <label class="ui-btn ui-btn--secundario subir">
+              <fa-icon [icon]="faImage" /> {{ modelo().logo ? 'Cambiar logo' : 'Subir logo' }}
+              <input id="inst-logo" type="file" accept="image/*" (change)="elegirLogo($event)" />
+            </label>
+            @if (modelo().logo) {
+              <button type="button" class="ui-btn ui-btn--icono" (click)="quitarLogo()" aria-label="Quitar logo"><fa-icon [icon]="faTrash" /></button>
+            }
+            <span class="ui-ayuda">PNG, JPG o SVG de hasta {{ LOGO_MAX_KB }} KB. Mejor si es cuadrado.</span>
+          </div>
+        </div>
+
+        <div class="ui-campo">
+          <label for="inst-nombre">Nombre de la unidad educativa</label>
+          <input id="inst-nombre" class="ui-input" [formField]="formulario.nombre" />
+          @if (formulario.nombre().touched() && formulario.nombre().invalid()) { <span class="ui-error">{{ formulario.nombre().errors()[0].message }}</span> }
+        </div>
+        <div class="ui-fila">
+          <div class="ui-campo">
+            <label for="inst-sigla">Sigla <span class="ui-ayuda">(opcional)</span></label>
+            <input id="inst-sigla" class="ui-input" placeholder="Ej. CSJ" [formField]="formulario.sigla" />
+            @if (formulario.sigla().invalid()) { <span class="ui-error">{{ formulario.sigla().errors()[0].message }}</span> }
+          </div>
+          <div class="ui-campo">
+            <label for="inst-fundacion">Año de fundación</label>
+            <input id="inst-fundacion" type="number" class="ui-input" [formField]="formulario.fundacion" />
+            @if (formulario.fundacion().invalid()) { <span class="ui-error">{{ formulario.fundacion().errors()[0].message }}</span> }
+          </div>
+        </div>
+        <div class="ui-campo">
+          <label for="inst-lema">Lema <span class="ui-ayuda">(opcional)</span></label>
+          <input id="inst-lema" class="ui-input" placeholder="Ej. Educar en valores para servir" [formField]="formulario.lema" />
+          @if (formulario.lema().invalid()) { <span class="ui-error">{{ formulario.lema().errors()[0].message }}</span> }
+        </div>
+      </section>
+
+      <!-- Datos oficiales -->
+      <section class="ui-card">
+        <h2>Datos oficiales</h2>
+        <div class="ui-fila">
+          <div class="ui-campo">
+            <label for="inst-sie">Código SIE</label>
+            <input id="inst-sie" class="ui-input" inputmode="numeric" placeholder="8 dígitos" [formField]="formulario.codigoSie" />
+            @if (formulario.codigoSie().touched() && formulario.codigoSie().invalid()) { <span class="ui-error">{{ formulario.codigoSie().errors()[0].message }}</span> }
+          </div>
+          <div class="ui-campo">
+            <label for="inst-dep">Dependencia</label>
+            <select id="inst-dep" class="ui-input" [formField]="formulario.dependencia">
+              @for (d of dependencias; track d.id) {
+                <option [value]="d.id" [selected]="modelo().dependencia === d.id">{{ d.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <span class="ui-etiqueta">Niveles que ofrece</span>
+        <div class="niveles">
+          @for (n of niveles; track n.id) {
+            <label class="nivel" [class.activo]="tieneNivel(n.id)">
+              <input type="checkbox" [id]="'inst-nivel-' + n.id" [checked]="tieneNivel(n.id)" (change)="cambiarNivel(n.id, $any($event.target).checked)" />
+              {{ n.label }}
+            </label>
+          }
+        </div>
+        @if (!modelo().niveles.length) { <span class="ui-error">Elige al menos un nivel.</span> }
+      </section>
+
+      <!-- Ubicación y contacto -->
+      <section class="ui-card">
+        <h2>Ubicación y contacto</h2>
+        <div class="ui-fila">
+          <div class="ui-campo">
+            <label for="inst-depto">Departamento</label>
+            <select id="inst-depto" class="ui-input" [formField]="formulario.departamento">
+              @for (d of departamentos; track d) {
+                <option [value]="d" [selected]="modelo().departamento === d">{{ d }}</option>
+              }
+            </select>
+          </div>
+          <div class="ui-campo">
+            <label for="inst-municipio">Municipio</label>
+            <input id="inst-municipio" class="ui-input" [formField]="formulario.municipio" />
+            @if (formulario.municipio().touched() && formulario.municipio().invalid()) { <span class="ui-error">{{ formulario.municipio().errors()[0].message }}</span> }
+          </div>
+        </div>
+        <div class="ui-fila">
+          <div class="ui-campo">
+            <label for="inst-zona">Zona <span class="ui-ayuda">(opcional)</span></label>
+            <input id="inst-zona" class="ui-input" [formField]="formulario.zona" />
+          </div>
+          <div class="ui-campo">
+            <label for="inst-direccion">Dirección</label>
+            <input id="inst-direccion" class="ui-input" [formField]="formulario.direccion" />
+            @if (formulario.direccion().touched() && formulario.direccion().invalid()) { <span class="ui-error">{{ formulario.direccion().errors()[0].message }}</span> }
+          </div>
+        </div>
+        <div class="ui-fila">
+          <div class="ui-campo">
+            <label for="inst-tel">Teléfono</label>
+            <input id="inst-tel" class="ui-input" inputmode="numeric" [formField]="formulario.telefono" />
+            @if (formulario.telefono().touched() && formulario.telefono().invalid()) { <span class="ui-error">{{ formulario.telefono().errors()[0].message }}</span> }
+          </div>
+          <div class="ui-campo">
+            <label for="inst-email">Correo</label>
+            <input id="inst-email" type="email" class="ui-input" [formField]="formulario.email" />
+            @if (formulario.email().touched() && formulario.email().invalid()) { <span class="ui-error">{{ formulario.email().errors()[0].message }}</span> }
+          </div>
+        </div>
+        <div class="ui-campo">
+          <label for="inst-web">Sitio web <span class="ui-ayuda">(opcional)</span></label>
+          <input id="inst-web" class="ui-input" placeholder="https://" [formField]="formulario.sitioWeb" />
+          @if (formulario.sitioWeb().touched() && formulario.sitioWeb().invalid()) { <span class="ui-error">{{ formulario.sitioWeb().errors()[0].message }}</span> }
+        </div>
+      </section>
+
+      <!-- Autoridades -->
+      <section class="ui-card">
+        <h2>Autoridades</h2>
+        <span class="ui-ayuda">Sus nombres aparecen al pie de los boletines.</span>
+        <div class="ui-fila">
+          <div class="ui-campo">
+            <label for="inst-director">Director(a)</label>
+            <input id="inst-director" class="ui-input" [formField]="formulario.director" />
+            @if (formulario.director().touched() && formulario.director().invalid()) { <span class="ui-error">{{ formulario.director().errors()[0].message }}</span> }
+          </div>
+          <div class="ui-campo">
+            <label for="inst-subdirector">Subdirector(a) <span class="ui-ayuda">(opcional)</span></label>
+            <input id="inst-subdirector" class="ui-input" [formField]="formulario.subdirector" />
+          </div>
+        </div>
+      </section>
+    </form>
+
+    <aside class="lateral">
+      <!-- Vista previa -->
+      <section class="ui-card vista">
+        <span class="ui-etiqueta">Así aparece en los boletines</span>
+        <div class="encabezado-boletin">
+          <span class="escudo">
+            @if (modelo().logo) { <img [src]="modelo().logo" alt="" /> } @else { <fa-icon [icon]="faSchool" /> }
+          </span>
+          <div>
+            <small>{{ modelo().nombre || 'Nombre de la institución' }}@if (modelo().sigla) { ({{ modelo().sigla }}) }</small>
+            <strong>Boletín de calificaciones</strong>
+            @if (modelo().lema) { <em>“{{ modelo().lema }}”</em> }
+          </div>
+        </div>
+        <dl class="ficha">
+          <div><dt>Código SIE</dt><dd>{{ modelo().codigoSie || '—' }}</dd></div>
+          <div><dt>Dependencia</dt><dd>{{ dependenciaLabel() }}</dd></div>
+          <div><dt><fa-icon [icon]="faLocationDot" /> Ubicación</dt><dd>{{ modelo().zona ? modelo().zona + ', ' : '' }}{{ modelo().municipio }} · {{ modelo().departamento }}</dd></div>
+          @if (modelo().fundacion) { <div><dt>Fundada en</dt><dd>{{ modelo().fundacion }} · {{ anioActual - modelo().fundacion }} años</dd></div> }
+        </dl>
+      </section>
+
+      <!-- Resumen -->
+      <section class="ui-card">
+        <span class="ui-etiqueta">Gestión {{ cifras().gestion }}</span>
+        <ul class="cifras">
+          <li><a [routerLink]="ruta('academico', 'paralelos')"><fa-icon [icon]="faSitemap" /> <strong>{{ cifras().paralelos }}</strong> paralelos</a></li>
+          <li><a [routerLink]="ruta('personas', 'estudiantes')"><fa-icon [icon]="faUserGraduate" /> <strong>{{ cifras().estudiantes }}</strong> estudiantes inscritos</a></li>
+          <li><a [routerLink]="ruta('personas', 'docentes')"><fa-icon [icon]="faChalkboardTeacher" /> <strong>{{ cifras().docentes }}</strong> docentes activos</a></li>
+          <li><a [routerLink]="ruta('institucion', 'jornada')"><fa-icon [icon]="faCalendarDays" /> Jornada escolar y horario laboral</a></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+}

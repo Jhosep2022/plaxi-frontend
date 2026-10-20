@@ -1,0 +1,248 @@
+<a class="volver" [routerLink]="ruta('clases')"><fa-icon [icon]="faArrowLeft" /> {{ aula.value()?.tipo === 'curso' ? 'Mis cursos' : 'Mis clases' }}</a>
+
+@if (aula.isLoading() && !aula.value()) {
+  <p class="cargando">Cargando el aula…</p>
+} @else if (aula.value(); as a) {
+  @if (!esMia()) {
+    <div class="ui-card"><app-empty-state [icono]="faChalkboard" titulo="Esta aula no está a tu cargo" texto="Vuelve a tu lista de clases." /></div>
+  } @else {
+    <!-- Encabezado -->
+    <header class="ui-card encabezado">
+      <div class="portada">
+        <app-portada-aula [imagen]="a.portada" [icono]="a.icono" [tono]="a.tono" />
+        <div class="portada-acciones">
+          <label class="ui-btn ui-btn--secundario chico subir">
+            <fa-icon [icon]="faCamera" /> {{ a.portada ? 'Cambiar' : 'Subir portada' }}
+            <input id="aula-portada" type="file" accept="image/*" (change)="elegirPortada($event)" />
+          </label>
+          @if (a.portada) {
+            <button type="button" class="ui-btn ui-btn--icono chico" (click)="guardarPortada('', 'Volviste a la portada por defecto.')" aria-label="Quitar portada"><fa-icon [icon]="faTrash" /></button>
+          }
+        </div>
+      </div>
+      <div class="titulos">
+        <h1>{{ a.nombre }}</h1>
+        <p>{{ a.curso }}@if (seguimiento(); as s) { · Turno {{ s.turno }} · {{ s.aula }} } · {{ a.estudiantes }} estudiantes</p>
+        <div class="chips">
+          <span class="ui-badge tono-lima"><fa-icon [icon]="faBookOpen" /> {{ a.unidades }} unidades · {{ a.temas }} temas</span>
+          <span class="ui-badge tono-azul"><fa-icon [icon]="faListCheck" /> {{ tareas().length }} {{ tareas().length === 1 ? 'tarea' : 'tareas' }}</span>
+          @if (seguimiento()?.proxima; as p) { <span class="ui-badge tono-crema"><fa-icon [icon]="faCalendarDays" /> Próxima clase: {{ p.hoy ? 'hoy' : fechaCorta(p.fecha) }} {{ p.inicio }}</span> }
+        </div>
+      </div>
+      <div class="botones">
+        @if (a.tipo === 'clase') {
+          <a class="ui-btn ui-btn--secundario" [routerLink]="ruta('asistencia')"><fa-icon [icon]="faUserCheck" /> Tomar asistencia</a>
+        } @else {
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="editandoCurso.set(true)"><fa-icon [icon]="faPen" /> Editar curso</button>
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="invitando.set(true)"><fa-icon [icon]="faUserPlus" /> Invitar</button>
+        }
+        <div class="menu-nuevo">
+          <button type="button" class="ui-btn" (click)="alternarMenu($event)" aria-haspopup="menu" [attr.aria-expanded]="menuNuevo()"><fa-icon [icon]="faPlus" /> Nuevo <fa-icon [icon]="faChevronDown" /></button>
+          @if (menuNuevo()) {
+            <div class="menu" role="menu">
+              <button type="button" role="menuitem" (click)="nuevo('unidad')"><fa-icon [icon]="faBookOpen" /> Unidad</button>
+              <button type="button" role="menuitem" (click)="nuevo('tema')"><fa-icon [icon]="faBookOpen" /> Tema</button>
+              <button type="button" role="menuitem" (click)="nuevo('quiz')"><fa-icon [icon]="faCircleQuestion" /> Quiz</button>
+              @if (a.tipo === 'clase') { <button type="button" role="menuitem" (click)="nuevo('tarea')"><fa-icon [icon]="faListCheck" /> Tarea</button> }
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Pestañas -->
+    <nav class="pestanas" role="tablist">
+      <button type="button" role="tab" [class.activa]="pestana() === 'inicio'" (click)="pestana.set('inicio')">Inicio</button>
+      <button type="button" role="tab" [class.activa]="pestana() === 'contenido'" (click)="pestana.set('contenido')">Contenido <span class="contador">{{ a.temas }}</span></button>
+      <button type="button" role="tab" [class.activa]="pestana() === 'quiz'" (click)="pestana.set('quiz')">Quiz @if (a.quiz) { <span class="contador">{{ a.quiz }}</span> }</button>
+      <button type="button" role="tab" [class.activa]="pestana() === 'tareas'" (click)="pestana.set('tareas')">Tareas <span class="contador">{{ tareas().length }}</span></button>
+      <button type="button" role="tab" [class.activa]="pestana() === 'estudiantes'" (click)="pestana.set('estudiantes')">Estudiantes <span class="contador">{{ a.estudiantes }}</span></button>
+      <button type="button" role="tab" [class.activa]="pestana() === 'notas'" (click)="pestana.set('notas')">Notas</button>
+    </nav>
+
+    @switch (pestana()) {
+      <!-- ===== Inicio ===== -->
+      @case ('inicio') {
+        <div class="indicadores">
+          <div class="ui-card indicador destacado">
+            <span class="ui-icono tono-lima"><fa-icon [icon]="faBookOpen" /></span>
+            <div><strong>{{ avanceGrupo() }}%</strong><small>avance del grupo en el contenido</small></div>
+          </div>
+          @if (seguimiento(); as s) {
+            <div class="ui-card indicador">
+              <span class="ui-icono tono-azul"><fa-icon [icon]="faUserCheck" /></span>
+              <div><strong>{{ s.asistencia.total ? s.asistencia.porcentaje + '%' : '—' }}</strong><small>de asistencia</small></div>
+            </div>
+            <div class="ui-card indicador">
+              <span class="ui-icono tono-crema"><fa-icon [icon]="faChartLine" /></span>
+              <div><strong>{{ s.promedio ?? '—' }}</strong><small>promedio del {{ s.periodo.nombre }}</small></div>
+            </div>
+            <div class="ui-card indicador">
+              <span class="ui-icono alerta"><fa-icon [icon]="faTriangleExclamation" /></span>
+              <div><strong>{{ enRiesgo() }}</strong><small>estudiantes en riesgo</small></div>
+            </div>
+          }
+        </div>
+
+        <div class="secciones">
+          @if (seguimiento(); as s) {
+            <section class="ui-card">
+              <h2><fa-icon [icon]="faCalendarDays" /> Horario semanal</h2>
+              <ul class="sesiones">
+                @for (h of s.sesiones; track h.dia + h.inicio) {
+                  <li [class.proxima]="esProxima(h.dia, h.inicio)">
+                    <strong>{{ h.diaLabel }}</strong><span>{{ h.inicio }} – {{ h.fin }}</span><small>{{ h.aula }}</small>
+                    @if (esProxima(h.dia, h.inicio)) { <span class="ui-badge tono-lima">{{ s.proxima!.hoy ? 'Hoy' : 'Próxima' }}</span> }
+                  </li>
+                } @empty {
+                  <li class="vacio">Esta materia todavía no tiene horario asignado.</li>
+                }
+              </ul>
+            </section>
+          }
+          <section class="ui-card">
+            <h2><fa-icon [icon]="faClipboardCheck" /> Por revisar y calificar</h2>
+            <ul class="pendientes">
+              @for (t of tareas(); track t.id) {
+                @if (t.porRevisar) {
+                  <li><a [routerLink]="ruta('tareas', t.id)"><strong>{{ t.titulo }}</strong><small>Tarea · {{ venceLabel(t) }}</small></a><span class="ui-badge tono-crema">{{ t.porRevisar }} entregas</span></li>
+                }
+              }
+              @for (p of seguimiento()?.pendientes ?? []; track p.actividad.id) {
+                <li><a [routerLink]="ruta('calificaciones')" [queryParams]="{ clase: a.id }"><strong>{{ p.actividad.nombre }}</strong><small>Planilla · {{ fechaCorta(p.actividad.fecha) }}</small></a><span class="ui-badge tono-azul">Faltan {{ p.faltan }} notas</span></li>
+              }
+              @if (!tieneRevisiones()) { <li class="vacio">Todo al día. 🎉</li> }
+            </ul>
+          </section>
+        </div>
+      }
+
+      <!-- ===== Contenido ===== -->
+      @case ('contenido') {
+        <app-contenido-docente [aula]="a" (cambio)="alCambiarContenido()" />
+      }
+
+      <!-- ===== Quiz ===== -->
+      @case ('quiz') {
+        <app-quiz-docente [aula]="a" (cambio)="aula.reload()" />
+      }
+
+      <!-- ===== Tareas ===== -->
+      @case ('tareas') {
+        <div class="barra-tab">
+          <span class="ui-ayuda">{{ a.tipo === 'clase' ? 'Tareas asignadas a esta clase.' : 'Tareas de práctica del curso: revisa cada entrega y deja un comentario.' }}</span>
+          <button type="button" class="ui-btn" (click)="nuevo('tarea')"><fa-icon [icon]="faPlus" /> Nueva tarea</button>
+        </div>
+        <div class="lista-tareas">
+          @for (t of tareas(); track t.id) {
+            <a class="ui-card fila-tarea" [routerLink]="ruta('tareas', t.id)">
+              <span class="ui-icono tono-lima"><fa-icon [icon]="faListCheck" /></span>
+              <span class="texto"><strong>{{ t.titulo }}</strong><small>{{ venceLabel(t) }}@if (t.criterio) { · cuenta para nota ({{ t.criterio }}) }</small></span>
+              <span class="ui-badge">{{ t.entregadas }}/{{ t.estudiantes }} entregaron</span>
+              @if (t.porRevisar) { <span class="ui-badge tono-crema">{{ t.porRevisar }} por revisar</span> }
+            </a>
+          } @empty {
+            <div class="ui-card"><app-empty-state [icono]="faListCheck" titulo="Todavía no asignaste tareas" texto="Pide un trabajo con fecha de entrega y revisa lo que te envían." /></div>
+          }
+        </div>
+      }
+
+      <!-- ===== Estudiantes ===== -->
+      @case ('estudiantes') {
+        @if (a.tipo === 'curso') {
+          <div class="curso-estudiantes">
+            <section class="ui-card">
+              <h2><fa-icon [icon]="faUserPlus" /> Invita a tus estudiantes</h2>
+              <app-invitacion [aula]="a" />
+            </section>
+            <section class="ui-card">
+              <h2><fa-icon [icon]="faUserCheck" /> Solicitudes pendientes @if (solicitudes.value().length) { <span class="ui-badge tono-crema">{{ solicitudes.value().length }}</span> }</h2>
+              <ul class="solicitudes">
+                @for (s of solicitudes.value(); track s.idInscripcion) {
+                  <li>
+                    <span class="persona"><span class="avatar">{{ iniciales(s.nombre) }}</span><span><strong>{{ s.nombre }}</strong><small>{{ s.gmail }} · {{ fechaCorta(s.fecha) }}</small></span></span>
+                    <button type="button" class="ui-btn chico" (click)="responder(s, true)"><fa-icon [icon]="faCheck" /> Aprobar</button>
+                    <button type="button" class="ui-btn ui-btn--secundario chico" (click)="responder(s, false)"><fa-icon [icon]="faXmark" /> Rechazar</button>
+                  </li>
+                } @empty {
+                  <li class="vacio">{{ a.aprobacionManual ? 'No hay solicitudes por revisar.' : 'Las inscripciones se aprueban solas (puedes cambiarlo en Editar curso).' }}</li>
+                }
+              </ul>
+            </section>
+          </div>
+        }
+        <section class="ui-card">
+          <div class="barra-tab">
+            <label class="buscar">
+              <fa-icon [icon]="faMagnifyingGlass" />
+              <input class="ui-input" placeholder="Buscar estudiante" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar estudiante" />
+            </label>
+            @if (seguimiento()) {
+              <label class="check"><input type="checkbox" id="solo-riesgo" [checked]="soloRiesgo()" (change)="soloRiesgo.set($any($event.target).checked)" /> Solo en riesgo ({{ enRiesgo() }})</label>
+            }
+          </div>
+          <div class="ui-tabla-contenedor">
+            <table class="ui-tabla" id="tabla-estudiantes">
+              <thead>
+                <tr><th>Estudiante</th><th>Avance del contenido</th>@if (seguimiento()) { <th class="num">Asistencia</th><th class="num">Nota</th><th>Seguimiento</th> } @if (a.tipo === 'curso') { <th></th> }</tr>
+              </thead>
+              <tbody>
+                @for (e of estudiantes(); track e.id) {
+                  <tr>
+                    <td><span class="persona"><span class="avatar">{{ iniciales(e.nombre) }}</span> <strong>{{ e.nombre }}</strong></span></td>
+                    <td><div class="avance"><div class="ui-barra tono-lima"><span [style.width.%]="e.progreso"></span></div><small>{{ e.progreso }}%</small></div></td>
+                    @if (a.tipo === 'curso') {
+                      <td class="num"><button type="button" class="ui-btn ui-btn--icono" (click)="quitarEstudiante(e.id, e.nombre)" [attr.aria-label]="'Quitar a ' + e.nombre" title="Quitar del curso"><fa-icon [icon]="faUserMinus" /></button></td>
+                    }
+                    @if (e.detalle; as d) {
+                      <td class="num">
+                        @if (d.asistencia.total) { <strong [class.baja]="d.asistencia.porcentaje < ASISTENCIA_MINIMA">{{ d.asistencia.porcentaje }}%</strong> } @else { — }
+                      </td>
+                      <td class="num">
+                        @if (d.resultado.final !== null) { <span class="ui-badge" [class]="aprueba(d.resultado.final) ? 'tono-lima' : 'alerta'">{{ d.resultado.final }}</span> } @else { — }
+                      </td>
+                      <td>
+                        @if (d.enRiesgo) { <span class="ui-badge alerta"><fa-icon [icon]="faTriangleExclamation" /> En riesgo por {{ motivo(d) }}</span> } @else { <span class="ui-badge tono-lima">Al día</span> }
+                      </td>
+                    }
+                  </tr>
+                } @empty {
+                  <tr><td colspan="5" class="vacio">Ningún estudiante coincide.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+      <!-- ===== Notas ===== -->
+      @case ('notas') {
+        @if (seguimiento(); as s) {
+          <section class="ui-card notas">
+            <div class="cifras">
+              <div><strong>{{ s.promedio ?? '—' }}</strong><small>promedio del {{ s.periodo.nombre }}</small></div>
+              <div><strong>{{ s.notasPeriodo.cargadas }}/{{ s.notasPeriodo.esperadas }}</strong><small>notas cargadas</small></div>
+              <div><strong>{{ enRiesgo() }}</strong><small>en riesgo</small></div>
+            </div>
+            <p class="ui-ayuda">Las notas se registran por actividad en la planilla, con la ponderación del colegio.@if (s.periodo.cerrado) { El {{ s.periodo.nombre }} está cerrado. }</p>
+            <a class="ui-btn" [routerLink]="ruta('calificaciones')" [queryParams]="{ clase: a.id }"><fa-icon [icon]="faStar" /> Abrir la planilla de notas</a>
+          </section>
+        } @else {
+          <section class="ui-card notas">
+            <p class="ui-ayuda">Las notas de este curso salen de sus quiz: cada uno se corrige solo y se toma el mejor intento de cada estudiante.</p>
+            <a class="ui-btn" [routerLink]="ruta('calificaciones')"><fa-icon [icon]="faStar" /> Ver las notas del curso</a>
+          </section>
+        }
+      }
+    }
+  }
+} @else {
+  <div class="ui-card"><app-empty-state [icono]="faChalkboard" titulo="No encontramos esta clase" texto="Puede que ya no esté asignada a ti. Vuelve a Mis clases." /></div>
+}
+
+@if (aula.value()?.tipo === 'curso') {
+  <app-curso-form [abierto]="editandoCurso()" [curso]="aula.value() ?? null" (cerrar)="editandoCurso.set(false)" (guardado)="alGuardarCurso()" />
+  <app-drawer [abierto]="invitando()" titulo="Invitar estudiantes" subtitulo="Comparte este link: quien lo abra podrá unirse al curso." (cerrar)="invitando.set(false)">
+    <app-invitacion [aula]="aula.value()!" (cambio)="aula.reload()" />
+  </app-drawer>
+}

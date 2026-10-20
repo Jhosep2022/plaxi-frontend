@@ -30,13 +30,13 @@ function datosPersonales(id: number, edad: number): Pick<Estudiante, 'ci' | 'fec
   };
 }
 
-// Estudiantes de cada paralelo según su cantidad de inscritos; Luis Mamani (usuario 2) está en 3ro A.
+// Estudiantes de cada paralelo según su cantidad de inscritos; Luis Mamani (usuario 2) está en 3ro A y su hermana Sofía en 6to A.
 // Al final, estudiantes nuevos que todavía no fueron inscritos en ningún paralelo.
 export const MOCK_ESTUDIANTES: Estudiante[] = [
   ...MOCK_PARALELOS.flatMap((p) =>
     Array.from({ length: p.estudiantes }, (_, i) => {
       const id = p.id === 5 && i === 0 ? 2 : 1000 + p.id * 100 + i;
-      const nombre = id === 2 ? 'Luis Mamani' : `${NOMBRES[(i * 7 + p.id) % NOMBRES.length]} ${APELLIDOS[(i * 3 + p.id * 5) % APELLIDOS.length]}`;
+      const nombre = id === 2 ? 'Luis Mamani' : id === 1400 ? 'Sofía Mamani' : `${NOMBRES[(i * 7 + p.id) % NOMBRES.length]} ${APELLIDOS[(i * 3 + p.id * 5) % APELLIDOS.length]}`;
       return { id, nombre, paraleloId: p.id, ...datosPersonales(id, EDAD_BASE[p.nivel] + p.grado) };
     })
   ),

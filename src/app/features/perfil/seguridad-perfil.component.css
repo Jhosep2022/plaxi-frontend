@@ -1,0 +1,122 @@
+/* Fuerza de la contraseña */
+.fuerza {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.barras {
+  display: flex;
+  gap: 4px;
+}
+
+.barras span {
+  width: 42px;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--line);
+}
+
+.fuerza[data-nivel='1'] .llena {
+  background: #e07a5f;
+}
+
+.fuerza[data-nivel='2'] .llena {
+  background: #d9b48f;
+}
+
+.fuerza[data-nivel='3'] .llena,
+.fuerza[data-nivel='4'] .llena {
+  background: var(--lime-green);
+}
+
+.fuerza small {
+  color: var(--muted);
+}
+
+.reglas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.reglas li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reglas li.ok {
+  color: var(--lime-strong);
+  font-weight: bold;
+}
+
+/* Dispositivos */
+.dispositivos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dispositivos li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.dispositivos li:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.disp-texto {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.disp-texto strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.disp-texto small {
+  color: var(--muted);
+}
+
+/* Zona de peligro */
+.peligro {
+  border: 1px solid #f0c9c4;
+}
+
+.peligro h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 17px;
+  color: #c0392b;
+}
+
+.peligro p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.aviso-baja {
+  background: #fdf0ee;
+  color: #c0392b;
+}
