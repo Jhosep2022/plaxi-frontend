@@ -5,7 +5,9 @@ import type { Membresia } from '../core/models/espacio.model';
 import type { ContactoEmergencia, EnlacesPerfil, EspacioDelPerfil, IndicadorPerfil, Perfil, PreferenciasNotificacion } from '../core/models/perfil.model';
 import { FOTO_MAX_KB } from '../core/models/perfil.model';
 import { hoyIso } from '../core/utils/asistencia';
+import { claveValida } from '../core/utils/clave';
 import { porcentaje } from '../core/utils/reportes';
+import { MOCK_CLAVES } from '../mocks/auth.mock';
 import { MOCK_AULAS_VIRTUALES } from '../mocks/aulas.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
 import { MOCK_MIEMBRO_DESDE, MOCK_PERFIL_EXTRA, perfilExtraVacio } from '../mocks/perfil.mock';
@@ -121,8 +123,11 @@ export class PerfilService {
   // ---------- Seguridad ----------
   cambiarClave(usuarioId: number, actual: string, nueva: string): Observable<Perfil | null> {
     if (!actual) return throwError(() => new Error('Escribe tu contraseña actual.'));
-    if (nueva.length < 8 || !/[a-zA-Z]/.test(nueva) || !/\d/.test(nueva)) return throwError(() => new Error('La nueva contraseña debe tener al menos 8 caracteres, con letras y números.'));
+    if (!claveValida(nueva)) return throwError(() => new Error('La nueva contraseña debe tener al menos 8 caracteres, con letras y números.'));
     if (nueva === actual) return throwError(() => new Error('La nueva contraseña debe ser distinta de la actual.'));
+    const guardada = MOCK_CLAVES[usuarioId];
+    if (guardada !== undefined && guardada !== actual) return throwError(() => new Error('La contraseña actual no es correcta.'));
+    MOCK_CLAVES[usuarioId] = nueva;
     return this.actualizar(usuarioId, (_, extra) => (extra.claveActualizada = hoyIso()));
   }
 

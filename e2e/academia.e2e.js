@@ -82,10 +82,10 @@ module.exports = async function academia({ verificar }) {
     await b.ir('/unirse/ANG-7K2Q', 3500);
     await b.clic('.accion button', 'Inicia sesión');
     await b.esperar(1500);
-    verificar('sin sesión, pide iniciar sesión', (await b.evaluar('location.pathname')) === '/auth/login');
-    await escribirEn('#username', 'estudiante');
-    await escribirEn('#password', '123456');
-    await b.clic('button.login-btn', 'Iniciar');
+    verificar('sin sesión, pide iniciar sesión y avisa de la invitación', (await b.evaluar('location.pathname')) === '/auth/login' && (await cuerpo()).includes('unirte al curso al que te invitaron'));
+    await escribirEn('#login-usuario', 'estudiante');
+    await escribirEn('#login-clave', '123456');
+    await b.clic('form button[type=submit]', 'Iniciar sesión');
     await b.esperar(3500);
     verificar('después del login vuelve al link de invitación', (await b.evaluar('location.pathname')) === '/unirse/ANG-7K2Q' && (await cuerpo()).includes('Ya estás inscrito'), await b.evaluar('location.pathname'));
     verificar('sin errores en la consola', b.errores.length === 0, b.errores.join(' | '));

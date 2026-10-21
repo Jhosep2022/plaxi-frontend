@@ -1,0 +1,214 @@
+@if (paso() < 4) {
+  <!-- Pasos -->
+  <ol class="pasos" aria-label="Pasos del registro">
+    @for (n of [1, 2, 3]; track n) {
+      <li [class.activo]="paso() === n" [class.hecho]="paso() > n">
+        <span class="numero">@if (paso() > n) { <fa-icon [icon]="faCheck" /> } @else { {{ n }} }</span>
+        <span class="texto">{{ n === 1 ? 'Tipo de cuenta' : n === 2 ? 'Tus datos' : tipo() === 'docente' ? 'Tu academia' : 'Tu curso' }}</span>
+      </li>
+    }
+  </ol>
+}
+
+@if (invitacion.value(); as c) {
+  @if (paso() < 4) {
+    <p class="aviso-invitacion"><fa-icon [icon]="faTicket" /> <span>{{ c.docente }} te invitó a <strong>{{ c.aula.nombre }}</strong>. Crea tu cuenta para unirte.</span></p>
+  }
+}
+
+@switch (paso()) {
+  <!-- ===== Paso 1: tipo de cuenta ===== -->
+  @case (1) {
+    <header class="encabezado">
+      <h1>Crea tu cuenta</h1>
+      <p>Es gratis. Cuéntanos cómo vas a usar QuizWiz.</p>
+    </header>
+    <div class="tipos">
+      <button type="button" class="tipo" [class.elegido]="tipo() === 'estudiante'" (click)="elegir('estudiante')">
+        <span class="ui-icono tono-lima"><fa-icon [icon]="faGraduationCap" /></span>
+        <span class="tipo-texto"><strong>Quiero aprender</strong><small>Únete a los cursos de tus docentes con un link o un código.</small></span>
+        <fa-icon [icon]="faArrowRight" class="flecha" />
+      </button>
+      <button type="button" class="tipo" [class.elegido]="tipo() === 'docente'" (click)="elegir('docente')">
+        <span class="ui-icono tono-crema"><fa-icon [icon]="faChalkboardTeacher" /></span>
+        <span class="tipo-texto"><strong>Quiero enseñar</strong><small>Crea tu academia, sube tus cursos e invita a tus estudiantes. 30 días gratis.</small></span>
+        <fa-icon [icon]="faArrowRight" class="flecha" />
+      </button>
+      <a class="tipo colegio" routerLink="/auth/colegio">
+        <span class="ui-icono tono-azul"><fa-icon [icon]="faSchool" /></span>
+        <span class="tipo-texto"><strong>Soy un colegio</strong><small>Déjanos tus datos y preparamos tu institución con la dirección, docentes y estudiantes.</small></span>
+        <fa-icon [icon]="faArrowRight" class="flecha" />
+      </a>
+    </div>
+    <p class="alterno">¿Ya tienes cuenta? <a class="enlace" routerLink="/auth/login">Inicia sesión</a></p>
+  }
+
+  <!-- ===== Paso 2: datos ===== -->
+  @case (2) {
+    <header class="encabezado">
+      <h1>{{ tipo() === 'docente' ? 'Tus datos de docente' : 'Tus datos' }}</h1>
+      <p>Con tu usuario o tu correo vas a iniciar sesión.</p>
+    </header>
+    <form class="ui-form" (submit)="$event.preventDefault(); continuarDatos()" novalidate>
+      <div class="ui-campo">
+        <label for="reg-nombre">Nombre(s)</label>
+        <input id="reg-nombre" class="ui-input" autocomplete="given-name" [formField]="fDatos.nombre" (blur)="sugerirUsuario()" />
+        @if (fDatos.nombre().touched() && fDatos.nombre().invalid()) { <span class="ui-error">{{ fDatos.nombre().errors()[0].message }}</span> }
+      </div>
+      <div class="ui-fila">
+        <div class="ui-campo">
+          <label for="reg-ap1">Primer apellido</label>
+          <input id="reg-ap1" class="ui-input" autocomplete="family-name" [formField]="fDatos.primerApellido" (blur)="sugerirUsuario()" />
+          @if (fDatos.primerApellido().touched() && fDatos.primerApellido().invalid()) { <span class="ui-error">{{ fDatos.primerApellido().errors()[0].message }}</span> }
+        </div>
+        <div class="ui-campo">
+          <label for="reg-ap2">Segundo apellido <span class="ui-ayuda">(opcional)</span></label>
+          <input id="reg-ap2" class="ui-input" [formField]="fDatos.segundoApellido" />
+        </div>
+      </div>
+      <div class="ui-campo">
+        <label for="reg-correo">Correo electrónico</label>
+        <input id="reg-correo" type="email" class="ui-input" autocomplete="email" [formField]="fDatos.correo" (blur)="revisarCorreo()" (input)="correoOcupado.set(false)" />
+        @if (fDatos.correo().touched() && fDatos.correo().invalid()) { <span class="ui-error">{{ fDatos.correo().errors()[0].message }}</span> }
+        @else if (correoOcupado()) { <span class="ui-error">Ya existe una cuenta con ese correo. <a class="enlace" routerLink="/auth/login">¿Iniciar sesión?</a></span> }
+      </div>
+      <div class="ui-campo">
+        <label for="reg-usuario">Nombre de usuario</label>
+        <input id="reg-usuario" class="ui-input" autocomplete="username" placeholder="Ej. ana.lopez" [formField]="fDatos.usuario" (blur)="revisarUsuario()" (input)="usuarioOcupado.set(false)" />
+        @if (fDatos.usuario().touched() && fDatos.usuario().invalid()) { <span class="ui-error">{{ fDatos.usuario().errors()[0].message }}</span> }
+        @else if (usuarioOcupado()) { <span class="ui-error">Ese nombre de usuario ya está ocupado.</span> }
+      </div>
+      <div class="ui-campo">
+        <label for="reg-clave">Contraseña</label>
+        <div class="campo-clave">
+          <input id="reg-clave" class="ui-input" [type]="mostrar() ? 'text' : 'password'" autocomplete="new-password" [formField]="fDatos.clave" />
+          <button type="button" class="ver-clave" (click)="mostrar.set(!mostrar())" [attr.aria-label]="mostrar() ? 'Ocultar contraseña' : 'Mostrar contraseña'"><fa-icon [icon]="mostrar() ? faEyeSlash : faEye" /></button>
+        </div>
+        @if (fDatos.clave().touched() && fDatos.clave().invalid()) { <span class="ui-error">{{ fDatos.clave().errors()[0].message }}</span> }
+      </div>
+      <app-medidor-clave [clave]="datos().clave" />
+      <label class="terminos">
+        <input id="reg-terminos" type="checkbox" [formField]="fDatos.terminos" />
+        <span>Acepto los <a class="enlace" href="#" (click)="$event.preventDefault()">términos de uso</a> y la <a class="enlace" href="#" (click)="$event.preventDefault()">política de privacidad</a>.</span>
+      </label>
+      @if (fDatos.terminos().touched() && fDatos.terminos().invalid()) { <span class="ui-error">{{ fDatos.terminos().errors()[0].message }}</span> }
+
+      <div class="botones">
+        @if (!codigoInicial()) {
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="atras()"><fa-icon [icon]="faArrowLeft" /> Atrás</button>
+        }
+        <button type="submit" class="ui-btn">Continuar <fa-icon [icon]="faArrowRight" /></button>
+      </div>
+    </form>
+  }
+
+  <!-- ===== Paso 3: academia o curso ===== -->
+  @case (3) {
+    @if (tipo() === 'docente') {
+      <header class="encabezado">
+        <h1>Crea tu academia</h1>
+        <p>Es tu espacio: ahí van tus cursos, tus estudiantes y tus sesiones. Puedes cambiar el nombre después.</p>
+      </header>
+      <form class="ui-form" (submit)="$event.preventDefault(); crear()" novalidate>
+        <div class="ui-campo">
+          <label for="reg-academia">Nombre de la academia</label>
+          <input id="reg-academia" class="ui-input" [value]="cuentaModelo().academia" (input)="cambiarNombreAcademia($any($event.target).value)" (blur)="revisarSlug()" />
+          @if (fCuenta.academia().invalid()) { <span class="ui-error">{{ fCuenta.academia().errors()[0].message }}</span> }
+        </div>
+        <div class="ui-campo">
+          <label for="reg-slug">Dirección web</label>
+          <div class="slug">
+            <span>quizwiz.app/</span>
+            <input id="reg-slug" class="ui-input" [value]="cuentaModelo().slug" (input)="cambiarSlug($any($event.target).value)" (blur)="revisarSlug()" />
+          </div>
+          @if (fCuenta.slug().invalid()) { <span class="ui-error">{{ fCuenta.slug().errors()[0].message }}</span> }
+          @else if (slugOcupado()) { <span class="ui-error">Esa dirección ya está en uso. Prueba con otra.</span> }
+          @else { <span class="ui-ayuda">Así se verán los links de tus cursos.</span> }
+        </div>
+
+        <fieldset class="primer-curso">
+          <legend>Tu primer curso <span class="ui-ayuda">(opcional)</span></legend>
+          <div class="ui-fila">
+            <div class="ui-campo">
+              <label for="reg-curso">Nombre del curso</label>
+              <input id="reg-curso" class="ui-input" placeholder="Ej. Excel desde cero" [formField]="fCuenta.curso" />
+            </div>
+            <div class="ui-campo">
+              <label for="reg-categoria">Categoría</label>
+              <select id="reg-categoria" class="ui-input" [formField]="fCuenta.categoria">
+                <option value="">Elige una</option>
+                @for (c of categorias.value(); track c.idCategoria) { <option [value]="c.nombre">{{ c.nombre }}</option> }
+              </select>
+            </div>
+          </div>
+          @if (cuentaModelo().curso.trim() && !cuentaModelo().categoria) { <span class="ui-error">Elige la categoría del curso.</span> }
+        </fieldset>
+
+        @if (error()) { <p class="error-general" role="alert"><fa-icon [icon]="faCircleExclamation" /> {{ error() }}</p> }
+
+        <div class="botones">
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="atras()"><fa-icon [icon]="faArrowLeft" /> Atrás</button>
+          <button type="submit" class="ui-btn" [disabled]="enviando() || !puedeCrear()">{{ enviando() ? 'Creando tu academia…' : 'Crear mi academia' }}</button>
+        </div>
+        <p class="ui-ayuda centro">Empiezas con 30 días de prueba gratis, sin tarjeta.</p>
+      </form>
+    } @else {
+      <header class="encabezado">
+        <h1>¿Tienes un código de curso?</h1>
+        <p>Si tu docente te compartió un código, escríbelo y quedarás inscrito. Si no, puedes hacerlo después.</p>
+      </header>
+      <form class="ui-form" (submit)="$event.preventDefault(); crear()" novalidate>
+        <div class="ui-campo">
+          <label for="reg-codigo">Código del curso</label>
+          <input id="reg-codigo" class="ui-input codigo" placeholder="ANG-7K2Q" [formField]="fCuenta.codigo" />
+          @if (fCuenta.codigo().invalid()) { <span class="ui-error">{{ fCuenta.codigo().errors()[0].message }}</span> }
+        </div>
+
+        @if (error()) { <p class="error-general" role="alert"><fa-icon [icon]="faCircleExclamation" /> {{ error() }}</p> }
+
+        <div class="botones">
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="atras()"><fa-icon [icon]="faArrowLeft" /> Atrás</button>
+          <button type="submit" class="ui-btn" [disabled]="enviando()">{{ enviando() ? 'Creando tu cuenta…' : cuentaModelo().codigo.trim() ? 'Crear cuenta y unirme' : 'Crear cuenta' }}</button>
+        </div>
+      </form>
+    }
+  }
+
+  <!-- ===== Paso 4: listo ===== -->
+  @case (4) {
+    <div class="exito">
+      <span class="icono"><fa-icon [icon]="faCheck" /></span>
+      @if (tipo() === 'docente') {
+        <h1>¡Tu academia está lista!</h1>
+        <p>Bienvenido, {{ datos().nombre.split(' ')[0] }}. Tienes 30 días de prueba gratis. Estos son tus primeros pasos:</p>
+      } @else if (resultado()?.inscripcion === 'ACTIVA') {
+        <h1>¡Ya estás dentro!</h1>
+        <p>Tu cuenta está lista y quedaste inscrito en el curso.</p>
+      } @else if (resultado()?.inscripcion === 'PENDIENTE') {
+        <h1>¡Cuenta creada!</h1>
+        <p>Tu solicitud para unirte al curso quedó pendiente. El docente la revisará pronto.</p>
+      } @else {
+        <h1>¡Cuenta creada!</h1>
+        <p>Cuando un docente te comparta un link o un código, podrás unirte a su curso.</p>
+      }
+    </div>
+
+    @if (primerosPasos().length) {
+      <ol class="primeros-pasos">
+        @for (p of primerosPasos(); track p.titulo; let i = $index) {
+          <li>
+            <a [routerLink]="p.link" [queryParams]="p.query">
+              <span class="ui-icono tono-lima"><fa-icon [icon]="p.icono" /></span>
+              <span class="tipo-texto"><strong>{{ i + 1 }}. {{ p.titulo }}</strong><small>{{ p.texto }}</small></span>
+              <fa-icon [icon]="faArrowRight" class="flecha" />
+            </a>
+          </li>
+        }
+      </ol>
+    }
+
+    <button type="button" class="ui-btn boton-ancho" (click)="irAlInicio()">
+      {{ tipo() === 'docente' ? 'Ir a mi academia' : resultado()?.inscripcion === 'ACTIVA' ? 'Ir a mi curso' : 'Continuar' }}
+    </button>
+  }
+}
