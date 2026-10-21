@@ -1,0 +1,148 @@
+/* Estilos comunes de las pantallas de acceso */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.encabezado h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.encabezado p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.ui-form {
+  gap: 14px;
+}
+
+.campo-clave {
+  position: relative;
+}
+
+.campo-clave .ui-input {
+  width: 100%;
+  padding-right: 44px;
+  box-sizing: border-box;
+}
+
+.ver-clave {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ver-clave:hover {
+  background: var(--page-bg);
+  color: var(--dark-blue);
+}
+
+.etiqueta-fila label {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--dark-blue);
+}
+
+.etiqueta-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.enlace {
+  color: var(--lime-strong);
+  font-size: 13px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.enlace:hover {
+  text-decoration: underline;
+}
+
+.boton-ancho {
+  width: 100%;
+  justify-content: center;
+  height: 44px;
+}
+
+.alterno {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.error-general {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fdf0ee;
+  color: #c0392b;
+  font-size: 14px;
+}
+
+.aviso-invitacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--lime-soft);
+  color: var(--lime-strong);
+  font-size: 14px;
+}
+
+.exito {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.exito .icono {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--lime-soft);
+  color: var(--lime-strong);
+  font-size: 26px;
+}
+
+.exito h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.exito p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.simulacion {
+  width: 100%;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}

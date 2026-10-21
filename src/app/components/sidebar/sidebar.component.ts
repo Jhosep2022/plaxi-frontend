@@ -90,6 +90,23 @@ export class SidebarComponent {
     return p ? `${p.nombre.charAt(0)}${p.primerApellido.charAt(0)}`.toUpperCase() : '';
   });
 
+  // Tarjeta destacada al pie del panel: un atajo útil según el rol
+  readonly tarjeta = computed(() => {
+    const tipo = this.espacio()?.tipo;
+    switch (this.rol()) {
+      case 'docente':
+        return tipo === 'academia'
+          ? { titulo: 'Invita a tus estudiantes', texto: 'Comparte el link o el código de tus cursos para que se unan.', boton: 'Ver invitaciones', ruta: 'docente/invitaciones' }
+          : { titulo: 'Entregas por revisar', texto: 'Revisa las tareas que te enviaron tus estudiantes.', boton: 'Ir a tareas', ruta: 'docente/tareas' };
+      case 'estudiante':
+        return tipo === 'academia'
+          ? { titulo: 'Aprende algo nuevo', texto: 'Explora los cursos de la academia y únete con un clic.', boton: 'Ver catálogo', ruta: 'estudiante/catalogo' }
+          : { titulo: 'No olvides tus tareas', texto: 'Revisa lo que tienes por entregar esta semana.', boton: 'Mis tareas', ruta: 'estudiante/tareas' };
+      default:
+        return null;
+    }
+  });
+
   // Cursos del usuario: creados (docente) o inscritos (estudiante)
   private readonly misCursos = toSignal(this.cargarMisCursos(), { initialValue: [] as NavItem[] });
 

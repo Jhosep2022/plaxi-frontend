@@ -1,0 +1,204 @@
+/* Indicador de pasos */
+.pasos {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pasos li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pasos li:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.pasos li.hecho:not(:last-child)::after {
+  background: var(--lime-green);
+}
+
+.numero {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.pasos li.activo {
+  color: var(--dark-blue);
+  font-weight: bold;
+}
+
+.pasos li.activo .numero {
+  background: var(--dark-blue);
+  color: var(--lime-green);
+}
+
+.pasos li.hecho .numero {
+  background: var(--lime-green);
+  color: var(--dark-blue);
+}
+
+/* Tipo de cuenta */
+.tipos,
+.primeros-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tipo,
+.primeros-pasos a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--text-light);
+  color: var(--dark-blue);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.tipo:hover,
+.tipo.elegido,
+.primeros-pasos a:hover {
+  border-color: var(--lime-green);
+  transform: translateY(-1px);
+}
+
+.tipo .ui-icono {
+  width: 46px;
+  height: 46px;
+  font-size: 20px;
+}
+
+.tipo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.tipo-texto small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.flecha {
+  color: var(--muted);
+}
+
+.tipo.colegio {
+  border-style: dashed;
+}
+
+/* Formularios */
+.terminos {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.terminos input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--dark-blue);
+}
+
+.botones {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.botones .ui-btn:last-child {
+  margin-left: auto;
+}
+
+.slug {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--text-light);
+}
+
+.slug span {
+  padding: 0 4px 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.slug .ui-input {
+  flex: 1;
+  min-width: 0;
+  padding-left: 2px;
+  border: none;
+  box-shadow: none;
+}
+
+.primer-curso {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
+
+.primer-curso legend {
+  padding: 0 6px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.codigo {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: bold;
+}
+
+.centro {
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .pasos .texto {
+    display: none;
+  }
+}

@@ -137,6 +137,24 @@ export function recordarVolverA(ruta: string): void {
   }
 }
 
+// Mira la página pendiente sin consumirla (p. ej. para avisar en el login que viene de una invitación)
+export function verVolverA(): string | null {
+  try {
+    return sessionStorage.getItem(KEY_VOLVER_A);
+  } catch {
+    return null;
+  }
+}
+
+// Descarta la página pendiente (p. ej. al registrarse ya se resolvió la invitación)
+export function olvidarVolverA(): void {
+  try {
+    sessionStorage.removeItem(KEY_VOLVER_A);
+  } catch {
+    // Nada que borrar
+  }
+}
+
 function leerVolverA(): string | null {
   try {
     const ruta = sessionStorage.getItem(KEY_VOLVER_A);

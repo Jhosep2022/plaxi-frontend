@@ -31,15 +31,7 @@
           </div>
         </div>
 
-        <div class="fuerza" [attr.data-nivel]="fuerza().nivel">
-          <div class="barras">@for (n of [1, 2, 3, 4]; track n) { <span [class.llena]="fuerza().nivel >= n"></span> }</div>
-          <small>{{ fuerza().label || 'Escribe una contraseña para ver qué tan segura es' }}</small>
-        </div>
-        <ul class="reglas">
-          @for (r of reglas(); track r.label) {
-            <li [class.ok]="r.ok"><fa-icon [icon]="r.ok ? faCheck : faXmark" /> {{ r.label }}</li>
-          }
-        </ul>
+        <app-medidor-clave [clave]="modelo().nueva" />
 
         <div class="acciones-form">
           <button type="submit" class="ui-btn" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Cambiar contraseña' }}</button>

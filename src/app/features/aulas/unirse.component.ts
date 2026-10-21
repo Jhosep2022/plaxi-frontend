@@ -24,6 +24,7 @@ import { mensajeError } from '../direccion/academico/academico.ui';
     .datos { display: flex; gap: 8px; flex-wrap: wrap; }
     .accion { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
     .accion .ui-btn { height: 48px; justify-content: center; font-size: 16px; text-decoration: none; }
+    .enlace-sesion { padding: 0; border: none; background: none; color: var(--lime-strong); font: inherit; font-weight: bold; cursor: pointer; text-decoration: underline; }
     .aviso { display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: 14px; background: var(--lime-soft); color: var(--dark-blue); font-weight: bold; }
     .aviso.pendiente { background: var(--cream-soft); color: var(--cream-strong); }
     .invalido { text-align: center; align-items: center; padding: 32px; }
@@ -55,7 +56,8 @@ import { mensajeError } from '../direccion/academico/academico.ui';
             <div class="aviso pendiente"><fa-icon [icon]="faClock" /> Tu solicitud está pendiente. {{ c.docente }} la revisará pronto.</div>
             <a class="ui-btn ui-btn--secundario" routerLink="/espacios">Ir a mis espacios</a>
           } @else if (!session.autenticado()) {
-            <button type="button" class="ui-btn" (click)="iniciarSesion()">Inicia sesión para unirte</button>
+            <a class="ui-btn" routerLink="/auth/registro" [queryParams]="{ codigo: codigo() }">Crear cuenta y unirme</a>
+            <span class="ui-ayuda">¿Ya tienes cuenta? <button type="button" class="enlace-sesion" (click)="iniciarSesion()">Inicia sesión para unirte</button></span>
           } @else {
             <button type="button" class="ui-btn" [disabled]="uniendo()" (click)="unirse()">
               <fa-icon [icon]="c.aula.aprobacionManual ? faUserCheck : faCheck" /> {{ uniendo() ? 'Un momento…' : c.aula.aprobacionManual ? 'Solicitar inscripción' : 'Unirme al curso' }}

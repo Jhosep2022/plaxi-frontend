@@ -29,8 +29,8 @@
     </ul>
 
     <div class="rail-bottom">
-      @if (rol() === 'docente') {
-        <a [routerLink]="link('docente/contenido/cursos/nuevo')" class="rail-btn rail-btn--accent" title="Crear curso" aria-label="Crear curso">
+      @if (rol() === 'docente' && espacio()?.tipo === 'academia') {
+        <a [routerLink]="link('docente/cursos/nuevo')" class="rail-btn rail-btn--accent" title="Crear curso" aria-label="Crear curso">
           <fa-icon [icon]="faPlus" />
         </a>
       }
@@ -156,13 +156,13 @@
         }
       </div>
 
-      @if (espacio()?.tipo === 'academia' || rol() === 'estudiante') {
-        <!-- Tarjeta destacada -->
+      @if (tarjeta(); as t) {
+        <!-- Tarjeta destacada (según el rol y el tipo de espacio) -->
         <div class="panel-card">
           <fa-icon [icon]="faWandMagicSparkles" class="card-icon" />
-          <h4>Únete a un Quiz</h4>
-          <p>Ingresa el código que te compartió tu docente y empieza a jugar.</p>
-          <button type="button" class="card-btn">Unirme ahora</button>
+          <h4>{{ t.titulo }}</h4>
+          <p>{{ t.texto }}</p>
+          <a class="card-btn" [routerLink]="link(t.ruta)">{{ t.boton }}</a>
         </div>
       }
     </nav>

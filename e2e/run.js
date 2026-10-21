@@ -22,6 +22,7 @@ const SUITES = {
   academia: require('./academia.e2e'),
   sesiones: require('./sesiones.e2e'),
   perfil: require('./perfil.e2e'),
+  acceso: require('./acceso.e2e'),
 };
 
 async function main() {
