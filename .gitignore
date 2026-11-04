@@ -40,10 +40,17 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
-.claude
-.agents
-.codestudio
-skills-lock.json
 
 # Capturas de las pruebas e2e
 e2e/capturas/
+
+# Variables de entorno (nunca subir secretos)
+.env
+.env.*
+
+# Herramientas locales (MCP, agentes de IA)
+.mcp.json
+.claude/
+.agents/
+.codestudio/
+skills-lock.json
