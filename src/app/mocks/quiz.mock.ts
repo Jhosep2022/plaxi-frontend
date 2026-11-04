@@ -3,7 +3,7 @@
 // ============================================================================
 import { esCorrecta } from '../core/models/quiz.model';
 import type { Intento, Pregunta, Quiz } from '../core/models/quiz.model';
-import { MOCK_ESTUDIANTES } from './asistencia.mock';
+import { MOCK_ESTUDIANTES } from './attendance.mock';
 
 // Aula 9 = Física · 3ro A, aula 8 = Matemáticas · 3ro A
 export const MOCK_QUIZZES: Quiz[] = [

@@ -7,7 +7,7 @@ import { faArrowLeft, faArrowRight, faCheck, faCircleQuestion, faClock, faPaperP
 import { SessionService } from '../../../core/auth/session.service';
 import { respuestaCorrecta, textoRespuesta } from '../../../core/models/quiz.model';
 import type { Intento, Pregunta, Respuesta } from '../../../core/models/quiz.model';
-import { fechaCorta } from '../../../core/utils/asistencia';
+import { fechaCorta } from '../../../core/utils/attendance';
 import { ahoraIso } from '../../../core/utils/tareas';
 import { QuizService } from '../../../services/quiz.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';

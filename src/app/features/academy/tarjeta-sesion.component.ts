@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faCircleXmark, faClock, faFilm, faUsers, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { PLATAFORMAS } from '../../core/models/sesiones.model';
-import { fechaCorta, hoyIso, sumarDias } from '../../core/utils/asistencia';
+import { fechaCorta, hoyIso, sumarDias } from '../../core/utils/attendance';
 import { SesionVista } from '../../services/sesiones.service';
 
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];

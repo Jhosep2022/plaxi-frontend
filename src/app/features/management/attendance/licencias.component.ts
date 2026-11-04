@@ -6,10 +6,10 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faFileMedical, faPaperclip, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academico.model';
-import { EstadoLicencia, Licencia } from '../../../core/models/asistencia.model';
-import { fechaCorta } from '../../../core/utils/asistencia';
+import { EstadoLicencia, Licencia } from '../../../core/models/attendance.model';
+import { fechaCorta } from '../../../core/utils/attendance';
 import { AcademicoService } from '../../../services/academico.service';
-import { AsistenciaService } from '../../../services/asistencia.service';
+import { AttendanceService } from '../../../services/attendance.service';
 import { ProfileService } from '../../../services/profile.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
@@ -27,7 +27,7 @@ import { mensajeError } from '../academics/academico.ui';
 })
 export class LicenciasComponent {
   private session = inject(SessionService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private academico = inject(AcademicoService);
   private perfiles = inject(ProfileService);
   private avisos = inject(AvisosService);

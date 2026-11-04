@@ -4,7 +4,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPrint, faSchool } from '@fortawesome/free-solid-svg-icons';
 import { paraleloLabel } from '../../core/models/academico.model';
 import { aprobado, boletinDe, indiceNotas, promedio } from '../../core/utils/calificaciones';
-import { fechaLarga, hoyIso } from '../../core/utils/asistencia';
+import { fechaLarga, hoyIso } from '../../core/utils/attendance';
 import { DatosParalelo } from '../../services/calificaciones.service';
 import { InstitucionService } from '../../services/institucion.service';
 import { iconoMateria } from '../ui/iconos-academicos';

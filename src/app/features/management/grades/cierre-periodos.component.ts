@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { Gestion } from '../../../core/models/academico.model';
-import { fechaCorta, hoyIso } from '../../../core/utils/asistencia';
+import { fechaCorta, hoyIso } from '../../../core/utils/attendance';
 import { AcademicoService } from '../../../services/academico.service';
 import { CalificacionesService } from '../../../services/calificaciones.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';

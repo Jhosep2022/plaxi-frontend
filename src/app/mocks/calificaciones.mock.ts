@@ -3,9 +3,9 @@
 // Se generan de forma determinística: siempre son los mismos al recargar.
 // ============================================================================
 import { Actividad, CierrePeriodo, ConfigCalificacion, Nota, configPorDefecto } from '../core/models/calificaciones.model';
-import { sumarDias } from '../core/utils/asistencia';
+import { sumarDias } from '../core/utils/attendance';
 import { MOCK_ASIGNACIONES, MOCK_GESTIONES } from './academico.mock';
-import { MOCK_ESTUDIANTES } from './asistencia.mock';
+import { MOCK_ESTUDIANTES } from './attendance.mock';
 
 const E = 1;
 const HOY_MOCK = '2026-10-19'; // las actividades del periodo en curso llegan hasta esta fecha

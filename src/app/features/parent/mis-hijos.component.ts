@@ -9,9 +9,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { PARENTESCOS, edad, iniciales } from '../../core/models/personas.model';
-import { contar, fechaCorta, hoyIso, sumarDias } from '../../core/utils/asistencia';
+import { contar, fechaCorta, hoyIso, sumarDias } from '../../core/utils/attendance';
 import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/calificaciones';
-import { AsistenciaService } from '../../services/asistencia.service';
+import { AttendanceService } from '../../services/attendance.service';
 import { CalificacionesService } from '../../services/calificaciones.service';
 import { ComunicadosService } from '../../services/comunicados.service';
 import { Hijo, HijoActivoService } from '../../services/hijo-activo.service';
@@ -47,7 +47,7 @@ export class MisHijosComponent {
   private session = inject(SessionService);
   private router = inject(Router);
   private hijoActivo = inject(HijoActivoService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private calificaciones = inject(CalificacionesService);
   private comunicados = inject(ComunicadosService);
   private tareas = inject(TareasService);

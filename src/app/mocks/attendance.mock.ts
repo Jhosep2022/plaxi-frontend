@@ -2,7 +2,7 @@
 // DATOS MOCKEADOS del módulo Asistencia (Colegio San José)
 // Se generan de forma determinística: siempre son los mismos al recargar.
 // ============================================================================
-import { ConfigAsistenciaDocente, EstadoAsistencia, Estudiante, Licencia, RegistroAsistencia } from '../core/models/asistencia.model';
+import { ConfigAsistenciaDocente, EstadoAsistencia, Estudiante, Licencia, RegistroAsistencia } from '../core/models/attendance.model';
 import { docenteDe } from '../core/utils/horario';
 import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_PARALELOS } from './academico.mock';
 

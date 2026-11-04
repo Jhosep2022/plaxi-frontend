@@ -7,7 +7,7 @@ import { faCalendarDays, faCamera, faTrash } from '@fortawesome/free-solid-svg-i
 import { SessionService } from '../../core/auth/session.service';
 import { ROL_LABEL } from '../../core/models/espacio.model';
 import { FOTO_MAX_KB, Perfil } from '../../core/models/perfil.model';
-import { mesAnio } from '../../core/utils/asistencia';
+import { mesAnio } from '../../core/utils/attendance';
 import { PerfilService } from '../../services/perfil.service';
 import { AvisosService } from '../../shared/ui/avisos.service';
 import { mensajeError } from '../management/academics/academico.ui';

@@ -2,15 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { Asignacion, Docente, Gestion, Materia, Paralelo } from '../core/models/academico.model';
-import { Estudiante } from '../core/models/asistencia.model';
+import { Estudiante } from '../core/models/attendance.model';
 import { Actividad, CierrePeriodo, ConfigCalificacion, Nota, configPorDefecto } from '../core/models/calificaciones.model';
 import { TipoEspacio } from '../core/models/espacio.model';
-import { hoyIso } from '../core/utils/asistencia';
+import { hoyIso } from '../core/utils/attendance';
 import { MOCK_ASIGNACIONES } from '../mocks/academico.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/asistencia.mock';
+import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_ACTIVIDADES, MOCK_CIERRES, MOCK_CONFIG_CALIFICACIONES, MOCK_NOTAS } from '../mocks/calificaciones.mock';
 import { AcademicoService } from './academico.service';
-import { AsistenciaService } from './asistencia.service';
+import { AttendanceService } from './attendance.service';
 import { RepositorioMock } from './repositorio-mock';
 
 // Todo lo necesario para calcular las notas de un paralelo en la gestión activa
@@ -45,7 +45,7 @@ export interface ProgresoPeriodo {
 @Injectable({ providedIn: 'root' })
 export class CalificacionesService {
   private academico = inject(AcademicoService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
 
   private configRepo = new RepositorioMock<ConfigCalificacion>(MOCK_CONFIG_CALIFICACIONES);
   private actividadesRepo = new RepositorioMock<Actividad>(MOCK_ACTIVIDADES);

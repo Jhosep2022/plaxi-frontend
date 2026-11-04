@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartColumn, faCircleQuestion, faClock, faPen, faPlus, faRotateRight, faStar, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { fechaCorta } from '../../../core/utils/asistencia';
+import { fechaCorta } from '../../../core/utils/attendance';
 import { AulaResumen } from '../../../services/aulas.service';
 import { QuizDocente, QuizService } from '../../../services/quiz.service';
 import { AnilloComponent } from '../../../shared/classrooms/anillo.component';

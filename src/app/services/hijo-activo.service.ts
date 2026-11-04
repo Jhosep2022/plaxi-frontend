@@ -5,7 +5,7 @@ import { paraleloLabel } from '../core/models/academico.model';
 import { Parentesco } from '../core/models/personas.model';
 import { SessionService } from '../core/auth/session.service';
 import { MOCK_PARALELOS } from '../mocks/academico.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/asistencia.mock';
+import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_DELAY } from '../mocks/mock-data';
 import { MOCK_VINCULOS } from '../mocks/personas.mock';
 

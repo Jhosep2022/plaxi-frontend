@@ -4,7 +4,7 @@ import { delay } from 'rxjs/operators';
 import type { Credenciales, NuevaSolicitudColegio, Registro, ResultadoRegistro, SolicitudColegio } from '../core/models/auth.model';
 import { PATRON_SLUG } from '../core/models/auth.model';
 import { ESCALA_POR_DEFECTO } from '../core/models/espacio.model';
-import { hoyIso } from '../core/utils/asistencia';
+import { hoyIso } from '../core/utils/attendance';
 import { claveValida } from '../core/utils/clave';
 import { ahoraIso } from '../core/utils/tareas';
 import { MOCK_CLAVES, MOCK_SOLICITUDES_COLEGIO, MOCK_TOKENS_RECUPERACION } from '../mocks/auth.mock';

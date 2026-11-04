@@ -6,7 +6,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartColumn, faCircleQuestion, faFileCsv, faStar } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaCorta } from '../../core/utils/asistencia';
+import { fechaCorta } from '../../core/utils/attendance';
 import { descargarCsv } from '../../core/utils/reportes';
 import { AulasService } from '../../services/aulas.service';
 import { QuizService } from '../../services/quiz.service';

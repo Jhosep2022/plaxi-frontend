@@ -3,7 +3,7 @@ import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import type { Aula } from '../core/models/aulas.model';
 import { Espacio } from '../core/models/espacio.model';
-import { hoyIso } from '../core/utils/asistencia';
+import { hoyIso } from '../core/utils/attendance';
 import { ahoraIso } from '../core/utils/tareas';
 import { MOCK_DOCENTES } from '../mocks/academico.mock';
 import { MOCK_AULAS_VIRTUALES, MOCK_TEMAS_AULA, MOCK_UNIDADES } from '../mocks/aulas.mock';

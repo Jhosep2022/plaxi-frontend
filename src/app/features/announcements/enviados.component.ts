@@ -7,7 +7,7 @@ import { faBullhorn, faCalendarDays, faEye, faPaperPlane, faPlus, faTrash, faUse
 import { SessionService } from '../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../core/models/academico.model';
 import { CATEGORIAS_COMUNICADO, CategoriaComunicado, Comunicado, PUBLICOS, Publico } from '../../core/models/comunicados.model';
-import { fechaLarga, hoyIso } from '../../core/utils/asistencia';
+import { fechaLarga, hoyIso } from '../../core/utils/attendance';
 import { porcentaje } from '../../core/utils/reportes';
 import { AcademicoService } from '../../services/academico.service';
 import { Alcance, ComunicadosService } from '../../services/comunicados.service';

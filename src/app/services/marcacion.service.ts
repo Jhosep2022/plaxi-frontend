@@ -3,7 +3,7 @@ import { Observable, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Turno } from '../core/models/academico.model';
 import { HorarioLaboral, Marcacion, PuntoMarcacion, TipoMarcacion } from '../core/models/marcacion.model';
-import { diaDeSemana, hoyIso } from '../core/utils/asistencia';
+import { diaDeSemana, hoyIso } from '../core/utils/attendance';
 import { docenteDe, rangoDeBloque } from '../core/utils/horario';
 import { aHora, aMinutos } from '../core/utils/jornada';
 import { codigoDeVentana, distanciaLabel, distanciaMetros, ventanaActual } from '../core/utils/marcacion';

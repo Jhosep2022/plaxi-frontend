@@ -6,7 +6,7 @@ import { faCheck, faCirclePlay, faCopy, faFilm, faPen, faPlus, faTrash, faUserCh
 import { SessionService } from '../../core/auth/session.service';
 import { PLATAFORMAS } from '../../core/models/sesiones.model';
 import type { Plataforma } from '../../core/models/sesiones.model';
-import { hoyIso } from '../../core/utils/asistencia';
+import { hoyIso } from '../../core/utils/attendance';
 import { AulasService } from '../../services/aulas.service';
 import { AsistenteSesion, SesionVista, SesionesService } from '../../services/sesiones.service';
 import { AvisosService } from '../../shared/ui/avisos.service';

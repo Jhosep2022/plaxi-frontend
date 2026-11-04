@@ -10,7 +10,7 @@ import {
   MOCK_MATERIAS,
   MOCK_PARALELOS,
 } from '../mocks/academico.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/asistencia.mock';
+import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_VINCULOS } from '../mocks/personas.mock';
 import { RepositorioMock } from './repositorio-mock';
 

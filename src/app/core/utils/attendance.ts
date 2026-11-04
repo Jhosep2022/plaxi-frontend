@@ -1,4 +1,4 @@
-import { EstadoAsistencia, EstadoDia, Licencia, RegistroAsistencia } from '../models/asistencia.model';
+import { EstadoAsistencia, EstadoDia, Licencia, RegistroAsistencia } from '../models/attendance.model';
 
 export interface Conteo {
   presente: number;

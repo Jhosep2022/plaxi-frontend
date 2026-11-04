@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faLink, faMagnifyingGlass, faUserCheck, faUsers, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { iniciales } from '../../../core/models/personas.model';
-import { fechaCorta } from '../../../core/utils/asistencia';
+import { fechaCorta } from '../../../core/utils/attendance';
 import { AcademiaService, Solicitud } from '../../../services/academia.service';
 import { AulasService } from '../../../services/aulas.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';

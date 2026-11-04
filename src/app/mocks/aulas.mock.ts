@@ -6,7 +6,7 @@
 import type { Aula, Progreso, Tema, TipoTema, Unidad } from '../core/models/aulas.model';
 import { paraleloLabel } from '../core/models/academico.model';
 import { MOCK_ASIGNACIONES, MOCK_MATERIAS, MOCK_PARALELOS } from './academico.mock';
-import { MOCK_ESTUDIANTES } from './asistencia.mock';
+import { MOCK_ESTUDIANTES } from './attendance.mock';
 import { MOCK_CATEGORIAS, MOCK_CURSOS, MOCK_CURSOS_POR_USUARIO, MOCK_INSCRIPCIONES, MOCK_LECCIONES, MOCK_TEMAS } from './mock-data';
 
 // Plan de contenido por materia: unidades con sus temas

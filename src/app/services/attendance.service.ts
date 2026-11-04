@@ -8,9 +8,9 @@ import {
   Licencia,
   RegistroAsistencia,
   TOLERANCIA_POR_DEFECTO,
-} from '../core/models/asistencia.model';
-import { hoyIso } from '../core/utils/asistencia';
-import { MOCK_CONFIG_ASISTENCIA, MOCK_ESTUDIANTES, MOCK_LICENCIAS, MOCK_REGISTROS } from '../mocks/asistencia.mock';
+} from '../core/models/attendance.model';
+import { hoyIso } from '../core/utils/attendance';
+import { MOCK_CONFIG_ASISTENCIA, MOCK_ESTUDIANTES, MOCK_LICENCIAS, MOCK_REGISTROS } from '../mocks/attendance.mock';
 import { RepositorioMock } from './repositorio-mock';
 
 export interface MarcaAsistencia {
@@ -31,7 +31,7 @@ export interface ClaseDelDia {
 // Asistencia de estudiantes por clase, licencias y tolerancia de atraso.
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
-export class AsistenciaService {
+export class AttendanceService {
   private estudiantesRepo = new RepositorioMock<Estudiante>(MOCK_ESTUDIANTES);
   private registrosRepo = new RepositorioMock<RegistroAsistencia>(MOCK_REGISTROS);
   private licenciasRepo = new RepositorioMock<Licencia>(MOCK_LICENCIAS);

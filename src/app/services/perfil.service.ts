@@ -4,7 +4,7 @@ import { delay, map, switchMap } from 'rxjs/operators';
 import type { Membresia } from '../core/models/espacio.model';
 import type { ContactoEmergencia, EnlacesPerfil, EspacioDelPerfil, IndicadorPerfil, Perfil, PreferenciasNotificacion } from '../core/models/perfil.model';
 import { FOTO_MAX_KB } from '../core/models/perfil.model';
-import { hoyIso } from '../core/utils/asistencia';
+import { hoyIso } from '../core/utils/attendance';
 import { claveValida } from '../core/utils/clave';
 import { porcentaje } from '../core/utils/reportes';
 import { MOCK_CLAVES } from '../mocks/auth.mock';
@@ -13,7 +13,7 @@ import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PE
 import { MOCK_MIEMBRO_DESDE, MOCK_PERFIL_EXTRA, perfilExtraVacio } from '../mocks/perfil.mock';
 import { AcademiaService } from './academia.service';
 import { AcademicoService } from './academico.service';
-import { AsistenciaService } from './asistencia.service';
+import { AttendanceService } from './attendance.service';
 import { AulasService } from './aulas.service';
 import { MarcacionService } from './marcacion.service';
 import { PersonasService } from './personas.service';
@@ -52,7 +52,7 @@ export class PerfilService {
   private aulas = inject(AulasService);
   private academia = inject(AcademiaService);
   private academico = inject(AcademicoService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private marcacion = inject(MarcacionService);
   private personas = inject(PersonasService);
   private sesiones = inject(SesionesService);

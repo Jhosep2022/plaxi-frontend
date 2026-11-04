@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faUserCheck, faUserXmark, faVideo, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaCorta } from '../../core/utils/asistencia';
+import { fechaCorta } from '../../core/utils/attendance';
 import { porcentaje } from '../../core/utils/reportes';
 import { SesionesService } from '../../services/sesiones.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';

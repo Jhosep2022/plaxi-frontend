@@ -3,7 +3,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { faCircleQuestion, faCompass, faFilm, faPlus, faStar, faUserCheck, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { Membresia } from '../core/models/espacio.model';
-import { diaDeSemana, fechaCorta, hoyIso, sumarDias } from '../core/utils/asistencia';
+import { diaDeSemana, fechaCorta, hoyIso, sumarDias } from '../core/utils/attendance';
 import { aHora, aMinutos } from '../core/utils/jornada';
 import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } from '../shared/dashboard/dashboard.models';
 import { iconoMateria } from '../shared/ui/iconos-academicos';

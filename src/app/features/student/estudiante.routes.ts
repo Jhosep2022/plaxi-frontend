@@ -22,5 +22,5 @@ export default [
   { path: 'tareas', title: 'Mis tareas', loadComponent: () => import('../assignments/mis-tareas.component').then((m) => m.MisTareasComponent) },
   { path: 'calificaciones', title: 'Mis calificaciones', loadComponent: () => import('../grades/mis-calificaciones.component').then((m) => m.MisCalificacionesComponent) },
   { path: 'comunicados', title: 'Comunicados', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('../announcements/comunicados.component').then((m) => m.ComunicadosComponent) },
-  { path: 'asistencia', title: 'Mi asistencia', loadComponent: () => import('../attendance/mi-asistencia.component').then((m) => m.MiAsistenciaComponent) },
+  { path: 'asistencia', title: 'Mi asistencia', loadComponent: () => import('../attendance/my-attendance.component').then((m) => m.MyAttendanceComponent) },
 ] satisfies Routes;

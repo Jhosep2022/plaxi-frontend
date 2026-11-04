@@ -1,5 +1,5 @@
 import type { Entrega, EstadoEntrega, Tarea } from '../models/tareas.model';
-import { hoyIso, sumarDias } from './asistencia';
+import { hoyIso, sumarDias } from './attendance';
 
 export const limite = (t: Pick<Tarea, 'entrega' | 'hora'>): string => `${t.entrega}T${t.hora}`;
 

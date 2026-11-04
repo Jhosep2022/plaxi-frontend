@@ -8,7 +8,7 @@ import { porcentaje } from '../core/utils/reportes';
 import { ahoraIso } from '../core/utils/tareas';
 import { MOCK_GESTIONES } from '../mocks/academico.mock';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/aulas.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/asistencia.mock';
+import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_DELAY, MOCK_INSCRIPCIONES } from '../mocks/mock-data';
 import { MOCK_INTENTOS, MOCK_PREGUNTAS, MOCK_QUIZZES } from '../mocks/quiz.mock';
 import { CalificacionesService } from './calificaciones.service';

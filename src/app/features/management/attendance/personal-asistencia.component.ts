@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboardTeacher, faCircleCheck, faClock, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_MARCACION_LABEL } from '../../../core/models/marcacion.model';
-import { fechaLarga, hoyIso, sumarDias } from '../../../core/utils/asistencia';
+import { fechaLarga, hoyIso, sumarDias } from '../../../core/utils/attendance';
 import { AcademicoService } from '../../../services/academico.service';
 import { MarcacionService } from '../../../services/marcacion.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';

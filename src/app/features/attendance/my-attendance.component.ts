@@ -6,10 +6,10 @@ import { FormField, form, minLength, required, submit, validate } from '@angular
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBell, faCalendarCheck, faClock, faFileMedical, faPaperclip, faPlus, faUserCheck, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { ESTADO_DIA_LABEL, EstadoDia, EstadoLicencia } from '../../core/models/asistencia.model';
-import { contar, estadoDelDia, fechaCorta, hoyIso } from '../../core/utils/asistencia';
+import { ESTADO_DIA_LABEL, EstadoDia, EstadoLicencia } from '../../core/models/attendance.model';
+import { contar, estadoDelDia, fechaCorta, hoyIso } from '../../core/utils/attendance';
 import { AcademicoService } from '../../services/academico.service';
-import { AsistenciaService } from '../../services/asistencia.service';
+import { AttendanceService } from '../../services/attendance.service';
 import { HijoActivoService } from '../../services/hijo-activo.service';
 import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
 import { ProfileService } from '../../services/profile.service';
@@ -26,15 +26,15 @@ const LICENCIA_VACIA = { desde: '', hasta: '', motivo: '' };
 // "Mi asistencia" del estudiante y "Asistencia" del padre (sobre su hijo).
 // El padre además ve avisos de faltas/atrasos y puede solicitar licencias.
 @Component({
-  selector: 'app-mi-asistencia',
+  selector: 'app-my-attendance',
   host: { class: 'ui-pagina' },
   imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, SelectorHijoComponent, AsistenciaAcademiaEstudianteComponent],
-  templateUrl: './mi-asistencia.component.html',
-  styleUrls: ['./mi-asistencia.component.css'],
+  templateUrl: './my-attendance.component.html',
+  styleUrls: ['./my-attendance.component.css'],
 })
-export class MiAsistenciaComponent {
+export class MyAttendanceComponent {
   private session = inject(SessionService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private academico = inject(AcademicoService);
   private perfiles = inject(ProfileService);
   private avisos = inject(AvisosService);

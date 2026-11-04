@@ -7,7 +7,7 @@ import { faArrowDown, faArrowLeft, faArrowUp, faCheck, faCircleQuestion, faPlus,
 import { SessionService } from '../../../core/auth/session.service';
 import { TIPOS_PREGUNTA } from '../../../core/models/quiz.model';
 import type { TipoPregunta } from '../../../core/models/quiz.model';
-import { hoyIso, sumarDias } from '../../../core/utils/asistencia';
+import { hoyIso, sumarDias } from '../../../core/utils/attendance';
 import { AulasService } from '../../../services/aulas.service';
 import { CalificacionesService } from '../../../services/calificaciones.service';
 import { BorradorPregunta, QuizService } from '../../../services/quiz.service';

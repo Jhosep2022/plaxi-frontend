@@ -8,7 +8,7 @@ import {
 import { SessionService } from '../../core/auth/session.service';
 import type { Membresia } from '../../core/models/espacio.model';
 import type { Perfil } from '../../core/models/perfil.model';
-import { fechaConAnio, fechaLarga, hoyIso } from '../../core/utils/asistencia';
+import { fechaConAnio, fechaLarga, hoyIso } from '../../core/utils/attendance';
 import { PATRON_CELULAR, PATRON_CORREO, PATRON_ENLACE, PATRON_USUARIO, PerfilService } from '../../services/perfil.service';
 import { AvisosService } from '../../shared/ui/avisos.service';
 import { mensajeError } from '../management/academics/academico.ui';

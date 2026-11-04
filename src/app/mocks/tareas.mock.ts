@@ -4,7 +4,7 @@
 import type { Entrega, Tarea } from '../core/models/tareas.model';
 import { MOCK_ASIGNACIONES } from './academico.mock';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from './aulas.mock';
-import { MOCK_ESTUDIANTES } from './asistencia.mock';
+import { MOCK_ESTUDIANTES } from './attendance.mock';
 import { MOCK_ACTIVIDADES } from './calificaciones.mock';
 import { MOCK_INSCRIPCIONES } from './mock-data';
 

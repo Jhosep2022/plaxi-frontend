@@ -3,7 +3,7 @@
 // Se generan de forma determinística a partir de los estudiantes.
 // ============================================================================
 import { Parentesco, Tutor, Vinculo } from '../core/models/personas.model';
-import { MOCK_ESTUDIANTES } from './asistencia.mock';
+import { MOCK_ESTUDIANTES } from './attendance.mock';
 
 const MUJERES = ['Patricia', 'Carmen', 'Silvia', 'Mónica', 'Verónica', 'Gabriela', 'Claudia', 'Roxana', 'Elizabeth', 'Marisol', 'Jimena', 'Teresa'];
 const HOMBRES = ['Juan', 'Marco', 'René', 'Freddy', 'Edwin', 'Ricardo', 'Javier', 'Álvaro', 'Wilson', 'Fernando', 'Óscar', 'Hernán'];

@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBullhorn, faCalendarDays, faCircleCheck, faExclamation, faHandshake } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaLarga } from '../../core/utils/asistencia';
+import { fechaLarga } from '../../core/utils/attendance';
 import { ComunicadoRecibido, ComunicadosService } from '../../services/comunicados.service';
 import { AvisosService } from '../../shared/ui/avisos.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';

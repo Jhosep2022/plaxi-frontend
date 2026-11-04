@@ -6,10 +6,10 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faCheck, faCheckDouble, faClock, faUserCheck } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academico.model';
-import { ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../core/models/asistencia.model';
-import { contar, diaDeSemana, fechaLarga, hoyIso, licenciaCubre, sumarDias } from '../../../core/utils/asistencia';
+import { ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../core/models/attendance.model';
+import { contar, diaDeSemana, fechaLarga, hoyIso, licenciaCubre, sumarDias } from '../../../core/utils/attendance';
 import { clasesDeDocente, rangoDeBloque } from '../../../core/utils/horario';
-import { AsistenciaService } from '../../../services/asistencia.service';
+import { AttendanceService } from '../../../services/attendance.service';
 import { HorariosService } from '../../../services/horarios.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -33,7 +33,7 @@ interface Marca {
 export class TomarAsistenciaComponent {
   private session = inject(SessionService);
   private horarios = inject(HorariosService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private avisos = inject(AvisosService);
 
   readonly estados = ESTADOS_ASISTENCIA;

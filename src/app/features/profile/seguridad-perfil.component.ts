@@ -5,7 +5,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faDesktop, faEye, faEyeSlash, faKey, faLaptop, faMobileScreen, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import type { Dispositivo, Perfil } from '../../core/models/perfil.model';
-import { fechaConAnio, fechaLarga } from '../../core/utils/asistencia';
+import { fechaConAnio, fechaLarga } from '../../core/utils/attendance';
 import { errorClave } from '../../core/utils/clave';
 import { PerfilService } from '../../services/perfil.service';
 import { AvisosService } from '../../shared/ui/avisos.service';

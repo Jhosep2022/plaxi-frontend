@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChevronRight, faCircleQuestion, faListCheck, faUsers } from '@fortawesome/free-solid-svg-icons';
-import { hoyIso, sumarDias } from '../../core/utils/asistencia';
+import { hoyIso, sumarDias } from '../../core/utils/attendance';
 import { AulaResumen } from '../../services/aulas.service';
 import { AnilloComponent } from './anillo.component';
 import { PortadaAulaComponent } from './portada-aula.component';

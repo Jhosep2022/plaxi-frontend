@@ -5,7 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBookOpen, faChartLine, faCircleCheck, faFileLines, faLock, faStar } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaCorta, hoyIso } from '../../core/utils/asistencia';
+import { fechaCorta, hoyIso } from '../../core/utils/attendance';
 import { aprobado, calcularNota, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/calificaciones';
 import { AcademicoService } from '../../services/academico.service';
 import { CalificacionesService } from '../../services/calificaciones.service';

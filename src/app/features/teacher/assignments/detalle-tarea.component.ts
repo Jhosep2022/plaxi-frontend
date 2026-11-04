@@ -7,7 +7,7 @@ import { faArrowLeft, faClock, faPaperclip, faStar, faTasks } from '@fortawesome
 import { SessionService } from '../../../core/auth/session.service';
 import { iniciales } from '../../../core/models/personas.model';
 import { ESTADO_ENTREGA } from '../../../core/models/tareas.model';
-import { fechaCorta, fechaLarga } from '../../../core/utils/asistencia';
+import { fechaCorta, fechaLarga } from '../../../core/utils/attendance';
 import { venceLabel } from '../../../core/utils/tareas';
 import { FilaEntrega, RevisionEntrega, TareasService } from '../../../services/tareas.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';

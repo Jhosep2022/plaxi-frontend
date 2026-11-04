@@ -4,7 +4,7 @@ import { forkJoin } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClock, faFileCsv, faHourglassHalf, faPrint, faUserClock, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { hoyIso, sumarDias } from '../../../core/utils/asistencia';
+import { hoyIso, sumarDias } from '../../../core/utils/attendance';
 import { descargarCsv, fechasEntre, porcentaje } from '../../../core/utils/reportes';
 import { AcademicoService } from '../../../services/academico.service';
 import { MarcacionService } from '../../../services/marcacion.service';

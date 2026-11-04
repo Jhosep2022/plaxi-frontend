@@ -7,10 +7,10 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChevronRight, faClock, faFileMedical, faUserCheck, faUsers, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academico.model';
-import { ESTADO_DIA_LABEL, EstadoDia, RegistroAsistencia } from '../../../core/models/asistencia.model';
-import { estadoDelDia, fechaLarga, hoyIso, sumarDias } from '../../../core/utils/asistencia';
+import { ESTADO_DIA_LABEL, EstadoDia, RegistroAsistencia } from '../../../core/models/attendance.model';
+import { estadoDelDia, fechaLarga, hoyIso, sumarDias } from '../../../core/utils/attendance';
 import { AcademicoService } from '../../../services/academico.service';
-import { AsistenciaService } from '../../../services/asistencia.service';
+import { AttendanceService } from '../../../services/attendance.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 
@@ -35,7 +35,7 @@ function contarDias(estados: EstadoDia[]): ConteoDia {
 })
 export class AsistenciaEstudiantesComponent {
   protected readonly session = inject(SessionService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private academico = inject(AcademicoService);
 
   readonly estadoDiaLabel = ESTADO_DIA_LABEL;

@@ -6,10 +6,10 @@ import {
   faStar, faTriangleExclamation, faUserCheck, faUserClock, faUserGraduate, faUserXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconoMateria, NIVELES, compararParalelos, paraleloLabel } from '../core/models/academico.model';
-import { Estudiante, RegistroAsistencia } from '../core/models/asistencia.model';
+import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model';
 import { Membresia } from '../core/models/espacio.model';
 import { Marcacion } from '../core/models/marcacion.model';
-import { contar, diaDeSemana, estadoDelDia, fechaCorta, hoyIso, sumarDias } from '../core/utils/asistencia';
+import { contar, diaDeSemana, estadoDelDia, fechaCorta, hoyIso, sumarDias } from '../core/utils/attendance';
 import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../core/utils/calificaciones';
 import { DatosHorario, clasesDeDocente, itemsDeClases } from '../core/utils/horario';
 import { aHora, aMinutos } from '../core/utils/jornada';
@@ -20,7 +20,7 @@ import { PerfilDto } from '../models/PerfilDto';
 import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } from '../shared/dashboard/dashboard.models';
 import { iconoMateria } from '../shared/ui/iconos-academicos';
 import { AcademicoService } from './academico.service';
-import { AsistenciaService } from './asistencia.service';
+import { AttendanceService } from './attendance.service';
 import { CalificacionesService, DatosParalelo } from './calificaciones.service';
 import { ClasesDocenteService } from './clases-docente.service';
 import { ComunicadoRecibido, ComunicadosService } from './comunicados.service';
@@ -39,7 +39,7 @@ export class ResumenColegioService {
   private perfiles = inject(ProfileService);
   private horarios = inject(HorariosService);
   private academico = inject(AcademicoService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private calificaciones = inject(CalificacionesService);
   private clasesDocente = inject(ClasesDocenteService);
   private tareas = inject(TareasService);

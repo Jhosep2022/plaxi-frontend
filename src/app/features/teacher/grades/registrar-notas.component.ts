@@ -7,7 +7,7 @@ import { faLock, faPen, faPlus, faStar, faTrash } from '@fortawesome/free-solid-
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academico.model';
 import { Actividad } from '../../../core/models/calificaciones.model';
-import { fechaCorta, hoyIso } from '../../../core/utils/asistencia';
+import { fechaCorta, hoyIso } from '../../../core/utils/attendance';
 import { ResultadoMateria, aprobado, calcularNota, periodoDeFecha } from '../../../core/utils/calificaciones';
 import { AcademicoService } from '../../../services/academico.service';
 import { CalificacionesService, CambioNota } from '../../../services/calificaciones.service';

@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartLine, faCircleCheck, faFileCsv, faPrint, faTriangleExclamation, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academico.model';
-import { hoyIso } from '../../../core/utils/asistencia';
+import { hoyIso } from '../../../core/utils/attendance';
 import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../../core/utils/calificaciones';
 import { descargarCsv, porcentaje } from '../../../core/utils/reportes';
 import { AcademicoService } from '../../../services/academico.service';

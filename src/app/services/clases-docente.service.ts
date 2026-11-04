@@ -2,12 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { Asignacion, DIAS_SEMANA, Materia, Paralelo, TURNOS, paraleloLabel } from '../core/models/academico.model';
-import { Estudiante, RegistroAsistencia } from '../core/models/asistencia.model';
+import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model';
 import { Actividad, ConfigCalificacion } from '../core/models/calificaciones.model';
-import { Conteo, contar, diaDeSemana, hoyIso, sumarDias } from '../core/utils/asistencia';
+import { Conteo, contar, diaDeSemana, hoyIso, sumarDias } from '../core/utils/attendance';
 import { ResultadoMateria, aprobado, calcularNota, indiceNotas, periodoDeFecha } from '../core/utils/calificaciones';
 import { rangoDeBloque } from '../core/utils/horario';
-import { AsistenciaService } from './asistencia.service';
+import { AttendanceService } from './attendance.service';
 import { CalificacionesService, DatosParalelo } from './calificaciones.service';
 import { HorariosService } from './horarios.service';
 
@@ -51,7 +51,7 @@ export const ASISTENCIA_MINIMA = 85; // % por debajo del cual el estudiante qued
 @Injectable({ providedIn: 'root' })
 export class ClasesDocenteService {
   private horarios = inject(HorariosService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private calificaciones = inject(CalificacionesService);
 
   clasesDe(espacioId: number, docenteId: number): Observable<ClaseDocente[]> {

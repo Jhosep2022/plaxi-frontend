@@ -6,7 +6,7 @@ import { FormField, form, maxLength, required, submit, validate } from '@angular
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClipboardCheck, faClock, faPlus, faStar, faTasks, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { hoyIso } from '../../../core/utils/asistencia';
+import { hoyIso } from '../../../core/utils/attendance';
 import { porcentaje } from '../../../core/utils/reportes';
 import { urgente, vencida, venceLabel } from '../../../core/utils/tareas';
 import { AulasService } from '../../../services/aulas.service';

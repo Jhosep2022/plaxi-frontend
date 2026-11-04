@@ -7,7 +7,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCamera, faCheck, faCircleCheck, faClock, faListCheck, faLocationDot, faQrcode, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_MARCACION_LABEL, Marcacion, PuntoMarcacion, TipoMarcacion } from '../../../core/models/marcacion.model';
-import { hoyIso } from '../../../core/utils/asistencia';
+import { hoyIso } from '../../../core/utils/attendance';
 import { distanciaLabel, distanciaMetros, leerQr } from '../../../core/utils/marcacion';
 import { MarcacionService } from '../../../services/marcacion.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';

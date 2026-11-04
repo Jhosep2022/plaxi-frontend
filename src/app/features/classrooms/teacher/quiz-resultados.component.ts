@@ -6,7 +6,7 @@ import { faArrowLeft, faCircleQuestion, faFileCsv, faPen, faTriangleExclamation 
 import { SessionService } from '../../../core/auth/session.service';
 import { TIPOS_PREGUNTA, respuestaCorrecta } from '../../../core/models/quiz.model';
 import { iniciales } from '../../../core/models/personas.model';
-import { fechaCorta } from '../../../core/utils/asistencia';
+import { fechaCorta } from '../../../core/utils/attendance';
 import { descargarCsv, porcentaje } from '../../../core/utils/reportes';
 import { QuizService } from '../../../services/quiz.service';
 import { AnilloComponent } from '../../../shared/classrooms/anillo.component';

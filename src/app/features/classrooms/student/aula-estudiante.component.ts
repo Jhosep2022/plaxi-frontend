@@ -9,14 +9,14 @@ import {
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_ENTREGA } from '../../../core/models/tareas.model';
 import type { Tema } from '../../../core/models/aulas.model';
-import { hoyIso } from '../../../core/utils/asistencia';
+import { hoyIso } from '../../../core/utils/attendance';
 import { calcularNota, indiceNotas, periodoDeFecha } from '../../../core/utils/calificaciones';
 import { venceLabel } from '../../../core/utils/tareas';
 import { AulasService, UnidadConTemas } from '../../../services/aulas.service';
 import { CalificacionesService } from '../../../services/calificaciones.service';
 import { TareasService } from '../../../services/tareas.service';
 import { EstadoQuiz, QuizService } from '../../../services/quiz.service';
-import { fechaCorta } from '../../../core/utils/asistencia';
+import { fechaCorta } from '../../../core/utils/attendance';
 import { AnilloComponent } from '../../../shared/classrooms/anillo.component';
 import { PortadaAulaComponent } from '../../../shared/classrooms/portada-aula.component';
 import { AvisosService } from '../../../shared/ui/avisos.service';

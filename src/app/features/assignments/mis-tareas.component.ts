@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClock, faCommentDots, faPaperclip, faPaperPlane, faStar, faTasks } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { ESTADO_ENTREGA } from '../../core/models/tareas.model';
-import { fechaCorta } from '../../core/utils/asistencia';
+import { fechaCorta } from '../../core/utils/attendance';
 import { urgente, venceLabel } from '../../core/utils/tareas';
 import { HijoActivoService } from '../../services/hijo-activo.service';
 import { TareaDeEstudiante, TareasService } from '../../services/tareas.service';

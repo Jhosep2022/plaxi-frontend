@@ -5,11 +5,11 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClock, faFileCsv, faFileMedical, faPrint, faUserCheck, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academico.model';
-import { RegistroAsistencia } from '../../../core/models/asistencia.model';
-import { contar, fechaCorta, hoyIso, sumarDias } from '../../../core/utils/asistencia';
+import { RegistroAsistencia } from '../../../core/models/attendance.model';
+import { contar, fechaCorta, hoyIso, sumarDias } from '../../../core/utils/attendance';
 import { descargarCsv } from '../../../core/utils/reportes';
 import { AcademicoService } from '../../../services/academico.service';
-import { AsistenciaService } from '../../../services/asistencia.service';
+import { AttendanceService } from '../../../services/attendance.service';
 import { BarrasComponent, ColumnasComponent, ItemGrafico } from '../../../shared/reports/graficos.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -26,7 +26,7 @@ const META = 90; // % de asistencia esperado; por debajo se marca en tono de adv
 })
 export class AsistenciaReporteComponent {
   private academico = inject(AcademicoService);
-  private asistencia = inject(AsistenciaService);
+  private asistencia = inject(AttendanceService);
   private readonly espacioId = inject(SessionService).espacioActivo()!.id;
 
   readonly META = META;

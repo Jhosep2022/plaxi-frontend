@@ -1,4 +1,4 @@
-import { sumarDias } from './asistencia';
+import { sumarDias } from './attendance';
 
 // Descarga una tabla como CSV para abrirla en Excel (separador ";" y BOM para los acentos)
 export function descargarCsv(nombre: string, encabezados: string[], filas: (string | number | null)[][]): void {

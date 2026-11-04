@@ -9,7 +9,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { iniciales } from '../../../core/models/personas.model';
-import { fechaCorta } from '../../../core/utils/asistencia';
+import { fechaCorta } from '../../../core/utils/attendance';
 import { venceLabel } from '../../../core/utils/tareas';
 import { AulasService, PORTADA_MAX_KB } from '../../../services/aulas.service';
 import { ASISTENCIA_MINIMA, ClasesDocenteService, EstudianteDeClase } from '../../../services/clases-docente.service';

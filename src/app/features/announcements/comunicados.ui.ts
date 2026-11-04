@@ -1,5 +1,5 @@
 import { CATEGORIAS_COMUNICADO, CategoriaComunicado, PUBLICOS, Publico } from '../../core/models/comunicados.model';
-import { fechaCorta, hoyIso, sumarDias } from '../../core/utils/asistencia';
+import { fechaCorta, hoyIso, sumarDias } from '../../core/utils/attendance';
 
 // "Hoy 08:10", "Ayer 16:30" o "Vie, 16 oct"
 export function cuando(iso: string): string {
