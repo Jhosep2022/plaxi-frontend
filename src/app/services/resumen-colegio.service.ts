@@ -15,7 +15,7 @@ import { DatosHorario, clasesDeDocente, itemsDeClases } from '../core/utils/hora
 import { aHora, aMinutos } from '../core/utils/jornada';
 import { porcentaje } from '../core/utils/reportes';
 import { urgente, venceLabel } from '../core/utils/tareas';
-import { cuando } from '../features/comunicados/comunicados.ui';
+import { cuando } from '../features/announcements/comunicados.ui';
 import { PerfilDto } from '../models/PerfilDto';
 import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } from '../shared/dashboard/dashboard.models';
 import { iconoMateria } from '../shared/ui/iconos-academicos';

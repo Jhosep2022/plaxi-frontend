@@ -7,7 +7,7 @@ import { SessionService } from '../../core/auth/session.service';
 import { slugDe } from '../../core/models/auth.model';
 import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
 import { AuthService } from '../../services/auth.service';
-import { mensajeError } from '../../features/direccion/academico/academico.ui';
+import { mensajeError } from '../../features/management/academics/academico.ui';
 
 // Después del login: elegir en qué espacio trabajar (o qué hacer si todavía no pertenece a ninguno)
 @Component({

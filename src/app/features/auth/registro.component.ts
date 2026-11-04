@@ -16,7 +16,7 @@ import { AuthService } from '../../services/auth.service';
 import { CategoriaService } from '../../services/categoria.service';
 import { PATRON_CORREO, PATRON_USUARIO } from '../../services/perfil.service';
 import { MedidorClaveComponent } from '../../shared/ui/medidor-clave.component';
-import { mensajeError } from '../direccion/academico/academico.ui';
+import { mensajeError } from '../management/academics/academico.ui';
 
 type Paso = 1 | 2 | 3 | 4; // 4 = cuenta creada
 

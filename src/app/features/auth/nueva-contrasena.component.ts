@@ -8,7 +8,7 @@ import { faCircleExclamation, faEye, faEyeSlash, faLinkSlash } from '@fortawesom
 import { errorClave } from '../../core/utils/clave';
 import { AuthService } from '../../services/auth.service';
 import { MedidorClaveComponent } from '../../shared/ui/medidor-clave.component';
-import { mensajeError } from '../direccion/academico/academico.ui';
+import { mensajeError } from '../management/academics/academico.ui';
 
 // Crear una contraseña nueva desde el enlace del correo (?token=…)
 @Component({

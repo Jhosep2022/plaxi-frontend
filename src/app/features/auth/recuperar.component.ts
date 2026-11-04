@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
 import { PATRON_CORREO } from '../../services/perfil.service';
-import { mensajeError } from '../direccion/academico/academico.ui';
+import { mensajeError } from '../management/academics/academico.ui';
 
 // "¿Olvidaste tu contraseña?": pide el correo y envía un enlace para crear una nueva
 @Component({

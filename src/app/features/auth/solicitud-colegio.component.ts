@@ -7,7 +7,7 @@ import { faArrowLeft, faCircleExclamation, faPaperPlane } from '@fortawesome/fre
 import { CIUDADES } from '../../core/models/auth.model';
 import { AuthService } from '../../services/auth.service';
 import { PATRON_CELULAR, PATRON_CORREO } from '../../services/perfil.service';
-import { mensajeError } from '../direccion/academico/academico.ui';
+import { mensajeError } from '../management/academics/academico.ui';
 
 // "Soy un colegio": los colegios no se registran solos; dejan sus datos y el equipo de QuizWiz los da de alta
 @Component({

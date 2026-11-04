@@ -17,7 +17,7 @@ export const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.routes'),
   },
 
-  { path: 'unirse/:codigo', title: 'Unirse a un curso', loadComponent: () => import('./features/aulas/unirse.component').then((m) => m.UnirseComponent) },
+  { path: 'unirse/:codigo', title: 'Unirse a un curso', loadComponent: () => import('./features/classrooms/unirse.component').then((m) => m.UnirseComponent) },
 
   {
     path: 'espacios',
@@ -38,7 +38,7 @@ export const routes: Routes = [
     canMatch: [authGuard, espacioGuard],
     canActivate: [rolGuard('direccion')],
     title: 'Pantalla de marcación',
-    loadComponent: () => import('./features/direccion/asistencia/pantalla-marcacion.component').then((m) => m.PantallaMarcacionComponent),
+    loadComponent: () => import('./features/management/attendance/pantalla-marcacion.component').then((m) => m.PantallaMarcacionComponent),
   },
 
   {
@@ -47,11 +47,11 @@ export const routes: Routes = [
     component: AppLayoutComponent,
     children: [
       { path: '', pathMatch: 'full', canActivate: [redirigirInicioGuard], children: [] },
-      { path: 'perfil', loadChildren: () => import('./features/perfil/perfil.routes') },
-      { path: 'docente', canActivate: [rolGuard('docente')], loadChildren: () => import('./features/docente/docente.routes') },
-      { path: 'estudiante', canActivate: [rolGuard('estudiante')], loadChildren: () => import('./features/estudiante/estudiante.routes') },
-      { path: 'direccion', canActivate: [rolGuard('direccion')], loadChildren: () => import('./features/direccion/direccion.routes') },
-      { path: 'padre', canActivate: [rolGuard('padre')], loadChildren: () => import('./features/padre/padre.routes') },
+      { path: 'perfil', loadChildren: () => import('./features/profile/perfil.routes') },
+      { path: 'docente', canActivate: [rolGuard('docente')], loadChildren: () => import('./features/teacher/docente.routes') },
+      { path: 'estudiante', canActivate: [rolGuard('estudiante')], loadChildren: () => import('./features/student/estudiante.routes') },
+      { path: 'direccion', canActivate: [rolGuard('direccion')], loadChildren: () => import('./features/management/direccion.routes') },
+      { path: 'padre', canActivate: [rolGuard('padre')], loadChildren: () => import('./features/parent/padre.routes') },
     ],
   },
 
