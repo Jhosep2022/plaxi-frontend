@@ -6,6 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faCircleExclamation, faEye, faEyeSlash, faTicket } from '@fortawesome/free-solid-svg-icons';
 import { SessionService, peekReturnUrl } from '../../core/auth/session.service';
 import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Sign in with a username or email.
@@ -57,6 +58,7 @@ export class LoginComponent {
   private router = inject(Router);
   private auth = inject(AuthService);
   private session = inject(SessionService);
+  private notifications = inject(NotificationService);
 
   readonly faCircleCheck = faCircleCheck;
   readonly faCircleExclamation = faCircleExclamation;
@@ -84,9 +86,12 @@ export class LoginComponent {
         const { username, password } = this.credentials();
         const { usuarioId: userId } = await firstValueFrom(this.auth.login({ usuario: username, clave: password }));
         await firstValueFrom(this.session.startSession(userId));
+        this.notifications.success('¡Bienvenido a Aulix!');
         this.router.navigateByUrl(this.session.postLoginRoute());
       } catch (e) {
-        this.error.set(getErrorMessage(e));
+        const message = getErrorMessage(e);
+        this.error.set(message);
+        this.notifications.error(message);
         this.isSigningIn.set(false);
       }
     });

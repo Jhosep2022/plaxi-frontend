@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { NotificationService } from '../../shared/ui/notification.service';
@@ -22,7 +22,7 @@ import { AdminService, spaceStatusLabel, type AdminSpaceStatus } from './admin.s
     @if (details(); as space) {
       <section class="ui-card admin-section">
         <div class="admin-heading"><h2>{{ space.name }}</h2><button type="button" class="ui-btn ui-btn--secundario" (click)="selectedId.set(null)">Cerrar</button></div>
-        <p>{{ space.type === 'school' ? 'Colegio' : 'Academia' }} · {{ space.memberCount }} miembros · Consumo pendiente de conexión · cuota {{ space.limits.storageGb }} GB</p>
+        <p>{{ space.type === 'school' ? 'Colegio' : 'Academia' }} · {{ space.memberCount }} miembros · Consumo no disponible · cuota {{ space.limits.storageGb }} GB</p>
         <div class="admin-forms">
           <div class="ui-campo"><label for="estado-admin">Estado</label><select id="estado-admin" class="ui-input" [value]="newStatus()" (change)="newStatus.set($any($event.target).value)"><option value="active">Activo</option><option value="read_only">Solo lectura</option><option value="suspended">Suspendido</option></select></div>
           <div class="ui-campo"><label for="prueba-admin">Prueba hasta</label><input id="prueba-admin" class="ui-input" type="date" [value]="newTrialDate() || space.trialEndsOn || ''" (change)="newTrialDate.set($any($event.target).value)" /></div>
@@ -41,7 +41,8 @@ export class AdminSpacesComponent {
   protected readonly admin = inject(AdminService);
   protected readonly statusLabel = spaceStatusLabel;
   private readonly notifications = inject(NotificationService);
-  private readonly routeData = toSignal(inject(ActivatedRoute).data, { initialValue: { type: 'school' } });
+  private readonly route = inject(ActivatedRoute);
+  private readonly routeData = toSignal(this.route.data, { initialValue: { type: 'school' } });
   protected readonly title = computed(() => this.routeData()['type'] === 'school' ? 'Colegios' : 'Academias');
   protected readonly search = signal('');
   protected readonly statusFilter = signal('');
@@ -53,6 +54,14 @@ export class AdminSpacesComponent {
     .filter((space) => !this.statusFilter() || space.status === this.statusFilter())
     .filter((space) => space.name.toLowerCase().includes(this.search().trim().toLowerCase())));
   protected readonly details = computed(() => this.admin.spaces().find((space) => space.id === this.selectedId()) ?? null);
+
+  constructor() {
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const id = Number(params.get('space'));
+      const space = this.admin.spaces().find((item) => item.id === id && item.type === this.routeData()['type']);
+      if (space) this.openDetails(space.id);
+    });
+  }
 
   openDetails(id: number): void {
     const space = this.admin.spaces().find((row) => row.id === id);

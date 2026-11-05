@@ -1,6 +1,11 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { RouteReuseStrategy, TitleStrategy, provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { MessageService } from 'primeng/api';
+import { providePrimeNG } from 'primeng/config';
+import AuraBase from '@primeuix/themes/aura/base';
+import AuraToast from '@primeuix/themes/aura/toast';
 
 import { routes } from './app.routes';
 import { AulixTitleStrategy, RecrearConParametrosStrategy } from './core/routing/router-strategies';
@@ -12,6 +17,9 @@ export const appConfig: ApplicationConfig = {
   providers: [
     // Reporta errores no capturados (sin zone.js no se interceptan automáticamente)
     provideBrowserGlobalErrorListeners(),
+    provideAnimationsAsync(),
+    providePrimeNG({ theme: { preset: { ...AuraBase, components: { toast: AuraToast } }, options: { darkModeSelector: false } } }),
+    MessageService,
     provideRouter(
       routes,
       // Los parámetros de la ruta (:cursoId, :leccionId…) llegan como input() del componente

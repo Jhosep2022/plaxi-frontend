@@ -23,4 +23,4 @@ export const MOCK_SOLICITUDES_COLEGIO: SchoolRequest[] = [
 ];
 
 // Platform account, separate from space members in the demo.
-export const MOCK_ADMIN: ProfileDto = { idUsuario: 999, username: 'plataforma', gmail: 'plataforma@plaxi.com', status: true, nombre: 'Equipo', primerApellido: 'QuizWiz', segundoApellido: '', telefono: '', ci: '', id_rol: '', isAdmin: true };
+export const MOCK_ADMIN: ProfileDto = { idUsuario: 999, username: 'plataforma', gmail: 'plataforma@plaxi.com', status: true, nombre: 'Equipo', primerApellido: 'Aulix', segundoApellido: '', telefono: '', ci: '', id_rol: '', isAdmin: true };

@@ -14,3 +14,11 @@
 .admin-details dt { color: var(--muted); font-size: 12px; }
 .admin-details dd { margin: 4px 0 0; font-size: 14px; }
 .admin-link { color: var(--lime-strong); font-weight: bold; }
+
+.request-status { display: flex; align-items: center; gap: 8px; margin: 18px 0; color: var(--muted); font-size: 14px; }
+.request-step { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.request-step h3 { margin: 0 0 8px; font-size: 17px; }
+.request-step p { margin: 0 0 16px; line-height: 1.5; }
+.request-actions { display: flex; flex-wrap: wrap; gap: 18px 28px; margin-top: 16px; }
+.request-actions > div { display: grid; justify-items: start; gap: 6px; }
+.request-actions small { color: var(--muted); line-height: 1.4; }
