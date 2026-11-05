@@ -2,14 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, BaseRouteReuseStrategy, RouterStateSnapshot, TitleStrategy } from '@angular/router';
 
-// Título de la pestaña: "Mis cursos · QuizWiz"
+// Título de la pestaña: "Mis cursos · Aulix"
 @Injectable({ providedIn: 'root' })
-export class QuizWizTitleStrategy extends TitleStrategy {
+export class AulixTitleStrategy extends TitleStrategy {
   private title = inject(Title);
 
   override updateTitle(snapshot: RouterStateSnapshot): void {
     const titulo = this.buildTitle(snapshot);
-    this.title.setTitle(titulo ? `${titulo} · QuizWiz` : 'QuizWiz');
+    this.title.setTitle(titulo ? `${titulo} · Aulix` : 'Aulix');
   }
 }
 

@@ -19,7 +19,7 @@ const NAV_LINKS = [
   template: `
     <aside class="admin-navigation">
       <nav class="rail" aria-label="Áreas de administración">
-        <a routerLink="/admin/overview" class="brand" title="QuizWiz"><img src="assets/Logo_icon.png" alt="QuizWiz" /></a>
+        <a routerLink="/admin/overview" class="brand" title="Aulix"><img src="assets/aulix-icon-light.svg" alt="Aulix" /></a>
         @for (link of links; track link.path) {
           <a class="rail-link" [routerLink]="['/admin', link.path]" routerLinkActive="active" [attr.aria-label]="link.label" [title]="link.label"><fa-icon [icon]="link.icon" /></a>
         }

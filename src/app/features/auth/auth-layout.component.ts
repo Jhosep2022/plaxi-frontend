@@ -16,7 +16,7 @@ import { faChalkboardTeacher, faQrcode, faStar } from '@fortawesome/free-solid-s
           <circle cx="470" cy="760" r="46" class="c3" />
           <path d="M-20 520 Q 160 440 300 500 T 640 470" class="onda" />
         </svg>
-        <a routerLink="/auth/login" class="logo"><img src="assets/Logo_icon.png" alt="" /> <span>QuizWiz</span></a>
+        <a routerLink="/auth/login" class="logo"><img src="assets/aulix-logo-light.svg" alt="Aulix" /></a>
         <div class="mensaje">
           <h2>Tu colegio y tu academia, en un solo lugar.</h2>
           <p>Clases, tareas, asistencia y notas conectadas para docentes, estudiantes y familias.</p>
@@ -26,7 +26,7 @@ import { faChalkboardTeacher, faQrcode, faStar } from '@fortawesome/free-solid-s
             <li><span><fa-icon [icon]="faStar" /></span> Notas que se calculan solas con tu escala</li>
           </ul>
         </div>
-        <small class="pie">© 2026 QuizWiz</small>
+        <small class="pie">© 2026 Aulix</small>
       </aside>
       <main class="contenido">
         <div class="caja"><router-outlet /></div>
@@ -44,7 +44,7 @@ import { faChalkboardTeacher, faQrcode, faStar } from '@fortawesome/free-solid-s
     .onda { fill: none; stroke: var(--lime-green); stroke-width: 2; opacity: 0.3; }
     .logo, .mensaje, .pie { position: relative; }
     .logo { display: inline-flex; align-items: center; gap: 10px; color: var(--text-light); font-size: 22px; font-weight: bold; text-decoration: none; }
-    .logo img { height: 40px; display: block; filter: invert(1); }
+    .logo img { height: 48px; display: block; }
     .mensaje { max-width: 420px; }
     .mensaje h2 { margin: 0 0 12px; font-size: 32px; line-height: 1.2; }
     .mensaje p { margin: 0 0 24px; opacity: 0.8; line-height: 1.5; }

@@ -50,7 +50,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
     </form>
 
     <p class="alterno">¿No tienes cuenta? <a class="enlace" routerLink="/auth/registro">Créala gratis</a></p>
-    <p class="alterno">¿Eres un colegio? <a class="enlace" routerLink="/auth/colegio">Lleva QuizWiz a tu institución</a></p>
+    <p class="alterno">¿Eres un colegio? <a class="enlace" routerLink="/auth/colegio">Lleva Aulix a tu institución</a></p>
   `,
 })
 export class LoginComponent {

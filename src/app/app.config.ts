@@ -3,7 +3,7 @@ import { RouteReuseStrategy, TitleStrategy, provideRouter, withComponentInputBin
 import { provideHttpClient, withXhr } from '@angular/common/http';
 
 import { routes } from './app.routes';
-import { QuizWizTitleStrategy, RecrearConParametrosStrategy } from './core/routing/router-strategies';
+import { AulixTitleStrategy, RecrearConParametrosStrategy } from './core/routing/router-strategies';
 
 // Configuración global de la app (reemplaza a app.module.ts y app-routing.module.ts)
 // La app es zoneless (por defecto en Angular 22): la vista se actualiza cuando cambia
@@ -19,7 +19,7 @@ export const appConfig: ApplicationConfig = {
       // Las rutas hijas también reciben los parámetros de sus padres
       withRouterConfig({ paramsInheritanceStrategy: 'always' })
     ),
-    { provide: TitleStrategy, useClass: QuizWizTitleStrategy },
+    { provide: TitleStrategy, useClass: AulixTitleStrategy },
     { provide: RouteReuseStrategy, useClass: RecrearConParametrosStrategy },
     // withXhr: mantiene el backend XHR, necesario para el progreso de subida de archivos
     provideHttpClient(withXhr()),

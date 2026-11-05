@@ -9,7 +9,7 @@ import { AuthService } from '../../services/auth.service';
 import { PATRON_CELULAR, PATRON_CORREO } from '../../services/account-profile.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
 
-// Schools submit their details for the QuizWiz team to set up their accounts.
+// Schools submit their details for the Aulix team to set up their accounts.
 @Component({
   selector: 'app-school-request',
   imports: [FormField, RouterLink, FaIconComponent],
@@ -24,7 +24,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
       <a class="ui-btn ui-btn--secundario boton-ancho" routerLink="/auth/login"><fa-icon [icon]="faArrowLeft" /> Volver al inicio</a>
     } @else {
       <header class="encabezado">
-        <h1>Lleva QuizWiz a tu colegio</h1>
+        <h1>Lleva Aulix a tu colegio</h1>
         <p>Déjanos tus datos. Preparamos tu institución, creamos la cuenta de la dirección y te acompañamos en la puesta en marcha. Incluye 30 días de prueba.</p>
       </header>
       <form class="ui-form" (submit)="$event.preventDefault(); submitSchoolRequest()" novalidate>

@@ -34,7 +34,7 @@ import { faGlobe, faMicrophone, faPaperPlane, faPlus } from '@fortawesome/free-s
     <div class="orbe"></div>
     <header>
       <h3>Asistente IA</h3>
-      <span class="insignia">QuizWiz IA</span>
+      <span class="insignia">Aulix IA</span>
     </header>
     <div class="caja">
       <textarea rows="2" [value]="sugerencia()" (input)="texto.set($any($event.target).value)" aria-label="Pregunta al asistente"></textarea>

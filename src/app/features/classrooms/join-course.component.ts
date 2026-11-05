@@ -36,7 +36,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
       <p class="cargando">Cargando invitación…</p>
     } @else if (curso.value(); as c) {
       <article class="tarjeta">
-        <span class="marca">QuizWiz · {{ c.espacio.nombre }}</span>
+        <span class="marca">Aulix · {{ c.espacio.nombre }}</span>
         <app-classroom-cover [imagen]="c.aula.portada" [icono]="c.aula.icono" [tono]="c.aula.tono" />
         <p class="invitado">{{ c.docente }} te invitó a su curso</p>
         <h1>{{ c.aula.nombre }}</h1>

@@ -17,7 +17,7 @@ import { QrComponent } from '../../../shared/ui/qr.component';
     @if (punto(); as p) {
       <main class="pantalla">
         <header>
-          <img src="assets/Logo_icon.png" alt="QuizWiz" class="logo" />
+          <img src="assets/aulix-icon-light.svg" alt="Aulix" class="logo" />
           <div>
             <h1>{{ p.nombre }}</h1>
             <p>{{ espacio.nombre }} · Marcación del personal</p>
@@ -32,7 +32,7 @@ import { QrComponent } from '../../../shared/ui/qr.component';
           <div class="lateral">
             <h2>Escanea para marcar</h2>
             <ol>
-              <li>Abre QuizWiz en tu celular → <strong>Marcación</strong>.</li>
+              <li>Abre Aulix en tu celular → <strong>Marcación</strong>.</li>
               <li>Permite tu ubicación.</li>
               <li>Escanea este código o escribe el número.</li>
             </ol>

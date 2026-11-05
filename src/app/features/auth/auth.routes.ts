@@ -11,7 +11,7 @@ export default [
       { path: 'registro', title: 'Crear cuenta', loadComponent: () => import('./registration.component').then((m) => m.RegistrationComponent) },
       { path: 'recuperar-contrasena', title: 'Recuperar contraseña', loadComponent: () => import('./forgot-password.component').then((m) => m.ForgotPasswordComponent) },
       { path: 'nueva-contrasena', title: 'Nueva contraseña', loadComponent: () => import('./reset-password.component').then((m) => m.ResetPasswordComponent) },
-      { path: 'colegio', title: 'QuizWiz para colegios', loadComponent: () => import('./school-request.component').then((m) => m.SchoolRequestComponent) },
+      { path: 'colegio', title: 'Aulix para colegios', loadComponent: () => import('./school-request.component').then((m) => m.SchoolRequestComponent) },
     ],
   },
 ] satisfies Routes;

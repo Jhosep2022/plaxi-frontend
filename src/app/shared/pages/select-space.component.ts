@@ -16,7 +16,7 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
   template: `
     <div class="pagina">
       <header class="barra">
-        <img src="assets/Logo_icon.png" alt="QuizWiz" class="logo" />
+        <img src="assets/aulix-logo.svg" alt="Aulix" class="logo" />
         <button type="button" class="ui-btn ui-btn--secundario" (click)="session.signOut()"><fa-icon [icon]="faSignOutAlt" /> Cerrar sesión</button>
       </header>
 
@@ -40,7 +40,7 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
             }
           </ul>
         } @else {
-          <h1>¡Bienvenido a QuizWiz!</h1>
+          <h1>¡Bienvenido a Aulix!</h1>
           <p class="sub">Todavía no perteneces a ningún curso ni academia. ¿Qué quieres hacer?</p>
           <div class="opciones">
             <section class="ui-card opcion">

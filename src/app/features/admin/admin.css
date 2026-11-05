@@ -2,7 +2,7 @@
 .admin-navigation { display: flex; flex-shrink: 0; height: 100%; }
 .rail { width: 72px; background: var(--dark-blue); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 0; box-sizing: border-box; }
 .brand { margin-bottom: 12px; }
-.brand img { width: 40px; filter: invert(1); }
+.brand img { width: 40px; }
 .rail-link { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; background: transparent; color: rgba(255,255,255,.65); font: inherit; font-size: 18px; text-decoration: none; cursor: pointer; }
 .rail-link:hover { background: rgba(255,255,255,.08); color: var(--text-light); }
 .rail-link.active { background: var(--lime-green); color: var(--dark-blue); }

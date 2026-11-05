@@ -18,7 +18,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
       <div class="exito">
         <span class="icono"><fa-icon [icon]="faEnvelopeOpenText" /></span>
         <h1>Revisa tu correo</h1>
-        <p>Si <strong>{{ email }}</strong> tiene una cuenta en QuizWiz, te enviamos un enlace para crear una contraseña nueva. Vence en 1 hora.</p>
+        <p>Si <strong>{{ email }}</strong> tiene una cuenta en Aulix, te enviamos un enlace para crear una contraseña nueva. Vence en 1 hora.</p>
         <p class="ui-ayuda">¿No llegó? Revisa la carpeta de spam o <button type="button" class="enlace boton-enlace" (click)="sentTo.set(null)">inténtalo con otro correo</button>.</p>
         @if (token()) {
           <div class="simulacion">

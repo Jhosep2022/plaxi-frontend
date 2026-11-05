@@ -32,7 +32,6 @@
 
 .rail-logo img {
   width: 40px;
-  filter: invert(1); /* logo negro -> blanco sobre el azul */
 }
 
 .rail-modules {
