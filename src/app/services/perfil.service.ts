@@ -8,17 +8,17 @@ import { hoyIso } from '../core/utils/attendance';
 import { claveValida } from '../core/utils/clave';
 import { porcentaje } from '../core/utils/reportes';
 import { MOCK_CLAVES } from '../mocks/auth.mock';
-import { MOCK_AULAS_VIRTUALES } from '../mocks/aulas.mock';
+import { MOCK_AULAS_VIRTUALES } from '../mocks/classrooms.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
 import { MOCK_MIEMBRO_DESDE, MOCK_PERFIL_EXTRA, perfilExtraVacio } from '../mocks/perfil.mock';
 import { AcademiaService } from './academia.service';
 import { AcademicoService } from './academico.service';
 import { AttendanceService } from './attendance.service';
-import { AulasService } from './aulas.service';
+import { ClassroomsService } from './classrooms.service';
 import { MarcacionService } from './marcacion.service';
 import { PersonasService } from './personas.service';
 import { SesionesService } from './sesiones.service';
-import { TareasService } from './tareas.service';
+import { AssignmentsService } from './assignments.service';
 
 export interface DatosPersonales {
   nombre: string;
@@ -49,14 +49,14 @@ export const PATRON_ENLACE = /^https?:\/\/\S+\.\S+/;
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP a /perfil.
 @Injectable({ providedIn: 'root' })
 export class PerfilService {
-  private aulas = inject(AulasService);
+  private aulas = inject(ClassroomsService);
   private academia = inject(AcademiaService);
   private academico = inject(AcademicoService);
   private asistencia = inject(AttendanceService);
   private marcacion = inject(MarcacionService);
   private personas = inject(PersonasService);
   private sesiones = inject(SesionesService);
-  private tareas = inject(TareasService);
+  private tareas = inject(AssignmentsService);
 
   // Sube cada vez que cambia el nombre o la foto (el sidebar se vuelve a cargar)
   readonly version = signal(0);

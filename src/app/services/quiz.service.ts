@@ -3,15 +3,15 @@ import { Observable, firstValueFrom, from, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { esCorrecta } from '../core/models/quiz.model';
 import type { Intento, Pregunta, Quiz, Respuesta } from '../core/models/quiz.model';
-import { periodoDeFecha } from '../core/utils/calificaciones';
+import { periodoDeFecha } from '../core/utils/grades';
 import { porcentaje } from '../core/utils/reportes';
-import { ahoraIso } from '../core/utils/tareas';
+import { ahoraIso } from '../core/utils/assignments';
 import { MOCK_GESTIONES } from '../mocks/academico.mock';
-import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/aulas.mock';
+import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_DELAY, MOCK_INSCRIPCIONES } from '../mocks/mock-data';
 import { MOCK_INTENTOS, MOCK_PREGUNTAS, MOCK_QUIZZES } from '../mocks/quiz.mock';
-import { CalificacionesService } from './calificaciones.service';
+import { GradesService } from './grades.service';
 import { RepositorioMock } from './repositorio-mock';
 
 export interface QuizDocente extends Quiz {
@@ -55,7 +55,7 @@ const limite = (q: Pick<Quiz, 'cierre' | 'horaCierre'>) => `${q.cierre}T${q.hora
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class QuizService {
-  private calificaciones = inject(CalificacionesService);
+  private calificaciones = inject(GradesService);
   private quizRepo = new RepositorioMock<Quiz>(MOCK_QUIZZES);
   private preguntasRepo = new RepositorioMock<Pregunta>(MOCK_PREGUNTAS);
   private intentosRepo = new RepositorioMock<Intento>(MOCK_INTENTOS);

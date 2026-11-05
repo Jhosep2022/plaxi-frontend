@@ -5,8 +5,8 @@ import { FormField, applyEach, form, max, min, required, submit, validate } from
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus, faRotateLeft, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { ConfigCalificacion, configPorDefecto } from '../../../core/models/calificaciones.model';
-import { CalificacionesService } from '../../../services/calificaciones.service';
+import { ConfigCalificacion, configPorDefecto } from '../../../core/models/grades.model';
+import { GradesService } from '../../../services/grades.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { mensajeError } from '../academics/academico.ui';
@@ -117,7 +117,7 @@ const aModelo = (c: ConfigCalificacion) => ({
   `,
 })
 export class EscalaComponent {
-  private calificaciones = inject(CalificacionesService);
+  private calificaciones = inject(GradesService);
   private avisos = inject(AvisosService);
   private readonly espacio = inject(SessionService).espacioActivo()!;
 

@@ -17,7 +17,7 @@ export const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.routes'),
   },
 
-  { path: 'unirse/:codigo', title: 'Unirse a un curso', loadComponent: () => import('./features/classrooms/unirse.component').then((m) => m.UnirseComponent) },
+  { path: 'unirse/:codigo', title: 'Unirse a un curso', loadComponent: () => import('./features/classrooms/join-course.component').then((m) => m.JoinCourseComponent) },
 
   {
     path: 'espacios',

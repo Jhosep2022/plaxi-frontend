@@ -50,10 +50,10 @@ module.exports = async function institucion({ verificar }) {
     await b.navegarEnApp('/colegio-san-jose/direccion/calificaciones/boletines', 3000);
     await b.clic('.ui-tabla button', 'Ver boletín');
     await b.esperar(800);
-    const encabezado = await b.texto('app-boletin .encabezado');
+    const encabezado = await b.texto('app-report-card .encabezado');
     verificar('el boletín muestra el nuevo nombre, el SIE y el lema', encabezado.includes('Unidad Educativa San José') && encabezado.includes('SIE 80730215') && encabezado.includes('Ciencia y virtud'), encabezado);
-    verificar('el boletín muestra el logo', await b.evaluar(`!!document.querySelector('app-boletin .escudo img')`));
-    verificar('el boletín lleva las firmas de las autoridades', (await b.texto('app-boletin .firmas')).includes('Ana Rojas') && (await b.texto('app-boletin .firmas')).includes('Jorge Vargas'));
+    verificar('el boletín muestra el logo', await b.evaluar(`!!document.querySelector('app-report-card .escudo img')`));
+    verificar('el boletín lleva las firmas de las autoridades', (await b.texto('app-report-card .firmas')).includes('Ana Rojas') && (await b.texto('app-report-card .firmas')).includes('Jorge Vargas'));
     await b.captura('institucion-boletin.png');
     verificar('sin errores en la consola', b.errores.length === 0, b.errores.join(' | '));
   } finally {

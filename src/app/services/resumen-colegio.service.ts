@@ -10,25 +10,25 @@ import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model'
 import { Membresia } from '../core/models/espacio.model';
 import { Marcacion } from '../core/models/marcacion.model';
 import { contar, diaDeSemana, estadoDelDia, fechaCorta, hoyIso, sumarDias } from '../core/utils/attendance';
-import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../core/utils/calificaciones';
+import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../core/utils/grades';
 import { DatosHorario, clasesDeDocente, itemsDeClases } from '../core/utils/schedule';
 import { aHora, aMinutos } from '../core/utils/jornada';
 import { porcentaje } from '../core/utils/reportes';
-import { urgente, venceLabel } from '../core/utils/tareas';
-import { cuando } from '../features/announcements/comunicados.ui';
+import { urgente, venceLabel } from '../core/utils/assignments';
+import { cuando } from '../features/announcements/announcements.ui';
 import { PerfilDto } from '../models/PerfilDto';
 import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } from '../shared/dashboard/dashboard.models';
 import { iconoMateria } from '../shared/ui/iconos-academicos';
 import { AcademicoService } from './academico.service';
 import { AttendanceService } from './attendance.service';
-import { CalificacionesService, DatosParalelo } from './calificaciones.service';
+import { GradesService, DatosParalelo } from './grades.service';
 import { ClasesDocenteService } from './clases-docente.service';
-import { ComunicadoRecibido, ComunicadosService } from './comunicados.service';
+import { ComunicadoRecibido, AnnouncementsService } from './announcements.service';
 import { HijoActivoService } from './hijo-activo.service';
 import { SchedulesService } from './schedules.service';
 import { MarcacionService } from './marcacion.service';
 import { ProfileService } from './profile.service';
-import { TareaDeEstudiante, TareasService } from './tareas.service';
+import { TareaDeEstudiante, AssignmentsService } from './assignments.service';
 
 type Semana = ResumenData['perfil']['semana'];
 
@@ -40,10 +40,10 @@ export class ResumenColegioService {
   private horarios = inject(SchedulesService);
   private academico = inject(AcademicoService);
   private asistencia = inject(AttendanceService);
-  private calificaciones = inject(CalificacionesService);
+  private calificaciones = inject(GradesService);
   private clasesDocente = inject(ClasesDocenteService);
-  private tareas = inject(TareasService);
-  private comunicados = inject(ComunicadosService);
+  private tareas = inject(AssignmentsService);
+  private comunicados = inject(AnnouncementsService);
   private marcacion = inject(MarcacionService);
   private hijoActivo = inject(HijoActivoService);
 

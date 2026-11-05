@@ -1,14 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
-import type { Aula } from '../core/models/aulas.model';
+import type { Aula } from '../core/models/classrooms.model';
 import { Espacio } from '../core/models/espacio.model';
 import { hoyIso } from '../core/utils/attendance';
-import { ahoraIso } from '../core/utils/tareas';
+import { ahoraIso } from '../core/utils/assignments';
 import { MOCK_DOCENTES } from '../mocks/academico.mock';
-import { MOCK_AULAS_VIRTUALES, MOCK_TEMAS_AULA, MOCK_UNIDADES } from '../mocks/aulas.mock';
+import { MOCK_AULAS_VIRTUALES, MOCK_TEMAS_AULA, MOCK_UNIDADES } from '../mocks/classrooms.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
-import { AulasService } from './aulas.service';
+import { ClassroomsService } from './classrooms.service';
 import { RepositorioMock } from './repositorio-mock';
 
 export type DatosCurso = Pick<Aula, 'nombre' | 'descripcion' | 'categoria' | 'nivel' | 'visibilidad' | 'aprobacionManual' | 'portada'>;
@@ -49,7 +49,7 @@ const cursoIdDe = (aulaId: number) => aulaId - 1000;
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class AcademiaService {
-  private aulas = inject(AulasService);
+  private aulas = inject(ClassroomsService);
   private aulasRepo = new RepositorioMock<Aula>(MOCK_AULAS_VIRTUALES);
 
   // ---------- Cursos ----------

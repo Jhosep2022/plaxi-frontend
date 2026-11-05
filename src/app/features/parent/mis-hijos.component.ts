@@ -10,12 +10,12 @@ import {
 import { SessionService } from '../../core/auth/session.service';
 import { PARENTESCOS, edad, iniciales } from '../../core/models/personas.model';
 import { contar, fechaCorta, hoyIso, sumarDias } from '../../core/utils/attendance';
-import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/calificaciones';
+import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/grades';
 import { AttendanceService } from '../../services/attendance.service';
-import { CalificacionesService } from '../../services/calificaciones.service';
-import { ComunicadosService } from '../../services/comunicados.service';
+import { GradesService } from '../../services/grades.service';
+import { AnnouncementsService } from '../../services/announcements.service';
 import { Hijo, HijoActivoService } from '../../services/hijo-activo.service';
-import { TareasService } from '../../services/tareas.service';
+import { AssignmentsService } from '../../services/assignments.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 
@@ -48,9 +48,9 @@ export class MisHijosComponent {
   private router = inject(Router);
   private hijoActivo = inject(HijoActivoService);
   private asistencia = inject(AttendanceService);
-  private calificaciones = inject(CalificacionesService);
-  private comunicados = inject(ComunicadosService);
-  private tareas = inject(TareasService);
+  private calificaciones = inject(GradesService);
+  private comunicados = inject(AnnouncementsService);
+  private tareas = inject(AssignmentsService);
 
   readonly iniciales = iniciales;
   readonly faBullhorn = faBullhorn;

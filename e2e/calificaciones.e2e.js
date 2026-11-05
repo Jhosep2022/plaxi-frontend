@@ -76,8 +76,8 @@ module.exports = async function calificaciones({ verificar }) {
       (await b.evaluar(`[...document.querySelectorAll('.materia.en-riesgo .titulo strong')].map(s => s.textContent.trim()).join()`)) === 'Física');
     await b.clic('.ui-tab', 'Boletín');
     await b.esperar(300);
-    verificar('el boletín es de Luis Mamani (3ro A)', (await b.texto('app-boletin .datos')).includes('Luis Mamani') && (await b.texto('app-boletin .datos')).includes('3ro A'));
-    const fisica = await b.evaluar(`[...document.querySelectorAll('app-boletin tbody tr')].find(tr => tr.textContent.includes('Física'))?.innerText.replace(/\\s+/g, ' ') ?? ''`);
+    verificar('el boletín es de Luis Mamani (3ro A)', (await b.texto('app-report-card .datos')).includes('Luis Mamani') && (await b.texto('app-report-card .datos')).includes('3ro A'));
+    const fisica = await b.evaluar(`[...document.querySelectorAll('app-report-card tbody tr')].find(tr => tr.textContent.includes('Física'))?.innerText.replace(/\\s+/g, ' ') ?? ''`);
     verificar('el boletín muestra Física 70 · 45 · 62 y promedio 59', fisica.includes('70 45 62 59'), fisica);
     verificar('tiene el botón para imprimir o guardar PDF', (await cuerpo()).includes('Imprimir / PDF'));
 
@@ -129,7 +129,7 @@ module.exports = async function calificaciones({ verificar }) {
     verificar('el buscador filtra por nombre', (await b.evaluar(`document.querySelectorAll('.ui-tabla tbody tr').length`)) === 1);
     await b.clic('.ui-tabla button', 'Ver boletín');
     await b.esperar(300);
-    verificar('abre el boletín del estudiante', (await b.texto('app-boletin .datos')).includes('Luis Mamani'));
+    verificar('abre el boletín del estudiante', (await b.texto('app-report-card .datos')).includes('Luis Mamani'));
     await b.clic('button.volver', 'Volver');
     await b.esperar(300);
     await b.escribir('.buscar input', '');

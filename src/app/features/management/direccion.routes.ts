@@ -34,7 +34,7 @@ export default [
   { path: 'reportes/rendimiento', title: 'Rendimiento académico', loadComponent: () => import('./reports/rendimiento.component').then((m) => m.RendimientoComponent) },
   { path: 'reportes/asistencia', title: 'Reporte de asistencia', loadComponent: () => import('./reports/asistencia-reporte.component').then((m) => m.AsistenciaReporteComponent) },
   { path: 'reportes/puntualidad', title: 'Puntualidad del personal', loadComponent: () => import('./reports/puntualidad.component').then((m) => m.PuntualidadComponent) },
-  { path: 'comunicados', title: 'Comunicados', loadComponent: () => import('../announcements/comunicados.component').then((m) => m.ComunicadosComponent) },
+  { path: 'comunicados', title: 'Comunicados', loadComponent: () => import('../announcements/announcements.component').then((m) => m.AnnouncementsComponent) },
   { path: 'institucion', title: 'Datos de la institución', loadComponent: () => import('./institution/data/datos-institucion.component').then((m) => m.DatosInstitucionComponent) },
   { path: 'institucion/jornada', title: 'Jornada escolar', loadComponent: () => import('./institution/workday/jornada.component').then((m) => m.JornadaComponent) },
   { path: 'institucion/horario-laboral', title: 'Horario laboral', loadComponent: () => import('./institution/work-schedule/horario-laboral.component').then((m) => m.HorarioLaboralComponent) },

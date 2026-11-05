@@ -8,8 +8,8 @@ import { SessionService } from '../../../core/auth/session.service';
 import { TIPOS_PREGUNTA } from '../../../core/models/quiz.model';
 import type { TipoPregunta } from '../../../core/models/quiz.model';
 import { hoyIso, sumarDias } from '../../../core/utils/attendance';
-import { AulasService } from '../../../services/aulas.service';
-import { CalificacionesService } from '../../../services/calificaciones.service';
+import { ClassroomsService } from '../../../services/classrooms.service';
+import { GradesService } from '../../../services/grades.service';
 import { BorradorPregunta, QuizService } from '../../../services/quiz.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -37,8 +37,8 @@ export class QuizEditorComponent {
   private session = inject(SessionService);
   private router = inject(Router);
   private servicio = inject(QuizService);
-  private aulas = inject(AulasService);
-  private calificaciones = inject(CalificacionesService);
+  private aulas = inject(ClassroomsService);
+  private calificaciones = inject(GradesService);
   private avisos = inject(AvisosService);
 
   readonly asignacionId = input.required<string>();

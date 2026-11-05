@@ -8,7 +8,7 @@ import { aHora, aMinutos } from '../core/utils/jornada';
 import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } from '../shared/dashboard/dashboard.models';
 import { iconoMateria } from '../shared/ui/iconos-academicos';
 import { AcademiaService } from './academia.service';
-import { AulasService } from './aulas.service';
+import { ClassroomsService } from './classrooms.service';
 import { ProfileService } from './profile.service';
 import { QuizService } from './quiz.service';
 import { SesionVista, SesionesService } from './sesiones.service';
@@ -19,7 +19,7 @@ const ETIQUETAS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi'];
 @Injectable({ providedIn: 'root' })
 export class ResumenAcademiaService {
   private perfiles = inject(ProfileService);
-  private aulas = inject(AulasService);
+  private aulas = inject(ClassroomsService);
   private sesiones = inject(SesionesService);
   private academia = inject(AcademiaService);
   private quiz = inject(QuizService);

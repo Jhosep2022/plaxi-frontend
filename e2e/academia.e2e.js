@@ -4,8 +4,8 @@ const { abrirNavegador } = require('./lib');
 module.exports = async function academia({ verificar }) {
   const b = await abrirNavegador({ fecha: new Date(2026, 9, 19, 9, 0, 0) });
   const cuerpo = () => b.evaluar('document.body.innerText');
-  const tarjetas = () => b.evaluar(`[...document.querySelectorAll('app-tarjeta-aula h3')].map(h => h.textContent.trim())`);
-  const ultimoBotonDrawer = () => b.evaluar(`[...document.querySelectorAll('app-curso-form app-drawer footer button')].at(-1).click()`);
+  const tarjetas = () => b.evaluar(`[...document.querySelectorAll('app-classroom-card h3')].map(h => h.textContent.trim())`);
+  const ultimoBotonDrawer = () => b.evaluar(`[...document.querySelectorAll('app-course-form app-drawer footer button')].at(-1).click()`);
   const escribirEn = (selector, valor) => b.evaluar(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.value = ${JSON.stringify(valor)}; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   try {
     // ---------- Docente: crear curso ----------
@@ -28,14 +28,14 @@ module.exports = async function academia({ verificar }) {
     // Invitación
     await b.clic('.botones button', 'Invitar');
     await b.esperar(400);
-    const link = await b.evaluar(`document.querySelector('app-drawer app-invitacion input')?.value ?? ''`);
+    const link = await b.evaluar(`document.querySelector('app-drawer app-course-invitation input')?.value ?? ''`);
     verificar('genera un link de invitación propio', /\/unirse\/EXC-[A-Z0-9]{4}$/.test(link), link);
-    await b.clic('app-drawer app-invitacion button', 'Copiar');
+    await b.clic('app-drawer app-course-invitation button', 'Copiar');
     await b.esperar(200);
-    verificar('el botón confirma que se copió', (await b.texto('app-drawer app-invitacion .link button')).includes('Copiado'));
-    await b.clic('app-drawer app-invitacion .regenerar', 'Generar');
+    verificar('el botón confirma que se copió', (await b.texto('app-drawer app-course-invitation .link button')).includes('Copiado'));
+    await b.clic('app-drawer app-course-invitation .regenerar', 'Generar');
     await b.esperar(800);
-    verificar('puede generar un link nuevo', (await b.evaluar(`document.querySelector('app-drawer app-invitacion input').value`)) !== link);
+    verificar('puede generar un link nuevo', (await b.evaluar(`document.querySelector('app-drawer app-course-invitation input').value`)) !== link);
 
     // Solicitudes del curso privado
     await b.navegarEnApp('/academia-maria/docente/clases/1004?tab=estudiantes', 3000);
@@ -51,7 +51,7 @@ module.exports = async function academia({ verificar }) {
     verificar('Estudiantes reúne a los de todos los cursos', (await b.texto('#tabla-academia')).includes('Luis Mamani') && (await b.texto('#tabla-academia')).includes('Valeria Quiroga'));
     await b.clic('.ui-tab', 'Links de invitación');
     await b.esperar(300);
-    verificar('Links de invitación lista los 5 cursos (con el nuevo)', (await b.evaluar(`document.querySelectorAll('app-invitacion').length`)) === 5);
+    verificar('Links de invitación lista los 5 cursos (con el nuevo)', (await b.evaluar(`document.querySelectorAll('app-course-invitation').length`)) === 5);
 
     // ---------- Estudiante: catálogo ----------
     await b.sesion('estudiante');

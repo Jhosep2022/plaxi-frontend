@@ -6,10 +6,10 @@ const LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect 
 module.exports = async function clases({ verificar }) {
   const b = await abrirNavegador({ fecha: new Date(2026, 9, 19, 9, 0, 0) });
   const cuerpo = () => b.evaluar('document.body.innerText');
-  const tarjetas = () => b.evaluar(`[...document.querySelectorAll('app-tarjeta-aula h3')].map(h => h.textContent.trim())`);
-  const tarjeta = (nombre) => b.evaluar(`[...document.querySelectorAll('app-tarjeta-aula')].find(t => t.querySelector('h3').textContent.trim() === ${JSON.stringify(nombre)})?.innerText.replace(/\\s+/g, ' ') ?? ''`);
+  const tarjetas = () => b.evaluar(`[...document.querySelectorAll('app-classroom-card h3')].map(h => h.textContent.trim())`);
+  const tarjeta = (nombre) => b.evaluar(`[...document.querySelectorAll('app-classroom-card')].find(t => t.querySelector('h3').textContent.trim() === ${JSON.stringify(nombre)})?.innerText.replace(/\\s+/g, ' ') ?? ''`);
   const pestana = async (nombre) => { await b.clic('.pestanas button', nombre); await b.esperar(1200); };
-  const unidades = () => b.evaluar(`[...document.querySelectorAll('app-contenido-docente .unidad h3')].map(h => h.textContent.trim())`);
+  const unidades = () => b.evaluar(`[...document.querySelectorAll('app-teacher-content .unidad h3')].map(h => h.textContent.trim())`);
   const ultimoBotonDrawer = () => b.evaluar(`[...document.querySelectorAll('app-drawer footer button')].at(-1).click()`);
   try {
     // ---------- Docente: Mis clases ----------
@@ -27,7 +27,7 @@ module.exports = async function clases({ verificar }) {
     verificar('el sidebar lista las aulas', (await b.texto('app-sidebar')).includes('Química · 5to A'));
 
     // ---------- Docente: aula de Física 3ro A ----------
-    await b.evaluar(`[...document.querySelectorAll('app-tarjeta-aula')].find(t => t.textContent.includes('Física · 3ro A')).querySelector('a').click()`);
+    await b.evaluar(`[...document.querySelectorAll('app-classroom-card')].find(t => t.textContent.includes('Física · 3ro A')).querySelector('a').click()`);
     await b.esperar(3500);
     verificar('abre el aula de la clase', (await b.texto('.encabezado h1')) === 'Física · 3ro A');
     verificar('Inicio: avance, asistencia, promedio y estudiantes en riesgo', (await b.evaluar(`document.querySelectorAll('.indicador').length`)) === 4 && (await cuerpo()).includes('estudiantes en riesgo'));
@@ -37,15 +37,15 @@ module.exports = async function clases({ verificar }) {
     verificar('Contenido: 3 unidades con su contenido', (await unidades()).length === 3 && (await cuerpo()).includes('Movimiento rectilíneo uniforme (MRU)'));
     verificar('la unidad 3 está en borrador y la 2 bloqueada hasta completar la 1', (await cuerpo()).includes('Borrador') && (await cuerpo()).includes('Se abre al completar la anterior'));
 
-    await b.clic('app-contenido-docente .barra button', 'Unidad');
+    await b.clic('app-teacher-content .barra button', 'Unidad');
     await b.esperar(300);
     await b.escribir('#uni-titulo', 'Unidad 4: Ondas');
     await b.evaluar(`document.querySelector('#uni-bloqueo').click()`);
     await ultimoBotonDrawer();
     await b.esperar(1200);
-    verificar('crea una unidad nueva al final', (await unidades()).at(-1) === 'Unidad 4: Ondas' && (await b.evaluar(`[...document.querySelectorAll('app-contenido-docente .unidad')].at(-1).textContent.includes('Se abre al completar la anterior')`)));
+    verificar('crea una unidad nueva al final', (await unidades()).at(-1) === 'Unidad 4: Ondas' && (await b.evaluar(`[...document.querySelectorAll('app-teacher-content .unidad')].at(-1).textContent.includes('Se abre al completar la anterior')`)));
 
-    await b.evaluar(`[...document.querySelectorAll('app-contenido-docente .unidad')].at(-1).querySelector('.agregar').click()`);
+    await b.evaluar(`[...document.querySelectorAll('app-teacher-content .unidad')].at(-1).querySelector('.agregar').click()`);
     await b.esperar(300);
     await b.escribir('#tema-titulo', 'Simulador de ondas');
     await b.evaluar(`document.querySelector('#tema-tipo-enlace').click()`);
@@ -56,13 +56,13 @@ module.exports = async function clases({ verificar }) {
     await b.escribir('#tema-url', 'https://phet.colorado.edu/es/simulations/wave-on-a-string');
     await ultimoBotonDrawer();
     await b.esperar(1200);
-    verificar('agrega el tema a la unidad', (await b.evaluar(`[...document.querySelectorAll('app-contenido-docente .unidad')].at(-1).textContent`)).includes('Simulador de ondas'));
+    verificar('agrega el tema a la unidad', (await b.evaluar(`[...document.querySelectorAll('app-teacher-content .unidad')].at(-1).textContent`)).includes('Simulador de ondas'));
 
-    await b.evaluar(`[...document.querySelectorAll('app-contenido-docente .unidad')].at(-1).querySelector('.acciones button:nth-child(2)').click()`);
+    await b.evaluar(`[...document.querySelectorAll('app-teacher-content .unidad')].at(-1).querySelector('.acciones button:nth-child(2)').click()`);
     await b.esperar(1200);
     verificar('reordena: la unidad 4 sube un lugar', (await unidades())[2] === 'Unidad 4: Ondas', (await unidades()).join(' | '));
 
-    await b.clic('app-contenido-docente .barra button', 'Copiar a otro paralelo');
+    await b.clic('app-teacher-content .barra button', 'Copiar a otro paralelo');
     await b.esperar(500);
     verificar('ofrece copiar a Física 4to B', (await cuerpo()).includes('Copiar a') && (await b.evaluar(`!!document.querySelector('app-drawer input[id^="copiar-a-"]')`)));
     await b.evaluar(`[...document.querySelectorAll('app-drawer input[id^="copiar-a-"]')][0].click()`);
@@ -74,7 +74,7 @@ module.exports = async function clases({ verificar }) {
     await b.evaluar(`(() => { const dt = new DataTransfer(); dt.items.add(new File([${JSON.stringify(LOGO)}], 'portada.svg', { type: 'image/svg+xml' }));
       const i = document.querySelector('#aula-portada'); i.files = dt.files; i.dispatchEvent(new Event('change', { bubbles: true })); })()`);
     await b.esperar(1200);
-    verificar('el docente puede subir su propia portada', (await cuerpo()).includes('Portada actualizada') && await b.evaluar(`!!document.querySelector('.encabezado app-portada-aula img')`));
+    verificar('el docente puede subir su propia portada', (await cuerpo()).includes('Portada actualizada') && await b.evaluar(`!!document.querySelector('.encabezado app-classroom-cover img')`));
 
     await pestana('Estudiantes');
     verificar('Estudiantes: los 32 con su avance en el contenido', (await b.evaluar(`document.querySelectorAll('#tabla-estudiantes tbody tr').length`)) === 32 && (await b.texto('#tabla-estudiantes tbody tr')).includes('%'));

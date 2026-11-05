@@ -5,10 +5,10 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faFileLines, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academico.model';
-import { aprobado, boletinDe, indiceNotas, promedio } from '../../../core/utils/calificaciones';
+import { aprobado, boletinDe, indiceNotas, promedio } from '../../../core/utils/grades';
 import { AcademicoService } from '../../../services/academico.service';
-import { CalificacionesService } from '../../../services/calificaciones.service';
-import { BoletinComponent } from '../../../shared/grades/boletin.component';
+import { GradesService } from '../../../services/grades.service';
+import { ReportCardComponent } from '../../../shared/grades/report-card.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 
@@ -16,7 +16,7 @@ import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 @Component({
   selector: 'app-boletines',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, BoletinComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, ReportCardComponent],
   styles: `
     .cargando { color: var(--muted); }
     .filtros { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -36,7 +36,7 @@ import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
   template: `
     @if (elegido(); as est) {
       <button type="button" class="ui-btn ui-btn--secundario volver no-imprimir" (click)="elegidoId.set(0)"><fa-icon [icon]="faArrowLeft" /> Volver a {{ curso() }}</button>
-      <app-boletin [datos]="datos.value()!" [estudiante]="est" [espacio]="espacio.nombre" />
+      <app-report-card [datos]="datos.value()!" [estudiante]="est" [espacio]="espacio.nombre" />
     } @else {
       <app-page-header miga="Calificaciones" titulo="Boletines" descripcion="Notas finales de cada estudiante por periodo. Abre un boletín para verlo completo o imprimirlo.">
         <div class="filtros">
@@ -106,7 +106,7 @@ import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 })
 export class BoletinesComponent {
   private academico = inject(AcademicoService);
-  private calificaciones = inject(CalificacionesService);
+  private calificaciones = inject(GradesService);
 
   readonly faArrowLeft = faArrowLeft;
   readonly faFileLines = faFileLines;

@@ -6,7 +6,7 @@ import { PATRON_SLUG } from '../core/models/auth.model';
 import { ESCALA_POR_DEFECTO } from '../core/models/espacio.model';
 import { hoyIso } from '../core/utils/attendance';
 import { claveValida } from '../core/utils/clave';
-import { ahoraIso } from '../core/utils/tareas';
+import { ahoraIso } from '../core/utils/assignments';
 import { MOCK_CLAVES, MOCK_SOLICITUDES_COLEGIO, MOCK_TOKENS_RECUPERACION } from '../mocks/auth.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
 import { MOCK_MIEMBRO_DESDE, MOCK_PERFIL_EXTRA, perfilExtraVacio } from '../mocks/perfil.mock';

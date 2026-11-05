@@ -8,7 +8,7 @@ import { SessionService } from '../../../core/auth/session.service';
 import { Gestion } from '../../../core/models/academico.model';
 import { fechaCorta, hoyIso } from '../../../core/utils/attendance';
 import { AcademicoService } from '../../../services/academico.service';
-import { CalificacionesService } from '../../../services/calificaciones.service';
+import { GradesService } from '../../../services/grades.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -99,7 +99,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
 })
 export class CierrePeriodosComponent {
   private academico = inject(AcademicoService);
-  private calificaciones = inject(CalificacionesService);
+  private calificaciones = inject(GradesService);
   private avisos = inject(AvisosService);
   private readonly espacioId = inject(SessionService).espacioActivo()!.id;
 

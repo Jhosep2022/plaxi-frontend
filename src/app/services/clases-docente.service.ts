@@ -3,12 +3,12 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { Asignacion, DIAS_SEMANA, Materia, Paralelo, TURNOS, paraleloLabel } from '../core/models/academico.model';
 import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model';
-import { Actividad, ConfigCalificacion } from '../core/models/calificaciones.model';
+import { Actividad, ConfigCalificacion } from '../core/models/grades.model';
 import { Conteo, contar, diaDeSemana, hoyIso, sumarDias } from '../core/utils/attendance';
-import { ResultadoMateria, aprobado, calcularNota, indiceNotas, periodoDeFecha } from '../core/utils/calificaciones';
+import { ResultadoMateria, aprobado, calcularNota, indiceNotas, periodoDeFecha } from '../core/utils/grades';
 import { rangoDeBloque } from '../core/utils/schedule';
 import { AttendanceService } from './attendance.service';
-import { CalificacionesService, DatosParalelo } from './calificaciones.service';
+import { GradesService, DatosParalelo } from './grades.service';
 import { SchedulesService } from './schedules.service';
 
 export interface SesionSemanal {
@@ -52,7 +52,7 @@ export const ASISTENCIA_MINIMA = 85; // % por debajo del cual el estudiante qued
 export class ClasesDocenteService {
   private horarios = inject(SchedulesService);
   private asistencia = inject(AttendanceService);
-  private calificaciones = inject(CalificacionesService);
+  private calificaciones = inject(GradesService);
 
   clasesDe(espacioId: number, docenteId: number): Observable<ClaseDocente[]> {
     const hoy = hoyIso();

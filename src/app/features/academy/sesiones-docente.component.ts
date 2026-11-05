@@ -7,7 +7,7 @@ import { SessionService } from '../../core/auth/session.service';
 import { PLATAFORMAS } from '../../core/models/sesiones.model';
 import type { Plataforma } from '../../core/models/sesiones.model';
 import { hoyIso } from '../../core/utils/attendance';
-import { AulasService } from '../../services/aulas.service';
+import { ClassroomsService } from '../../services/classrooms.service';
 import { AsistenteSesion, SesionVista, SesionesService } from '../../services/sesiones.service';
 import { AvisosService } from '../../shared/ui/avisos.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
@@ -144,7 +144,7 @@ const VACIA = { aulaId: '', titulo: '', descripcion: '', fecha: '', inicio: '18:
 export class SesionesDocenteComponent {
   private session = inject(SessionService);
   private servicio = inject(SesionesService);
-  private aulas = inject(AulasService);
+  private aulas = inject(ClassroomsService);
   private avisos = inject(AvisosService);
 
   readonly plataformas = PLATAFORMAS;

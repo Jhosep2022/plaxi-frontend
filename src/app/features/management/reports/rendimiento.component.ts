@@ -7,10 +7,10 @@ import { faChartLine, faCircleCheck, faFileCsv, faPrint, faTriangleExclamation, 
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academico.model';
 import { hoyIso } from '../../../core/utils/attendance';
-import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../../core/utils/calificaciones';
+import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../../core/utils/grades';
 import { descargarCsv, porcentaje } from '../../../core/utils/reportes';
 import { AcademicoService } from '../../../services/academico.service';
-import { CalificacionesService, DatosParalelo } from '../../../services/calificaciones.service';
+import { GradesService, DatosParalelo } from '../../../services/grades.service';
 import { BarrasComponent, ColumnasComponent, ItemGrafico } from '../../../shared/reports/graficos.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -37,7 +37,7 @@ interface NotaFinal {
 })
 export class RendimientoComponent {
   private academico = inject(AcademicoService);
-  private calificaciones = inject(CalificacionesService);
+  private calificaciones = inject(GradesService);
   private readonly espacioId = inject(SessionService).espacioActivo()!.id;
 
   readonly ANUAL = ANUAL;

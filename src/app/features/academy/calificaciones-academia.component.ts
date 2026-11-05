@@ -8,7 +8,7 @@ import { faChartColumn, faCircleQuestion, faFileCsv, faStar } from '@fortawesome
 import { SessionService } from '../../core/auth/session.service';
 import { fechaCorta } from '../../core/utils/attendance';
 import { descargarCsv } from '../../core/utils/reportes';
-import { AulasService } from '../../services/aulas.service';
+import { ClassroomsService } from '../../services/classrooms.service';
 import { QuizService } from '../../services/quiz.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { iconoMateria } from '../../shared/ui/iconos-academicos';
@@ -108,7 +108,7 @@ const estilos = `
 })
 export class CalificacionesAcademiaDocenteComponent {
   readonly session = inject(SessionService);
-  private aulas = inject(AulasService);
+  private aulas = inject(ClassroomsService);
   private quiz = inject(QuizService);
 
   readonly aprobacion = APROBACION;
@@ -176,7 +176,7 @@ export class CalificacionesAcademiaDocenteComponent {
 })
 export class CalificacionesAcademiaEstudianteComponent {
   readonly session = inject(SessionService);
-  private aulas = inject(AulasService);
+  private aulas = inject(ClassroomsService);
   private quiz = inject(QuizService);
 
   readonly aprobacion = APROBACION;

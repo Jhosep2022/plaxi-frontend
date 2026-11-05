@@ -4,8 +4,8 @@ const { abrirNavegador } = require('./lib');
 module.exports = async function quiz({ verificar }) {
   const b = await abrirNavegador({ fecha: new Date(2026, 9, 19, 9, 0, 0) });
   const cuerpo = () => b.evaluar('document.body.innerText');
-  const tarjetas = () => b.evaluar(`[...document.querySelectorAll('app-quiz-docente .quiz h3')].map(h => h.textContent.trim())`);
-  const tarjeta = (titulo) => b.evaluar(`[...document.querySelectorAll('app-quiz-docente .quiz')].find(t => t.querySelector('h3').textContent.trim() === ${JSON.stringify(titulo)})?.innerText.replace(/\\s+/g, ' ') ?? ''`);
+  const tarjetas = () => b.evaluar(`[...document.querySelectorAll('app-teacher-quiz .quiz h3')].map(h => h.textContent.trim())`);
+  const tarjeta = (titulo) => b.evaluar(`[...document.querySelectorAll('app-teacher-quiz .quiz')].find(t => t.querySelector('h3').textContent.trim() === ${JSON.stringify(titulo)})?.innerText.replace(/\\s+/g, ' ') ?? ''`);
   const escribirEn = (selector, valor) => b.evaluar(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.value = ${JSON.stringify(valor)}; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   try {
     // ---------- Docente ----------
@@ -14,12 +14,12 @@ module.exports = async function quiz({ verificar }) {
     verificar('la pestaña Quiz lista los 3 quiz de Física 3ro A', (await tarjetas()).length === 3);
     verificar('MRU: cerrado, 31 respondieron, con precisión y completado', (await tarjeta('Quiz: MRU y MRUV')).includes('31 respondieron') && (await tarjeta('Quiz: MRU y MRUV')).includes('Cerrado') && /Completado \d+%/.test(await tarjeta('Quiz: MRU y MRUV')), await tarjeta('Quiz: MRU y MRUV'));
     verificar('el repaso está en borrador', (await tarjeta('Repaso: trabajo y energía')).includes('Borrador'));
-    await b.evaluar(`[...document.querySelectorAll('app-quiz-docente .quiz')].find(t => t.textContent.includes('Repaso')).querySelector('.pie button.ui-btn:not(.ui-btn--icono)').click()`);
+    await b.evaluar(`[...document.querySelectorAll('app-teacher-quiz .quiz')].find(t => t.textContent.includes('Repaso')).querySelector('.pie button.ui-btn:not(.ui-btn--icono)').click()`);
     await b.esperar(1200);
     verificar('publica el borrador', (await tarjeta('Repaso: trabajo y energía')).includes('Abierto'));
 
     // Resultados
-    await b.evaluar(`[...document.querySelectorAll('app-quiz-docente .quiz')].find(t => t.textContent.includes('MRU')).querySelector('a[href*="resultados"]').click()`);
+    await b.evaluar(`[...document.querySelectorAll('app-teacher-quiz .quiz')].find(t => t.textContent.includes('MRU')).querySelector('a[href*="resultados"]').click()`);
     await b.esperar(2500);
     verificar('resultados: acierto de las 5 preguntas', (await b.evaluar(`document.querySelectorAll('#lista-preguntas li').length`)) === 5);
     const luis = await b.evaluar(`[...document.querySelectorAll('#tabla-resultados tbody tr')].find(tr => tr.textContent.includes('Luis Mamani'))?.innerText.replace(/\\s+/g, ' ') ?? ''`);

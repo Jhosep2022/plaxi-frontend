@@ -22,7 +22,7 @@ import { SessionService } from '../../core/auth/session.service';
 import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
 import { CourseService } from '../../services/course.service';
 import { InscripcionService } from '../../services/inscripcion.service';
-import { AulasService } from '../../services/aulas.service';
+import { ClassroomsService } from '../../services/classrooms.service';
 import { iconoMateria } from '../../shared/ui/iconos-academicos';
 import { PerfilService } from '../../services/perfil.service';
 import { ProfileService } from '../../services/profile.service';
@@ -49,7 +49,7 @@ export class SidebarComponent {
   private perfilService = inject(PerfilService);
   private courseService = inject(CourseService);
   private inscripcionService = inject(InscripcionService);
-  private aulas = inject(AulasService);
+  private aulas = inject(ClassroomsService);
   private elementRef = inject(ElementRef<HTMLElement>);
 
   // Íconos usados directamente en la plantilla
