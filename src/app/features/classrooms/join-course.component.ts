@@ -5,9 +5,9 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBookOpen, faCheck, faClock, faLayerGroup, faLinkSlash, faUserCheck, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService, recordarVolverA } from '../../core/auth/session.service';
-import { AcademiaService } from '../../services/academia.service';
+import { AcademyService } from '../../services/academy.service';
 import { ClassroomCoverComponent } from '../../shared/classrooms/classroom-cover.component';
-import { mensajeError } from '../management/academics/academico.ui';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Página pública del link de invitación: vista previa del curso y botón para unirse (o solicitar inscripción)
 @Component({
@@ -80,7 +80,7 @@ import { mensajeError } from '../management/academics/academico.ui';
 export class JoinCourseComponent {
   readonly session = inject(SessionService);
   private router = inject(Router);
-  private academia = inject(AcademiaService);
+  private academia = inject(AcademyService);
 
   readonly codigo = input.required<string>();
 
@@ -115,7 +115,7 @@ export class JoinCourseComponent {
       this.nuevoEstado.set(estado);
       if (estado === 'ACTIVA') this.irAlCurso();
     } catch (e) {
-      this.error.set(mensajeError(e));
+      this.error.set(getErrorMessage(e));
     } finally {
       this.uniendo.set(false);
     }

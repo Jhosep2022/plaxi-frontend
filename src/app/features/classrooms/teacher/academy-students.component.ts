@@ -5,14 +5,14 @@ import { firstValueFrom, forkJoin } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faLink, faMagnifyingGlass, faUserCheck, faUsers, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { iniciales } from '../../../core/models/personas.model';
+import { iniciales } from '../../../core/models/people.model';
 import { fechaCorta } from '../../../core/utils/attendance';
-import { AcademiaService, Solicitud } from '../../../services/academia.service';
+import { AcademyService, Solicitud } from '../../../services/academy.service';
 import { ClassroomsService } from '../../../services/classrooms.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 import { CourseInvitationComponent } from './course-invitation.component';
 
 type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
@@ -110,9 +110,9 @@ type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
 })
 export class AcademyStudentsComponent {
   readonly session = inject(SessionService);
-  private academia = inject(AcademiaService);
+  private academia = inject(AcademyService);
   private aulas = inject(ClassroomsService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly tab = input<string>(); // data de la ruta: 'solicitudes' o 'invitaciones'
 
@@ -148,10 +148,10 @@ export class AcademyStudentsComponent {
   async responder(s: Solicitud, aprobar: boolean): Promise<void> {
     try {
       await firstValueFrom(this.academia.responder(s.idInscripcion, aprobar));
-      this.avisos.exito(aprobar ? `${s.nombre} ya está en "${s.curso}".` : 'Solicitud rechazada.');
+      this.avisos.success(aprobar ? `${s.nombre} ya está en "${s.curso}".` : 'Solicitud rechazada.');
       this.datos.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 }

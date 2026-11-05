@@ -6,13 +6,13 @@ import { faCamera, faEye, faEyeSlash, faTrash, faUserCheck } from '@fortawesome/
 import { SessionService } from '../../../core/auth/session.service';
 import { NIVELES_CURSO } from '../../../core/models/classrooms.model';
 import type { Aula } from '../../../core/models/classrooms.model';
-import { AcademiaService, DatosCurso } from '../../../services/academia.service';
+import { AcademyService, DatosCurso } from '../../../services/academy.service';
 import { CategoriaService } from '../../../services/categoria.service';
 import { PORTADA_MAX_KB } from '../../../services/classrooms.service';
 import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-cover.component';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 const VACIO: DatosCurso = { nombre: '', descripcion: '', categoria: '', nivel: 'Principiante', visibilidad: 'publico', aprobacionManual: false, portada: '' };
 
@@ -97,8 +97,8 @@ const VACIO: DatosCurso = { nombre: '', descripcion: '', categoria: '', nivel: '
 })
 export class CourseFormComponent {
   private session = inject(SessionService);
-  private academia = inject(AcademiaService);
-  private avisos = inject(AvisosService);
+  private academia = inject(AcademyService);
+  private avisos = inject(NotificationService);
 
   readonly abierto = input(false);
   readonly curso = input<Aula | null>(null);
@@ -145,10 +145,10 @@ export class CourseFormComponent {
     try {
       const c = this.curso();
       const aula = await firstValueFrom(c ? this.academia.actualizarCurso(c.id, this.modelo()) : this.academia.crearCurso(this.session.espacioActivo()!.id, this.session.usuarioId()!, this.modelo()));
-      this.avisos.exito(c ? 'Curso actualizado.' : `Creaste "${aula.nombre}". Ahora agrega su contenido.`);
+      this.avisos.success(c ? 'Curso actualizado.' : `Creaste "${aula.nombre}". Ahora agrega su contenido.`);
       this.guardado.emit(aula);
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     } finally {
       this.guardando.set(false);
     }

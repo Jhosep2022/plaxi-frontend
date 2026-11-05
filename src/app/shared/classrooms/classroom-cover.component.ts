@@ -1,8 +1,8 @@
 import { Component, computed, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { IconoMateria } from '../../core/models/academico.model';
+import { IconoMateria } from '../../core/models/academics.model';
 import { Tono } from '../dashboard/dashboard.models';
-import { iconoMateria } from '../ui/iconos-academicos';
+import { subjectIcon } from '../ui/academic-icons';
 
 // Colores de la ilustración por tono (paleta QuizWiz)
 const FONDOS: Record<Tono, { fondo: string; forma: string; acento: string; icono: string }> = {
@@ -43,7 +43,7 @@ const FONDOS: Record<Tono, { fondo: string; forma: string; acento: string; icono
           <circle cx="250" cy="122" r="6" [attr.fill]="colores().forma" opacity="0.6" />
         </svg>
         <span class="icono" [style.color]="colores().icono === 'var(--lime-green)' ? 'var(--dark-blue)' : colores().icono">
-          <fa-icon [icon]="iconoMateria(icono())" />
+          <fa-icon [icon]="subjectIcon(icono())" />
         </span>
       </div>
     }
@@ -55,6 +55,6 @@ export class ClassroomCoverComponent {
   readonly icono = input<IconoMateria>('libro');
   readonly tono = input<Tono>('lima');
 
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly colores = computed(() => FONDOS[this.tono()] ?? FONDOS.lima);
 }

@@ -7,16 +7,16 @@ import { faBookOpen, faChartLine, faCircleCheck, faFileLines, faLock, faStar } f
 import { SessionService } from '../../core/auth/session.service';
 import { fechaCorta, hoyIso } from '../../core/utils/attendance';
 import { aprobado, calcularNota, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/grades';
-import { AcademicoService } from '../../services/academico.service';
+import { AcademicsService } from '../../services/academics.service';
 import { GradesService } from '../../services/grades.service';
-import { HijoActivoService } from '../../services/hijo-activo.service';
-import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
+import { SelectedChildService } from '../../services/selected-child.service';
+import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
 import { ProfileService } from '../../services/profile.service';
 import { ReportCardComponent } from '../../shared/grades/report-card.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { iconoMateria } from '../../shared/ui/iconos-academicos';
+import { subjectIcon } from '../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
-import { CalificacionesAcademiaEstudianteComponent } from '../academy/calificaciones-academia.component';
+import { AcademyStudentGradesComponent } from '../academy/academy-grades.component';
 
 const BOLETIN = -1; // pestaña del boletín
 
@@ -25,16 +25,16 @@ const BOLETIN = -1; // pestaña del boletín
 @Component({
   selector: 'app-my-grades',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, ReportCardComponent, SelectorHijoComponent, CalificacionesAcademiaEstudianteComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, ReportCardComponent, ChildSelectorComponent, AcademyStudentGradesComponent],
   templateUrl: './my-grades.component.html',
   styleUrls: ['./my-grades.component.css'],
 })
 export class MyGradesComponent {
   private session = inject(SessionService);
-  private academico = inject(AcademicoService);
+  private academico = inject(AcademicsService);
   private calificaciones = inject(GradesService);
   private perfiles = inject(ProfileService);
-  private hijoActivo = inject(HijoActivoService);
+  private hijoActivo = inject(SelectedChildService);
 
   readonly BOLETIN = BOLETIN;
   readonly faStar = faStar;
@@ -43,7 +43,7 @@ export class MyGradesComponent {
   readonly faChartLine = faChartLine;
   readonly faCircleCheck = faCircleCheck;
   readonly faBookOpen = faBookOpen;
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly fechaCorta = fechaCorta;
 
   readonly espacio = this.session.espacioActivo()!;

@@ -1,8 +1,8 @@
 @if (espacio.tipo !== 'colegio') {
   <app-page-header miga="Seguimiento" titulo="Mis calificaciones" descripcion="Tus resultados en los quiz de cada curso." />
-  <app-calificaciones-academia-estudiante />
+  <app-academy-student-grades />
 } @else if (vista.isLoading() && !vista.value()) {
-  @if (esPadre) { <app-selector-hijo /> }
+  @if (esPadre) { <app-child-selector /> }
   <p class="cargando">Cargando calificaciones…</p>
 } @else if (vista.value(); as v) {
   <app-page-header class="no-imprimir" miga="Seguimiento" [titulo]="esPadre ? 'Calificaciones de ' + v.estudiante.nombre : 'Mis calificaciones'"
@@ -20,7 +20,7 @@
     </div>
   </app-page-header>
 
-  @if (esPadre) { <app-selector-hijo class="no-imprimir" /> }
+  @if (esPadre) { <app-child-selector class="no-imprimir" /> }
 
   @if (pestana() === BOLETIN) {
     <app-report-card [datos]="v.datos" [estudiante]="v.estudiante" [espacio]="espacio.nombre" />
@@ -48,7 +48,7 @@
       @for (m of materias(); track m.materia.id) {
         <article class="ui-card materia" [class.en-riesgo]="m.resultado.final !== null && !aprueba(m.resultado.final)">
           <header>
-            <span class="ui-icono" [class]="'tono-' + m.materia.tono"><fa-icon [icon]="iconoMateria(m.materia.icono)" /></span>
+            <span class="ui-icono" [class]="'tono-' + m.materia.tono"><fa-icon [icon]="subjectIcon(m.materia.icono)" /></span>
             <div class="titulo">
               <strong>{{ m.materia.nombre }}</strong>
               <small>Prof. {{ m.docente }}</small>

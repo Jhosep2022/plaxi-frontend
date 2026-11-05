@@ -5,19 +5,19 @@ import { FormField, form, required, submit, validate } from '@angular/forms/sign
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faLock, faPen, faPlus, faStar, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { paraleloLabel } from '../../../core/models/academico.model';
+import { paraleloLabel } from '../../../core/models/academics.model';
 import { Actividad } from '../../../core/models/grades.model';
 import { fechaCorta, hoyIso } from '../../../core/utils/attendance';
 import { ResultadoMateria, aprobado, calcularNota, periodoDeFecha } from '../../../core/utils/grades';
-import { AcademicoService } from '../../../services/academico.service';
+import { AcademicsService } from '../../../services/academics.service';
 import { GradesService, CambioNota } from '../../../services/grades.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { iconoMateria } from '../../../shared/ui/iconos-academicos';
+import { subjectIcon } from '../../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
-import { CalificacionesAcademiaDocenteComponent } from '../../academy/calificaciones-academia.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { AcademyTeacherGradesComponent } from '../../academy/academy-grades.component';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 const clave = (actividadId: number, estudianteId: number) => `${actividadId}-${estudianteId}`;
 
@@ -25,22 +25,22 @@ const clave = (actividadId: number, estudianteId: number) => `${actividadId}-${e
 @Component({
   selector: 'app-record-grades',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, CalificacionesAcademiaDocenteComponent],
+  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, AcademyTeacherGradesComponent],
   templateUrl: './record-grades.component.html',
   styleUrls: ['./record-grades.component.css'],
 })
 export class RecordGradesComponent {
   private session = inject(SessionService);
-  private academico = inject(AcademicoService);
+  private academico = inject(AcademicsService);
   private calificaciones = inject(GradesService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly faLock = faLock;
   readonly faPen = faPen;
   readonly faPlus = faPlus;
   readonly faStar = faStar;
   readonly faTrash = faTrash;
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly fechaCorta = fechaCorta;
   readonly paraleloLabel = paraleloLabel;
 
@@ -177,10 +177,10 @@ export class RecordGradesComponent {
     this.guardando.set(true);
     try {
       const n = await firstValueFrom(this.calificaciones.guardarNotas(this.espacio.id, this.pendientes()));
-      this.avisos.exito(`${n} ${n === 1 ? 'nota guardada' : 'notas guardadas'}.`);
+      this.avisos.success(`${n} ${n === 1 ? 'nota guardada' : 'notas guardadas'}.`);
       this.datos.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     } finally {
       this.guardando.set(false);
     }
@@ -237,11 +237,11 @@ export class RecordGradesComponent {
           fecha: m.fecha,
           docenteId: this.docenteId,
         }));
-        this.avisos.exito(this.editando() ? 'Actividad actualizada.' : `"${m.nombre.trim()}" agregada a la planilla.`);
+        this.avisos.success(this.editando() ? 'Actividad actualizada.' : `"${m.nombre.trim()}" agregada a la planilla.`);
         this.drawerAbierto.set(false);
         this.datos.reload();
       } catch (error) {
-        this.avisos.error(mensajeError(error));
+        this.avisos.error(getErrorMessage(error));
       }
     });
   }
@@ -250,10 +250,10 @@ export class RecordGradesComponent {
     if (!confirm(`¿Eliminar "${a.nombre}"? También se borrarán sus notas.`)) return;
     try {
       await firstValueFrom(this.calificaciones.eliminarActividad(a));
-      this.avisos.exito('Actividad eliminada.');
+      this.avisos.success('Actividad eliminada.');
       this.datos.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 

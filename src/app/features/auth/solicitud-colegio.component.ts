@@ -6,8 +6,8 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { CIUDADES } from '../../core/models/auth.model';
 import { AuthService } from '../../services/auth.service';
-import { PATRON_CELULAR, PATRON_CORREO } from '../../services/perfil.service';
-import { mensajeError } from '../management/academics/academico.ui';
+import { PATRON_CELULAR, PATRON_CORREO } from '../../services/account-profile.service';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 // "Soy un colegio": los colegios no se registran solos; dejan sus datos y el equipo de QuizWiz los da de alta
 @Component({
@@ -113,7 +113,7 @@ export class SolicitudColegioComponent {
         await firstValueFrom(this.auth.solicitarColegio({ ...this.modelo(), estudiantes: Number(this.modelo().estudiantes) }));
         this.enviada.set(true);
       } catch (e) {
-        this.error.set(mensajeError(e));
+        this.error.set(getErrorMessage(e));
       } finally {
         this.enviando.set(false);
       }

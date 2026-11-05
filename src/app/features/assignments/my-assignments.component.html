@@ -1,6 +1,6 @@
 <app-page-header [miga]="esPadre ? 'Seguimiento' : 'Aprendizaje'" [titulo]="titulo()"
   [descripcion]="esPadre ? 'Las tareas que le asignaron sus docentes y si ya las entregó.' : espacio.tipo === 'colegio' ? 'Tus tareas pendientes, lo que ya entregaste y las notas de tus docentes.' : 'Los trabajos de tus cursos: lo que tienes pendiente, lo que entregaste y los comentarios de tu docente.'" />
-@if (esPadre) { <app-selector-hijo /> }
+@if (esPadre) { <app-child-selector /> }
 
 @if (datos.isLoading() && !datos.value()) {
   <p class="cargando">Cargando tareas…</p>
@@ -20,7 +20,7 @@
     @for (t of visibles(); track t.tarea.id) {
       <article class="ui-card tarea" [class.vencida]="t.estado === 'no-entregada'">
         <header>
-          <span class="ui-icono" [class]="'tono-' + t.tarea.materia.tono"><fa-icon [icon]="iconoMateria(t.tarea.materia.icono)" /></span>
+          <span class="ui-icono" [class]="'tono-' + t.tarea.materia.tono"><fa-icon [icon]="subjectIcon(t.tarea.materia.icono)" /></span>
           <div class="titulo">
             <strong>{{ t.tarea.titulo }}</strong>
             <small>{{ t.tarea.materia.nombre }} · Prof. {{ t.tarea.docente }}</small>

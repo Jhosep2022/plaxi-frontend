@@ -4,7 +4,7 @@
 // ============================================================================
 import { ConfigAsistenciaDocente, EstadoAsistencia, Estudiante, Licencia, RegistroAsistencia } from '../core/models/attendance.model';
 import { docenteDe } from '../core/utils/schedule';
-import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_PARALELOS } from './academico.mock';
+import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_PARALELOS } from './academics.mock';
 
 const E = 1;
 

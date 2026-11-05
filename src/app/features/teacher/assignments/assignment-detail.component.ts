@@ -5,15 +5,15 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faClock, faPaperclip, faStar, faTasks } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { iniciales } from '../../../core/models/personas.model';
+import { iniciales } from '../../../core/models/people.model';
 import { ESTADO_ENTREGA } from '../../../core/models/assignments.model';
 import { fechaCorta, fechaLarga } from '../../../core/utils/attendance';
 import { venceLabel } from '../../../core/utils/assignments';
 import { FilaEntrega, RevisionEntrega, AssignmentsService } from '../../../services/assignments.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { iconoMateria } from '../../../shared/ui/iconos-academicos';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { subjectIcon } from '../../../shared/ui/academic-icons';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 interface Edicion {
   nota: string;
@@ -34,13 +34,13 @@ type Filtro = 'todos' | 'por-revisar' | 'sin-entregar';
 export class AssignmentDetailComponent {
   private session = inject(SessionService);
   private servicio = inject(AssignmentsService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly tareaId = input.required<string>();
 
   readonly estados = ESTADO_ENTREGA;
   readonly iniciales = iniciales;
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly venceLabel = venceLabel;
   readonly fechaLarga = fechaLarga;
   readonly faArrowLeft = faArrowLeft;
@@ -121,10 +121,10 @@ export class AssignmentDetailComponent {
     this.guardando.set(true);
     try {
       const n = await firstValueFrom(this.servicio.revisar(this.session.espacioActivo()!.id, Number(this.tareaId()), this.cambios()));
-      this.avisos.exito(`${n} ${n === 1 ? 'entrega revisada' : 'entregas revisadas'}${this.conNota() ? ' y notas guardadas en la planilla' : ''}.`);
+      this.avisos.success(`${n} ${n === 1 ? 'entrega revisada' : 'entregas revisadas'}${this.conNota() ? ' y notas guardadas en la planilla' : ''}.`);
       this.datos.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     } finally {
       this.guardando.set(false);
     }

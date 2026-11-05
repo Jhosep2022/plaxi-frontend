@@ -6,7 +6,7 @@ module.exports = async function reportes({ verificar }) {
   const cuerpo = () => b.evaluar('document.body.innerText');
   const indicadores = () => b.evaluar(`[...document.querySelectorAll('.indicador strong')].map(s => s.textContent.trim()).join('|')`);
   const barras = (seccion) => b.evaluar(`[...document.querySelectorAll('.seccion')].find(s => s.querySelector('h2').textContent.includes(${JSON.stringify(seccion)}))
-    ?.querySelectorAll('app-barras .fila, app-columnas .columna').length ?? 0`);
+    ?.querySelectorAll('app-bar-chart .fila, app-column-chart .columna').length ?? 0`);
   const fila = (tabla, texto) => b.evaluar(`[...document.querySelectorAll('#${tabla} tbody tr')].find(tr => tr.textContent.includes(${JSON.stringify(texto)}))?.innerText.replace(/\\s+/g, ' ') ?? ''`);
   // Captura las descargas CSV en lugar de bajarlas
   const espiarDescargas = () => b.evaluar(`(() => { window.__descargas = []; const original = HTMLAnchorElement.prototype.click;
@@ -40,7 +40,7 @@ module.exports = async function reportes({ verificar }) {
     verificar('asistencia general de las últimas dos semanas', (await indicadores()).startsWith('97%|37|72|2'), await indicadores());
     verificar('muestra los cursos con asistencia tomada (3ro A y 3ro B)', (await barras('por curso')) === 2);
     verificar('una columna por día de clases (10)', (await barras('por día')) === 10);
-    verificar('las fechas del gráfico se leen bien', (await b.evaluar(`[...document.querySelectorAll('app-columnas .etiquetas span')].map(s => s.textContent.trim()).join('|')`)).startsWith('5 oct|6 oct|7 oct'));
+    verificar('las fechas del gráfico se leen bien', (await b.evaluar(`[...document.querySelectorAll('app-column-chart .etiquetas span')].map(s => s.textContent.trim()).join('|')`)).startsWith('5 oct|6 oct|7 oct'));
     await fechaRango('rep-desde', '2026-10-12');
     verificar('al cambiar el rango se recalcula (5 días)', (await cuerpo()).includes('en 5 días de clase') && (await barras('por día')) === 5);
     verificar('Luis figura con su falta y su atraso', (await (async () => { await b.clic('.ver-mas', 'Ver'); await b.esperar(200); return fila('tabla-faltas', 'Luis Mamani'); })()).includes('3ro A 1 1'), await fila('tabla-faltas', 'Luis Mamani'));

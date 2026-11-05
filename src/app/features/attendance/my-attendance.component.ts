@@ -8,18 +8,18 @@ import { faBell, faCalendarCheck, faClock, faFileMedical, faPaperclip, faPlus, f
 import { SessionService } from '../../core/auth/session.service';
 import { ESTADO_DIA_LABEL, EstadoDia, EstadoLicencia } from '../../core/models/attendance.model';
 import { contar, estadoDelDia, fechaCorta, hoyIso } from '../../core/utils/attendance';
-import { AcademicoService } from '../../services/academico.service';
+import { AcademicsService } from '../../services/academics.service';
 import { AttendanceService } from '../../services/attendance.service';
-import { HijoActivoService } from '../../services/hijo-activo.service';
-import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
+import { SelectedChildService } from '../../services/selected-child.service';
+import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
 import { ProfileService } from '../../services/profile.service';
-import { AvisosService } from '../../shared/ui/avisos.service';
+import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { iconoMateria } from '../../shared/ui/iconos-academicos';
+import { subjectIcon } from '../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
-import { AsistenciaAcademiaEstudianteComponent } from '../academy/asistencia-academia.component';
-import { mensajeError } from '../management/academics/academico.ui';
+import { AcademyStudentAttendanceComponent } from '../academy/academy-attendance.component';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 const LICENCIA_VACIA = { desde: '', hasta: '', motivo: '' };
 
@@ -28,21 +28,21 @@ const LICENCIA_VACIA = { desde: '', hasta: '', motivo: '' };
 @Component({
   selector: 'app-my-attendance',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, SelectorHijoComponent, AsistenciaAcademiaEstudianteComponent],
+  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, ChildSelectorComponent, AcademyStudentAttendanceComponent],
   templateUrl: './my-attendance.component.html',
   styleUrls: ['./my-attendance.component.css'],
 })
 export class MyAttendanceComponent {
   private session = inject(SessionService);
   private asistencia = inject(AttendanceService);
-  private academico = inject(AcademicoService);
+  private academico = inject(AcademicsService);
   private perfiles = inject(ProfileService);
-  private avisos = inject(AvisosService);
-  private hijoActivo = inject(HijoActivoService);
+  private avisos = inject(NotificationService);
+  private hijoActivo = inject(SelectedChildService);
 
   readonly estadoDiaLabel = ESTADO_DIA_LABEL;
   readonly fechaCorta = fechaCorta;
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly faUserCheck = faUserCheck;
   readonly faUserXmark = faUserXmark;
   readonly faClock = faClock;
@@ -155,11 +155,11 @@ export class MyAttendanceComponent {
           motivo: this.modelo().motivo.trim(),
           archivo: this.archivo(),
         }));
-        this.avisos.exito('Licencia solicitada. La dirección la revisará.');
+        this.avisos.success('Licencia solicitada. La dirección la revisará.');
         this.drawerAbierto.set(false);
         this.datos.reload();
       } catch (error) {
-        this.avisos.error(mensajeError(error));
+        this.avisos.error(getErrorMessage(error));
       } finally {
         this.guardando.set(false);
       }

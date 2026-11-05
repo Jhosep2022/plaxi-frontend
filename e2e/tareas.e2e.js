@@ -80,7 +80,7 @@ module.exports = async function tareas({ verificar }) {
     await b.sesion('padre');
     await b.ir('/colegio-san-jose/padre/tareas', 3500);
     verificar('el padre ve las tareas de Luis sin poder entregarlas', (await b.texto('app-page-header h1')) === 'Tareas de Luis Mamani' && !(await b.evaluar(`!!document.querySelector('.tarea .acciones')`)));
-    await b.clic('app-selector-hijo .ui-tab', 'Sofía Mamani');
+    await b.clic('app-child-selector .ui-tab', 'Sofía Mamani');
     await b.esperar(2500);
     verificar('Sofía tiene una tarea vencida sin entregar', (await b.texto('app-page-header h1')) === 'Tareas de Sofía Mamani' && (await cuerpo()).includes('1 tarea venció sin entregar'));
     await b.navegarEnApp('/colegio-san-jose/padre/hijos', 3500);

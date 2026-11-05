@@ -19,7 +19,7 @@ import { EstadoQuiz, QuizService } from '../../../services/quiz.service';
 import { fechaCorta } from '../../../core/utils/attendance';
 import { ProgressRingComponent } from '../../../shared/classrooms/progress-ring.component';
 import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-cover.component';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { ICONO_TEMA } from '../teacher/teacher-content.component';
 
@@ -43,7 +43,7 @@ export class StudentClassroomComponent {
   private aulas = inject(ClassroomsService);
   private tareasService = inject(AssignmentsService);
   private calificaciones = inject(GradesService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
   private quizService = inject(QuizService);
 
   readonly aulaId = input.required<string>();
@@ -164,7 +164,7 @@ export class StudentClassroomComponent {
       await firstValueFrom(this.aulas.marcarVisto(t.id, this.estudianteId));
       const antes = this.unidades().filter((u) => u.bloqueada).length;
       this.vistos.update((v) => new Set(v).add(t.id));
-      if (this.unidades().filter((u) => u.bloqueada).length < antes) this.avisos.exito('¡Completaste la unidad! Se desbloqueó la siguiente.');
+      if (this.unidades().filter((u) => u.bloqueada).length < antes) this.avisos.success('¡Completaste la unidad! Se desbloqueó la siguiente.');
     } finally {
       this.marcando.set(false);
     }

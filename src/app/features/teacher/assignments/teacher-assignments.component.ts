@@ -7,17 +7,17 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClipboardCheck, faClock, faPlus, faStar, faTasks, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { hoyIso } from '../../../core/utils/attendance';
-import { porcentaje } from '../../../core/utils/reportes';
+import { porcentaje } from '../../../core/utils/reports';
 import { urgente, vencida, venceLabel } from '../../../core/utils/assignments';
 import { ClassroomsService } from '../../../services/classrooms.service';
 import { GradesService } from '../../../services/grades.service';
 import { TareaDocente, AssignmentsService } from '../../../services/assignments.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { iconoMateria } from '../../../shared/ui/iconos-academicos';
+import { subjectIcon } from '../../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 type Filtro = 'activas' | 'por-revisar' | 'todas';
 
@@ -36,9 +36,9 @@ export class TeacherAssignmentsComponent {
   private servicio = inject(AssignmentsService);
   private aulas = inject(ClassroomsService);
   private calificaciones = inject(GradesService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly venceLabel = venceLabel;
   readonly vencida = vencida;
   readonly urgente = urgente;
@@ -120,12 +120,12 @@ export class TeacherAssignmentsComponent {
         const m = this.modelo();
         const criterioId = this.cuentaParaNota() ? Number(m.criterioId) : 0;
         await firstValueFrom(this.servicio.crear(this.espacioId, this.docenteId, { aulaId: Number(m.clase), titulo: m.titulo, instrucciones: m.instrucciones, entrega: m.entrega, hora: m.hora }, criterioId));
-        this.avisos.exito(criterioId ? 'Tarea asignada y agregada a la planilla de notas.' : 'Tarea asignada.');
+        this.avisos.success(criterioId ? 'Tarea asignada y agregada a la planilla de notas.' : 'Tarea asignada.');
         this.creando.set(false);
         this.filtro.set('activas');
         this.tareas.reload();
       } catch (error) {
-        this.avisos.error(mensajeError(error));
+        this.avisos.error(getErrorMessage(error));
       } finally {
         this.guardando.set(false);
       }
@@ -137,10 +137,10 @@ export class TeacherAssignmentsComponent {
     if (!confirm(`¿Eliminar la tarea "${t.titulo}"?${aviso}`)) return;
     try {
       await firstValueFrom(this.servicio.eliminar(t));
-      this.avisos.exito('Tarea eliminada.');
+      this.avisos.success('Tarea eliminada.');
       this.tareas.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 }

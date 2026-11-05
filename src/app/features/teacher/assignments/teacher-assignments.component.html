@@ -28,7 +28,7 @@
     @for (t of visibles(); track t.id) {
       <article class="ui-card tarea">
         <a class="cabecera" [routerLink]="ruta('tareas', t.id)">
-          <span class="ui-icono" [class]="'tono-' + t.materia.tono"><fa-icon [icon]="iconoMateria(t.materia.icono)" /></span>
+          <span class="ui-icono" [class]="'tono-' + t.materia.tono"><fa-icon [icon]="subjectIcon(t.materia.icono)" /></span>
           <span class="titulo">
             <strong>{{ t.titulo }}</strong>
             <small>{{ t.materia.nombre }} · {{ t.curso }}</small>

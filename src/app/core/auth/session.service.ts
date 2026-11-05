@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
-import { EspacioService } from '../../services/espacio.service';
+import { SpaceService } from '../../services/space.service';
 import { Espacio, Membresia, Rol } from '../models/espacio.model';
 
 const KEY_USUARIO = 'idUsuario';
@@ -20,7 +20,7 @@ const LEGACY_ROL: Record<Rol, string> = { direccion: '1', estudiante: '2', docen
 export class SessionService {
   private router = inject(Router);
   private authService = inject(AuthService);
-  private espacioService = inject(EspacioService);
+  private espacioService = inject(SpaceService);
 
   readonly usuarioId = signal<number | null>(leerNumero(KEY_USUARIO));
   readonly membresias = signal<Membresia[]>(leerJson<Membresia[]>(KEY_MEMBRESIAS) ?? []);
@@ -35,7 +35,7 @@ export class SessionService {
 
   // Guarda la sesión tras un login exitoso y carga los espacios del usuario
   iniciarSesion(usuarioId: number): Observable<Membresia[]> {
-    return this.espacioService.getMembresias(usuarioId).pipe(
+    return this.espacioService.getMemberships(usuarioId).pipe(
       tap((membresias) => {
         this.usuarioId.set(usuarioId);
         this.membresias.set(membresias);

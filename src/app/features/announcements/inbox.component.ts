@@ -6,9 +6,9 @@ import { faBullhorn, faCalendarDays, faCircleCheck, faExclamation, faHandshake }
 import { SessionService } from '../../core/auth/session.service';
 import { fechaLarga } from '../../core/utils/attendance';
 import { ComunicadoRecibido, AnnouncementsService } from '../../services/announcements.service';
-import { AvisosService } from '../../shared/ui/avisos.service';
+import { NotificationService } from '../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { mensajeError } from '../management/academics/academico.ui';
+import { getErrorMessage } from '../management/academics/academics.ui';
 import { categoria, cuando } from './announcements.ui';
 
 type Filtro = 'todos' | 'no-leidos' | 'importantes';
@@ -23,7 +23,7 @@ type Filtro = 'todos' | 'no-leidos' | 'importantes';
 export class InboxComponent {
   private session = inject(SessionService);
   private servicio = inject(AnnouncementsService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly categoria = categoria;
   readonly cuando = cuando;
@@ -68,9 +68,9 @@ export class InboxComponent {
     try {
       const lectura = await firstValueFrom(this.servicio.confirmar(item.comunicado.id, this.usuarioId));
       this.actualizar(item.comunicado.id, lectura);
-      this.avisos.exito('Confirmaste que recibiste el comunicado.');
+      this.avisos.success('Confirmaste que recibiste el comunicado.');
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     } finally {
       this.confirmando.set(false);
     }

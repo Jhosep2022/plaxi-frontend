@@ -2,7 +2,7 @@
 // DATOS MOCKEADOS de Tareas (Colegio San José y Academia de María, octubre de 2026)
 // ============================================================================
 import type { Entrega, Tarea } from '../core/models/assignments.model';
-import { MOCK_ASIGNACIONES } from './academico.mock';
+import { MOCK_ASIGNACIONES } from './academics.mock';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from './classrooms.mock';
 import { MOCK_ESTUDIANTES } from './attendance.mock';
 import { MOCK_ACTIVIDADES } from './grades.mock';

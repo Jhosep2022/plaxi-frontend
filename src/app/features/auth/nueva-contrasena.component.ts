@@ -8,7 +8,7 @@ import { faCircleExclamation, faEye, faEyeSlash, faLinkSlash } from '@fortawesom
 import { errorClave } from '../../core/utils/clave';
 import { AuthService } from '../../services/auth.service';
 import { MedidorClaveComponent } from '../../shared/ui/medidor-clave.component';
-import { mensajeError } from '../management/academics/academico.ui';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Crear una contraseña nueva desde el enlace del correo (?token=…)
 @Component({
@@ -82,7 +82,7 @@ export class NuevaContrasenaComponent {
         await firstValueFrom(this.auth.restablecer(this.token() ?? '', this.modelo().clave));
         this.router.navigate(['/auth/login'], { queryParams: { aviso: 'clave' } });
       } catch (e) {
-        this.error.set(mensajeError(e));
+        this.error.set(getErrorMessage(e));
         this.guardando.set(false);
       }
     });

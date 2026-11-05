@@ -4,7 +4,7 @@
 // ============================================================================
 import { Actividad, CierrePeriodo, ConfigCalificacion, Nota, configPorDefecto } from '../core/models/grades.model';
 import { sumarDias } from '../core/utils/attendance';
-import { MOCK_ASIGNACIONES, MOCK_GESTIONES } from './academico.mock';
+import { MOCK_ASIGNACIONES, MOCK_GESTIONES } from './academics.mock';
 import { MOCK_ESTUDIANTES } from './attendance.mock';
 
 const E = 1;

@@ -12,7 +12,7 @@
 </app-page-header>
 
 @if (espacio.tipo !== 'colegio') {
-  <app-calificaciones-academia-docente />
+  <app-academy-teacher-grades />
 } @else if (clases.isLoading() && !clases.value()) {
   <p class="cargando">Cargando tus clases…</p>
 } @else if (misClases().length === 0) {
@@ -25,7 +25,7 @@
     <aside class="clases">
       @for (c of misClases(); track c.asignacion.id) {
         <button type="button" class="ui-card clase" [class.elegida]="c.asignacion.id === seleccionadaId()" (click)="cambiarClase(c.asignacion.id)">
-          <span class="ui-icono" [class]="'tono-' + c.materia.tono"><fa-icon [icon]="iconoMateria(c.materia.icono)" /></span>
+          <span class="ui-icono" [class]="'tono-' + c.materia.tono"><fa-icon [icon]="subjectIcon(c.materia.icono)" /></span>
           <span class="clase-texto">
             <strong>{{ c.materia.nombre }}</strong>
             <small>{{ paraleloLabel(c.paralelo) }} · {{ c.paralelo.estudiantes }} estudiantes</small>

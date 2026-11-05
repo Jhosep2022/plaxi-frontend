@@ -5,9 +5,9 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleQuestion, faFileCsv, faPen, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { TIPOS_PREGUNTA, respuestaCorrecta } from '../../../core/models/quiz.model';
-import { iniciales } from '../../../core/models/personas.model';
+import { iniciales } from '../../../core/models/people.model';
 import { fechaCorta } from '../../../core/utils/attendance';
-import { descargarCsv, porcentaje } from '../../../core/utils/reportes';
+import { downloadCsv, porcentaje } from '../../../core/utils/reports';
 import { QuizService } from '../../../services/quiz.service';
 import { ProgressRingComponent } from '../../../shared/classrooms/progress-ring.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -145,7 +145,7 @@ export class QuizResultsComponent {
   exportar(): void {
     const r = this.datos.value();
     if (!r) return;
-    descargarCsv(`resultados-${r.quiz.titulo}`, ['Estudiante', 'Puntaje', 'Puntaje máximo', '%', 'Intentos'],
+    downloadCsv(`resultados-${r.quiz.titulo}`, ['Estudiante', 'Puntaje', 'Puntaje máximo', '%', 'Intentos'],
       this.ordenados().map((e) => [e.nombre, e.mejor?.puntaje ?? null, e.mejor?.puntajeMax ?? r.quiz.puntajeMax, e.mejor ? porcentaje(e.mejor.puntaje, e.mejor.puntajeMax) : null, e.intentos]));
   }
 }

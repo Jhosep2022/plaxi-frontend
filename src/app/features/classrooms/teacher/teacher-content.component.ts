@@ -9,10 +9,10 @@ import {
 import { TIPOS_TEMA } from '../../../core/models/classrooms.model';
 import type { Tema, TipoTema, Unidad } from '../../../core/models/classrooms.model';
 import { AulaResumen, ClassroomsService, UnidadConTemas } from '../../../services/classrooms.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 export const ICONO_TEMA: Record<TipoTema, typeof faVideo> = { texto: faFileLines, video: faVideo, pdf: faFilePdf, enlace: faLink };
 
@@ -28,7 +28,7 @@ const TEMA_VACIO = { unidadId: '', titulo: '', tipo: 'texto' as TipoTema, conten
 })
 export class TeacherContentComponent {
   private servicio = inject(ClassroomsService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly aula = input.required<AulaResumen>();
   readonly cambio = output<void>(); // avisa al aula que cambió el contenido
@@ -58,11 +58,11 @@ export class TeacherContentComponent {
   private async ejecutar(accion: Promise<unknown>, exito?: string): Promise<boolean> {
     try {
       await accion;
-      if (exito) this.avisos.exito(exito);
+      if (exito) this.avisos.success(exito);
       this.recargar();
       return true;
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
       return false;
     }
   }
@@ -193,10 +193,10 @@ export class TeacherContentComponent {
     this.copiando.set(true);
     try {
       const n = await firstValueFrom(this.servicio.copiarContenido(this.aula().id, this.unidadesACopiar(), this.destinos()));
-      this.avisos.exito(`Se copiaron ${n} ${n === 1 ? 'unidad' : 'unidades'} como borrador. Revísalas y publícalas en cada paralelo.`);
+      this.avisos.success(`Se copiaron ${n} ${n === 1 ? 'unidad' : 'unidades'} como borrador. Revísalas y publícalas en cada paralelo.`);
       this.drawerCopiar.set(false);
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     } finally {
       this.copiando.set(false);
     }

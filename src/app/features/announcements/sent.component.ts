@@ -5,17 +5,17 @@ import { FormField, form, maxLength, minLength, required, submit } from '@angula
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBullhorn, faCalendarDays, faEye, faPaperPlane, faPlus, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { compararParalelos, paraleloLabel } from '../../core/models/academico.model';
+import { compararParalelos, paraleloLabel } from '../../core/models/academics.model';
 import { CATEGORIAS_COMUNICADO, CategoriaComunicado, Comunicado, PUBLICOS, Publico } from '../../core/models/announcements.model';
 import { fechaLarga, hoyIso } from '../../core/utils/attendance';
-import { porcentaje } from '../../core/utils/reportes';
-import { AcademicoService } from '../../services/academico.service';
+import { porcentaje } from '../../core/utils/reports';
+import { AcademicsService } from '../../services/academics.service';
 import { Alcance, AnnouncementsService } from '../../services/announcements.service';
 import { ProfileService } from '../../services/profile.service';
-import { AvisosService } from '../../shared/ui/avisos.service';
+import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { mensajeError } from '../management/academics/academico.ui';
+import { getErrorMessage } from '../management/academics/academics.ui';
 import { categoria, cuando, publicoLabel } from './announcements.ui';
 
 type Enviado = Comunicado & { alcance: Alcance };
@@ -32,8 +32,8 @@ const BORRADOR = { titulo: '', mensaje: '', categoria: 'general' as CategoriaCom
 export class SentComponent {
   private session = inject(SessionService);
   private servicio = inject(AnnouncementsService);
-  private academico = inject(AcademicoService);
-  private avisos = inject(AvisosService);
+  private academico = inject(AcademicsService);
+  private avisos = inject(NotificationService);
   private perfiles = inject(ProfileService);
 
   readonly esDireccion = input(false);
@@ -123,11 +123,11 @@ export class SentComponent {
         const autor = { id: this.usuarioId, nombre: await this.nombreAutor(), rol: this.esDireccion() ? 'direccion' as const : 'docente' as const };
         await firstValueFrom(this.servicio.publicar(this.espacio.id, autor, { ...this.modelo(), publico: this.publico(), paraleloIds: this.cursosElegidos() },
           this.esDireccion() ? null : this.cursosDisponibles().map((p) => p.id)));
-        this.avisos.exito(`Comunicado enviado a ${this.alcance()} personas.`);
+        this.avisos.success(`Comunicado enviado a ${this.alcance()} personas.`);
         this.redactando.set(false);
         this.enviados.reload();
       } catch (error) {
-        this.avisos.error(mensajeError(error));
+        this.avisos.error(getErrorMessage(error));
       } finally {
         this.enviando.set(false);
       }
@@ -150,11 +150,11 @@ export class SentComponent {
     if (!confirm(`¿Eliminar "${c.titulo}"? Dejará de verse en las bandejas de sus destinatarios.`)) return;
     try {
       await firstValueFrom(this.servicio.eliminar(c));
-      this.avisos.exito('Comunicado eliminado.');
+      this.avisos.success('Comunicado eliminado.');
       this.detalle.set(null);
       this.enviados.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 

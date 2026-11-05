@@ -11,12 +11,12 @@ import { SessionService, olvidarVolverA } from '../../core/auth/session.service'
 import type { ResultadoRegistro, TipoCuenta } from '../../core/models/auth.model';
 import { PATRON_SLUG, slugDe } from '../../core/models/auth.model';
 import { errorClave } from '../../core/utils/clave';
-import { AcademiaService } from '../../services/academia.service';
+import { AcademyService } from '../../services/academy.service';
 import { AuthService } from '../../services/auth.service';
 import { CategoriaService } from '../../services/categoria.service';
-import { PATRON_CORREO, PATRON_USUARIO } from '../../services/perfil.service';
+import { PATRON_CORREO, PATRON_USUARIO } from '../../services/account-profile.service';
 import { MedidorClaveComponent } from '../../shared/ui/medidor-clave.component';
-import { mensajeError } from '../management/academics/academico.ui';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 type Paso = 1 | 2 | 3 | 4; // 4 = cuenta creada
 
@@ -31,7 +31,7 @@ export class RegistroComponent implements OnInit {
   private router = inject(Router);
   private auth = inject(AuthService);
   private session = inject(SessionService);
-  private academia = inject(AcademiaService);
+  private academia = inject(AcademyService);
   private categoriasService = inject(CategoriaService);
 
   readonly faArrowLeft = faArrowLeft;
@@ -181,7 +181,7 @@ export class RegistroComponent implements OnInit {
         this.resultado.set(resultado);
         this.paso.set(4);
       } catch (e) {
-        this.error.set(mensajeError(e));
+        this.error.set(getErrorMessage(e));
       } finally {
         this.enviando.set(false);
       }

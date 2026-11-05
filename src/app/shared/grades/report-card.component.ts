@@ -2,12 +2,12 @@ import { Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPrint, faSchool } from '@fortawesome/free-solid-svg-icons';
-import { paraleloLabel } from '../../core/models/academico.model';
+import { paraleloLabel } from '../../core/models/academics.model';
 import { aprobado, boletinDe, indiceNotas, promedio } from '../../core/utils/grades';
 import { fechaLarga, hoyIso } from '../../core/utils/attendance';
 import { DatosParalelo } from '../../services/grades.service';
-import { InstitucionService } from '../../services/institucion.service';
-import { iconoMateria } from '../ui/iconos-academicos';
+import { InstitutionService } from '../../services/institution.service';
+import { subjectIcon } from '../ui/academic-icons';
 
 // Boletín de calificaciones de un estudiante (pantalla e impresión / PDF).
 // Lo usan la dirección (Boletines), el estudiante y el padre.
@@ -53,7 +53,7 @@ import { iconoMateria } from '../ui/iconos-academicos';
               <tr>
                 <td>
                   <div class="materia">
-                    <span class="ui-icono chico" [class]="'tono-' + f.materia.tono"><fa-icon [icon]="iconoMateria(f.materia.icono)" /></span>
+                    <span class="ui-icono chico" [class]="'tono-' + f.materia.tono"><fa-icon [icon]="subjectIcon(f.materia.icono)" /></span>
                     <div><strong>{{ f.materia.nombre }}</strong><small>{{ f.docente }}</small></div>
                   </div>
                 </td>
@@ -106,11 +106,11 @@ export class ReportCardComponent {
 
   readonly faPrint = faPrint;
   readonly faSchool = faSchool;
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly emitido = fechaLarga(hoyIso());
 
   // Logo, nombre, lema y autoridades de la institución
-  private institucionService = inject(InstitucionService);
+  private institucionService = inject(InstitutionService);
   private readonly institucionRes = rxResource({ params: () => this.datos().paralelo.espacioId, stream: ({ params }) => this.institucionService.datos(params) });
   readonly institucion = computed(() => this.institucionRes.value());
 

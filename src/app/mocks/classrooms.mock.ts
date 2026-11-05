@@ -4,8 +4,8 @@
 // Academia: los cursos de María, con las lecciones y temas que ya existían.
 // ============================================================================
 import type { Aula, Progreso, Tema, TipoTema, Unidad } from '../core/models/classrooms.model';
-import { paraleloLabel } from '../core/models/academico.model';
-import { MOCK_ASIGNACIONES, MOCK_MATERIAS, MOCK_PARALELOS } from './academico.mock';
+import { paraleloLabel } from '../core/models/academics.model';
+import { MOCK_ASIGNACIONES, MOCK_MATERIAS, MOCK_PARALELOS } from './academics.mock';
 import { MOCK_ESTUDIANTES } from './attendance.mock';
 import { MOCK_CATEGORIAS, MOCK_CURSOS, MOCK_CURSOS_POR_USUARIO, MOCK_INSCRIPCIONES, MOCK_LECCIONES, MOCK_TEMAS } from './mock-data';
 

@@ -4,12 +4,12 @@ import { delay, map } from 'rxjs/operators';
 import { Rol } from '../core/models/espacio.model';
 import { Comunicado, Lectura, Publico } from '../core/models/announcements.model';
 import { hoyIso } from '../core/utils/attendance';
-import { MOCK_ASIGNACIONES, MOCK_DOCENTES } from '../mocks/academico.mock';
+import { MOCK_ASIGNACIONES, MOCK_DOCENTES } from '../mocks/academics.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_COMUNICADOS, MOCK_LECTURAS } from '../mocks/announcements.mock';
 import { MOCK_DELAY } from '../mocks/mock-data';
-import { MOCK_PADRES, MOCK_VINCULOS } from '../mocks/personas.mock';
-import { RepositorioMock } from './repositorio-mock';
+import { MOCK_PADRES, MOCK_VINCULOS } from '../mocks/people.mock';
+import { MockRepository } from './mock-repository';
 
 export interface ComunicadoRecibido {
   comunicado: Comunicado;
@@ -28,8 +28,8 @@ export type BorradorComunicado = Pick<Comunicado, 'titulo' | 'mensaje' | 'catego
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class AnnouncementsService {
-  private comunicadosRepo = new RepositorioMock<Comunicado>(MOCK_COMUNICADOS);
-  private lecturasRepo = new RepositorioMock<Lectura>(MOCK_LECTURAS);
+  private comunicadosRepo = new MockRepository<Comunicado>(MOCK_COMUNICADOS);
+  private lecturasRepo = new MockRepository<Lectura>(MOCK_LECTURAS);
 
   constructor() {
     this.simularLecturas();
@@ -55,31 +55,31 @@ export class AnnouncementsService {
 
   // ---------- Bandeja de entrada ----------
   recibidos(espacioId: number, usuarioId: number): Observable<ComunicadoRecibido[]> {
-    const lecturas = this.lecturasRepo.ahora((l) => l.usuarioId === usuarioId);
+    const lecturas = this.lecturasRepo.readNow((l) => l.usuarioId === usuarioId);
     const lista = this.comunicadosRepo
-      .ahora((c) => c.espacioId === espacioId && c.autorId !== usuarioId && this.destinatarios(c).has(usuarioId))
+      .readNow((c) => c.espacioId === espacioId && c.autorId !== usuarioId && this.destinatarios(c).has(usuarioId))
       .sort((a, b) => b.enviado.localeCompare(a.enviado))
       .map((comunicado) => ({ comunicado: structuredClone(comunicado), lectura: structuredClone(lecturas.find((l) => l.comunicadoId === comunicado.id) ?? null) }));
     return of(lista).pipe(delay(MOCK_DELAY));
   }
 
   marcarLeido(comunicadoId: number, usuarioId: number): Observable<Lectura> {
-    const previa = this.lecturasRepo.ahora((l) => l.comunicadoId === comunicadoId && l.usuarioId === usuarioId)[0];
+    const previa = this.lecturasRepo.readNow((l) => l.comunicadoId === comunicadoId && l.usuarioId === usuarioId)[0];
     if (previa) return of(structuredClone(previa));
-    return this.lecturasRepo.guardar({ comunicadoId, usuarioId, leidoEl: ahoraIso(), confirmado: false });
+    return this.lecturasRepo.save({ comunicadoId, usuarioId, leidoEl: ahoraIso(), confirmado: false });
   }
 
   // "Enterado": confirma que recibió un comunicado que lo pide
   confirmar(comunicadoId: number, usuarioId: number): Observable<Lectura> {
-    const previa = this.lecturasRepo.ahora((l) => l.comunicadoId === comunicadoId && l.usuarioId === usuarioId)[0];
-    return this.lecturasRepo.guardar({ id: previa?.id, comunicadoId, usuarioId, leidoEl: previa?.leidoEl ?? ahoraIso(), confirmado: true });
+    const previa = this.lecturasRepo.readNow((l) => l.comunicadoId === comunicadoId && l.usuarioId === usuarioId)[0];
+    return this.lecturasRepo.save({ id: previa?.id, comunicadoId, usuarioId, leidoEl: previa?.leidoEl ?? ahoraIso(), confirmado: true });
   }
 
   // ---------- Enviados ----------
   // Dirección: todos los del colegio. Docente: solo los suyos.
   enviados(espacioId: number, autorId: number | null): Observable<(Comunicado & { alcance: Alcance })[]> {
     const lista = this.comunicadosRepo
-      .ahora((c) => c.espacioId === espacioId && (autorId === null || c.autorId === autorId))
+      .readNow((c) => c.espacioId === espacioId && (autorId === null || c.autorId === autorId))
       .sort((a, b) => b.enviado.localeCompare(a.enviado))
       .map((c) => ({ ...structuredClone(c), alcance: this.alcance(c) }));
     return of(lista).pipe(delay(MOCK_DELAY));
@@ -87,7 +87,7 @@ export class AnnouncementsService {
 
   // Quiénes todavía no lo leyeron (o no confirmaron, si se pidió confirmación)
   pendientes(c: Comunicado): Observable<{ nombre: string; tipo: string }[]> {
-    const listos = new Set(this.lecturasRepo.ahora((l) => l.comunicadoId === c.id && (!c.pideConfirmacion || l.confirmado)).map((l) => l.usuarioId));
+    const listos = new Set(this.lecturasRepo.readNow((l) => l.comunicadoId === c.id && (!c.pideConfirmacion || l.confirmado)).map((l) => l.usuarioId));
     const nombre = (id: number) =>
       MOCK_DOCENTES.find((d) => d.id === id) ? { nombre: MOCK_DOCENTES.find((d) => d.id === id)!.nombre, tipo: 'Docente' }
       : MOCK_PADRES.find((p) => p.id === id) ? { nombre: MOCK_PADRES.find((p) => p.id === id)!.nombre, tipo: 'Padre / tutor' }
@@ -108,15 +108,15 @@ export class AnnouncementsService {
       }
     }
     if (!this.destinatarios(borrador).size) return throwError(() => new Error('Con esa selección el comunicado no llega a nadie.'));
-    return this.comunicadosRepo.guardar({
+    return this.comunicadosRepo.save({
       ...borrador, titulo: borrador.titulo.trim(), mensaje: borrador.mensaje.trim(),
       espacioId, autorId: autor.id, autorNombre: autor.nombre, autorRol: autor.rol, enviado: ahoraIso(),
     });
   }
 
   eliminar(c: Comunicado): Observable<void> {
-    for (const l of this.lecturasRepo.ahora((x) => x.comunicadoId === c.id)) this.lecturasRepo.eliminar(l.id).subscribe();
-    return this.comunicadosRepo.eliminar(c.id);
+    for (const l of this.lecturasRepo.readNow((x) => x.comunicadoId === c.id)) this.lecturasRepo.delete(l.id).subscribe();
+    return this.comunicadosRepo.delete(c.id);
   }
 
   // Cantidad de personas a las que llegaría un borrador (vista previa al redactar)
@@ -126,20 +126,20 @@ export class AnnouncementsService {
 
   private alcance(c: Comunicado): Alcance {
     const destinatarios = this.destinatarios(c);
-    const lecturas = this.lecturasRepo.ahora((l) => l.comunicadoId === c.id && destinatarios.has(l.usuarioId));
+    const lecturas = this.lecturasRepo.readNow((l) => l.comunicadoId === c.id && destinatarios.has(l.usuarioId));
     return { destinatarios: destinatarios.size, leidos: lecturas.length, confirmados: lecturas.filter((l) => l.confirmado).length };
   }
 
   // MOCK: los destinatarios sin cuenta en la demo leen una parte de los comunicados (más los antiguos)
   private simularLecturas(): void {
     const conCuenta = new Set([1, 2, 3, 6]);
-    for (const c of this.comunicadosRepo.ahora()) {
+    for (const c of this.comunicadosRepo.readNow()) {
       const antiguedad = Math.min(1, (Date.parse(`${hoyIso()}T12:00:00`) - Date.parse(c.enviado)) / (7 * 86400000));
       for (const id of this.destinatarios(c)) {
         if (conCuenta.has(id)) continue;
         const r = azar(`${c.id}-${id}`);
         if (r < 0.35 + antiguedad * 0.5) {
-          this.lecturasRepo.guardar({ comunicadoId: c.id, usuarioId: id, leidoEl: c.enviado, confirmado: c.pideConfirmacion && r < 0.3 + antiguedad * 0.4 }); // guardar agrega al instante
+          this.lecturasRepo.save({ comunicadoId: c.id, usuarioId: id, leidoEl: c.enviado, confirmado: c.pideConfirmacion && r < 0.3 + antiguedad * 0.4 }); // guardar agrega al instante
         }
       }
     }

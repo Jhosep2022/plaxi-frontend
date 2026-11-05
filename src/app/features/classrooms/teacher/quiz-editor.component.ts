@@ -11,9 +11,9 @@ import { hoyIso, sumarDias } from '../../../core/utils/attendance';
 import { ClassroomsService } from '../../../services/classrooms.service';
 import { GradesService } from '../../../services/grades.service';
 import { BorradorPregunta, QuizService } from '../../../services/quiz.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 interface PreguntaEditable extends BorradorPregunta {
   clave: number; // identificador local para el @for
@@ -39,7 +39,7 @@ export class QuizEditorComponent {
   private servicio = inject(QuizService);
   private aulas = inject(ClassroomsService);
   private calificaciones = inject(GradesService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly asignacionId = input.required<string>();
   readonly quizId = input.required<string>(); // 'nuevo' o el id
@@ -155,11 +155,11 @@ export class QuizEditorComponent {
         this.preguntas().map(({ clave: _clave, ...p }) => ({ ...p, puntos: Math.max(1, Number(p.puntos) || 1) })),
         Number(this.criterioId())
       ));
-      this.avisos.exito(publicar ? 'Quiz publicado: tus estudiantes ya pueden responderlo.' : 'Quiz guardado.');
+      this.avisos.success(publicar ? 'Quiz publicado: tus estudiantes ya pueden responderlo.' : 'Quiz guardado.');
       this.router.navigate(this.ruta(), { queryParams: { tab: 'quiz' } });
     } catch (e) {
-      this.error.set(mensajeError(e));
-      this.avisos.error(mensajeError(e));
+      this.error.set(getErrorMessage(e));
+      this.avisos.error(getErrorMessage(e));
     } finally {
       this.guardando.set(false);
     }

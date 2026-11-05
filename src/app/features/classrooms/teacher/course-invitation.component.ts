@@ -3,9 +3,9 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCopy, faEye, faEyeSlash, faLink, faRotateRight, faUserCheck } from '@fortawesome/free-solid-svg-icons';
 import type { Aula } from '../../../core/models/classrooms.model';
-import { AcademiaService } from '../../../services/academia.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { AcademyService } from '../../../services/academy.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 // Link de invitación de un curso: copiar, ver el código y generar uno nuevo
 @Component({
@@ -36,8 +36,8 @@ import { mensajeError } from '../../management/academics/academico.ui';
   `,
 })
 export class CourseInvitationComponent {
-  private academia = inject(AcademiaService);
-  private avisos = inject(AvisosService);
+  private academia = inject(AcademyService);
+  private avisos = inject(NotificationService);
 
   readonly aula = input.required<Aula>();
   readonly cambio = output<string>();
@@ -71,9 +71,9 @@ export class CourseInvitationComponent {
       const codigo = await firstValueFrom(this.academia.regenerarCodigo(this.aula().id));
       this.nuevo.set(codigo);
       this.cambio.emit(codigo);
-      this.avisos.exito('Generaste un link nuevo.');
+      this.avisos.success('Generaste un link nuevo.');
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 }

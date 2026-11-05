@@ -16,7 +16,7 @@ import {
   Turno,
   compararParalelos,
   paraleloLabel,
-} from '../../../../core/models/academico.model';
+} from '../../../../core/models/academics.model';
 import {
   ContextoHorario,
   DatosHorario,
@@ -30,14 +30,14 @@ import {
   turnosDeClases,
 } from '../../../../core/utils/schedule';
 import { WeeklyScheduleComponent } from '../../../../shared/schedule/weekly-schedule.component';
-import { bloquesNecesarios, duracionLabel } from '../../../../core/utils/jornada';
-import { AcademicoService } from '../../../../services/academico.service';
+import { requiredTimeBlocks, formatDuration } from '../../../../core/utils/workday';
+import { AcademicsService } from '../../../../services/academics.service';
 import { SchedulesService } from '../../../../services/schedules.service';
-import { AvisosService } from '../../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
-import { iconoMateria, mensajeError } from '../academico.ui';
+import { subjectIcon, getErrorMessage } from '../academics.ui';
 
 interface CeldaEditada {
   dia: number;
@@ -53,15 +53,15 @@ interface CeldaEditada {
   styleUrls: ['./schedules.component.css'],
 })
 export class SchedulesComponent {
-  private academico = inject(AcademicoService);
+  private academico = inject(AcademicsService);
   private horarios = inject(SchedulesService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
   protected readonly session = inject(SessionService);
   private readonly espacioId = this.session.espacioActivo()!.id;
 
   readonly paraleloLabel = paraleloLabel;
-  readonly iconoMateria = iconoMateria;
-  readonly duracionLabel = duracionLabel;
+  readonly subjectIcon = subjectIcon;
+  readonly formatDuration = formatDuration;
   readonly faPlus = faPlus;
   readonly faGear = faGear;
   readonly faMugHot = faMugHot;
@@ -134,7 +134,7 @@ export class SchedulesComponent {
         materia: m,
         docente: this.nombreDocente().get(docenteDe(this.asignaciones.value(), p.id, m.id)) ?? '',
         usados: usados.get(m.id) ?? 0,
-        necesarios: bloquesNecesarios(m.horasSemanales, jornada.duracionPeriodoMin),
+        necesarios: requiredTimeBlocks(m.horasSemanales, jornada.duracionPeriodoMin),
       }))
       .sort((a, b) => a.usados / a.necesarios - b.usados / b.necesarios);
   });
@@ -245,11 +245,11 @@ export class SchedulesComponent {
           materiaId: Number(this.modelo().materiaId),
           aulaId: Number(this.modelo().aulaId),
         }));
-        this.avisos.exito('Clase guardada en el horario.');
+        this.avisos.success('Clase guardada en el horario.');
         this.editando.set(null);
         this.clases.reload();
       } catch (error) {
-        this.avisos.error(mensajeError(error));
+        this.avisos.error(getErrorMessage(error));
       } finally {
         this.guardando.set(false);
       }
@@ -261,11 +261,11 @@ export class SchedulesComponent {
     if (!clase) return;
     try {
       await firstValueFrom(this.horarios.eliminarClase(clase.id));
-      this.avisos.exito('Clase quitada del horario.');
+      this.avisos.success('Clase quitada del horario.');
       this.editando.set(null);
       this.clases.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 

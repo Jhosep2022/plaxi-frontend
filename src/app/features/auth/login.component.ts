@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faCircleExclamation, faEye, faEyeSlash, faTicket } from '@fortawesome/free-solid-svg-icons';
 import { SessionService, verVolverA } from '../../core/auth/session.service';
 import { AuthService } from '../../services/auth.service';
-import { mensajeError } from '../management/academics/academico.ui';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Iniciar sesión con usuario o correo
 @Component({
@@ -85,7 +85,7 @@ export class LoginComponent {
         await firstValueFrom(this.session.iniciarSesion(usuarioId));
         this.router.navigateByUrl(this.session.rutaPostLogin());
       } catch (e) {
-        this.error.set(mensajeError(e));
+        this.error.set(getErrorMessage(e));
         this.entrando.set(false);
       }
     });

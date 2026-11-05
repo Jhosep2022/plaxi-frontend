@@ -73,7 +73,7 @@
               <span class="ui-badge tono-azul">Turno {{ turnoLabel(p.turno) }}</span>
               <span class="ui-badge">Aula fija: {{ aulaFija(p) }}</span>
               @if (jornada.value(); as j) {
-                <span class="ui-badge">Periodos de {{ duracionLabel(j.duracionPeriodoMin) }}</span>
+                <span class="ui-badge">Periodos de {{ formatDuration(j.duracionPeriodoMin) }}</span>
               }
             </div>
           </div>
@@ -113,7 +113,7 @@
                             <button type="button" class="clase" [class]="'tono-' + (m?.tono ?? 'azul')" (click)="abrirCelda(d.id, b)"
                               [attr.aria-label]="(m?.nombre ?? 'Clase') + ', ' + d.largo + ' ' + b.inicio">
                               <span class="clase-titulo">
-                                @if (m) { <fa-icon [icon]="iconoMateria(m.icono)" /> }
+                                @if (m) { <fa-icon [icon]="subjectIcon(m.icono)" /> }
                                 {{ m?.nombre ?? 'Materia eliminada' }}
                               </span>
                               <small>{{ docenteCorto(clase) }}</small>
@@ -151,7 +151,7 @@
         @for (c of cobertura(); track c.materia.id) {
           <li>
             <div class="linea">
-              <span class="ui-icono chico" [class]="'tono-' + c.materia.tono"><fa-icon [icon]="iconoMateria(c.materia.icono)" /></span>
+              <span class="ui-icono chico" [class]="'tono-' + c.materia.tono"><fa-icon [icon]="subjectIcon(c.materia.icono)" /></span>
               <span class="nombre">
                 <strong>{{ c.materia.nombre }}</strong>
                 <small>{{ c.docente || 'Sin docente asignado' }}</small>

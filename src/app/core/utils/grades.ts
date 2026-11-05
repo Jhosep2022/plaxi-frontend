@@ -1,4 +1,4 @@
-import { Asignacion, Docente, Gestion, Materia } from '../models/academico.model';
+import { Asignacion, Docente, Gestion, Materia } from '../models/academics.model';
 import { Actividad, ConfigCalificacion, Criterio, Nota } from '../models/grades.model';
 
 // Busca la nota de un estudiante en una actividad

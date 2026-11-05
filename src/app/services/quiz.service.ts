@@ -4,15 +4,15 @@ import { delay } from 'rxjs/operators';
 import { esCorrecta } from '../core/models/quiz.model';
 import type { Intento, Pregunta, Quiz, Respuesta } from '../core/models/quiz.model';
 import { periodoDeFecha } from '../core/utils/grades';
-import { porcentaje } from '../core/utils/reportes';
+import { porcentaje } from '../core/utils/reports';
 import { ahoraIso } from '../core/utils/assignments';
-import { MOCK_GESTIONES } from '../mocks/academico.mock';
+import { MOCK_GESTIONES } from '../mocks/academics.mock';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_DELAY, MOCK_INSCRIPCIONES } from '../mocks/mock-data';
 import { MOCK_INTENTOS, MOCK_PREGUNTAS, MOCK_QUIZZES } from '../mocks/quiz.mock';
 import { GradesService } from './grades.service';
-import { RepositorioMock } from './repositorio-mock';
+import { MockRepository } from './mock-repository';
 
 export interface QuizDocente extends Quiz {
   preguntas: number;
@@ -56,23 +56,23 @@ const limite = (q: Pick<Quiz, 'cierre' | 'horaCierre'>) => `${q.cierre}T${q.hora
 @Injectable({ providedIn: 'root' })
 export class QuizService {
   private calificaciones = inject(GradesService);
-  private quizRepo = new RepositorioMock<Quiz>(MOCK_QUIZZES);
-  private preguntasRepo = new RepositorioMock<Pregunta>(MOCK_PREGUNTAS);
-  private intentosRepo = new RepositorioMock<Intento>(MOCK_INTENTOS);
+  private quizRepo = new MockRepository<Quiz>(MOCK_QUIZZES);
+  private preguntasRepo = new MockRepository<Pregunta>(MOCK_PREGUNTAS);
+  private intentosRepo = new MockRepository<Intento>(MOCK_INTENTOS);
 
   // Para las tarjetas del aula
   publicados(aulaId: number): number {
-    return this.quizRepo.ahora((q) => q.aulaId === aulaId && q.publicado).length;
+    return this.quizRepo.readNow((q) => q.aulaId === aulaId && q.publicado).length;
   }
 
   // ---------- Docente ----------
   quizzesDocente(aulaId: number): Observable<QuizDocente[]> {
-    const lista = this.quizRepo.ahora((q) => q.aulaId === aulaId).map((q) => this.resumenDocente(q)).sort((a, b) => b.creado.localeCompare(a.creado));
+    const lista = this.quizRepo.readNow((q) => q.aulaId === aulaId).map((q) => this.resumenDocente(q)).sort((a, b) => b.creado.localeCompare(a.creado));
     return of(lista).pipe(delay(MOCK_DELAY));
   }
 
   quizConPreguntas(quizId: number): Observable<{ quiz: Quiz; preguntas: Pregunta[] } | null> {
-    const quiz = this.quizRepo.ahora((q) => q.id === quizId)[0];
+    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
     return of(quiz ? { quiz: structuredClone(quiz), preguntas: this.preguntasDe(quizId).map((p) => structuredClone(p)) } : null).pipe(delay(MOCK_DELAY));
   }
 
@@ -90,11 +90,11 @@ export class QuizService {
       if (p.tipo === 'opcion' && !p.opciones[p.correcta]?.trim()) throw new Error(`Marca la opción correcta de la pregunta ${i + 1}.`);
       if (p.tipo === 'corta' && !p.aceptadas.some((a) => a.trim())) throw new Error(`Indica la respuesta correcta de la pregunta ${i + 1}.`);
     });
-    if (b.id && this.intentosRepo.ahora((x) => x.quizId === b.id).length && preguntas.length !== this.preguntasDe(b.id).length) {
+    if (b.id && this.intentosRepo.readNow((x) => x.quizId === b.id).length && preguntas.length !== this.preguntasDe(b.id).length) {
       throw new Error('Este quiz ya tiene respuestas: no se pueden agregar ni quitar preguntas.');
     }
 
-    const previo = b.id ? this.quizRepo.ahora((q) => q.id === b.id)[0] : undefined;
+    const previo = b.id ? this.quizRepo.readNow((q) => q.id === b.id)[0] : undefined;
     let actividadId = previo?.actividadId ?? 0;
     const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === b.aulaId);
     if (criterioId && !actividadId && aula?.tipo === 'clase') {
@@ -106,9 +106,9 @@ export class QuizService {
       }));
       actividadId = actividad.id;
     }
-    const quiz = await firstValueFrom(this.quizRepo.guardar({ ...b, titulo: b.titulo.trim(), actividadId, creado: previo?.creado ?? ahoraIso() }));
-    for (const p of this.preguntasRepo.ahora((x) => x.quizId === quiz.id)) this.preguntasRepo.eliminar(p.id);
-    preguntas.forEach((p, i) => this.preguntasRepo.guardar({
+    const quiz = await firstValueFrom(this.quizRepo.save({ ...b, titulo: b.titulo.trim(), actividadId, creado: previo?.creado ?? ahoraIso() }));
+    for (const p of this.preguntasRepo.readNow((x) => x.quizId === quiz.id)) this.preguntasRepo.delete(p.id);
+    preguntas.forEach((p, i) => this.preguntasRepo.save({
       ...p, quizId: quiz.id, orden: i + 1, enunciado: p.enunciado.trim(),
       opciones: p.tipo === 'opcion' ? p.opciones.map((o) => o.trim()) : [], aceptadas: p.tipo === 'corta' ? p.aceptadas.map((a) => a.trim()).filter(Boolean) : [],
     }));
@@ -116,23 +116,23 @@ export class QuizService {
   }
 
   cambiarPublicado(quizId: number, publicado: boolean): Observable<Quiz> {
-    const quiz = this.quizRepo.ahora((q) => q.id === quizId)[0];
+    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
     if (!quiz) return throwError(() => new Error('El quiz ya no existe.'));
     if (publicado && !this.preguntasDe(quizId).length) return throwError(() => new Error('Agrega al menos una pregunta antes de publicar.'));
-    return this.quizRepo.guardar({ ...quiz, publicado });
+    return this.quizRepo.save({ ...quiz, publicado });
   }
 
   eliminar(quizId: number): Observable<void> {
-    for (const p of this.preguntasRepo.ahora((x) => x.quizId === quizId)) this.preguntasRepo.eliminar(p.id);
-    for (const i of this.intentosRepo.ahora((x) => x.quizId === quizId)) this.intentosRepo.eliminar(i.id);
-    return this.quizRepo.eliminar(quizId);
+    for (const p of this.preguntasRepo.readNow((x) => x.quizId === quizId)) this.preguntasRepo.delete(p.id);
+    for (const i of this.intentosRepo.readNow((x) => x.quizId === quizId)) this.intentosRepo.delete(i.id);
+    return this.quizRepo.delete(quizId);
   }
 
   resultados(quizId: number): Observable<ResultadosQuiz | null> {
-    const quiz = this.quizRepo.ahora((q) => q.id === quizId)[0];
+    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
     if (!quiz) return of(null).pipe(delay(MOCK_DELAY));
     const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === quiz.aulaId);
-    const intentos = this.intentosRepo.ahora((x) => x.quizId === quizId);
+    const intentos = this.intentosRepo.readNow((x) => x.quizId === quizId);
     const mejores = this.mejoresIntentos(intentos);
     const nombre = (id: number) => MOCK_ESTUDIANTES.find((e) => e.id === id)?.nombre ?? MOCK_INSCRIPCIONES.find((i) => i.usuarioId === id)?.usuarioNombre ?? `Estudiante ${id}`;
     return of({
@@ -149,8 +149,8 @@ export class QuizService {
 
   // ---------- Estudiante ----------
   quizzesEstudiante(aulaId: number, estudianteId: number): Observable<QuizEstudiante[]> {
-    const lista = this.quizRepo.ahora((q) => q.aulaId === aulaId && q.publicado).map((q) => {
-      const intentos = this.intentosRepo.ahora((x) => x.quizId === q.id && x.estudianteId === estudianteId);
+    const lista = this.quizRepo.readNow((q) => q.aulaId === aulaId && q.publicado).map((q) => {
+      const intentos = this.intentosRepo.readNow((x) => x.quizId === q.id && x.estudianteId === estudianteId);
       const mejor = this.mejoresIntentos(intentos)[0] ?? null;
       const cerrado = ahoraIso() > limite(q);
       const estado: EstadoQuiz = cerrado ? 'cerrado' : intentos.length >= q.intentos ? 'agotado' : intentos.length ? 'realizado' : 'pendiente';
@@ -165,23 +165,23 @@ export class QuizService {
   }
 
   private async enviarAsync(espacioId: number, quizId: number, estudianteId: number, inicio: string, respuestas: { preguntaId: number; valor: Respuesta }[]): Promise<Intento> {
-    const quiz = this.quizRepo.ahora((q) => q.id === quizId)[0];
+    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
     if (!quiz?.publicado) throw new Error('El quiz no está disponible.');
     if (ahoraIso() > limite(quiz)) throw new Error('El quiz ya cerró.');
-    const hechos = this.intentosRepo.ahora((x) => x.quizId === quizId && x.estudianteId === estudianteId).length;
+    const hechos = this.intentosRepo.readNow((x) => x.quizId === quizId && x.estudianteId === estudianteId).length;
     if (hechos >= quiz.intentos) throw new Error('Ya usaste todos tus intentos.');
     const preguntas = this.preguntasDe(quizId);
     const corregidas = preguntas.map((p) => {
       const valor = respuestas.find((r) => r.preguntaId === p.id)?.valor ?? null;
       return { preguntaId: p.id, valor, correcta: esCorrecta(p, valor) };
     });
-    const intento = await firstValueFrom(this.intentosRepo.guardar({
+    const intento = await firstValueFrom(this.intentosRepo.save({
       quizId, estudianteId, inicio, fin: ahoraIso(), respuestas: corregidas,
       puntaje: preguntas.reduce((s, p, i) => s + (corregidas[i].correcta ? p.puntos : 0), 0),
       puntajeMax: preguntas.reduce((s, p) => s + p.puntos, 0),
     }));
     if (quiz.actividadId) {
-      const mejor = this.mejoresIntentos(this.intentosRepo.ahora((x) => x.quizId === quizId && x.estudianteId === estudianteId))[0];
+      const mejor = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === quizId && x.estudianteId === estudianteId))[0];
       const config = await firstValueFrom(this.calificaciones.config(espacioId));
       const nota = Math.round((mejor.puntaje / Math.max(1, mejor.puntajeMax)) * config.notaMaxima);
       try {
@@ -197,12 +197,12 @@ export class QuizService {
   // Planilla del curso: mejor porcentaje de cada estudiante en cada quiz publicado
   notasCurso(aulaId: number): Observable<NotasCurso> {
     const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === aulaId);
-    const quizzes = this.quizRepo.ahora((q) => q.aulaId === aulaId && q.publicado).sort((a, b) => a.cierre.localeCompare(b.cierre));
+    const quizzes = this.quizRepo.readNow((q) => q.aulaId === aulaId && q.publicado).sort((a, b) => a.cierre.localeCompare(b.cierre));
     const nombre = (id: number) => MOCK_INSCRIPCIONES.find((i) => i.usuarioId === id)?.usuarioNombre ?? MOCK_ESTUDIANTES.find((e) => e.id === id)?.nombre ?? `Estudiante ${id}`;
     const estudiantes = (aula ? estudiantesDeAula(aula) : []).map((id) => {
       const notas = new Map<number, number>();
       for (const q of quizzes) {
-        const mejor = this.mejoresIntentos(this.intentosRepo.ahora((x) => x.quizId === q.id && x.estudianteId === id))[0];
+        const mejor = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === q.id && x.estudianteId === id))[0];
         if (mejor) notas.set(q.id, porcentaje(mejor.puntaje, mejor.puntajeMax));
       }
       // Promedio sobre los quiz ya cerrados (los no respondidos cuentan 0) y los abiertos que ya respondió
@@ -215,7 +215,7 @@ export class QuizService {
 
   // ---------- Interno ----------
   private preguntasDe(quizId: number): Pregunta[] {
-    return this.preguntasRepo.ahora((p) => p.quizId === quizId).sort((a, b) => a.orden - b.orden);
+    return this.preguntasRepo.readNow((p) => p.quizId === quizId).sort((a, b) => a.orden - b.orden);
   }
 
   // Mejor intento de cada estudiante (de mayor a menor puntaje)
@@ -231,7 +231,7 @@ export class QuizService {
   private resumenDocente(q: Quiz): QuizDocente {
     const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === q.aulaId);
     const preguntas = this.preguntasDe(q.id);
-    const mejores = this.mejoresIntentos(this.intentosRepo.ahora((x) => x.quizId === q.id));
+    const mejores = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === q.id));
     const estudiantes = aula ? estudiantesDeAula(aula).length : 0;
     return {
       ...structuredClone(q),

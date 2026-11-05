@@ -8,15 +8,15 @@ import { SessionService } from '../../core/auth/session.service';
 import { ESTADO_ENTREGA } from '../../core/models/assignments.model';
 import { fechaCorta } from '../../core/utils/attendance';
 import { urgente, venceLabel } from '../../core/utils/assignments';
-import { HijoActivoService } from '../../services/hijo-activo.service';
+import { SelectedChildService } from '../../services/selected-child.service';
 import { TareaDeEstudiante, AssignmentsService } from '../../services/assignments.service';
-import { AvisosService } from '../../shared/ui/avisos.service';
+import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { iconoMateria } from '../../shared/ui/iconos-academicos';
+import { subjectIcon } from '../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
-import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
-import { mensajeError } from '../management/academics/academico.ui';
+import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 type Pestana = 'por-entregar' | 'entregadas' | 'revisadas';
 
@@ -24,18 +24,18 @@ type Pestana = 'por-entregar' | 'entregadas' | 'revisadas';
 @Component({
   selector: 'app-my-assignments',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, DrawerComponent, SelectorHijoComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, DrawerComponent, ChildSelectorComponent],
   templateUrl: './my-assignments.component.html',
   styleUrls: ['./my-assignments.component.css'],
 })
 export class MyAssignmentsComponent {
   private session = inject(SessionService);
   private servicio = inject(AssignmentsService);
-  private hijoActivo = inject(HijoActivoService);
-  private avisos = inject(AvisosService);
+  private hijoActivo = inject(SelectedChildService);
+  private avisos = inject(NotificationService);
 
   readonly estados = ESTADO_ENTREGA;
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly venceLabel = venceLabel;
   readonly urgente = urgente;
   readonly faClock = faClock;
@@ -100,12 +100,12 @@ export class MyAssignmentsComponent {
     this.enviando.set(true);
     try {
       await firstValueFrom(this.servicio.entregar(t.tarea.id, this.session.usuarioId()!, this.texto(), this.archivo()));
-      this.avisos.exito(t.entrega ? 'Entrega actualizada.' : `¡Listo! Entregaste "${t.tarea.titulo}".`);
+      this.avisos.success(t.entrega ? 'Entrega actualizada.' : `¡Listo! Entregaste "${t.tarea.titulo}".`);
       this.entregando.set(null);
       this.pestana.set('entregadas');
       this.datos.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     } finally {
       this.enviando.set(false);
     }

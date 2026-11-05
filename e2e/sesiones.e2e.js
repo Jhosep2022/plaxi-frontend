@@ -5,8 +5,8 @@ module.exports = async function sesiones({ verificar }) {
   // Lunes 19 de octubre a las 18:05: la sesión "Preguntas y respuestas" (18:00–19:00) está en vivo
   const b = await abrirNavegador({ fecha: new Date(2026, 9, 19, 18, 5, 0) });
   const cuerpo = () => b.evaluar('document.body.innerText');
-  const titulos = () => b.evaluar(`[...document.querySelectorAll('app-tarjeta-sesion .texto > strong')].map(s => s.textContent.trim())`);
-  const tarjeta = (titulo) => `[...document.querySelectorAll('app-tarjeta-sesion')].find(t => t.querySelector('.texto > strong').textContent.trim() === ${JSON.stringify(titulo)})`;
+  const titulos = () => b.evaluar(`[...document.querySelectorAll('app-session-card .texto > strong')].map(s => s.textContent.trim())`);
+  const tarjeta = (titulo) => `[...document.querySelectorAll('app-session-card')].find(t => t.querySelector('.texto > strong').textContent.trim() === ${JSON.stringify(titulo)})`;
   const escribirEn = (selector, valor) => b.evaluar(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.value = ${JSON.stringify(valor)}; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   try {
     // ---------- Estudiante: se une a la sesión en vivo ----------
@@ -69,7 +69,7 @@ module.exports = async function sesiones({ verificar }) {
     verificar('agrega la grabación', (await b.evaluar(`${tarjeta('Principios de diseño visual')}.innerText`)).includes('Ver grabación'));
 
     await b.navegarEnApp('/academia-maria/docente/asistencia', 2500);
-    verificar('Asistencia: tabla de sesiones por curso', (await b.evaluar(`document.querySelectorAll('app-asistencia-academia-docente table').length`)) >= 1 && (await cuerpo()).includes('Angular desde cero'));
+    verificar('Asistencia: tabla de sesiones por curso', (await b.evaluar(`document.querySelectorAll('app-academy-teacher-attendance table').length`)) >= 1 && (await cuerpo()).includes('Angular desde cero'));
 
     await b.navegarEnApp('/academia-maria/docente/calificaciones', 2500);
     verificar('Calificaciones: notas de los quiz del curso', (await b.texto('#tabla-notas-academia')).includes('Carla Gutiérrez') && (await b.texto('#tabla-notas-academia')).includes('100%'));

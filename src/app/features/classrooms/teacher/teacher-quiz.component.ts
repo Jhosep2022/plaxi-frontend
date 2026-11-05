@@ -9,9 +9,9 @@ import { fechaCorta } from '../../../core/utils/attendance';
 import { AulaResumen } from '../../../services/classrooms.service';
 import { QuizDocente, QuizService } from '../../../services/quiz.service';
 import { ProgressRingComponent } from '../../../shared/classrooms/progress-ring.component';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 // Pestaña Quiz del aula (docente): tarjetas con precisión y completado, publicar, editar y ver resultados
 @Component({
@@ -94,7 +94,7 @@ import { mensajeError } from '../../management/academics/academico.ui';
 export class TeacherQuizComponent {
   private session = inject(SessionService);
   private servicio = inject(QuizService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly aula = input.required<AulaResumen>();
   readonly cambio = output<void>();
@@ -119,11 +119,11 @@ export class TeacherQuizComponent {
   async publicar(q: QuizDocente, publicado: boolean): Promise<void> {
     try {
       await firstValueFrom(this.servicio.cambiarPublicado(q.id, publicado));
-      this.avisos.exito(publicado ? 'Quiz publicado: tus estudiantes ya pueden responderlo.' : 'El quiz pasó a borrador.');
+      this.avisos.success(publicado ? 'Quiz publicado: tus estudiantes ya pueden responderlo.' : 'El quiz pasó a borrador.');
       this.quizzes.reload();
       this.cambio.emit();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 
@@ -131,11 +131,11 @@ export class TeacherQuizComponent {
     if (!confirm(`¿Eliminar "${q.titulo}"?${q.respondieron ? ` Se perderán las respuestas de ${q.respondieron} estudiantes.` : ''}`)) return;
     try {
       await firstValueFrom(this.servicio.eliminar(q.id));
-      this.avisos.exito('Quiz eliminado.');
+      this.avisos.success('Quiz eliminado.');
       this.quizzes.reload();
       this.cambio.emit();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 }

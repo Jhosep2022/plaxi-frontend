@@ -38,7 +38,7 @@ export const routes: Routes = [
     canMatch: [authGuard, espacioGuard],
     canActivate: [rolGuard('direccion')],
     title: 'Pantalla de marcación',
-    loadComponent: () => import('./features/management/attendance/pantalla-marcacion.component').then((m) => m.PantallaMarcacionComponent),
+    loadComponent: () => import('./features/management/attendance/time-clock-display.component').then((m) => m.TimeClockDisplayComponent),
   },
 
   {
@@ -47,11 +47,11 @@ export const routes: Routes = [
     component: AppLayoutComponent,
     children: [
       { path: '', pathMatch: 'full', canActivate: [redirigirInicioGuard], children: [] },
-      { path: 'perfil', loadChildren: () => import('./features/profile/perfil.routes') },
-      { path: 'docente', canActivate: [rolGuard('docente')], loadChildren: () => import('./features/teacher/docente.routes') },
-      { path: 'estudiante', canActivate: [rolGuard('estudiante')], loadChildren: () => import('./features/student/estudiante.routes') },
-      { path: 'direccion', canActivate: [rolGuard('direccion')], loadChildren: () => import('./features/management/direccion.routes') },
-      { path: 'padre', canActivate: [rolGuard('padre')], loadChildren: () => import('./features/parent/padre.routes') },
+      { path: 'perfil', loadChildren: () => import('./features/profile/profile.routes') },
+      { path: 'docente', canActivate: [rolGuard('docente')], loadChildren: () => import('./features/teacher/teacher.routes') },
+      { path: 'estudiante', canActivate: [rolGuard('estudiante')], loadChildren: () => import('./features/student/student.routes') },
+      { path: 'direccion', canActivate: [rolGuard('direccion')], loadChildren: () => import('./features/management/management.routes') },
+      { path: 'padre', canActivate: [rolGuard('padre')], loadChildren: () => import('./features/parent/parent.routes') },
     ],
   },
 

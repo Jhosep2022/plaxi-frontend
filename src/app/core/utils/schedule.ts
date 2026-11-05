@@ -10,9 +10,9 @@ import {
   Paralelo,
   Turno,
   paraleloLabel as etiquetaParalelo,
-} from '../models/academico.model';
+} from '../models/academics.model';
 import { Tono } from '../../shared/dashboard/dashboard.models';
-import { generarBloques, seCruzan } from './jornada';
+import { generateTimeBlocks, timeRangesOverlap } from './workday';
 
 // Datos necesarios para ubicar clases en el tiempo y detectar choques
 export interface ContextoHorario {
@@ -36,7 +36,7 @@ export interface Choque {
 // Bloques del día de un turno según la jornada (vacío si el turno no está activo)
 export function bloquesDelTurno(jornada: ConfigJornada, turno: Turno): BloqueHorario[] {
   const config = jornada.turnos.find((t) => t.turno === turno);
-  return config?.activo ? generarBloques(config, jornada.duracionPeriodoMin) : [];
+  return config?.activo ? generateTimeBlocks(config, jornada.duracionPeriodoMin) : [];
 }
 
 // Hora real de un periodo de clase de un paralelo
@@ -61,7 +61,7 @@ export function buscarChoques(ctx: ContextoHorario, propuesta: PropuestaClase): 
   for (const otra of ctx.clases) {
     if (otra.id === propuesta.id || otra.paraleloId === propuesta.paraleloId || otra.dia !== propuesta.dia) continue;
     const otroRango = rangoDeBloque(ctx, otra.paraleloId, otra.bloque);
-    if (!otroRango || !seCruzan(rango, otroRango)) continue;
+    if (!otroRango || !timeRangesOverlap(rango, otroRango)) continue;
 
     if (docente && docenteDe(ctx.asignaciones, otra.paraleloId, otra.materiaId) === docente) {
       choques.push({ tipo: 'docente', docenteId: docente, conParaleloId: otra.paraleloId, ...otroRango });

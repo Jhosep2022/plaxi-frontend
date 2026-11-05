@@ -1,4 +1,4 @@
-import { IconoMateria } from './academico.model';
+import { IconoMateria } from './academics.model';
 import { Tono } from '../../shared/dashboard/dashboard.models';
 
 // Aula virtual: el espacio de una clase con su contenido, quiz, tareas, estudiantes y notas.

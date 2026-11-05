@@ -1,8 +1,8 @@
 @if (espacio.tipo !== 'colegio') {
   <app-page-header miga="Seguimiento" titulo="Mi asistencia" descripcion="Tu asistencia a las sesiones en vivo de tus cursos." />
-  <app-asistencia-academia-estudiante />
+  <app-academy-student-attendance />
 } @else if ((estudiante.isLoading() || datos.isLoading()) && !datos.value()) {
-  @if (esPadre) { <app-selector-hijo /> }
+  @if (esPadre) { <app-child-selector /> }
   <p class="cargando">Cargando asistencia…</p>
 } @else if (!estudiante.value()) {
   <app-page-header miga="Seguimiento" titulo="Asistencia" />
@@ -17,7 +17,7 @@
     }
   </app-page-header>
 
-  @if (esPadre) { <app-selector-hijo /> }
+  @if (esPadre) { <app-child-selector /> }
 
   <!-- Indicadores -->
   <div class="indicadores">
@@ -47,7 +47,7 @@
         <ul class="materias">
           @for (m of porMateria(); track m.materia.id) {
             <li>
-              <span class="ui-icono chico" [class]="'tono-' + m.materia.tono"><fa-icon [icon]="iconoMateria(m.materia.icono)" /></span>
+              <span class="ui-icono chico" [class]="'tono-' + m.materia.tono"><fa-icon [icon]="subjectIcon(m.materia.icono)" /></span>
               <div class="materia-info">
                 <div class="linea">
                   <strong>{{ m.materia.nombre }}</strong>

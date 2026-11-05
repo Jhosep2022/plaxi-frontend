@@ -2,7 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMugHot } from '@fortawesome/free-solid-svg-icons';
 import { FilaVista, ItemVista } from '../../core/utils/schedule';
-import { iconoMateria } from '../ui/iconos-academicos';
+import { subjectIcon } from '../ui/academic-icons';
 
 // Grilla semanal de solo lectura: filas = periodos y recreos, columnas = días.
 // La usan las vistas por docente y por aula, "Mi horario" del docente, estudiante y padre.
@@ -40,12 +40,12 @@ import { iconoMateria } from '../ui/iconos-academicos';
                     @for (item of lista; track $index) {
                       @if (clicable()) {
                         <button type="button" class="clase" [class]="'tono-' + item.tono" (click)="elegir.emit(item)" [attr.aria-label]="item.titulo + ', ' + d.largo + ' ' + item.inicio">
-                          <span class="titulo"><fa-icon [icon]="iconoMateria(item.icono)" /> {{ item.titulo }}</span>
+                          <span class="titulo"><fa-icon [icon]="subjectIcon(item.icono)" /> {{ item.titulo }}</span>
                           @for (linea of item.detalle; track $index) { <small>{{ linea }}</small> }
                         </button>
                       } @else {
                         <div class="clase" [class]="'tono-' + item.tono">
-                          <span class="titulo"><fa-icon [icon]="iconoMateria(item.icono)" /> {{ item.titulo }}</span>
+                          <span class="titulo"><fa-icon [icon]="subjectIcon(item.icono)" /> {{ item.titulo }}</span>
                           @for (linea of item.detalle; track $index) { <small>{{ linea }}</small> }
                         </div>
                       }
@@ -72,7 +72,7 @@ export class WeeklyScheduleComponent {
   readonly vacio = input('No hay clases para mostrar.');
   readonly elegir = output<ItemVista>();
 
-  readonly iconoMateria = iconoMateria;
+  readonly subjectIcon = subjectIcon;
   readonly faMugHot = faMugHot;
 
   // Día de hoy (1 = lunes … 7 = domingo) para resaltar su columna

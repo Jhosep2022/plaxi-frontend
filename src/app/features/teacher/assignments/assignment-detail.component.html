@@ -4,7 +4,7 @@
   <p class="cargando">Cargando entregas…</p>
 } @else if (tarea(); as t) {
   <header class="encabezado">
-    <span class="ui-icono grande" [class]="'tono-' + t.materia.tono"><fa-icon [icon]="iconoMateria(t.materia.icono)" /></span>
+    <span class="ui-icono grande" [class]="'tono-' + t.materia.tono"><fa-icon [icon]="subjectIcon(t.materia.icono)" /></span>
     <div class="titulos">
       <h1>{{ t.titulo }}</h1>
       <p>{{ t.materia.nombre }} · {{ t.curso }} · Entrega: {{ fechaLarga(t.entrega) }}, {{ t.hora }} ({{ venceLabel(t) }})</p>

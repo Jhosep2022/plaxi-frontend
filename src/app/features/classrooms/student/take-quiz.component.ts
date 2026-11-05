@@ -10,9 +10,9 @@ import type { Intento, Pregunta, Respuesta } from '../../../core/models/quiz.mod
 import { fechaCorta } from '../../../core/utils/attendance';
 import { ahoraIso } from '../../../core/utils/assignments';
 import { QuizService } from '../../../services/quiz.service';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 type Fase = 'inicio' | 'respondiendo' | 'resultado';
 const LETRAS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -28,7 +28,7 @@ const LETRAS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 export class TakeQuizComponent {
   private session = inject(SessionService);
   private servicio = inject(QuizService);
-  private avisos = inject(AvisosService);
+  private avisos = inject(NotificationService);
 
   readonly aulaId = input.required<string>();
   readonly quizId = input.required<string>();
@@ -134,7 +134,7 @@ export class TakeQuizComponent {
       this.fase.set('resultado');
       this.datos.reload();
     } catch (e) {
-      this.avisos.error(mensajeError(e));
+      this.avisos.error(getErrorMessage(e));
     } finally {
       this.enviando.set(false);
     }

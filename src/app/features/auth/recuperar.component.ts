@@ -5,8 +5,8 @@ import { FormField, form, pattern, required, submit } from '@angular/forms/signa
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
-import { PATRON_CORREO } from '../../services/perfil.service';
-import { mensajeError } from '../management/academics/academico.ui';
+import { PATRON_CORREO } from '../../services/account-profile.service';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 // "¿Olvidaste tu contraseña?": pide el correo y envía un enlace para crear una nueva
 @Component({
@@ -73,7 +73,7 @@ export class RecuperarComponent {
         this.token.set(token);
         this.enviadoA.set(this.modelo().correo.trim().toLowerCase());
       } catch (e) {
-        this.error.set(mensajeError(e));
+        this.error.set(getErrorMessage(e));
       } finally {
         this.enviando.set(false);
       }

@@ -5,13 +5,13 @@ import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboard, faClock, faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { DIAS_SEMANA, TURNOS, Turno, paraleloLabel } from '../../core/models/academico.model';
+import { DIAS_SEMANA, TURNOS, Turno, paraleloLabel } from '../../core/models/academics.model';
 import { DatosHorario, clasesDeDocente, filasParaTurnos, itemsDeClases, turnosDeClases } from '../../core/utils/schedule';
-import { duracionLabel } from '../../core/utils/jornada';
-import { AcademicoService } from '../../services/academico.service';
+import { formatDuration } from '../../core/utils/workday';
+import { AcademicsService } from '../../services/academics.service';
 import { SchedulesService } from '../../services/schedules.service';
-import { HijoActivoService } from '../../services/hijo-activo.service';
-import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
+import { SelectedChildService } from '../../services/selected-child.service';
+import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
 import { WeeklyScheduleComponent } from '../../shared/schedule/weekly-schedule.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
@@ -30,13 +30,13 @@ interface VistaMiHorario {
 @Component({
   selector: 'app-my-schedule',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, WeeklyScheduleComponent, SelectorHijoComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, WeeklyScheduleComponent, ChildSelectorComponent],
   styles: `
     .resumen { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
     .cargando { color: var(--muted); }
   `,
   template: `
-    @if (esPadre) { <app-selector-hijo /> }
+    @if (esPadre) { <app-child-selector /> }
     @if (vista.isLoading() && !vista.value()) {
       <p class="cargando">Cargando horario…</p>
     } @else if (vista.value(); as v) {
@@ -61,8 +61,8 @@ interface VistaMiHorario {
 export class MyScheduleComponent {
   private session = inject(SessionService);
   private horarios = inject(SchedulesService);
-  private academico = inject(AcademicoService);
-  private hijoActivo = inject(HijoActivoService);
+  private academico = inject(AcademicsService);
+  private hijoActivo = inject(SelectedChildService);
 
   readonly faCalendarDays = faCalendarDays;
   readonly faChalkboard = faChalkboard;
@@ -130,7 +130,7 @@ export class MyScheduleComponent {
     return v ? itemsDeClases(v.datos, v.clases, v.modo) : [];
   });
 
-  readonly duracion = computed(() => duracionLabel(this.vista.value()?.datos.jornada.duracionPeriodoMin ?? 0));
+  readonly duracion = computed(() => formatDuration(this.vista.value()?.datos.jornada.duracionPeriodoMin ?? 0));
   readonly horasSemana = computed(() => {
     const v = this.vista.value();
     return v ? Math.round(((v.clases.length * v.datos.jornada.duracionPeriodoMin) / 60) * 10) / 10 : 0;

@@ -5,12 +5,12 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBookOpen, faCheck, faClock, faCompass, faLayerGroup, faMagnifyingGlass, faUserCheck, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { AcademiaService, CursoPublico } from '../../../services/academia.service';
+import { AcademyService, CursoPublico } from '../../../services/academy.service';
 import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-cover.component';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 
 // Catálogo de la academia: cursos públicos con filtro por categoría e inscripción (directa o con aprobación)
 @Component({
@@ -94,8 +94,8 @@ import { mensajeError } from '../../management/academics/academico.ui';
 })
 export class CourseCatalogComponent {
   readonly session = inject(SessionService);
-  private academia = inject(AcademiaService);
-  private avisos = inject(AvisosService);
+  private academia = inject(AcademyService);
+  private avisos = inject(NotificationService);
 
   readonly faBookOpen = faBookOpen;
   readonly faCheck = faCheck;
@@ -125,10 +125,10 @@ export class CourseCatalogComponent {
     this.inscribiendo.set(c.aula.id);
     try {
       const estado = await firstValueFrom(this.academia.inscribirse(c.aula.id, this.session.usuarioId()!));
-      this.avisos.exito(estado === 'ACTIVA' ? `¡Listo! Ya estás en "${c.aula.nombre}".` : 'Solicitud enviada: el docente la revisará.');
+      this.avisos.success(estado === 'ACTIVA' ? `¡Listo! Ya estás en "${c.aula.nombre}".` : 'Solicitud enviada: el docente la revisará.');
       this.cursos.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     } finally {
       this.inscribiendo.set(0);
     }

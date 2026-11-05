@@ -1,19 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom, from, of, throwError } from 'rxjs';
 import { delay, map, switchMap } from 'rxjs/operators';
-import { Materia, paraleloLabel } from '../core/models/academico.model';
+import { Materia, paraleloLabel } from '../core/models/academics.model';
 import { Estudiante } from '../core/models/attendance.model';
 import type { Entrega, EstadoEntrega, Tarea } from '../core/models/assignments.model';
 import { hoyIso } from '../core/utils/attendance';
 import { periodoDeFecha } from '../core/utils/grades';
 import { ahoraIso, estadoEntrega } from '../core/utils/assignments';
-import { MOCK_DOCENTES, MOCK_GESTIONES, MOCK_MATERIAS, MOCK_PARALELOS } from '../mocks/academico.mock';
+import { MOCK_DOCENTES, MOCK_GESTIONES, MOCK_MATERIAS, MOCK_PARALELOS } from '../mocks/academics.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
 import { MOCK_DELAY, MOCK_INSCRIPCIONES } from '../mocks/mock-data';
 import { MOCK_ENTREGAS, MOCK_TAREAS } from '../mocks/assignments.mock';
 import { GradesService } from './grades.service';
-import { RepositorioMock } from './repositorio-mock';
+import { MockRepository } from './mock-repository';
 
 export interface TareaInfo extends Tarea {
   materia: Materia;
@@ -60,16 +60,16 @@ export type NuevaTarea = Pick<Tarea, 'aulaId' | 'titulo' | 'instrucciones' | 'en
 @Injectable({ providedIn: 'root' })
 export class AssignmentsService {
   private calificaciones = inject(GradesService);
-  private tareasRepo = new RepositorioMock<Tarea>(MOCK_TAREAS);
-  private entregasRepo = new RepositorioMock<Entrega>(MOCK_ENTREGAS);
+  private tareasRepo = new MockRepository<Tarea>(MOCK_TAREAS);
+  private entregasRepo = new MockRepository<Entrega>(MOCK_ENTREGAS);
 
   // ---------- Docente ----------
   tareasDocente(espacioId: number, docenteId: number): Observable<TareaDocente[]> {
-    return from(this.infoDe(this.tareasRepo.ahora((t) => t.espacioId === espacioId && t.docenteId === docenteId))).pipe(
+    return from(this.infoDe(this.tareasRepo.readNow((t) => t.espacioId === espacioId && t.docenteId === docenteId))).pipe(
       map((tareas) =>
         tareas.map((t) => {
           const alumnos = this.alumnosDe(t);
-          const entregas = this.entregasRepo.ahora((e) => e.tareaId === t.id);
+          const entregas = this.entregasRepo.readNow((e) => e.tareaId === t.id);
           const estados = alumnos.map((a) => estadoEntrega(t, entregas.find((e) => e.estudianteId === a.id)));
           return {
             ...t,
@@ -86,7 +86,7 @@ export class AssignmentsService {
   }
 
   detalle(tareaId: number): Observable<{ tarea: TareaInfo; filas: FilaEntrega[]; cerrado: boolean } | null> {
-    const t = this.tareasRepo.ahora((x) => x.id === tareaId)[0];
+    const t = this.tareasRepo.readNow((x) => x.id === tareaId)[0];
     if (!t) return of(null).pipe(delay(MOCK_DELAY));
     return from(this.infoDe([t])).pipe(
       switchMap(([tarea]) =>
@@ -95,7 +95,7 @@ export class AssignmentsService {
             tarea,
             cerrado: !!t.actividadId && this.calificaciones.actividadCerrada(t.actividadId),
             filas: this.alumnosDe(t).map((estudiante) => {
-              const entrega = this.entregasRepo.ahora((e) => e.tareaId === t.id && e.estudianteId === estudiante.id)[0] ?? null;
+              const entrega = this.entregasRepo.readNow((e) => e.tareaId === t.id && e.estudianteId === estudiante.id)[0] ?? null;
               return {
                 estudiante: structuredClone(estudiante),
                 entrega: structuredClone(entrega),
@@ -119,31 +119,31 @@ export class AssignmentsService {
       ...datos, paraleloId: aula.paraleloId, materiaId: aula.materiaId, titulo: datos.titulo.trim(), instrucciones: datos.instrucciones.trim(),
       espacioId, docenteId, asignada: hoyIso(), actividadId: 0,
     };
-    if (!criterioId || aula.tipo !== 'clase') return this.tareasRepo.guardar(tarea);
+    if (!criterioId || aula.tipo !== 'clase') return this.tareasRepo.save(tarea);
     const gestion = MOCK_GESTIONES.find((g) => g.espacioId === espacioId && g.estado === 'activa');
     if (!gestion) return throwError(() => new Error('No hay una gestión activa.'));
     return this.calificaciones
       .guardarActividad({ espacioId, gestionId: gestion.id, periodo: periodoDeFecha(gestion, datos.entrega), paraleloId: aula.paraleloId, materiaId: aula.materiaId, criterioId, nombre: tarea.titulo, fecha: datos.entrega, docenteId })
-      .pipe(switchMap((actividad) => this.tareasRepo.guardar({ ...tarea, actividadId: actividad.id })));
+      .pipe(switchMap((actividad) => this.tareasRepo.save({ ...tarea, actividadId: actividad.id })));
   }
 
   // Elimina la tarea y sus entregas (la actividad de la planilla se quita solo si todavía no tiene notas)
   eliminar(tarea: Tarea): Observable<void> {
     return (tarea.actividadId ? this.calificaciones.notasDeActividad(tarea.actividadId) : of([])).pipe(
       switchMap(async (notas) => {
-        for (const e of this.entregasRepo.ahora((x) => x.tareaId === tarea.id)) this.entregasRepo.eliminar(e.id);
+        for (const e of this.entregasRepo.readNow((x) => x.tareaId === tarea.id)) this.entregasRepo.delete(e.id);
         const actividad = tarea.actividadId ? this.calificaciones.actividad(tarea.actividadId) : undefined;
         if (actividad && !notas.length && !this.calificaciones.actividadCerrada(actividad.id)) {
           await firstValueFrom(this.calificaciones.eliminarActividad(actividad));
         }
-        await firstValueFrom(this.tareasRepo.eliminar(tarea.id));
+        await firstValueFrom(this.tareasRepo.delete(tarea.id));
       })
     );
   }
 
   // Guarda la revisión: comentario, entrega revisada y nota (en la planilla, si la tarea cuenta para la nota)
   revisar(espacioId: number, tareaId: number, revisiones: RevisionEntrega[]): Observable<number> {
-    const tarea = this.tareasRepo.ahora((t) => t.id === tareaId)[0];
+    const tarea = this.tareasRepo.readNow((t) => t.id === tareaId)[0];
     if (!tarea) return throwError(() => new Error('La tarea ya no existe.'));
     const notas$ = tarea.actividadId
       ? this.calificaciones.guardarNotas(espacioId, revisiones.map((r) => ({ actividadId: tarea.actividadId, estudianteId: r.estudianteId, valor: r.nota })))
@@ -151,8 +151,8 @@ export class AssignmentsService {
     return notas$.pipe(
       map(() => {
         for (const r of revisiones) {
-          const previa = this.entregasRepo.ahora((e) => e.tareaId === tareaId && e.estudianteId === r.estudianteId)[0];
-          this.entregasRepo.guardar({
+          const previa = this.entregasRepo.readNow((e) => e.tareaId === tareaId && e.estudianteId === r.estudianteId)[0];
+          this.entregasRepo.save({
             id: previa?.id, tareaId, estudianteId: r.estudianteId, texto: previa?.texto ?? '', archivo: previa?.archivo ?? '',
             entregadaEl: previa?.entregadaEl ?? '', revisada: true, comentario: r.comentario.trim(),
           });
@@ -165,14 +165,14 @@ export class AssignmentsService {
   // ---------- Estudiante ----------
   tareasDeEstudiante(espacioId: number, estudianteId: number): Observable<TareaDeEstudiante[]> {
     const aulas = new Set(MOCK_AULAS_VIRTUALES.filter((a) => a.espacioId === espacioId && estudiantesDeAula(a).includes(estudianteId)).map((a) => a.id));
-    const tareas = this.tareasRepo.ahora((t) => t.espacioId === espacioId && aulas.has(t.aulaId));
+    const tareas = this.tareasRepo.readNow((t) => t.espacioId === espacioId && aulas.has(t.aulaId));
     if (!tareas.length) return of([]).pipe(delay(MOCK_DELAY));
     return from(this.infoDe(tareas)).pipe(
       switchMap(async (info) => {
         const lista: TareaDeEstudiante[] = [];
         const notas = info.some((t) => t.actividadId) ? await firstValueFrom(this.calificaciones.notasDeEstudiante(estudianteId)) : [];
         for (const tarea of info) {
-          const entrega = this.entregasRepo.ahora((e) => e.tareaId === tarea.id && e.estudianteId === estudianteId)[0] ?? null;
+          const entrega = this.entregasRepo.readNow((e) => e.tareaId === tarea.id && e.estudianteId === estudianteId)[0] ?? null;
           lista.push({
             tarea,
             entrega: structuredClone(entrega),
@@ -186,12 +186,12 @@ export class AssignmentsService {
   }
 
   entregar(tareaId: number, estudianteId: number, texto: string, archivo: string): Observable<Entrega> {
-    const tarea = this.tareasRepo.ahora((t) => t.id === tareaId)[0];
+    const tarea = this.tareasRepo.readNow((t) => t.id === tareaId)[0];
     if (!tarea) return throwError(() => new Error('La tarea ya no existe.'));
     if (!texto.trim() && !archivo) return throwError(() => new Error('Escribe un comentario o adjunta un archivo.'));
-    const previa = this.entregasRepo.ahora((e) => e.tareaId === tareaId && e.estudianteId === estudianteId)[0];
+    const previa = this.entregasRepo.readNow((e) => e.tareaId === tareaId && e.estudianteId === estudianteId)[0];
     if (previa?.revisada) return throwError(() => new Error('El docente ya revisó tu entrega; no se puede modificar.'));
-    return this.entregasRepo.guardar({ id: previa?.id, tareaId, estudianteId, texto: texto.trim(), archivo, entregadaEl: ahoraIso(), revisada: false, comentario: '' });
+    return this.entregasRepo.save({ id: previa?.id, tareaId, estudianteId, texto: texto.trim(), archivo, entregadaEl: ahoraIso(), revisada: false, comentario: '' });
   }
 
   // ---------- Interno ----------

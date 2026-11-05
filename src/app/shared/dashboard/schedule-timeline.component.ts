@@ -7,12 +7,12 @@ import { EventoHorario } from './dashboard.models';
 
 const ALTO_FILA = 56;
 
-const aMinutos = (hora: string) => {
+const toMinutes = (hora: string) => {
   const [h, m] = hora.split(':').map(Number);
   return h * 60 + m;
 };
 
-const aHora = (minutos: number) =>
+const toTime = (minutos: number) =>
   `${String(Math.floor(minutos / 60)).padStart(2, '0')}:${String(minutos % 60).padStart(2, '0')}`;
 
 // Línea de tiempo del día: horas arriba, un evento por fila y marcador de la hora actual
@@ -96,7 +96,7 @@ export class ScheduleTimelineComponent {
   // Hora actual, actualizada cada minuto
   private readonly reloj = toSignal(timer(0, 60_000).pipe(map(() => new Date())), { initialValue: new Date() });
 
-  private readonly rango = computed(() => ({ min: aMinutos(this.desde()), max: aMinutos(this.hasta()) }));
+  private readonly rango = computed(() => ({ min: toMinutes(this.desde()), max: toMinutes(this.hasta()) }));
 
   private posicion(minutos: number): number {
     const { min, max } = this.rango();
@@ -108,7 +108,7 @@ export class ScheduleTimelineComponent {
     const paso = max - min > 8 * 60 ? 120 : 60;
     const horas = [];
     for (let m = Math.ceil(min / 60) * 60; m <= max; m += paso) {
-      horas.push({ label: aHora(m), pos: this.posicion(m) });
+      horas.push({ label: toTime(m), pos: this.posicion(m) });
     }
     return horas;
   });
@@ -117,14 +117,14 @@ export class ScheduleTimelineComponent {
     const fecha = this.reloj();
     const minutos = fecha.getHours() * 60 + fecha.getMinutes();
     const { min, max } = this.rango();
-    return minutos >= min && minutos <= max ? { label: aHora(minutos), pos: this.posicion(minutos) } : null;
+    return minutos >= min && minutos <= max ? { label: toTime(minutos), pos: this.posicion(minutos) } : null;
   });
 
   readonly bloques = computed(() =>
     this.eventos().map((e, i) => {
-      const left = this.posicion(aMinutos(e.inicio));
+      const left = this.posicion(toMinutes(e.inicio));
       // Los eventos cerca del final se anclan a la derecha para no salirse de la tarjeta
-      return { ...e, left, width: this.posicion(aMinutos(e.fin)) - left, top: i * ALTO_FILA + 6, alDerecha: left > 70 };
+      return { ...e, left, width: this.posicion(toMinutes(e.fin)) - left, top: i * ALTO_FILA + 6, alDerecha: left > 70 };
     })
   );
 }

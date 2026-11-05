@@ -35,8 +35,8 @@ module.exports = async function comunicados({ verificar }) {
     await b.evaluar(`[...document.querySelectorAll('.hijo')][1].querySelector('.acciones button:nth-child(2)').click()`);
     await b.esperar(3000);
     verificar('"Notas" de Sofía abre sus calificaciones', (await b.texto('app-page-header h1')) === 'Calificaciones de Sofía Mamani', await b.texto('app-page-header h1'));
-    verificar('el selector de hijo marca a Sofía', (await b.texto('app-selector-hijo .ui-tab.activa')).startsWith('Sofía Mamani'));
-    await b.clic('app-selector-hijo .ui-tab', 'Luis Mamani');
+    verificar('el selector de hijo marca a Sofía', (await b.texto('app-child-selector .ui-tab.activa')).startsWith('Sofía Mamani'));
+    await b.clic('app-child-selector .ui-tab', 'Luis Mamani');
     await b.esperar(2500);
     verificar('el selector cambia a Luis', (await b.texto('app-page-header h1')) === 'Calificaciones de Luis Mamani');
     await b.navegarEnApp('/colegio-san-jose/padre/horario', 2500);

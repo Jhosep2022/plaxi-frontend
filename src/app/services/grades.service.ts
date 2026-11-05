@@ -1,17 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { Asignacion, Docente, Gestion, Materia, Paralelo } from '../core/models/academico.model';
+import { Asignacion, Docente, Gestion, Materia, Paralelo } from '../core/models/academics.model';
 import { Estudiante } from '../core/models/attendance.model';
 import { Actividad, CierrePeriodo, ConfigCalificacion, Nota, configPorDefecto } from '../core/models/grades.model';
 import { TipoEspacio } from '../core/models/espacio.model';
 import { hoyIso } from '../core/utils/attendance';
-import { MOCK_ASIGNACIONES } from '../mocks/academico.mock';
+import { MOCK_ASIGNACIONES } from '../mocks/academics.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_ACTIVIDADES, MOCK_CIERRES, MOCK_CONFIG_CALIFICACIONES, MOCK_NOTAS } from '../mocks/grades.mock';
-import { AcademicoService } from './academico.service';
+import { AcademicsService } from './academics.service';
 import { AttendanceService } from './attendance.service';
-import { RepositorioMock } from './repositorio-mock';
+import { MockRepository } from './mock-repository';
 
 // Todo lo necesario para calcular las notas de un paralelo en la gestión activa
 export interface DatosParalelo {
@@ -44,17 +44,17 @@ export interface ProgresoPeriodo {
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class GradesService {
-  private academico = inject(AcademicoService);
+  private academico = inject(AcademicsService);
   private asistencia = inject(AttendanceService);
 
-  private configRepo = new RepositorioMock<ConfigCalificacion>(MOCK_CONFIG_CALIFICACIONES);
-  private actividadesRepo = new RepositorioMock<Actividad>(MOCK_ACTIVIDADES);
-  private notasRepo = new RepositorioMock<Nota>(MOCK_NOTAS);
-  private cierresRepo = new RepositorioMock<CierrePeriodo>(MOCK_CIERRES);
+  private configRepo = new MockRepository<ConfigCalificacion>(MOCK_CONFIG_CALIFICACIONES);
+  private actividadesRepo = new MockRepository<Actividad>(MOCK_ACTIVIDADES);
+  private notasRepo = new MockRepository<Nota>(MOCK_NOTAS);
+  private cierresRepo = new MockRepository<CierrePeriodo>(MOCK_CIERRES);
 
   // ---------- Escala y ponderación ----------
   config(espacioId: number, tipo: TipoEspacio = 'colegio'): Observable<ConfigCalificacion> {
-    return this.configRepo.listar((c) => c.id === espacioId).pipe(map(([c]) => c ?? configPorDefecto(espacioId, tipo)));
+    return this.configRepo.list((c) => c.id === espacioId).pipe(map(([c]) => c ?? configPorDefecto(espacioId, tipo)));
   }
 
   guardarConfig(config: ConfigCalificacion): Observable<ConfigCalificacion> {
@@ -66,8 +66,8 @@ export class GradesService {
     const nombres = config.criterios.map((c) => c.nombre.trim().toLowerCase());
     if (new Set(nombres).size !== nombres.length) return throwError(() => new Error('Hay dos criterios con el mismo nombre.'));
 
-    const actual = this.configRepo.ahora((c) => c.id === config.id)[0];
-    const actividades = this.actividadesRepo.ahora((a) => a.espacioId === config.id);
+    const actual = this.configRepo.readNow((c) => c.id === config.id)[0];
+    const actividades = this.actividadesRepo.readNow((a) => a.espacioId === config.id);
     if (actual && actual.notaMaxima !== config.notaMaxima && actividades.length) {
       return throwError(() => new Error(`Ya hay notas registradas sobre ${actual.notaMaxima}. La nota máxima se puede cambiar al iniciar una nueva gestión.`));
     }
@@ -77,22 +77,22 @@ export class GradesService {
     // Los criterios nuevos (id 0) reciben un id propio
     let siguiente = Math.max(0, ...config.criterios.map((c) => c.id), ...(actual?.criterios.map((c) => c.id) ?? [])) + 1;
     const criterios = config.criterios.map((c) => ({ ...c, nombre: c.nombre.trim(), id: c.id || siguiente++ }));
-    return this.configRepo.guardar({ ...config, criterios });
+    return this.configRepo.save({ ...config, criterios });
   }
 
   // ---------- Cierre de periodos ----------
   cierres(espacioId: number, gestionId: number): Observable<CierrePeriodo[]> {
-    return this.cierresRepo.listar((c) => c.espacioId === espacioId && c.gestionId === gestionId);
+    return this.cierresRepo.list((c) => c.espacioId === espacioId && c.gestionId === gestionId);
   }
 
   cerrarPeriodo(espacioId: number, gestion: Gestion, periodo: number): Observable<CierrePeriodo> {
     if (gestion.periodos[periodo].inicio > hoyIso()) return throwError(() => new Error('No se puede cerrar un periodo que todavía no empezó.'));
     if (this.estaCerrado(gestion.id, periodo)) return throwError(() => new Error('El periodo ya está cerrado.'));
-    return this.cierresRepo.guardar({ espacioId, gestionId: gestion.id, periodo, cerradoEl: hoyIso() });
+    return this.cierresRepo.save({ espacioId, gestionId: gestion.id, periodo, cerradoEl: hoyIso() });
   }
 
   reabrirPeriodo(cierre: CierrePeriodo): Observable<void> {
-    return this.cierresRepo.eliminar(cierre.id);
+    return this.cierresRepo.delete(cierre.id);
   }
 
   // Avance de la carga de notas de cada periodo (para decidir si se puede cerrar)
@@ -100,11 +100,11 @@ export class GradesService {
     const asignaciones = MOCK_ASIGNACIONES.filter((a) => a.espacioId === espacioId && a.gestionId === gestion.id);
     const alumnos = (paraleloId: number) => MOCK_ESTUDIANTES.filter((e) => e.paraleloId === paraleloId).length;
     const progreso = gestion.periodos.map((_, periodo) => {
-      const actividades = this.actividadesRepo.ahora((a) => a.gestionId === gestion.id && a.periodo === periodo);
+      const actividades = this.actividadesRepo.readNow((a) => a.gestionId === gestion.id && a.periodo === periodo);
       const ids = new Set(actividades.map((a) => a.id));
       return {
         actividades: actividades.length,
-        notasCargadas: this.notasRepo.ahora((n) => ids.has(n.actividadId)).length,
+        notasCargadas: this.notasRepo.readNow((n) => ids.has(n.actividadId)).length,
         notasEsperadas: actividades.reduce((s, a) => s + alumnos(a.paraleloId), 0),
         materiasSinActividades: asignaciones.filter((asig) => !actividades.some((a) => a.paraleloId === asig.paraleloId && a.materiaId === asig.materiaId)).length,
       };
@@ -116,40 +116,40 @@ export class GradesService {
   guardarActividad(actividad: Omit<Actividad, 'id'> & { id?: number }): Observable<Actividad> {
     if (this.estaCerrado(actividad.gestionId, actividad.periodo)) return throwError(() => new Error('El periodo está cerrado: ya no se pueden modificar sus actividades.'));
     if (!actividad.nombre.trim()) return throwError(() => new Error('La actividad necesita un nombre.'));
-    return this.actividadesRepo.guardar({ ...actividad, nombre: actividad.nombre.trim() });
+    return this.actividadesRepo.save({ ...actividad, nombre: actividad.nombre.trim() });
   }
 
   // Elimina la actividad y sus notas
   eliminarActividad(actividad: Actividad): Observable<void> {
     if (this.estaCerrado(actividad.gestionId, actividad.periodo)) return throwError(() => new Error('El periodo está cerrado: ya no se pueden modificar sus actividades.'));
-    for (const nota of this.notasRepo.ahora((n) => n.actividadId === actividad.id)) this.notasRepo.eliminar(nota.id).subscribe();
-    return this.actividadesRepo.eliminar(actividad.id);
+    for (const nota of this.notasRepo.readNow((n) => n.actividadId === actividad.id)) this.notasRepo.delete(nota.id).subscribe();
+    return this.actividadesRepo.delete(actividad.id);
   }
 
   // ---------- Notas ----------
   notasDeActividad(actividadId: number): Observable<Nota[]> {
-    return this.notasRepo.listar((n) => n.actividadId === actividadId);
+    return this.notasRepo.list((n) => n.actividadId === actividadId);
   }
 
   notasDeEstudiante(estudianteId: number): Observable<Nota[]> {
-    return this.notasRepo.listar((n) => n.estudianteId === estudianteId);
+    return this.notasRepo.list((n) => n.estudianteId === estudianteId);
   }
 
   // Actividad por id (lectura síncrona para otros servicios mock)
   actividad(actividadId: number): Actividad | undefined {
-    return this.actividadesRepo.ahora((a) => a.id === actividadId)[0];
+    return this.actividadesRepo.readNow((a) => a.id === actividadId)[0];
   }
 
   // ¿El periodo de esta actividad está cerrado? (lectura síncrona para otros servicios mock)
   actividadCerrada(actividadId: number): boolean {
-    const act = this.actividadesRepo.ahora((a) => a.id === actividadId)[0];
+    const act = this.actividadesRepo.readNow((a) => a.id === actividadId)[0];
     return !!act && this.estaCerrado(act.gestionId, act.periodo);
   }
 
   guardarNotas(espacioId: number, cambios: CambioNota[]): Observable<number> {
-    const config = this.configRepo.ahora((c) => c.id === espacioId)[0];
+    const config = this.configRepo.readNow((c) => c.id === espacioId)[0];
     const maxima = config?.notaMaxima ?? 100;
-    const actividades = new Map(this.actividadesRepo.ahora().map((a) => [a.id, a]));
+    const actividades = new Map(this.actividadesRepo.readNow().map((a) => [a.id, a]));
     for (const c of cambios) {
       const act = actividades.get(c.actividadId);
       if (!act) return throwError(() => new Error('La actividad ya no existe.'));
@@ -157,14 +157,14 @@ export class GradesService {
       if (c.valor !== null && (c.valor < 0 || c.valor > maxima)) return throwError(() => new Error(`Las notas deben estar entre 0 y ${maxima}.`));
     }
     for (const c of cambios) {
-      const previa = this.notasRepo.ahora((n) => n.actividadId === c.actividadId && n.estudianteId === c.estudianteId)[0];
+      const previa = this.notasRepo.readNow((n) => n.actividadId === c.actividadId && n.estudianteId === c.estudianteId)[0];
       if (c.valor === null) {
-        if (previa) this.notasRepo.eliminar(previa.id).subscribe();
+        if (previa) this.notasRepo.delete(previa.id).subscribe();
       } else {
-        this.notasRepo.guardar({ id: previa?.id, actividadId: c.actividadId, estudianteId: c.estudianteId, valor: c.valor }).subscribe();
+        this.notasRepo.save({ id: previa?.id, actividadId: c.actividadId, estudianteId: c.estudianteId, valor: c.valor }).subscribe();
       }
     }
-    return this.notasRepo.listar(() => false).pipe(map(() => cambios.length));
+    return this.notasRepo.list(() => false).pipe(map(() => cambios.length));
   }
 
   // ---------- Datos completos de un paralelo ----------
@@ -179,7 +179,7 @@ export class GradesService {
           asignaciones: this.academico.asignaciones(espacioId, gestion.id),
           docentes: this.academico.docentes(espacioId),
           estudiantes: this.asistencia.estudiantesDeParalelo(paraleloId),
-          actividades: this.actividadesRepo.listar((a) => a.gestionId === gestion.id && a.paraleloId === paraleloId),
+          actividades: this.actividadesRepo.list((a) => a.gestionId === gestion.id && a.paraleloId === paraleloId),
           cierres: this.cierres(espacioId, gestion.id),
         }).pipe(
           switchMap((d) => {
@@ -187,7 +187,7 @@ export class GradesService {
             if (!paralelo) return of(null);
             const ids = new Set(d.actividades.map((a) => a.id));
             const asignaciones = d.asignaciones.filter((a) => a.paraleloId === paraleloId);
-            return this.notasRepo.listar((n) => ids.has(n.actividadId)).pipe(
+            return this.notasRepo.list((n) => ids.has(n.actividadId)).pipe(
               map((notas): DatosParalelo => ({
                 ...d,
                 gestion,
@@ -205,6 +205,6 @@ export class GradesService {
   }
 
   private estaCerrado(gestionId: number, periodo: number): boolean {
-    return this.cierresRepo.ahora((c) => c.gestionId === gestionId && c.periodo === periodo).length > 0;
+    return this.cierresRepo.readNow((c) => c.gestionId === gestionId && c.periodo === periodo).length > 0;
   }
 }

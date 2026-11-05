@@ -8,21 +8,21 @@ import {
   faListCheck, faMagnifyingGlass, faPen, faPlus, faStar, faTrash, faTriangleExclamation, faUserCheck, faUserMinus, faUserPlus, faUsers, faXmark, faCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { iniciales } from '../../../core/models/personas.model';
+import { iniciales } from '../../../core/models/people.model';
 import { fechaCorta } from '../../../core/utils/attendance';
 import { venceLabel } from '../../../core/utils/assignments';
 import { ClassroomsService, PORTADA_MAX_KB } from '../../../services/classrooms.service';
-import { ASISTENCIA_MINIMA, ClasesDocenteService, EstudianteDeClase } from '../../../services/clases-docente.service';
+import { ASISTENCIA_MINIMA, TeacherClassesService, EstudianteDeClase } from '../../../services/teacher-classes.service';
 import { AssignmentsService } from '../../../services/assignments.service';
 import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-cover.component';
-import { AvisosService } from '../../../shared/ui/avisos.service';
+import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { mensajeError } from '../../management/academics/academico.ui';
+import { getErrorMessage } from '../../management/academics/academics.ui';
 import { TeacherContentComponent } from './teacher-content.component';
 import { TeacherQuizComponent } from './teacher-quiz.component';
 import { CourseFormComponent } from './course-form.component';
 import { CourseInvitationComponent } from './course-invitation.component';
-import { AcademiaService, Solicitud } from '../../../services/academia.service';
+import { AcademyService, Solicitud } from '../../../services/academy.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 
 export type PestanaAula = 'inicio' | 'contenido' | 'quiz' | 'tareas' | 'estudiantes' | 'notas';
@@ -39,10 +39,10 @@ export class TeacherClassroomComponent {
   private session = inject(SessionService);
   private router = inject(Router);
   private aulas = inject(ClassroomsService);
-  private clasesDocente = inject(ClasesDocenteService);
+  private clasesDocente = inject(TeacherClassesService);
   private tareasService = inject(AssignmentsService);
-  private avisos = inject(AvisosService);
-  private academia = inject(AcademiaService);
+  private avisos = inject(NotificationService);
+  private academia = inject(AcademyService);
 
   readonly asignacionId = input.required<string>(); // id del aula (en el colegio coincide con la asignación)
   readonly tab = input<string>(); // ?tab=contenido
@@ -153,10 +153,10 @@ export class TeacherClassroomComponent {
   async guardarPortada(portada: string, mensaje: string): Promise<void> {
     try {
       await firstValueFrom(this.aulas.cambiarPortada(this.id(), portada));
-      this.avisos.exito(mensaje);
+      this.avisos.success(mensaje);
       this.aula.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 
@@ -208,12 +208,12 @@ export class TeacherClassroomComponent {
   async responder(s: Solicitud, aprobar: boolean): Promise<void> {
     try {
       await firstValueFrom(this.academia.responder(s.idInscripcion, aprobar));
-      this.avisos.exito(aprobar ? `${s.nombre} ya está inscrito en el curso.` : 'Solicitud rechazada.');
+      this.avisos.success(aprobar ? `${s.nombre} ya está inscrito en el curso.` : 'Solicitud rechazada.');
       this.solicitudes.reload();
       this.aula.reload();
       this.extra.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 
@@ -221,11 +221,11 @@ export class TeacherClassroomComponent {
     if (!confirm(`¿Quitar a ${nombre} del curso? Dejará de ver el contenido.`)) return;
     try {
       await firstValueFrom(this.academia.quitar(this.id(), id));
-      this.avisos.exito(`${nombre} ya no está en el curso.`);
+      this.avisos.success(`${nombre} ya no está en el curso.`);
       this.aula.reload();
       this.extra.reload();
     } catch (error) {
-      this.avisos.error(mensajeError(error));
+      this.avisos.error(getErrorMessage(error));
     }
   }
 

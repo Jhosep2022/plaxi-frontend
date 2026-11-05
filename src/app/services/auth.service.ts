@@ -9,9 +9,9 @@ import { claveValida } from '../core/utils/clave';
 import { ahoraIso } from '../core/utils/assignments';
 import { MOCK_CLAVES, MOCK_SOLICITUDES_COLEGIO, MOCK_TOKENS_RECUPERACION } from '../mocks/auth.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
-import { MOCK_MIEMBRO_DESDE, MOCK_PERFIL_EXTRA, perfilExtraVacio } from '../mocks/perfil.mock';
-import { AcademiaService } from './academia.service';
-import { PATRON_CORREO, PATRON_USUARIO } from './perfil.service';
+import { MOCK_MIEMBRO_DESDE, MOCK_PERFIL_EXTRA, perfilExtraVacio } from '../mocks/profile.mock';
+import { AcademyService } from './academy.service';
+import { PATRON_CORREO, PATRON_USUARIO } from './account-profile.service';
 
 // Slugs que no pueden usarse porque chocan con rutas de la app
 const RESERVADOS = ['auth', 'admin', 'espacios', 'unirse', 'no-autorizado', 'perfil', 'api'];
@@ -21,7 +21,7 @@ const RESERVADOS = ['auth', 'admin', 'espacios', 'unirse', 'no-autorizado', 'per
 // (login, registro, disponibilidad, recuperar, restablecer, solicitudes-colegio).
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private academia = inject(AcademiaService);
+  private academia = inject(AcademyService);
 
   // POST /auth/login
   login({ usuario, clave }: Credenciales): Observable<{ usuarioId: number }> {

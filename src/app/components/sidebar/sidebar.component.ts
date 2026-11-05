@@ -23,8 +23,8 @@ import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
 import { CourseService } from '../../services/course.service';
 import { InscripcionService } from '../../services/inscripcion.service';
 import { ClassroomsService } from '../../services/classrooms.service';
-import { iconoMateria } from '../../shared/ui/iconos-academicos';
-import { PerfilService } from '../../services/perfil.service';
+import { subjectIcon } from '../../shared/ui/academic-icons';
+import { AccountProfileService } from '../../services/account-profile.service';
 import { ProfileService } from '../../services/profile.service';
 import { PerfilDto } from '../../models/PerfilDto';
 import { NavItem, NavModule, navegacion } from './sidebar.navigation';
@@ -35,7 +35,7 @@ const esMovil = () => typeof window !== 'undefined' && window.innerWidth <= 768;
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.css', './sidebar-espacio.css', './sidebar-movil.css'],
+  styleUrls: ['./sidebar.component.css', './sidebar-space.css', './sidebar-mobile.css'],
   imports: [RouterLink, RouterLinkActive, FaIconComponent],
   host: {
     '(document:click)': 'onDocumentClick($event)',
@@ -46,7 +46,7 @@ export class SidebarComponent {
   private router = inject(Router);
   protected readonly session = inject(SessionService);
   private profileService = inject(ProfileService);
-  private perfilService = inject(PerfilService);
+  private perfilService = inject(AccountProfileService);
   private courseService = inject(CourseService);
   private inscripcionService = inject(InscripcionService);
   private aulas = inject(ClassroomsService);
@@ -195,12 +195,12 @@ export class SidebarComponent {
     if (!espacioId) return of([]);
     if (rol === 'docente') {
       return this.aulas.aulasDocente(espacioId, usuarioId).pipe(
-        map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: iconoMateria(a.icono), route: `docente/clases/${a.id}` })))
+        map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: subjectIcon(a.icono), route: `docente/clases/${a.id}` })))
       );
     }
     if (rol === 'estudiante') {
       return this.aulas.aulasEstudiante(espacioId, usuarioId).pipe(
-        map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: iconoMateria(a.icono), route: `estudiante/aulas/${a.id}` })))
+        map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: subjectIcon(a.icono), route: `estudiante/aulas/${a.id}` })))
       );
     }
     return of([]);
