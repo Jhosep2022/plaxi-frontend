@@ -26,7 +26,7 @@
         <div class="chips">
           <span class="ui-badge tono-lima"><fa-icon [icon]="faBookOpen" /> {{ a.unidades }} unidades · {{ a.temas }} temas</span>
           <span class="ui-badge tono-azul"><fa-icon [icon]="faListCheck" /> {{ tareas().length }} {{ tareas().length === 1 ? 'tarea' : 'tareas' }}</span>
-          @if (seguimiento()?.proxima; as p) { <span class="ui-badge tono-crema"><fa-icon [icon]="faCalendarDays" /> Próxima clase: {{ p.hoy ? 'hoy' : fechaCorta(p.fecha) }} {{ p.inicio }}</span> }
+          @if (seguimiento()?.proxima; as p) { <span class="ui-badge tono-crema"><fa-icon [icon]="faCalendarDays" /> Próxima clase: {{ p.hoy ? 'hoy' : formatShortDate(p.fecha) }} {{ p.inicio }}</span> }
         </div>
       </div>
       <div class="botones">
@@ -105,11 +105,11 @@
             <ul class="pendientes">
               @for (t of tareas(); track t.id) {
                 @if (t.porRevisar) {
-                  <li><a [routerLink]="ruta('tareas', t.id)"><strong>{{ t.titulo }}</strong><small>Tarea · {{ venceLabel(t) }}</small></a><span class="ui-badge tono-crema">{{ t.porRevisar }} entregas</span></li>
+                  <li><a [routerLink]="ruta('tareas', t.id)"><strong>{{ t.titulo }}</strong><small>Tarea · {{ formatDueDate(t) }}</small></a><span class="ui-badge tono-crema">{{ t.porRevisar }} entregas</span></li>
                 }
               }
               @for (p of seguimiento()?.pendientes ?? []; track p.actividad.id) {
-                <li><a [routerLink]="ruta('calificaciones')" [queryParams]="{ clase: a.id }"><strong>{{ p.actividad.nombre }}</strong><small>Planilla · {{ fechaCorta(p.actividad.fecha) }}</small></a><span class="ui-badge tono-azul">Faltan {{ p.faltan }} notas</span></li>
+                <li><a [routerLink]="ruta('calificaciones')" [queryParams]="{ clase: a.id }"><strong>{{ p.actividad.nombre }}</strong><small>Planilla · {{ formatShortDate(p.actividad.fecha) }}</small></a><span class="ui-badge tono-azul">Faltan {{ p.faltan }} notas</span></li>
               }
               @if (!tieneRevisiones()) { <li class="vacio">Todo al día. 🎉</li> }
             </ul>
@@ -137,7 +137,7 @@
           @for (t of tareas(); track t.id) {
             <a class="ui-card fila-tarea" [routerLink]="ruta('tareas', t.id)">
               <span class="ui-icono tono-lima"><fa-icon [icon]="faListCheck" /></span>
-              <span class="texto"><strong>{{ t.titulo }}</strong><small>{{ venceLabel(t) }}@if (t.criterio) { · cuenta para nota ({{ t.criterio }}) }</small></span>
+              <span class="texto"><strong>{{ t.titulo }}</strong><small>{{ formatDueDate(t) }}@if (t.criterio) { · cuenta para nota ({{ t.criterio }}) }</small></span>
               <span class="ui-badge">{{ t.entregadas }}/{{ t.estudiantes }} entregaron</span>
               @if (t.porRevisar) { <span class="ui-badge tono-crema">{{ t.porRevisar }} por revisar</span> }
             </a>
@@ -160,7 +160,7 @@
               <ul class="solicitudes">
                 @for (s of solicitudes.value(); track s.idInscripcion) {
                   <li>
-                    <span class="persona"><span class="avatar">{{ iniciales(s.nombre) }}</span><span><strong>{{ s.nombre }}</strong><small>{{ s.gmail }} · {{ fechaCorta(s.fecha) }}</small></span></span>
+                    <span class="persona"><span class="avatar">{{ iniciales(s.nombre) }}</span><span><strong>{{ s.nombre }}</strong><small>{{ s.gmail }} · {{ formatShortDate(s.fecha) }}</small></span></span>
                     <button type="button" class="ui-btn chico" (click)="responder(s, true)"><fa-icon [icon]="faCheck" /> Aprobar</button>
                     <button type="button" class="ui-btn ui-btn--secundario chico" (click)="responder(s, false)"><fa-icon [icon]="faXmark" /> Rechazar</button>
                   </li>

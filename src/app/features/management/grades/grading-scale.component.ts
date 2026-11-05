@@ -119,7 +119,7 @@ const aModelo = (c: ConfigCalificacion) => ({
 export class GradingScaleComponent {
   private calificaciones = inject(GradesService);
   private avisos = inject(NotificationService);
-  private readonly espacio = inject(SessionService).espacioActivo()!;
+  private readonly espacio = inject(SessionService).activeSpace()!;
 
   readonly faPlus = faPlus;
   readonly faRotateLeft = faRotateLeft;

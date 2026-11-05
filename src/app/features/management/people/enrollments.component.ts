@@ -7,7 +7,7 @@ import { SessionService } from '../../../core/auth/session.service';
 import { NIVELES, Paralelo, TURNOS, compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
 import { Estudiante } from '../../../core/models/attendance.model';
 import { edad, iniciales } from '../../../core/models/people.model';
-import { hoyIso } from '../../../core/utils/attendance';
+import { todayIso } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { PeopleService } from '../../../services/people.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -27,7 +27,7 @@ export class EnrollmentsComponent {
   private personas = inject(PeopleService);
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly iniciales = iniciales;
   readonly paraleloLabel = paraleloLabel;
@@ -36,7 +36,7 @@ export class EnrollmentsComponent {
   readonly faDoorClosed = faDoorClosed;
   readonly faUserClock = faUserClock;
   readonly faUserMinus = faUserMinus;
-  private readonly hoy = hoyIso();
+  private readonly hoy = todayIso();
 
   readonly gestion = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
   readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });

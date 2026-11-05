@@ -1,4 +1,4 @@
-export interface LeccionDto {
+export interface LessonDto {
     idLeccion?: number;
     titulo: string;
     orden: number;

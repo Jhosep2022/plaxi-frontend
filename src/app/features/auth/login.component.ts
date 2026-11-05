@@ -4,11 +4,11 @@ import { firstValueFrom } from 'rxjs';
 import { FormField, form, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faCircleExclamation, faEye, faEyeSlash, faTicket } from '@fortawesome/free-solid-svg-icons';
-import { SessionService, verVolverA } from '../../core/auth/session.service';
+import { SessionService, peekReturnUrl } from '../../core/auth/session.service';
 import { AuthService } from '../../services/auth.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
 
-// Iniciar sesión con usuario o correo
+// Sign in with a username or email.
 @Component({
   selector: 'app-login',
   imports: [FormField, RouterLink, FaIconComponent],
@@ -19,18 +19,18 @@ import { getErrorMessage } from '../management/academics/academics.ui';
       <p>Ingresa a tu cuenta para continuar.</p>
     </header>
 
-    @if (invitacion) {
+    @if (hasInvitation) {
       <p class="aviso-invitacion"><fa-icon [icon]="faTicket" /> Inicia sesión para unirte al curso al que te invitaron.</p>
     }
-    @if (aviso() === 'clave') {
+    @if (notice() === 'clave') {
       <p class="aviso-invitacion"><fa-icon [icon]="faCircleCheck" /> Tu contraseña se cambió. Ya puedes iniciar sesión.</p>
     }
 
-    <form class="ui-form" (submit)="$event.preventDefault(); entrar()" novalidate>
+    <form class="ui-form" (submit)="$event.preventDefault(); signIn()" novalidate>
       <div class="ui-campo">
         <label for="login-usuario">Usuario o correo</label>
-        <input id="login-usuario" class="ui-input" autocomplete="username" placeholder="Ej. maria.fernandez" [formField]="formulario.usuario" />
-        @if (formulario.usuario().touched() && formulario.usuario().invalid()) { <span class="ui-error">{{ formulario.usuario().errors()[0].message }}</span> }
+        <input id="login-usuario" class="ui-input" autocomplete="username" placeholder="Ej. maria.fernandez" [formField]="loginForm.username" />
+        @if (loginForm.username().touched() && loginForm.username().invalid()) { <span class="ui-error">{{ loginForm.username().errors()[0].message }}</span> }
       </div>
       <div class="ui-campo">
         <div class="etiqueta-fila">
@@ -38,15 +38,15 @@ import { getErrorMessage } from '../management/academics/academics.ui';
           <a class="enlace" routerLink="/auth/recuperar-contrasena">¿Olvidaste tu contraseña?</a>
         </div>
         <div class="campo-clave">
-          <input id="login-clave" class="ui-input" [type]="mostrar() ? 'text' : 'password'" autocomplete="current-password" [formField]="formulario.clave" />
-          <button type="button" class="ver-clave" (click)="mostrar.set(!mostrar())" [attr.aria-label]="mostrar() ? 'Ocultar contraseña' : 'Mostrar contraseña'"><fa-icon [icon]="mostrar() ? faEyeSlash : faEye" /></button>
+          <input id="login-clave" class="ui-input" [type]="showPassword() ? 'text' : 'password'" autocomplete="current-password" [formField]="loginForm.password" />
+          <button type="button" class="ver-clave" (click)="showPassword.set(!showPassword())" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"><fa-icon [icon]="showPassword() ? faEyeSlash : faEye" /></button>
         </div>
-        @if (formulario.clave().touched() && formulario.clave().invalid()) { <span class="ui-error">{{ formulario.clave().errors()[0].message }}</span> }
+        @if (loginForm.password().touched() && loginForm.password().invalid()) { <span class="ui-error">{{ loginForm.password().errors()[0].message }}</span> }
       </div>
 
       @if (error()) { <p class="error-general" role="alert"><fa-icon [icon]="faCircleExclamation" /> {{ error() }}</p> }
 
-      <button type="submit" class="ui-btn boton-ancho" [disabled]="entrando()">{{ entrando() ? 'Entrando…' : 'Iniciar sesión' }}</button>
+      <button type="submit" class="ui-btn boton-ancho" [disabled]="isSigningIn()">{{ isSigningIn() ? 'Entrando…' : 'Iniciar sesión' }}</button>
     </form>
 
     <p class="alterno">¿No tienes cuenta? <a class="enlace" routerLink="/auth/registro">Créala gratis</a></p>
@@ -64,29 +64,30 @@ export class LoginComponent {
   readonly faEyeSlash = faEyeSlash;
   readonly faTicket = faTicket;
 
-  readonly aviso = input<string>(); // ?aviso=clave después de restablecer la contraseña
-  readonly invitacion = verVolverA()?.startsWith('/unirse/') ?? false;
+  readonly notice = input<string>(undefined, { alias: 'aviso' });
+  readonly hasInvitation = peekReturnUrl()?.startsWith('/unirse/') ?? false;
 
-  readonly modelo = signal({ usuario: '', clave: '' });
-  readonly formulario = form(this.modelo, (s) => {
-    required(s.usuario, { message: 'Escribe tu usuario o correo.' });
-    required(s.clave, { message: 'Escribe tu contraseña.' });
+  readonly credentials = signal({ username: '', password: '' });
+  readonly loginForm = form(this.credentials, (fields) => {
+    required(fields.username, { message: 'Escribe tu usuario o correo.' });
+    required(fields.password, { message: 'Escribe tu contraseña.' });
   });
-  readonly mostrar = signal(false);
-  readonly entrando = signal(false);
+  readonly showPassword = signal(false);
+  readonly isSigningIn = signal(false);
   readonly error = signal('');
 
-  entrar(): void {
-    submit(this.formulario, async () => {
-      this.entrando.set(true);
+  signIn(): void {
+    submit(this.loginForm, async () => {
+      this.isSigningIn.set(true);
       this.error.set('');
       try {
-        const { usuarioId } = await firstValueFrom(this.auth.login(this.modelo()));
-        await firstValueFrom(this.session.iniciarSesion(usuarioId));
-        this.router.navigateByUrl(this.session.rutaPostLogin());
+        const { username, password } = this.credentials();
+        const { usuarioId: userId } = await firstValueFrom(this.auth.login({ usuario: username, clave: password }));
+        await firstValueFrom(this.session.startSession(userId));
+        this.router.navigateByUrl(this.session.postLoginRoute());
       } catch (e) {
         this.error.set(getErrorMessage(e));
-        this.entrando.set(false);
+        this.isSigningIn.set(false);
       }
     });
   }

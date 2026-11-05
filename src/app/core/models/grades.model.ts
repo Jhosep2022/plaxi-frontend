@@ -1,4 +1,4 @@
-import { TipoEspacio } from './espacio.model';
+import { SpaceType } from './space.model';
 
 // ---------- Escala y ponderación (editable por cada espacio) ----------
 export interface Criterio {
@@ -29,7 +29,7 @@ export const CRITERIOS_ACADEMIA: Criterio[] = [
   { id: 3, nombre: 'Tareas', porcentaje: 25 },
 ];
 
-export function configPorDefecto(espacioId: number, tipo: TipoEspacio): ConfigCalificacion {
+export function configPorDefecto(espacioId: number, tipo: SpaceType): ConfigCalificacion {
   return {
     id: espacioId,
     notaMaxima: 100,

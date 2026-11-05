@@ -1,4 +1,4 @@
-export interface TemaDto {
+export interface TopicDto {
     idTema: number;
     titulo: string;
     orden: number;

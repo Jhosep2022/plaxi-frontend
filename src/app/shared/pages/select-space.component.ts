@@ -4,35 +4,35 @@ import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowRight, faChalkboardTeacher, faKey, faSchool, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { slugDe } from '../../core/models/auth.model';
-import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
+import { createSlug } from '../../core/models/auth.model';
+import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
 import { AuthService } from '../../services/auth.service';
 import { getErrorMessage } from '../../features/management/academics/academics.ui';
 
-// Después del login: elegir en qué espacio trabajar (o qué hacer si todavía no pertenece a ninguno)
+// Choose a space after login, or join a course or create an academy.
 @Component({
-  selector: 'app-seleccionar-espacio',
+  selector: 'app-select-space',
   imports: [RouterLink, FaIconComponent],
   template: `
     <div class="pagina">
       <header class="barra">
         <img src="assets/Logo_icon.png" alt="QuizWiz" class="logo" />
-        <button type="button" class="ui-btn ui-btn--secundario" (click)="session.cerrarSesion()"><fa-icon [icon]="faSignOutAlt" /> Cerrar sesión</button>
+        <button type="button" class="ui-btn ui-btn--secundario" (click)="session.signOut()"><fa-icon [icon]="faSignOutAlt" /> Cerrar sesión</button>
       </header>
 
       <main class="contenido">
-        @if (session.membresias().length) {
+        @if (session.memberships().length) {
           <h1>¿Dónde quieres trabajar hoy?</h1>
-          <p class="sub">Perteneces a {{ session.membresias().length }} espacios. Elige uno para continuar; puedes cambiar desde el menú cuando quieras.</p>
+          <p class="sub">Perteneces a {{ session.memberships().length }} espacios. Elige uno para continuar; puedes cambiar desde el menú cuando quieras.</p>
           <ul class="espacios">
-            @for (m of session.membresias(); track m.espacio.id) {
+            @for (m of session.memberships(); track m.espacio.id) {
               <li>
-                <a class="ui-card espacio" [routerLink]="session.rutaInicio(m)">
+                <a class="ui-card espacio" [routerLink]="session.homeRoute(m)">
                   <span class="logo-espacio" [class.academia]="m.espacio.tipo === 'academia'"><fa-icon [icon]="m.espacio.tipo === 'colegio' ? faSchool : faChalkboardTeacher" /></span>
                   <span class="texto">
                     <strong>{{ m.espacio.nombre }}</strong>
-                    <small>{{ tipoLabel[m.espacio.tipo] }}</small>
-                    <span class="ui-badge tono-azul">{{ rolLabel[m.rol] }}</span>
+                    <small>{{ spaceTypeLabel[m.espacio.tipo] }}</small>
+                    <span class="ui-badge tono-azul">{{ roleLabel[m.rol] }}</span>
                   </span>
                   <fa-icon [icon]="faArrowRight" class="flecha" />
                 </a>
@@ -47,9 +47,9 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
               <span class="ui-icono tono-lima"><fa-icon [icon]="faKey" /></span>
               <h2>Unirme a un curso</h2>
               <p>Escribe el código que te compartió tu docente.</p>
-              <form (submit)="$event.preventDefault(); unirme()" novalidate>
-                <input id="esp-codigo" class="ui-input codigo" placeholder="ANG-7K2Q" maxlength="8" aria-label="Código del curso" [value]="codigo()" (input)="codigo.set($any($event.target).value); error.set('')" />
-                <button type="submit" class="ui-btn" [disabled]="!codigo().trim()">Buscar</button>
+              <form (submit)="$event.preventDefault(); joinCourse()" novalidate>
+                <input id="esp-codigo" class="ui-input codigo" placeholder="ANG-7K2Q" maxlength="8" aria-label="Código del curso" [value]="courseCode()" (input)="courseCode.set($any($event.target).value); error.set('')" />
+                <button type="submit" class="ui-btn" [disabled]="!courseCode().trim()">Buscar</button>
               </form>
               @if (error()) { <span class="ui-error">{{ error() }}</span> }
             </section>
@@ -57,12 +57,12 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
               <span class="ui-icono tono-crema"><fa-icon [icon]="faChalkboardTeacher" /></span>
               <h2>Crear mi academia</h2>
               <p>¿Eres docente? Crea tu academia para subir tus cursos e invitar a tus estudiantes.</p>
-              <form (submit)="$event.preventDefault(); crearAcademia()" novalidate>
-                <input id="esp-academia" class="ui-input" placeholder="Ej. Academia de Ana López" aria-label="Nombre de la academia" [value]="academia()" (input)="academia.set($any($event.target).value); errorAcademia.set('')" />
-                <button type="submit" class="ui-btn" [disabled]="!academia().trim() || creando()">{{ creando() ? 'Creando…' : 'Crear' }}</button>
+              <form (submit)="$event.preventDefault(); createAcademy()" novalidate>
+                <input id="esp-academia" class="ui-input" placeholder="Ej. Academia de Ana López" aria-label="Nombre de la academia" [value]="academyName()" (input)="academyName.set($any($event.target).value); academyError.set('')" />
+                <button type="submit" class="ui-btn" [disabled]="!academyName().trim() || isCreating()">{{ isCreating() ? 'Creando…' : 'Crear' }}</button>
               </form>
-              @if (academia().trim()) { <span class="ui-ayuda">Dirección web: quizwiz.app/{{ slug() }}</span> }
-              @if (errorAcademia()) { <span class="ui-error">{{ errorAcademia() }}</span> }
+              @if (academyName().trim()) { <span class="ui-ayuda">Dirección web: quizwiz.app/{{ slug() }}</span> }
+              @if (academyError()) { <span class="ui-error">{{ academyError() }}</span> }
             </section>
           </div>
         }
@@ -95,44 +95,44 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
     .codigo { text-transform: uppercase; letter-spacing: 0.12em; font-weight: bold; }
   `,
 })
-export class SeleccionarEspacioComponent {
+export class SelectSpaceComponent {
   protected readonly session = inject(SessionService);
   private router = inject(Router);
   private auth = inject(AuthService);
 
-  readonly rolLabel = ROL_LABEL;
-  readonly tipoLabel = TIPO_ESPACIO_LABEL;
+  readonly roleLabel = SPACE_ROLE_LABEL;
+  readonly spaceTypeLabel = SPACE_TYPE_LABEL;
   readonly faArrowRight = faArrowRight;
   readonly faChalkboardTeacher = faChalkboardTeacher;
   readonly faKey = faKey;
   readonly faSchool = faSchool;
   readonly faSignOutAlt = faSignOutAlt;
 
-  readonly codigo = signal('');
+  readonly courseCode = signal('');
   readonly error = signal('');
-  readonly codigoLimpio = computed(() => this.codigo().trim().toUpperCase());
+  readonly normalizedCode = computed(() => this.courseCode().trim().toUpperCase());
 
-  // ---------- Crear academia ----------
-  readonly academia = signal('');
-  readonly slug = computed(() => slugDe(this.academia()));
-  readonly creando = signal(false);
-  readonly errorAcademia = signal('');
+  // Academy creation
+  readonly academyName = signal('');
+  readonly slug = computed(() => createSlug(this.academyName()));
+  readonly isCreating = signal(false);
+  readonly academyError = signal('');
 
-  async crearAcademia(): Promise<void> {
-    this.creando.set(true);
+  async createAcademy(): Promise<void> {
+    this.isCreating.set(true);
     try {
-      const usuarioId = this.session.usuarioId()!;
-      const { slug } = await firstValueFrom(this.auth.crearAcademia(usuarioId, this.academia(), this.slug()));
-      await firstValueFrom(this.session.iniciarSesion(usuarioId));
+      const userId = this.session.userId()!;
+      const { slug } = await firstValueFrom(this.auth.createAcademy(userId, this.academyName(), this.slug()));
+      await firstValueFrom(this.session.startSession(userId));
       this.router.navigate(['/', slug, 'docente', 'inicio']);
     } catch (e) {
-      this.errorAcademia.set(getErrorMessage(e));
-      this.creando.set(false);
+      this.academyError.set(getErrorMessage(e));
+      this.isCreating.set(false);
     }
   }
 
-  unirme(): void {
-    if (!/^[A-Z0-9]{3}-[A-Z0-9]{4}$/.test(this.codigoLimpio())) return this.error.set('El código tiene el formato ABC-1234.');
-    this.router.navigate(['/unirse', this.codigoLimpio()]);
+  joinCourse(): void {
+    if (!/^[A-Z0-9]{3}-[A-Z0-9]{4}$/.test(this.normalizedCode())) return this.error.set('El código tiene el formato ABC-1234.');
+    this.router.navigate(['/unirse', this.normalizedCode()]);
   }
 }

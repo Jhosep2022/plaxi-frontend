@@ -1,32 +1,32 @@
 import type { Entrega, EstadoEntrega, Tarea } from '../models/assignments.model';
-import { hoyIso, sumarDias } from './attendance';
+import { addDays, todayIso } from './attendance';
 
-export const limite = (t: Pick<Tarea, 'entrega' | 'hora'>): string => `${t.entrega}T${t.hora}`;
+export const deadline = (assignment: Pick<Tarea, 'entrega' | 'hora'>): string => `${assignment.entrega}T${assignment.hora}`;
 
-export function ahoraIso(): string {
-  const d = new Date();
-  const dos = (n: number) => String(n).padStart(2, '0');
-  return `${hoyIso(d)}T${dos(d.getHours())}:${dos(d.getMinutes())}:${dos(d.getSeconds())}`;
+export function currentDateTimeIso(): string {
+  const date = new Date();
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${todayIso(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-export const vencida = (t: Pick<Tarea, 'entrega' | 'hora'>): boolean => ahoraIso() > limite(t);
+export const isPastDue = (assignment: Pick<Tarea, 'entrega' | 'hora'>): boolean => currentDateTimeIso() > deadline(assignment);
 
-// Estado de la entrega de un estudiante en una tarea
-export function estadoEntrega(t: Tarea, e: Entrega | undefined): EstadoEntrega {
-  if (e?.revisada) return 'revisada';
-  if (e?.entregadaEl) return e.entregadaEl > limite(t) ? 'tarde' : 'entregada';
-  return vencida(t) ? 'no-entregada' : 'pendiente';
+// Derive the student's submission status for an assignment.
+export function getSubmissionStatus(assignment: Tarea, submission: Entrega | undefined): EstadoEntrega {
+  if (submission?.revisada) return 'revisada';
+  if (submission?.entregadaEl) return submission.entregadaEl > deadline(assignment) ? 'tarde' : 'entregada';
+  return isPastDue(assignment) ? 'no-entregada' : 'pendiente';
 }
 
-// "Vence hoy a las 23:59", "Vence mañana", "Vence en 3 días", "Venció ayer", "Venció hace 4 días"
-export function venceLabel(t: Pick<Tarea, 'entrega' | 'hora'>): string {
-  const hoy = hoyIso();
-  if (t.entrega === hoy) return vencida(t) ? `Venció hoy a las ${t.hora}` : `Vence hoy a las ${t.hora}`;
-  if (t.entrega === sumarDias(hoy, 1)) return 'Vence mañana';
-  if (t.entrega === sumarDias(hoy, -1)) return 'Venció ayer';
-  const dias = Math.round((Date.parse(`${t.entrega}T12:00:00`) - Date.parse(`${hoy}T12:00:00`)) / 86400000);
-  return dias > 0 ? `Vence en ${dias} días` : `Venció hace ${-dias} días`;
+// Format the due date for display in Spanish.
+export function formatDueDate(assignment: Pick<Tarea, 'entrega' | 'hora'>): string {
+  const today = todayIso();
+  if (assignment.entrega === today) return isPastDue(assignment) ? `Venció hoy a las ${assignment.hora}` : `Vence hoy a las ${assignment.hora}`;
+  if (assignment.entrega === addDays(today, 1)) return 'Vence mañana';
+  if (assignment.entrega === addDays(today, -1)) return 'Venció ayer';
+  const days = Math.round((Date.parse(`${assignment.entrega}T12:00:00`) - Date.parse(`${today}T12:00:00`)) / 86400000);
+  return days > 0 ? `Vence en ${days} días` : `Venció hace ${-days} días`;
 }
 
-// Faltan 2 días o menos para la fecha límite
-export const urgente = (t: Pick<Tarea, 'entrega' | 'hora'>): boolean => !vencida(t) && t.entrega <= sumarDias(hoyIso(), 2);
+// An assignment is due soon when at most two days remain.
+export const isDueSoon = (assignment: Pick<Tarea, 'entrega' | 'hora'>): boolean => !isPastDue(assignment) && assignment.entrega <= addDays(todayIso(), 2);

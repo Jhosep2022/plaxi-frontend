@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBullhorn, faCalendarDays, faCircleCheck, faExclamation, faHandshake } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaLarga } from '../../core/utils/attendance';
+import { formatLongDate } from '../../core/utils/attendance';
 import { ComunicadoRecibido, AnnouncementsService } from '../../services/announcements.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
@@ -27,15 +27,15 @@ export class InboxComponent {
 
   readonly categoria = categoria;
   readonly cuando = cuando;
-  readonly fechaLarga = fechaLarga;
+  readonly formatLongDate = formatLongDate;
   readonly faBullhorn = faBullhorn;
   readonly faCalendarDays = faCalendarDays;
   readonly faCircleCheck = faCircleCheck;
   readonly faExclamation = faExclamation;
   readonly faHandshake = faHandshake;
 
-  private readonly usuarioId = this.session.usuarioId()!;
-  private readonly recibidos = rxResource({ stream: () => this.servicio.recibidos(this.session.espacioActivo()!.id, this.usuarioId), defaultValue: [] });
+  private readonly usuarioId = this.session.userId()!;
+  private readonly recibidos = rxResource({ stream: () => this.servicio.recibidos(this.session.activeSpace()!.id, this.usuarioId), defaultValue: [] });
 
   // Copia local para marcar leídos y confirmados sin recargar la lista
   readonly lista = linkedSignal<ComunicadoRecibido[]>(() => this.recibidos.value());

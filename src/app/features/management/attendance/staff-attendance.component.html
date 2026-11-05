@@ -5,7 +5,7 @@
   </label>
 </app-page-header>
 
-<h2 class="dia">{{ fechaLarga(fecha()) }}</h2>
+<h2 class="dia">{{ formatLongDate(fecha()) }}</h2>
 
 @if (datos.isLoading() && !datos.value()) {
   <p class="pendiente">Cargando marcaciones…</p>

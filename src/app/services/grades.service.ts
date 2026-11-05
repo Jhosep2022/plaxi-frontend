@@ -4,8 +4,8 @@ import { map, switchMap } from 'rxjs/operators';
 import { Asignacion, Docente, Gestion, Materia, Paralelo } from '../core/models/academics.model';
 import { Estudiante } from '../core/models/attendance.model';
 import { Actividad, CierrePeriodo, ConfigCalificacion, Nota, configPorDefecto } from '../core/models/grades.model';
-import { TipoEspacio } from '../core/models/espacio.model';
-import { hoyIso } from '../core/utils/attendance';
+import { SpaceType } from '../core/models/space.model';
+import { todayIso } from '../core/utils/attendance';
 import { MOCK_ASIGNACIONES } from '../mocks/academics.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_ACTIVIDADES, MOCK_CIERRES, MOCK_CONFIG_CALIFICACIONES, MOCK_NOTAS } from '../mocks/grades.mock';
@@ -53,7 +53,7 @@ export class GradesService {
   private cierresRepo = new MockRepository<CierrePeriodo>(MOCK_CIERRES);
 
   // ---------- Escala y ponderación ----------
-  getConfig(espacioId: number, tipo: TipoEspacio = 'colegio'): Observable<ConfigCalificacion> {
+  getConfig(espacioId: number, tipo: SpaceType = 'colegio'): Observable<ConfigCalificacion> {
     return this.configRepo.list((c) => c.id === espacioId).pipe(map(([c]) => c ?? configPorDefecto(espacioId, tipo)));
   }
 
@@ -86,9 +86,9 @@ export class GradesService {
   }
 
   closePeriod(espacioId: number, gestion: Gestion, periodo: number): Observable<CierrePeriodo> {
-    if (gestion.periodos[periodo].inicio > hoyIso()) return throwError(() => new Error('No se puede cerrar un periodo que todavía no empezó.'));
+    if (gestion.periodos[periodo].inicio > todayIso()) return throwError(() => new Error('No se puede cerrar un periodo que todavía no empezó.'));
     if (this.isPeriodClosed(gestion.id, periodo)) return throwError(() => new Error('El periodo ya está cerrado.'));
-    return this.cierresRepo.save({ espacioId, gestionId: gestion.id, periodo, cerradoEl: hoyIso() });
+    return this.cierresRepo.save({ espacioId, gestionId: gestion.id, periodo, cerradoEl: todayIso() });
   }
 
   reopenPeriod(cierre: CierrePeriodo): Observable<void> {

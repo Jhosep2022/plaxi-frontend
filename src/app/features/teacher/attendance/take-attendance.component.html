@@ -27,7 +27,7 @@
     }
   </div>
 
-  <h2 class="dia">{{ fechaLarga(fecha()) }}@if (fecha() === hoy) { <span class="ui-badge tono-lima">Hoy</span> }</h2>
+  <h2 class="dia">{{ formatLongDate(fecha()) }}@if (fecha() === hoy) { <span class="ui-badge tono-lima">Hoy</span> }</h2>
 
   @if (clasesDelDia().length === 0) {
     <div class="ui-card">

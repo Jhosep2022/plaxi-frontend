@@ -10,7 +10,7 @@
             <span class="logo" [class.academia]="e.tipo === 'academia'"><fa-icon [icon]="e.tipo === 'colegio' ? faSchool : faChalkboardTeacher" /></span>
             <div class="nombre">
               <strong>{{ e.nombre }}</strong>
-              <small>{{ tipoLabel[e.tipo] }}@if (e.desde) { · desde {{ mesAnio(e.desde) }} }</small>
+              <small>{{ tipoLabel[e.tipo] }}@if (e.desde) { · desde {{ formatMonthYear(e.desde) }} }</small>
             </div>
           </header>
           <div class="chips">

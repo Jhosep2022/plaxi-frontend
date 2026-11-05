@@ -7,7 +7,7 @@ import { faLock, faPen, faPlus, faStar, faTrash } from '@fortawesome/free-solid-
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academics.model';
 import { Actividad } from '../../../core/models/grades.model';
-import { fechaCorta, hoyIso } from '../../../core/utils/attendance';
+import { formatShortDate, todayIso } from '../../../core/utils/attendance';
 import { ResultadoMateria, aprobado, calcularNota, periodoDeFecha } from '../../../core/utils/grades';
 import { AcademicsService } from '../../../services/academics.service';
 import { GradesService, CambioNota } from '../../../services/grades.service';
@@ -41,11 +41,11 @@ export class RecordGradesComponent {
   readonly faStar = faStar;
   readonly faTrash = faTrash;
   readonly subjectIcon = subjectIcon;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly paraleloLabel = paraleloLabel;
 
-  readonly espacio = this.session.espacioActivo()!;
-  private readonly docenteId = this.session.usuarioId()!;
+  readonly espacio = this.session.activeSpace()!;
+  private readonly docenteId = this.session.userId()!;
 
   // Clases del docente (materia + paralelo) en la gestión activa
   readonly clases = rxResource({
@@ -81,7 +81,7 @@ export class RecordGradesComponent {
   readonly gestion = computed(() => this.clases.value()?.gestion);
   readonly periodo = linkedSignal(() => {
     const g = this.gestion();
-    return g ? periodoDeFecha(g, hoyIso()) : 0;
+    return g ? periodoDeFecha(g, todayIso()) : 0;
   });
 
   // Notas, actividades y estudiantes del paralelo elegido
@@ -197,14 +197,14 @@ export class RecordGradesComponent {
     validate(s.fecha, ({ value }) => {
       const p = this.gestion()?.periodos[this.periodo()];
       return p && value() && (value() < p.inicio || value() > p.fin)
-        ? { kind: 'periodo', message: `Debe estar dentro del ${p.nombre} (${fechaCorta(p.inicio)} – ${fechaCorta(p.fin)}).` }
+        ? { kind: 'periodo', message: `Debe estar dentro del ${p.nombre} (${formatShortDate(p.inicio)} – ${formatShortDate(p.fin)}).` }
         : undefined;
     });
   });
 
   nuevaActividad(): void {
     const p = this.gestion()?.periodos[this.periodo()];
-    const hoy = hoyIso();
+    const hoy = todayIso();
     this.editando.set(null);
     this.modelo.set({ nombre: '', criterioId: '', fecha: p && hoy >= p.inicio && hoy <= p.fin ? hoy : (p?.inicio ?? hoy) });
     this.formulario().reset();

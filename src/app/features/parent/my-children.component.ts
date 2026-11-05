@@ -9,7 +9,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { PARENTESCOS, edad, iniciales } from '../../core/models/people.model';
-import { contar, fechaCorta, hoyIso, sumarDias } from '../../core/utils/attendance';
+import { contar, formatShortDate, todayIso, addDays } from '../../core/utils/attendance';
 import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/grades';
 import { AttendanceService } from '../../services/attendance.service';
 import { GradesService } from '../../services/grades.service';
@@ -65,8 +65,8 @@ export class MyChildrenComponent {
   readonly faUserCheck = faUserCheck;
   readonly faUserXmark = faUserXmark;
 
-  private readonly espacioId = this.session.espacioActivo()!.id;
-  private readonly hoy = hoyIso();
+  private readonly espacioId = this.session.activeSpace()!.id;
+  private readonly hoy = todayIso();
 
   readonly fichas = rxResource({
     stream: () =>
@@ -77,14 +77,14 @@ export class MyChildrenComponent {
   });
 
   readonly sinLeer = rxResource({
-    stream: () => this.comunicados.recibidos(this.espacioId, this.session.usuarioId()!).pipe(map((cs) => cs.filter((c) => !c.lectura).length)),
+    stream: () => this.comunicados.recibidos(this.espacioId, this.session.userId()!).pipe(map((cs) => cs.filter((c) => !c.lectura).length)),
     defaultValue: 0,
   });
 
   readonly totalAlertas = computed(() => this.fichas.value().reduce((s, f) => s + f.alertas.length, 0));
 
   ruta(...segmentos: string[]) {
-    return this.session.rutaRol(...segmentos);
+    return this.session.roleRoute(...segmentos);
   }
 
   parentesco(h: Hijo): string {
@@ -105,7 +105,7 @@ export class MyChildrenComponent {
       datos: hijo.paraleloId ? this.calificaciones.getClassGroupData(this.espacioId, hijo.paraleloId) : of(null),
     }).pipe(
       map(({ registros, licencias, tareas, datos }): FichaHijo => {
-        const desde = sumarDias(this.hoy, -14);
+        const desde = addDays(this.hoy, -14);
         const recientes = registros.filter((r) => r.fecha >= desde && r.estado === 'ausente');
         const indice = datos ? periodoDeFecha(datos.gestion, this.hoy) : 0;
         const notas = datos ? boletinDe(datos, indiceNotas(datos.notas), hijo.id).map((f) => ({ materia: f.materia.nombre, nota: f.periodos[indice] })) : [];
@@ -114,7 +114,7 @@ export class MyChildrenComponent {
           ...reprobadas.map((n) => ({ tipo: 'nota' as const, texto: `${n.materia}: ${n.nota} (bajo ${datos!.config.notaAprobacion})` })),
           ...(recientes.length ? [{ tipo: 'falta' as const, texto: `${recientes.length} ${recientes.length === 1 ? 'falta' : 'faltas'} a clases en las últimas dos semanas` }] : []),
           ...tareas.filter((t) => t.estado === 'no-entregada').map((t) => ({ tipo: 'tarea' as const, texto: `No entregó la tarea "${t.tarea.titulo}" (${t.tarea.materia.nombre})` })),
-          ...licencias.filter((l) => l.estado === 'pendiente').map((l) => ({ tipo: 'licencia' as const, texto: `Licencia del ${fechaCorta(l.desde)} pendiente de aprobación` })),
+          ...licencias.filter((l) => l.estado === 'pendiente').map((l) => ({ tipo: 'licencia' as const, texto: `Licencia del ${formatShortDate(l.desde)} pendiente de aprobación` })),
         ];
         return {
           hijo,

@@ -1,4 +1,4 @@
-export interface PaginadoDto {
+export interface PaginationDto {
   page: number;
   size: number;
   sortBy: string;

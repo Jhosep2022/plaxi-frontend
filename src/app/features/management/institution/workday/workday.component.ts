@@ -48,7 +48,7 @@ function aModelo(j: ConfigJornada | undefined) {
 export class WorkdayComponent {
   private horarios = inject(SchedulesService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly diasSemana = DIAS_SEMANA;
   readonly duracionesRapidas = DURACIONES_RAPIDAS;

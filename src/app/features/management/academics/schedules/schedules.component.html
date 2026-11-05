@@ -2,13 +2,13 @@
   miga="Académico"
   titulo="Horarios"
   descripcion="Arma la semana de cada paralelo. El sistema avisa si un docente o un aula ya están ocupados a esa hora en otro paralelo.">
-  <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('institucion', 'jornada')"><fa-icon [icon]="faGear" /> Configurar jornada</a>
+  <a class="ui-btn ui-btn--secundario" [routerLink]="session.roleRoute('institucion', 'jornada')"><fa-icon [icon]="faGear" /> Configurar jornada</a>
 </app-page-header>
 
 @if (!gestion.isLoading() && !gestion.value()) {
   <div class="ui-card">
     <app-empty-state [icono]="faCalendarDays" titulo="No hay una gestión activa" texto="Los horarios pertenecen a la gestión activa.">
-      <a class="ui-btn" [routerLink]="session.rutaRol('academico', 'gestion')">Ir a Gestión y periodos</a>
+      <a class="ui-btn" [routerLink]="session.roleRoute('academico', 'gestion')">Ir a Gestión y periodos</a>
     </app-empty-state>
   </div>
 } @else {
@@ -82,7 +82,7 @@
 
         @if (bloques().length === 0) {
           <app-empty-state [icono]="faGear" [titulo]="'El turno ' + turnoLabel(p.turno).toLowerCase() + ' no está configurado'" texto="Actívalo y define su horario en la jornada escolar.">
-            <a class="ui-btn" [routerLink]="session.rutaRol('institucion', 'jornada')">Configurar jornada</a>
+            <a class="ui-btn" [routerLink]="session.roleRoute('institucion', 'jornada')">Configurar jornada</a>
           </app-empty-state>
         } @else {
           <div class="grilla-contenedor">

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { Membresia } from '../core/models/espacio.model';
+import { Membership } from '../core/models/space.model';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_MEMBRESIAS } from '../mocks/mock-data';
 
 @Injectable({
@@ -10,7 +10,7 @@ import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_MEMBRESIAS } from '../mocks/mock-data';
 export class SpaceService {
 
   // Espacios a los que pertenece el usuario, con su rol en cada uno
-  getMemberships(usuarioId: number): Observable<Membresia[]> {
+  getMemberships(usuarioId: number): Observable<Membership[]> {
     // MOCK (cuando exista el backend: GET /usuarios/:id/espacios)
     const membresias = MOCK_MEMBRESIAS
       .filter((m) => m.usuarioId === usuarioId)

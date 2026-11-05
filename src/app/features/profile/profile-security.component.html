@@ -6,13 +6,13 @@
       <header class="seccion-cabecera">
         <div>
           <h2><span class="ui-icono chico tono-lima"><fa-icon [icon]="faKey" /></span> Contraseña</h2>
-          <p>Última actualización: {{ fechaConAnio(p.claveActualizada) }}.</p>
+          <p>Última actualización: {{ formatDateWithYear(p.claveActualizada) }}.</p>
         </div>
         <button type="button" class="ui-btn ui-btn--icono" (click)="mostrar.set(!mostrar())" [attr.aria-label]="mostrar() ? 'Ocultar contraseñas' : 'Mostrar contraseñas'" [title]="mostrar() ? 'Ocultar' : 'Mostrar'">
           <fa-icon [icon]="mostrar() ? faEyeSlash : faEye" />
         </button>
       </header>
-      <form class="ui-form" (submit)="$event.preventDefault(); cambiarClave()" novalidate>
+      <form class="ui-form" (submit)="$event.preventDefault(); changePassword()" novalidate>
         <div class="ui-campo">
           <label for="seg-actual">Contraseña actual</label>
           <input id="seg-actual" class="ui-input" [type]="mostrar() ? 'text' : 'password'" autocomplete="current-password" [formField]="formulario.actual" />
@@ -31,7 +31,7 @@
           </div>
         </div>
 
-        <app-medidor-clave [clave]="modelo().nueva" />
+        <app-password-strength [password]="modelo().nueva" />
 
         <div class="acciones-form">
           <button type="submit" class="ui-btn" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Cambiar contraseña' }}</button>
@@ -59,7 +59,7 @@
               <small>{{ d.ubicacion }} · {{ d.actual ? 'Activo ahora' : 'Último uso: ' + cuando(d.ultimoUso) }}</small>
             </div>
             @if (!d.actual) {
-              <button type="button" class="ui-btn ui-btn--secundario" (click)="cerrarDispositivo(d)" [attr.aria-label]="'Cerrar sesión en ' + d.nombre">Cerrar sesión</button>
+              <button type="button" class="ui-btn ui-btn--secundario" (click)="signOutDevice(d)" [attr.aria-label]="'Cerrar sesión en ' + d.nombre">Cerrar sesión</button>
             }
           </li>
         }

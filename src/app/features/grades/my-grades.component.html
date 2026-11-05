@@ -78,7 +78,7 @@
               <ul class="actividades">
                 @for (a of m.actividades; track a.actividad.id) {
                   <li>
-                    <span>{{ a.actividad.nombre }} <small>{{ a.criterio }} · {{ fechaCorta(a.actividad.fecha) }}</small></span>
+                    <span>{{ a.actividad.nombre }} <small>{{ a.criterio }} · {{ formatShortDate(a.actividad.fecha) }}</small></span>
                     @if (a.nota !== undefined) {
                       <strong [class.reprobada]="!aprueba(a.nota)">{{ a.nota }}</strong>
                     } @else {

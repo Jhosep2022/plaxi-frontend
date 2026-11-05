@@ -4,14 +4,14 @@ import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 // import { catchError } from 'rxjs/operators'; // MOCK: desconectado del backend
 // import { environment } from '../../environments/environment'; // MOCK: desconectado del backend
-import { InscripcionDto } from '../models/inscripcionDto';
-import { InscripcionResponseDto } from '../models/inscripcionDto';
+import { EnrollmentDto } from '../models/enrollment.dto';
+import { EnrollmentResponseDto } from '../models/enrollment.dto';
 import { MOCK_CURSOS, MOCK_DELAY, MOCK_INSCRIPCIONES, MOCK_PERFILES, nextId } from '../mocks/mock-data';
 
 @Injectable({
   providedIn: 'root'
 })
-export class InscripcionService {
+export class EnrollmentService {
 
   // private apiUrl = `${environment.API_URL}/inscripciones`; // MOCK: desconectado del backend
 
@@ -19,7 +19,7 @@ export class InscripcionService {
   constructor() {}
 
   // Obtener todas las inscripciones
-  getAllInscripciones(): Observable<InscripcionResponseDto[]> {
+  getAllEnrollments(): Observable<EnrollmentResponseDto[]> {
     // return this.http.get<InscripcionResponseDto[]>(this.apiUrl)
     //   .pipe(
     //     catchError(this.handleError)
@@ -30,7 +30,7 @@ export class InscripcionService {
   }
 
   // Obtener una inscripción por ID
-  getInscripcionById(id: number): Observable<InscripcionResponseDto> {
+  getEnrollmentById(id: number): Observable<EnrollmentResponseDto> {
     // const url = `${this.apiUrl}/${id}`;
     // return this.http.get<InscripcionResponseDto>(url)
     //   .pipe(
@@ -43,7 +43,7 @@ export class InscripcionService {
   }
 
   // Crear una nueva inscripción
-  createInscripcion(inscripcionDto: InscripcionDto): Observable<InscripcionResponseDto> {
+  createEnrollment(inscripcionDto: EnrollmentDto): Observable<EnrollmentResponseDto> {
     // return this.http.post<InscripcionResponseDto>(this.apiUrl, inscripcionDto, this.httpOptions())
     //   .pipe(
     //     catchError(this.handleError)
@@ -52,7 +52,7 @@ export class InscripcionService {
     // MOCK
     const curso = MOCK_CURSOS.find((c) => c.idCurso === Number(inscripcionDto.cursoId));
     const usuario = MOCK_PERFILES.find((p) => p.idUsuario === Number(inscripcionDto.usuarioId));
-    const nueva: InscripcionResponseDto = {
+    const nueva: EnrollmentResponseDto = {
       idInscripcion: nextId(MOCK_INSCRIPCIONES, 'idInscripcion'),
       fechaInscripcion: new Date().toISOString().slice(0, 10),
       estadoInscripcion: 'ACTIVA',
@@ -70,7 +70,7 @@ export class InscripcionService {
   }
 
   // Actualizar una inscripción existente
-  updateInscripcion(id: number, inscripcionDto: InscripcionDto): Observable<InscripcionResponseDto> {
+  updateEnrollment(id: number, inscripcionDto: EnrollmentDto): Observable<EnrollmentResponseDto> {
     // const url = `${this.apiUrl}/${id}`;
     // return this.http.put<InscripcionResponseDto>(url, inscripcionDto, this.httpOptions())
     //   .pipe(
@@ -84,7 +84,7 @@ export class InscripcionService {
   }
 
   // Eliminar una inscripción por ID
-  deleteInscripcion(id: number): Observable<void> {
+  deleteEnrollment(id: number): Observable<void> {
     // const url = `${this.apiUrl}/${id}`;
     // return this.http.delete<void>(url)
     //   .pipe(
@@ -98,7 +98,7 @@ export class InscripcionService {
   }
 
   // Obtener inscripciones por ID de usuario
-  getInscripcionesByUsuarioId(usuarioId: number): Observable<InscripcionResponseDto[]> {
+  getEnrollmentsByUserId(usuarioId: number): Observable<EnrollmentResponseDto[]> {
     // const url = `${this.apiUrl}/usuario/${usuarioId}`;
     // return this.http.get<InscripcionResponseDto[]>(url)
     //   .pipe(
@@ -110,7 +110,7 @@ export class InscripcionService {
   }
 
   // Obtener inscripciones por ID de curso
-  getInscripcionesByCursoId(cursoId: number): Observable<InscripcionResponseDto[]> {
+  getEnrollmentsByCourseId(cursoId: number): Observable<EnrollmentResponseDto[]> {
     // const url = `${this.apiUrl}/curso/${cursoId}`;
     // return this.http.get<InscripcionResponseDto[]>(url)
     //   .pipe(

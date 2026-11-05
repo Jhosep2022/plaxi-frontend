@@ -6,7 +6,7 @@ import { faClock, faFileCsv, faFileMedical, faPrint, faUserCheck, faUserXmark } 
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
 import { RegistroAsistencia } from '../../../core/models/attendance.model';
-import { contar, fechaCorta, hoyIso, sumarDias } from '../../../core/utils/attendance';
+import { contar, formatShortDate, todayIso, addDays } from '../../../core/utils/attendance';
 import { downloadCsv } from '../../../core/utils/reports';
 import { AcademicsService } from '../../../services/academics.service';
 import { AttendanceService } from '../../../services/attendance.service';
@@ -27,7 +27,7 @@ const META = 90; // % de asistencia esperado; por debajo se marca en tono de adv
 export class AttendanceReportComponent {
   private academico = inject(AcademicsService);
   private asistencia = inject(AttendanceService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly META = META;
   readonly faClock = faClock;
@@ -37,8 +37,8 @@ export class AttendanceReportComponent {
   readonly faUserCheck = faUserCheck;
   readonly faUserXmark = faUserXmark;
 
-  readonly hoy = hoyIso();
-  readonly desde = signal(sumarDias(this.hoy, -14));
+  readonly hoy = todayIso();
+  readonly desde = signal(addDays(this.hoy, -14));
   readonly hasta = signal(this.hoy);
 
   readonly datos = rxResource({
@@ -70,7 +70,7 @@ export class AttendanceReportComponent {
     for (const r of this.registros()) porFecha.set(r.fecha, [...(porFecha.get(r.fecha) ?? []), r]);
     return [...porFecha.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([fecha, rs]) => {
       const c = contar(rs);
-      return { etiqueta: fechaCorta(fecha).split(', ').at(-1)!, valor: c.porcentaje, texto: `${c.porcentaje}%`, alerta: c.porcentaje < META };
+      return { etiqueta: formatShortDate(fecha).split(', ').at(-1)!, valor: c.porcentaje, texto: `${c.porcentaje}%`, alerta: c.porcentaje < META };
     });
   });
 

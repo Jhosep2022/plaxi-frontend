@@ -35,12 +35,12 @@
           </span>
         </a>
         <div class="chips">
-          <span class="ui-badge" [class]="vencida(t) ? '' : urgente(t) ? 'tono-crema' : 'tono-lima'"><fa-icon [icon]="faClock" /> {{ venceLabel(t) }}</span>
+          <span class="ui-badge" [class]="isPastDue(t) ? '' : isDueSoon(t) ? 'tono-crema' : 'tono-lima'"><fa-icon [icon]="faClock" /> {{ formatDueDate(t) }}</span>
           @if (t.criterio) { <span class="ui-badge tono-azul"><fa-icon [icon]="faStar" /> Cuenta para nota · {{ t.criterio }}</span> }
         </div>
         <div class="progreso">
-          <div class="linea"><span>{{ t.entregadas }} de {{ t.estudiantes }} entregaron</span><strong>{{ porcentaje(t.entregadas, t.estudiantes) }}%</strong></div>
-          <div class="ui-barra tono-lima"><span [style.width.%]="porcentaje(t.entregadas, t.estudiantes)"></span></div>
+          <div class="linea"><span>{{ t.entregadas }} de {{ t.estudiantes }} entregaron</span><strong>{{ calculatePercentage(t.entregadas, t.estudiantes) }}%</strong></div>
+          <div class="ui-barra tono-lima"><span [style.width.%]="calculatePercentage(t.entregadas, t.estudiantes)"></span></div>
           <small>
             @if (t.porRevisar) { <span class="por-revisar">{{ t.porRevisar }} por revisar</span> · }
             {{ t.revisadas }} revisadas@if (t.tarde) { · {{ t.tarde }} tarde }

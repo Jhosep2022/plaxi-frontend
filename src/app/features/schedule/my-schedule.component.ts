@@ -69,9 +69,9 @@ export class MyScheduleComponent {
   readonly faClock = faClock;
   readonly faHourglassHalf = faHourglassHalf;
 
-  private readonly espacio = this.session.espacioActivo()!;
-  private readonly rol = this.session.rolActivo();
-  private readonly usuarioId = this.session.usuarioId()!;
+  private readonly espacio = this.session.activeSpace()!;
+  private readonly rol = this.session.activeRole();
+  private readonly usuarioId = this.session.userId()!;
 
   readonly esPadre = this.rol === 'padre';
   readonly miga = computed(() => (this.rol === 'padre' ? 'Seguimiento' : 'Horario'));

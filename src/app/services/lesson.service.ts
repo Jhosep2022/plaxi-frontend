@@ -4,15 +4,15 @@ import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 // import { catchError } from 'rxjs/operators'; // MOCK: desconectado del backend
 // import { environment } from '../../environments/environment'; // MOCK: desconectado del backend
-import { LeccionDto } from '../models/LeccionDto'; //src\app\models\leccionDto.ts
-import { PaginadoDto } from '../models/PaginadoDto'; //src\app\models\paginadoDto.ts
+import { LessonDto } from '../models/lesson.dto';
+import { PaginationDto } from '../models/pagination.dto';
 import { Page } from '../models/page';
 import { MOCK_DELAY, MOCK_LECCIONES, nextId, toPage } from '../mocks/mock-data';
 
 @Injectable({
   providedIn: 'root'
 })
-export class LeccionService {
+export class LessonService {
 
   // private apiUrl = `${environment.API_URL}/leccion`; // MOCK: desconectado del backend
 
@@ -20,7 +20,7 @@ export class LeccionService {
   constructor() {}
 
   // Obtener todas las lecciones con paginación
-  getAllLecciones(paginadoDto: PaginadoDto): Observable<Page<LeccionDto>> {
+  getAllLessons(paginadoDto: PaginationDto): Observable<Page<LessonDto>> {
     // return this.http.post<Page<LeccionDto>>(`${this.apiUrl}/all`, paginadoDto, this.httpOptions())
     //   .pipe(
     //     catchError(this.handleError)
@@ -32,7 +32,7 @@ export class LeccionService {
   }
 
   // Obtener lección por ID
-  getLeccionById(idLeccion: number): Observable<LeccionDto> {
+  getLessonById(idLeccion: number): Observable<LessonDto> {
     // return this.http.get<LeccionDto>(`${this.apiUrl}/${idLeccion}`)
     //   .pipe(
     //     catchError(this.handleError)
@@ -44,7 +44,7 @@ export class LeccionService {
   }
 
   // Obtener lecciones por curso con paginación
-  getLeccionesByCurso(courseId: number, paginadoDto: any): Observable<any> {
+  getLessonsByCourse(courseId: number, paginadoDto: any): Observable<any> {
     // // Configura los parámetros
     // const params = new HttpParams()
     //   .set('page', paginadoDto.page.toString())
@@ -64,7 +64,7 @@ export class LeccionService {
 
 
   // Crear nueva lección
-  createLeccion(leccionDto: LeccionDto): Observable<any> {
+  createLesson(leccionDto: LessonDto): Observable<any> {
     // return this.http.post(`${this.apiUrl}/create`, leccionDto, { responseType: 'text' });
 
     // MOCK
@@ -74,7 +74,7 @@ export class LeccionService {
 
 
   // Actualizar lección
-  updateLeccion(leccionDto: LeccionDto): Observable<any> {
+  updateLesson(leccionDto: LessonDto): Observable<any> {
     // return this.http.put(`${this.apiUrl}/update`, leccionDto, { responseType: 'text' });
 
     // MOCK
@@ -84,7 +84,7 @@ export class LeccionService {
   }
 
   // Eliminar una lección por ID
-  deleteLeccion(idLeccion: number): Observable<string> {
+  deleteLesson(idLeccion: number): Observable<string> {
     // return this.http.delete<string>(`${this.apiUrl}/delete/${idLeccion}`)
     //   .pipe(
     //     catchError(this.handleError)

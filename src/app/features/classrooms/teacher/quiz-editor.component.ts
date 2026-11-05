@@ -7,7 +7,7 @@ import { faArrowDown, faArrowLeft, faArrowUp, faCheck, faCircleQuestion, faPlus,
 import { SessionService } from '../../../core/auth/session.service';
 import { TIPOS_PREGUNTA } from '../../../core/models/quiz.model';
 import type { TipoPregunta } from '../../../core/models/quiz.model';
-import { hoyIso, sumarDias } from '../../../core/utils/attendance';
+import { todayIso, addDays } from '../../../core/utils/attendance';
 import { ClassroomsService } from '../../../services/classrooms.service';
 import { GradesService } from '../../../services/grades.service';
 import { BorradorPregunta, QuizService } from '../../../services/quiz.service';
@@ -54,8 +54,8 @@ export class QuizEditorComponent {
   readonly faTrash = faTrash;
   readonly faXmark = faXmark;
 
-  private readonly espacio = this.session.espacioActivo()!;
-  readonly hoy = hoyIso();
+  private readonly espacio = this.session.activeSpace()!;
+  readonly hoy = todayIso();
   readonly esNuevo = computed(() => this.quizId() === 'nuevo');
 
   readonly datos = rxResource({
@@ -68,7 +68,7 @@ export class QuizEditorComponent {
       }),
   });
 
-  readonly config = signal({ titulo: '', descripcion: '', tiempoMin: 10, intentos: 1, cierre: sumarDias(hoyIso(), 7), horaCierre: '23:59', mezclar: false, mostrarRespuestas: true });
+  readonly config = signal({ titulo: '', descripcion: '', tiempoMin: 10, intentos: 1, cierre: addDays(todayIso(), 7), horaCierre: '23:59', mezclar: false, mostrarRespuestas: true });
   readonly criterioId = signal('0');
   readonly preguntas = signal<PreguntaEditable[]>([nueva('opcion')]);
   readonly guardando = signal(false);
@@ -87,7 +87,7 @@ export class QuizEditorComponent {
   readonly puntajeTotal = computed(() => this.preguntas().reduce((s, p) => s + (Number(p.puntos) || 0), 0));
 
   ruta(...segmentos: (string | number)[]) {
-    return this.session.rutaRol('clases', this.asignacionId(), ...segmentos);
+    return this.session.roleRoute('clases', this.asignacionId(), ...segmentos);
   }
 
   cambiarConfig(campo: keyof ReturnType<typeof this.config>, valor: string | number | boolean): void {
@@ -150,7 +150,7 @@ export class QuizEditorComponent {
       const existente = this.datos.value()?.existente?.quiz;
       await firstValueFrom(this.servicio.guardar(
         this.espacio.id,
-        this.session.usuarioId()!,
+        this.session.userId()!,
         { ...c, id: existente?.id, aulaId: Number(this.asignacionId()), tiempoMin: Number(c.tiempoMin) || 0, intentos: Math.max(1, Number(c.intentos) || 1), publicado: publicar || (existente?.publicado ?? false) },
         this.preguntas().map(({ clave: _clave, ...p }) => ({ ...p, puntos: Math.max(1, Number(p.puntos) || 1) })),
         Number(this.criterioId())

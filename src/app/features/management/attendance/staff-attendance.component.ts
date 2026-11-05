@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboardTeacher, faCircleCheck, faClock, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_MARCACION_LABEL } from '../../../core/models/time-tracking.model';
-import { fechaLarga, hoyIso, sumarDias } from '../../../core/utils/attendance';
+import { formatLongDate, todayIso, addDays } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { TimeTrackingService } from '../../../services/time-tracking.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -42,19 +42,19 @@ export class StaffAttendanceComponent {
   private academico = inject(AcademicsService);
 
   readonly estadoLabel = ESTADO_MARCACION_LABEL;
-  readonly fechaLarga = fechaLarga;
+  readonly formatLongDate = formatLongDate;
   readonly faCalendarDays = faCalendarDays;
   readonly faCircleCheck = faCircleCheck;
   readonly faClock = faClock;
   readonly faUserXmark = faUserXmark;
   readonly faChalkboardTeacher = faChalkboardTeacher;
 
-  private readonly espacioId = this.session.espacioActivo()!.id;
-  readonly hoy = hoyIso();
+  private readonly espacioId = this.session.activeSpace()!.id;
+  readonly hoy = todayIso();
 
   readonly datos = rxResource({
     stream: () => forkJoin({
-      marcaciones: this.marcacion.getEntriesBetween(this.espacioId, sumarDias(this.hoy, -30), this.hoy),
+      marcaciones: this.marcacion.getEntriesBetween(this.espacioId, addDays(this.hoy, -30), this.hoy),
       docentes: this.academico.getTeachers(this.espacioId),
       puntos: this.marcacion.getLocations(this.espacioId),
     }),

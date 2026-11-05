@@ -1,49 +1,47 @@
 import { BloqueHorario, ConfigTurno } from '../models/academics.model';
 
-export const toMinutes = (hora: string): number => {
-  const [h, m] = hora.split(':').map(Number);
-  return h * 60 + (m || 0);
+export const toMinutes = (time: string): number => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + (minutes || 0);
 };
 
-export const toTime = (minutos: number): string =>
-  `${String(Math.floor(minutos / 60)).padStart(2, '0')}:${String(minutos % 60).padStart(2, '0')}`;
+export const toTime = (minutes: number): string =>
+  `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 
-// Calcula los periodos de clase y recreos de un turno.
-// Regla: cada recreo se ubica al terminar el periodo que está en curso a su hora configurada.
-// Solo se agregan periodos que terminan antes (o justo a) la hora de fin del turno.
-export function generateTimeBlocks(turno: Pick<ConfigTurno, 'inicio' | 'fin' | 'recreos'>, duracionMin: number): BloqueHorario[] {
-  const bloques: BloqueHorario[] = [];
-  if (duracionMin <= 0) return bloques;
-  const fin = toMinutes(turno.fin);
-  const recreos = [...turno.recreos].filter((r) => r.duracionMin > 0).sort((a, b) => toMinutes(a.inicio) - toMinutes(b.inicio));
-  let actual = toMinutes(turno.inicio);
-  let indice = 0;
-  let siguienteRecreo = 0;
+// Place each break after the current class period and include only blocks ending within the shift.
+export function generateTimeBlocks(shift: Pick<ConfigTurno, 'inicio' | 'fin' | 'recreos'>, durationMinutes: number): BloqueHorario[] {
+  const blocks: BloqueHorario[] = [];
+  if (durationMinutes <= 0) return blocks;
+  const end = toMinutes(shift.fin);
+  const breaks = [...shift.recreos].filter((item) => item.duracionMin > 0).sort((a, b) => toMinutes(a.inicio) - toMinutes(b.inicio));
+  let current = toMinutes(shift.inicio);
+  let index = 0;
+  let nextBreak = 0;
 
-  while (actual + duracionMin <= fin && bloques.length < 30) {
-    const recreo = recreos[siguienteRecreo];
-    if (recreo && toMinutes(recreo.inicio) <= actual) {
-      bloques.push({ tipo: 'recreo', indice: -1, inicio: toTime(actual), fin: toTime(actual + recreo.duracionMin) });
-      actual += recreo.duracionMin;
-      siguienteRecreo++;
+  while (current + durationMinutes <= end && blocks.length < 30) {
+    const breakPeriod = breaks[nextBreak];
+    if (breakPeriod && toMinutes(breakPeriod.inicio) <= current) {
+      blocks.push({ tipo: 'recreo', indice: -1, inicio: toTime(current), fin: toTime(current + breakPeriod.duracionMin) });
+      current += breakPeriod.duracionMin;
+      nextBreak++;
       continue;
     }
-    bloques.push({ tipo: 'clase', indice: indice++, inicio: toTime(actual), fin: toTime(actual + duracionMin) });
-    actual += duracionMin;
+    blocks.push({ tipo: 'clase', indice: index++, inicio: toTime(current), fin: toTime(current + durationMinutes) });
+    current += durationMinutes;
   }
-  return bloques;
+  return blocks;
 }
 
-// Bloques de clase necesarios para cubrir las horas semanales de una materia
-export const requiredTimeBlocks = (horasSemanales: number, duracionMin: number): number =>
-  duracionMin > 0 ? Math.ceil((horasSemanales * 60) / duracionMin) : 0;
+// Calculate how many periods are needed for a subject's weekly hours.
+export const requiredTimeBlocks = (weeklyHours: number, durationMinutes: number): number =>
+  durationMinutes > 0 ? Math.ceil((weeklyHours * 60) / durationMinutes) : 0;
 
-// ¿Se cruzan dos rangos horarios? (los extremos que solo se tocan no cuentan)
+// Adjacent time ranges do not overlap.
 export const timeRangesOverlap = (a: { inicio: string; fin: string }, b: { inicio: string; fin: string }): boolean =>
   toMinutes(a.inicio) < toMinutes(b.fin) && toMinutes(b.inicio) < toMinutes(a.fin);
 
-export function formatDuration(minutos: number): string {
-  const h = Math.floor(minutos / 60);
-  const m = minutos % 60;
-  return h && m ? `${h} h ${m} min` : h ? `${h} h` : `${m} min`;
+export function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return hours && remainder ? `${hours} h ${remainder} min` : hours ? `${hours} h` : `${remainder} min`;
 }

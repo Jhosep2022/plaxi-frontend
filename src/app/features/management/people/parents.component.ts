@@ -39,7 +39,7 @@ export class ParentsComponent {
   private personas = inject(PeopleService);
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly parentescos = PARENTESCOS;
   readonly paraleloLabel = paraleloLabel;
@@ -126,34 +126,34 @@ export class ParentsComponent {
     return sinCurso.length ? [{ label: 'Sin inscribir', estudiantes: sinCurso }, ...grupos] : grupos;
   });
 
-  nuevo(): void {
+  startNewParent(): void {
     this.editando.set(null);
     this.modelo.set({ ...PADRE_VACIO });
     this.hijos.set([{ estudianteId: '', parentesco: 'madre' }]);
-    this.abrir();
+    this.openEditor();
   }
 
-  editar(p: Tutor): void {
+  editParent(p: Tutor): void {
     this.editando.set(p);
     const { nombre, ci, telefono, email, ocupacion } = p;
     this.modelo.set({ nombre, ci, telefono, email, ocupacion });
     this.hijos.set(this.vinculos.value().filter((v) => v.padreId === p.id).map((v) => ({ estudianteId: String(v.estudianteId), parentesco: v.parentesco })));
-    this.abrir();
+    this.openEditor();
   }
 
-  agregarHijo(): void {
+  addDependentStudent(): void {
     this.hijos.update((h) => [...h, { estudianteId: '', parentesco: 'madre' }]);
   }
 
-  quitarHijo(indice: number): void {
+  removeDependentStudent(indice: number): void {
     this.hijos.update((h) => h.filter((_, i) => i !== indice));
   }
 
-  cambiarHijo(indice: number, cambio: Partial<HijoEditable>): void {
+  updateDependentStudent(indice: number, cambio: Partial<HijoEditable>): void {
     this.hijos.update((h) => h.map((x, i) => (i === indice ? { ...x, ...cambio } : x)));
   }
 
-  guardar(): void {
+  saveParent(): void {
     submit(this.formulario, async () => {
       const hijos = this.hijos().filter((h) => h.estudianteId).map((h) => ({ estudianteId: Number(h.estudianteId), parentesco: h.parentesco }));
       this.guardando.set(true);
@@ -171,7 +171,7 @@ export class ParentsComponent {
     });
   }
 
-  async eliminar(p: Tutor): Promise<void> {
+  async deleteParent(p: Tutor): Promise<void> {
     if (!confirm(`¿Eliminar a ${p.nombre}? Se quitará su vínculo con los estudiantes a su cargo.`)) return;
     try {
       await firstValueFrom(this.personas.eliminarPadre(p));
@@ -183,7 +183,7 @@ export class ParentsComponent {
     }
   }
 
-  private abrir(): void {
+  private openEditor(): void {
     this.formulario().reset();
     this.drawerAbierto.set(true);
   }

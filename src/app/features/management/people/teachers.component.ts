@@ -28,7 +28,7 @@ type Filtro = 'activos' | 'baja' | 'todos';
 export class TeachersComponent {
   private personas = inject(PeopleService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly iniciales = iniciales;
   readonly faChalkboardTeacher = faChalkboardTeacher;

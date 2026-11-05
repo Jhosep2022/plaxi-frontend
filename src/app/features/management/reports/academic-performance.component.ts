@@ -6,9 +6,9 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartLine, faCircleCheck, faFileCsv, faPrint, faTriangleExclamation, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
-import { hoyIso } from '../../../core/utils/attendance';
+import { todayIso } from '../../../core/utils/attendance';
 import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../../core/utils/grades';
-import { downloadCsv, porcentaje } from '../../../core/utils/reports';
+import { downloadCsv, calculatePercentage } from '../../../core/utils/reports';
 import { AcademicsService } from '../../../services/academics.service';
 import { GradesService, DatosParalelo } from '../../../services/grades.service';
 import { BarChartComponent, ColumnChartComponent, ChartItem } from '../../../shared/reports/charts.component';
@@ -38,7 +38,7 @@ interface NotaFinal {
 export class AcademicPerformanceComponent {
   private academico = inject(AcademicsService);
   private calificaciones = inject(GradesService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly ANUAL = ANUAL;
   readonly faChartLine = faChartLine;
@@ -61,7 +61,7 @@ export class AcademicPerformanceComponent {
   readonly config = computed(() => this.datos.value()?.[0]?.config);
   readonly periodo = linkedSignal(() => {
     const g = this.gestion();
-    return g ? periodoDeFecha(g, hoyIso()) : 0;
+    return g ? periodoDeFecha(g, todayIso()) : 0;
   });
   readonly provisional = computed(() => {
     const d = this.datos.value()?.[0];
@@ -95,7 +95,7 @@ export class AcademicPerformanceComponent {
     const enRiesgo = new Set(notas.filter((n) => !this.aprueba(n.nota)).map((n) => n.estudianteId));
     return {
       promedio: promedio(notas.map((n) => n.nota)),
-      aprobacion: porcentaje(notas.filter((n) => this.aprueba(n.nota)).length, notas.length),
+      aprobacion: calculatePercentage(notas.filter((n) => this.aprueba(n.nota)).length, notas.length),
       enRiesgo: enRiesgo.size,
       evaluados: new Set(notas.map((n) => n.estudianteId)).size,
     };
@@ -105,7 +105,7 @@ export class AcademicPerformanceComponent {
     const grupos = new Map<string, number[]>();
     for (const n of this.notas()) grupos.set(n.curso, [...(grupos.get(n.curso) ?? []), n.nota]);
     return [...grupos.entries()].map(([curso, notas]) => {
-      const aprobacion = porcentaje(notas.filter((n) => this.aprueba(n)).length, notas.length);
+      const aprobacion = calculatePercentage(notas.filter((n) => this.aprueba(n)).length, notas.length);
       return { etiqueta: curso, valor: promedio(notas) ?? 0, detalle: `${aprobacion}% de notas aprobadas`, alerta: aprobacion < 90 };
     });
   });

@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartColumn, faCircleQuestion, faClock, faPen, faPlus, faRotateRight, faStar, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { fechaCorta } from '../../../core/utils/attendance';
+import { formatShortDate } from '../../../core/utils/attendance';
 import { AulaResumen } from '../../../services/classrooms.service';
 import { QuizDocente, QuizService } from '../../../services/quiz.service';
 import { ProgressRingComponent } from '../../../shared/classrooms/progress-ring.component';
@@ -70,7 +70,7 @@ import { getErrorMessage } from '../../management/academics/academics.ui';
               @if (q.cuentaParaNota) { <span class="chip nota"><fa-icon [icon]="faStar" /> Cuenta para nota</span> }
             </div>
             <div class="pie">
-              <small>{{ q.cerrado ? 'Cerró' : 'Cierra' }} el {{ fechaCorta(q.cierre) }}</small>
+              <small>{{ q.cerrado ? 'Cerró' : 'Cierra' }} el {{ formatShortDate(q.cierre) }}</small>
               @if (q.publicado) {
                 <a class="ui-btn ui-btn--secundario chico" [routerLink]="ruta(q.id, 'resultados')"><fa-icon [icon]="faChartColumn" /> Resultados</a>
               } @else {
@@ -99,7 +99,7 @@ export class TeacherQuizComponent {
   readonly aula = input.required<AulaResumen>();
   readonly cambio = output<void>();
 
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly faChartColumn = faChartColumn;
   readonly faCircleQuestion = faCircleQuestion;
   readonly faClock = faClock;
@@ -113,7 +113,7 @@ export class TeacherQuizComponent {
   readonly quizzes = rxResource({ params: () => this.aula().id, stream: ({ params }) => this.servicio.quizzesDocente(params), defaultValue: [] });
 
   ruta(...segmentos: (string | number)[]) {
-    return this.session.rutaRol('clases', this.aula().id, 'quiz', ...segmentos);
+    return this.session.roleRoute('clases', this.aula().id, 'quiz', ...segmentos);
   }
 
   async publicar(q: QuizDocente, publicado: boolean): Promise<void> {

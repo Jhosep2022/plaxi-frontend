@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBookOpen, faCheck, faClock, faLayerGroup, faLinkSlash, faUserCheck, faUsers } from '@fortawesome/free-solid-svg-icons';
-import { SessionService, recordarVolverA } from '../../core/auth/session.service';
+import { SessionService, rememberReturnUrl } from '../../core/auth/session.service';
 import { AcademyService } from '../../services/academy.service';
 import { ClassroomCoverComponent } from '../../shared/classrooms/classroom-cover.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
@@ -55,7 +55,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
           } @else if (estado() === 'PENDIENTE') {
             <div class="aviso pendiente"><fa-icon [icon]="faClock" /> Tu solicitud está pendiente. {{ c.docente }} la revisará pronto.</div>
             <a class="ui-btn ui-btn--secundario" routerLink="/espacios">Ir a mis espacios</a>
-          } @else if (!session.autenticado()) {
+          } @else if (!session.isAuthenticated()) {
             <a class="ui-btn" routerLink="/auth/registro" [queryParams]="{ codigo: codigo() }">Crear cuenta y unirme</a>
             <span class="ui-ayuda">¿Ya tienes cuenta? <button type="button" class="enlace-sesion" (click)="iniciarSesion()">Inicia sesión para unirte</button></span>
           } @else {
@@ -92,26 +92,26 @@ export class JoinCourseComponent {
   readonly faUserCheck = faUserCheck;
   readonly faUsers = faUsers;
 
-  readonly curso = rxResource({ params: () => this.codigo(), stream: ({ params }) => this.academia.getCourseByCode(params, this.session.usuarioId()) });
+  readonly curso = rxResource({ params: () => this.codigo(), stream: ({ params }) => this.academia.getCourseByCode(params, this.session.userId()) });
   private readonly nuevoEstado = signal<string | null>(null);
   readonly estado = computed(() => this.nuevoEstado() ?? this.curso.value()?.estado ?? 'ninguna');
   readonly uniendo = signal(false);
   readonly error = signal('');
 
   iniciarSesion(): void {
-    recordarVolverA(`/unirse/${this.codigo()}`);
+    rememberReturnUrl(`/unirse/${this.codigo()}`);
     this.router.navigate(['/auth/login']);
   }
 
   async unirse(): Promise<void> {
     const c = this.curso.value();
-    const usuarioId = this.session.usuarioId();
+    const usuarioId = this.session.userId();
     if (!c || !usuarioId) return;
     this.uniendo.set(true);
     this.error.set('');
     try {
       const estado = await firstValueFrom(this.academia.enroll(c.aula.id, usuarioId));
-      await firstValueFrom(this.session.iniciarSesion(usuarioId)); // suma el espacio de la academia a sus espacios
+      await firstValueFrom(this.session.startSession(usuarioId)); // suma el espacio de la academia a sus espacios
       this.nuevoEstado.set(estado);
       if (estado === 'ACTIVA') this.irAlCurso();
     } catch (e) {

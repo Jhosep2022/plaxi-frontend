@@ -7,8 +7,8 @@ import { faBullhorn, faCalendarDays, faEye, faPaperPlane, faPlus, faTrash, faUse
 import { SessionService } from '../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../core/models/academics.model';
 import { CATEGORIAS_COMUNICADO, CategoriaComunicado, Comunicado, PUBLICOS, Publico } from '../../core/models/announcements.model';
-import { fechaLarga, hoyIso } from '../../core/utils/attendance';
-import { porcentaje } from '../../core/utils/reports';
+import { formatLongDate, todayIso } from '../../core/utils/attendance';
+import { calculatePercentage } from '../../core/utils/reports';
 import { AcademicsService } from '../../services/academics.service';
 import { Alcance, AnnouncementsService } from '../../services/announcements.service';
 import { ProfileService } from '../../services/profile.service';
@@ -41,9 +41,9 @@ export class SentComponent {
   readonly categorias = CATEGORIAS_COMUNICADO;
   readonly categoria = categoria;
   readonly cuando = cuando;
-  readonly fechaLarga = fechaLarga;
+  readonly formatLongDate = formatLongDate;
   readonly publicoLabel = publicoLabel;
-  readonly porcentaje = porcentaje;
+  readonly calculatePercentage = calculatePercentage;
   readonly paraleloLabel = paraleloLabel;
   readonly faBullhorn = faBullhorn;
   readonly faCalendarDays = faCalendarDays;
@@ -53,8 +53,8 @@ export class SentComponent {
   readonly faTrash = faTrash;
   readonly faUsers = faUsers;
 
-  private readonly espacio = this.session.espacioActivo()!;
-  private readonly usuarioId = this.session.usuarioId()!;
+  private readonly espacio = this.session.activeSpace()!;
+  private readonly usuarioId = this.session.userId()!;
 
   readonly enviados = rxResource({
     params: () => this.esDireccion(),
@@ -158,7 +158,7 @@ export class SentComponent {
     }
   }
 
-  readonly hoy = hoyIso();
+  readonly hoy = todayIso();
 
   private async nombreAutor(): Promise<string> {
     const p = await firstValueFrom(this.perfiles.getProfile(this.usuarioId));

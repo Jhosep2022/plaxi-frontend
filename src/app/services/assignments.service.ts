@@ -4,9 +4,9 @@ import { delay, map, switchMap } from 'rxjs/operators';
 import { Materia, paraleloLabel } from '../core/models/academics.model';
 import { Estudiante } from '../core/models/attendance.model';
 import type { Entrega, EstadoEntrega, Tarea } from '../core/models/assignments.model';
-import { hoyIso } from '../core/utils/attendance';
+import { todayIso } from '../core/utils/attendance';
 import { periodoDeFecha } from '../core/utils/grades';
-import { ahoraIso, estadoEntrega } from '../core/utils/assignments';
+import { currentDateTimeIso, getSubmissionStatus } from '../core/utils/assignments';
 import { MOCK_DOCENTES, MOCK_GESTIONES, MOCK_MATERIAS, MOCK_PARALELOS } from '../mocks/academics.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
@@ -70,7 +70,7 @@ export class AssignmentsService {
         tareas.map((t) => {
           const alumnos = this.alumnosDe(t);
           const entregas = this.entregasRepo.readNow((e) => e.tareaId === t.id);
-          const estados = alumnos.map((a) => estadoEntrega(t, entregas.find((e) => e.estudianteId === a.id)));
+          const estados = alumnos.map((a) => getSubmissionStatus(t, entregas.find((e) => e.estudianteId === a.id)));
           return {
             ...t,
             estudiantes: alumnos.length,
@@ -99,7 +99,7 @@ export class AssignmentsService {
               return {
                 estudiante: structuredClone(estudiante),
                 entrega: structuredClone(entrega),
-                estado: estadoEntrega(t, entrega ?? undefined),
+                estado: getSubmissionStatus(t, entrega ?? undefined),
                 nota: notas.find((n) => n.estudianteId === estudiante.id)?.valor ?? null,
               };
             }),
@@ -112,12 +112,12 @@ export class AssignmentsService {
   // Crea la tarea; si se indica un criterio, también su actividad en la planilla de notas
   crear(espacioId: number, docenteId: number, datos: NuevaTarea, criterioId: number): Observable<Tarea> {
     if (!datos.titulo.trim()) return throwError(() => new Error('Ponle un título a la tarea.'));
-    if (datos.entrega < hoyIso()) return throwError(() => new Error('La fecha de entrega no puede ser anterior a hoy.'));
+    if (datos.entrega < todayIso()) return throwError(() => new Error('La fecha de entrega no puede ser anterior a hoy.'));
     const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === datos.aulaId && a.espacioId === espacioId);
     if (!aula) return throwError(() => new Error('Elige una de tus clases.'));
     const tarea = {
       ...datos, paraleloId: aula.paraleloId, materiaId: aula.materiaId, titulo: datos.titulo.trim(), instrucciones: datos.instrucciones.trim(),
-      espacioId, docenteId, asignada: hoyIso(), actividadId: 0,
+      espacioId, docenteId, asignada: todayIso(), actividadId: 0,
     };
     if (!criterioId || aula.tipo !== 'clase') return this.tareasRepo.save(tarea);
     const gestion = MOCK_GESTIONES.find((g) => g.espacioId === espacioId && g.estado === 'activa');
@@ -176,7 +176,7 @@ export class AssignmentsService {
           lista.push({
             tarea,
             entrega: structuredClone(entrega),
-            estado: estadoEntrega(tarea, entrega ?? undefined),
+            estado: getSubmissionStatus(tarea, entrega ?? undefined),
             nota: entrega?.revisada && tarea.actividadId ? notas.find((n) => n.actividadId === tarea.actividadId)?.valor ?? null : null,
           });
         }
@@ -191,7 +191,7 @@ export class AssignmentsService {
     if (!texto.trim() && !archivo) return throwError(() => new Error('Escribe un comentario o adjunta un archivo.'));
     const previa = this.entregasRepo.readNow((e) => e.tareaId === tareaId && e.estudianteId === estudianteId)[0];
     if (previa?.revisada) return throwError(() => new Error('El docente ya revisó tu entrega; no se puede modificar.'));
-    return this.entregasRepo.save({ id: previa?.id, tareaId, estudianteId, texto: texto.trim(), archivo, entregadaEl: ahoraIso(), revisada: false, comentario: '' });
+    return this.entregasRepo.save({ id: previa?.id, tareaId, estudianteId, texto: texto.trim(), archivo, entregadaEl: currentDateTimeIso(), revisada: false, comentario: '' });
   }
 
   // ---------- Interno ----------

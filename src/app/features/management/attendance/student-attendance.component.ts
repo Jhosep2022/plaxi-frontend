@@ -8,7 +8,7 @@ import { faCalendarDays, faChevronRight, faClock, faFileMedical, faUserCheck, fa
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
 import { ESTADO_DIA_LABEL, EstadoDia, RegistroAsistencia } from '../../../core/models/attendance.model';
-import { estadoDelDia, fechaLarga, hoyIso, sumarDias } from '../../../core/utils/attendance';
+import { getDailyStatus, formatLongDate, todayIso, addDays } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { AttendanceService } from '../../../services/attendance.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -40,7 +40,7 @@ export class StudentAttendanceComponent {
 
   readonly estadoDiaLabel = ESTADO_DIA_LABEL;
   readonly paraleloLabel = paraleloLabel;
-  readonly fechaLarga = fechaLarga;
+  readonly formatLongDate = formatLongDate;
   readonly faCalendarDays = faCalendarDays;
   readonly faUserCheck = faUserCheck;
   readonly faUserXmark = faUserXmark;
@@ -49,13 +49,13 @@ export class StudentAttendanceComponent {
   readonly faUsers = faUsers;
   readonly faChevronRight = faChevronRight;
 
-  private readonly espacioId = this.session.espacioActivo()!.id;
-  readonly hoy = hoyIso();
+  private readonly espacioId = this.session.activeSpace()!.id;
+  readonly hoy = todayIso();
 
   // Últimas dos semanas para elegir por defecto el día más reciente con asistencia
   readonly base = rxResource({
     stream: () => forkJoin({
-      registros: this.asistencia.getRecordsBetween(this.espacioId, sumarDias(this.hoy, -21), this.hoy),
+      registros: this.asistencia.getRecordsBetween(this.espacioId, addDays(this.hoy, -21), this.hoy),
       estudiantes: this.asistencia.getStudents(),
       paralelos: this.academico.getActiveClassGroups(this.espacioId),
       licencias: this.asistencia.getLeaveRequests(this.espacioId),
@@ -85,7 +85,7 @@ export class StudentAttendanceComponent {
         const registros = porEstudiante.get(e.id)!;
         return {
           estudiante: e,
-          estado: estadoDelDia(registros)!,
+          estado: getDailyStatus(registros)!,
           clases: registros.length,
           detalle: registros.filter((r) => r.estado !== 'presente').map((r) => `${nombreMateria.get(r.materiaId)}: ${r.estado === 'atraso' ? `${r.minutosTarde} min tarde` : r.estado}`),
         };

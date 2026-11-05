@@ -6,8 +6,8 @@ import { faArrowLeft, faCircleQuestion, faFileCsv, faPen, faTriangleExclamation 
 import { SessionService } from '../../../core/auth/session.service';
 import { TIPOS_PREGUNTA, respuestaCorrecta } from '../../../core/models/quiz.model';
 import { iniciales } from '../../../core/models/people.model';
-import { fechaCorta } from '../../../core/utils/attendance';
-import { downloadCsv, porcentaje } from '../../../core/utils/reports';
+import { formatShortDate } from '../../../core/utils/attendance';
+import { downloadCsv, calculatePercentage } from '../../../core/utils/reports';
 import { QuizService } from '../../../services/quiz.service';
 import { ProgressRingComponent } from '../../../shared/classrooms/progress-ring.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -52,7 +52,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
       <header class="cabecera">
         <div class="titulos">
           <h1>{{ r.quiz.titulo }}</h1>
-          <p>{{ r.quiz.preguntas }} preguntas · {{ r.quiz.puntajeMax }} puntos · {{ r.quiz.cerrado ? 'Cerró' : 'Cierra' }} el {{ fechaCorta(r.quiz.cierre) }} · {{ r.quiz.respondieron }} de {{ r.quiz.estudiantes }} respondieron</p>
+          <p>{{ r.quiz.preguntas }} preguntas · {{ r.quiz.puntajeMax }} puntos · {{ r.quiz.cerrado ? 'Cerró' : 'Cierra' }} el {{ formatShortDate(r.quiz.cierre) }} · {{ r.quiz.respondieron }} de {{ r.quiz.estudiantes }} respondieron</p>
         </div>
         <div class="anillos">
           <app-progress-ring etiqueta="Precisión" [valor]="r.quiz.precision" />
@@ -88,11 +88,11 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
                   <tr>
                     <td><span class="persona"><span class="avatar">{{ iniciales(e.nombre) }}</span> {{ e.nombre }}</span></td>
                     <td class="num">
-                      @if (e.mejor; as m) { <strong [class.baja]="porcentaje(m.puntaje, m.puntajeMax) < 51">{{ m.puntaje }}/{{ m.puntajeMax }}</strong> ({{ porcentaje(m.puntaje, m.puntajeMax) }}%) }
+                      @if (e.mejor; as m) { <strong [class.baja]="calculatePercentage(m.puntaje, m.puntajeMax) < 51">{{ m.puntaje }}/{{ m.puntajeMax }}</strong> ({{ calculatePercentage(m.puntaje, m.puntajeMax) }}%) }
                       @else { <span class="sin">No respondió</span> }
                     </td>
                     <td class="num">{{ e.intentos }}</td>
-                    <td>{{ e.mejor ? fechaCorta(e.mejor.fin.slice(0, 10)) : '' }}</td>
+                    <td>{{ e.mejor ? formatShortDate(e.mejor.fin.slice(0, 10)) : '' }}</td>
                   </tr>
                 }
               </tbody>
@@ -112,9 +112,9 @@ export class QuizResultsComponent {
   readonly asignacionId = input.required<string>();
   readonly quizId = input.required<string>();
 
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly iniciales = iniciales;
-  readonly porcentaje = porcentaje;
+  readonly calculatePercentage = calculatePercentage;
   readonly faArrowLeft = faArrowLeft;
   readonly faCircleQuestion = faCircleQuestion;
   readonly faFileCsv = faFileCsv;
@@ -133,7 +133,7 @@ export class QuizResultsComponent {
   );
 
   rutaAula(...segmentos: (string | number)[]) {
-    return this.session.rutaRol('clases', this.asignacionId(), ...segmentos);
+    return this.session.roleRoute('clases', this.asignacionId(), ...segmentos);
   }
 
   tipo(id: string): string {
@@ -146,6 +146,6 @@ export class QuizResultsComponent {
     const r = this.datos.value();
     if (!r) return;
     downloadCsv(`resultados-${r.quiz.titulo}`, ['Estudiante', 'Puntaje', 'Puntaje máximo', '%', 'Intentos'],
-      this.ordenados().map((e) => [e.nombre, e.mejor?.puntaje ?? null, e.mejor?.puntajeMax ?? r.quiz.puntajeMax, e.mejor ? porcentaje(e.mejor.puntaje, e.mejor.puntajeMax) : null, e.intentos]));
+      this.ordenados().map((e) => [e.nombre, e.mejor?.puntaje ?? null, e.mejor?.puntajeMax ?? r.quiz.puntajeMax, e.mejor ? calculatePercentage(e.mejor.puntaje, e.mejor.puntajeMax) : null, e.intentos]));
   }
 }

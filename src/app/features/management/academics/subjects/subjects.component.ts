@@ -32,7 +32,7 @@ const MATERIA_VACIA = { nombre: '', nivel: 'secundaria' as Nivel, horasSemanales
 export class SubjectsComponent {
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly niveles = NIVELES;
   readonly iconos = SUBJECT_ICONS;

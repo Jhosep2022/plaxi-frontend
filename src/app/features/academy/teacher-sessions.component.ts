@@ -6,7 +6,7 @@ import { faCheck, faCirclePlay, faCopy, faFilm, faPen, faPlus, faTrash, faUserCh
 import { SessionService } from '../../core/auth/session.service';
 import { PLATAFORMAS } from '../../core/models/sessions.model';
 import type { Plataforma } from '../../core/models/sessions.model';
-import { hoyIso } from '../../core/utils/attendance';
+import { todayIso } from '../../core/utils/attendance';
 import { ClassroomsService } from '../../services/classrooms.service';
 import { AsistenteSesion, SesionVista, SessionsService } from '../../services/sessions.service';
 import { NotificationService } from '../../shared/ui/notification.service';
@@ -148,7 +148,7 @@ export class TeacherSessionsComponent {
   private avisos = inject(NotificationService);
 
   readonly plataformas = PLATAFORMAS;
-  readonly hoy = hoyIso();
+  readonly hoy = todayIso();
   readonly faCheck = faCheck;
   readonly faCirclePlay = faCirclePlay;
   readonly faCopy = faCopy;
@@ -159,8 +159,8 @@ export class TeacherSessionsComponent {
   readonly faUserCheck = faUserCheck;
   readonly faVideo = faVideo;
 
-  private readonly espacioId = this.session.espacioActivo()!.id;
-  private readonly docenteId = this.session.usuarioId()!;
+  private readonly espacioId = this.session.activeSpace()!.id;
+  private readonly docenteId = this.session.userId()!;
 
   readonly datos = rxResource({
     stream: () => forkJoin({ sesiones: this.servicio.sesionesDocente(this.espacioId, this.docenteId), aulas: this.aulas.aulasDocente(this.espacioId, this.docenteId) }),
@@ -184,7 +184,7 @@ export class TeacherSessionsComponent {
   }
 
   nueva(): void {
-    this.modelo.set({ ...VACIA, aulaId: this.curso() ? String(this.curso()) : String(this.cursos()[0]?.id ?? ''), fecha: hoyIso() });
+    this.modelo.set({ ...VACIA, aulaId: this.curso() ? String(this.curso()) : String(this.cursos()[0]?.id ?? ''), fecha: todayIso() });
     this.editando.set(false);
   }
 

@@ -7,7 +7,7 @@ import { SessionService } from '../../../core/auth/session.service';
 import { NIVELES_CURSO } from '../../../core/models/classrooms.model';
 import type { Aula } from '../../../core/models/classrooms.model';
 import { AcademyService, DatosCurso } from '../../../services/academy.service';
-import { CategoriaService } from '../../../services/categoria.service';
+import { CategoryService } from '../../../services/category.service';
 import { PORTADA_MAX_KB } from '../../../services/classrooms.service';
 import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-cover.component';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -112,8 +112,8 @@ export class CourseFormComponent {
   readonly faTrash = faTrash;
   readonly faUserCheck = faUserCheck;
 
-  private categoriasService = inject(CategoriaService);
-  readonly categorias = rxResource({ stream: () => this.categoriasService.getAllCategorias(), defaultValue: [] });
+  private categoriasService = inject(CategoryService);
+  readonly categorias = rxResource({ stream: () => this.categoriasService.getAllCategories(), defaultValue: [] });
   readonly modelo = signal<DatosCurso>({ ...VACIO });
   readonly guardando = signal(false);
 
@@ -144,7 +144,7 @@ export class CourseFormComponent {
     this.guardando.set(true);
     try {
       const c = this.curso();
-      const aula = await firstValueFrom(c ? this.academia.updateCourse(c.id, this.modelo()) : this.academia.createCourse(this.session.espacioActivo()!.id, this.session.usuarioId()!, this.modelo()));
+      const aula = await firstValueFrom(c ? this.academia.updateCourse(c.id, this.modelo()) : this.academia.createCourse(this.session.activeSpace()!.id, this.session.userId()!, this.modelo()));
       this.avisos.success(c ? 'Curso actualizado.' : `Creaste "${aula.nombre}". Ahora agrega su contenido.`);
       this.guardado.emit(aula);
     } catch (error) {

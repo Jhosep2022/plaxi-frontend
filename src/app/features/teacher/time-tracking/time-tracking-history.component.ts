@@ -5,7 +5,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faClock, faQrcode, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_MARCACION_LABEL, Marcacion } from '../../../core/models/time-tracking.model';
-import { fechaCorta } from '../../../core/utils/attendance';
+import { formatShortDate } from '../../../core/utils/attendance';
 import { TimeTrackingService } from '../../../services/time-tracking.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -29,7 +29,7 @@ import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
   `,
   template: `
     <app-page-header miga="Marcación" titulo="Mi historial" descripcion="Tus entradas y salidas registradas en el colegio.">
-      <a class="ui-btn" [routerLink]="session.rutaRol('marcacion')"><fa-icon [icon]="faQrcode" /> Marcar</a>
+      <a class="ui-btn" [routerLink]="session.roleRoute('marcacion')"><fa-icon [icon]="faQrcode" /> Marcar</a>
     </app-page-header>
 
     <div class="indicadores">
@@ -55,7 +55,7 @@ import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
             <tbody>
               @for (d of dias(); track d.fecha) {
                 <tr>
-                  <td><strong>{{ fechaCorta(d.fecha) }}</strong></td>
+                  <td><strong>{{ formatShortDate(d.fecha) }}</strong></td>
                   <td>
                     @if (d.entrada; as m) {
                       {{ m.hora }} <span class="ui-badge" [class]="'estado-' + m.estado">{{ estadoLabel[m.estado] }}@if (m.minutos) { · {{ m.minutos }} min }</span>
@@ -83,13 +83,13 @@ export class TimeTrackingHistoryComponent {
   private marcacion = inject(TimeTrackingService);
 
   readonly estadoLabel = ESTADO_MARCACION_LABEL;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly faQrcode = faQrcode;
   readonly faCircleCheck = faCircleCheck;
   readonly faClock = faClock;
   readonly faRightFromBracket = faRightFromBracket;
 
-  readonly marcaciones = rxResource({ stream: () => this.marcacion.getTeacherEntries(this.session.usuarioId()!), defaultValue: [] });
+  readonly marcaciones = rxResource({ stream: () => this.marcacion.getTeacherEntries(this.session.userId()!), defaultValue: [] });
 
   readonly dias = computed(() => {
     const porFecha = new Map<string, { entrada?: Marcacion; salida?: Marcacion }>();

@@ -113,7 +113,7 @@ export class ReportCardsComponent {
   readonly faMagnifyingGlass = faMagnifyingGlass;
   readonly paraleloLabel = paraleloLabel;
 
-  readonly espacio = inject(SessionService).espacioActivo()!;
+  readonly espacio = inject(SessionService).activeSpace()!;
 
   readonly paralelos = rxResource({
     stream: () => this.academico.getActiveClassGroups(this.espacio.id),

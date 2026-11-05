@@ -1,45 +1,57 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
-import { Rol, TipoEspacio } from '../models/espacio.model';
+import { SpaceRole, SpaceType } from '../models/space.model';
 import { SessionService } from '../auth/session.service';
 
-// Solo usuarios con sesión; si no, al login
+// Require an authenticated session.
 export const authGuard: CanMatchFn = () => {
   const session = inject(SessionService);
-  return session.autenticado() || inject(Router).createUrlTree(['/auth/login']);
+  return session.isAuthenticated() || inject(Router).createUrlTree(['/auth/login']);
 };
 
-// Pantallas de autenticación: si ya hay sesión, se salta al inicio
+// Redirect authenticated users away from sign-in pages.
 export const guestGuard: CanMatchFn = () => {
   const session = inject(SessionService);
-  return !session.autenticado() || inject(Router).parseUrl(session.rutaPostLogin());
+  return !session.isAuthenticated() || inject(Router).parseUrl(session.postLoginRoute());
 };
 
-// /:espacio solo coincide si el usuario pertenece a ese espacio (si no, cae en el 404)
-export const espacioGuard: CanMatchFn = (_route, segments) => {
+// Match a space only when the user belongs to it.
+export const spaceGuard: CanMatchFn = (_route, segments) => {
   const session = inject(SessionService);
-  const membresia = session.membresiaPorSlug(segments[0]?.path);
-  if (!membresia) return false;
-  session.activarEspacio(membresia);
+  const membership = session.membershipBySlug(segments[0]?.path);
+  if (!membership) return false;
+  session.activateSpace(membership);
   return true;
 };
 
-// Exige un rol en el espacio activo
-export const rolGuard = (...roles: Rol[]): CanActivateFn => () => {
-  const rol = inject(SessionService).rolActivo();
-  return (rol !== null && roles.includes(rol)) || inject(Router).createUrlTree(['/no-autorizado']);
+// Require a role in the active space.
+export const roleGuard = (...roles: SpaceRole[]): CanActivateFn => () => {
+  const role = inject(SessionService).activeRole();
+  return (role !== null && roles.includes(role)) || inject(Router).createUrlTree(['/no-autorizado']);
 };
 
-// Exige un tipo de espacio (ej. la marcación docente solo existe en colegios)
-export const tipoEspacioGuard = (tipo: TipoEspacio): CanActivateFn => () => {
-  return inject(SessionService).espacioActivo()?.tipo === tipo || inject(Router).createUrlTree(['/no-autorizado']);
+// Require a space type for role-specific features.
+export const spaceTypeGuard = (type: SpaceType): CanActivateFn => () => {
+  return inject(SessionService).activeSpace()?.tipo === type || inject(Router).createUrlTree(['/no-autorizado']);
 };
 
-// Rutas vacías que solo redirigen: "/" y "/:espacio"
-export const redirigirInicioGuard: CanActivateFn = () => {
+// Redirect the empty root and space routes.
+export const redirectHomeGuard: CanActivateFn = () => {
   const session = inject(SessionService);
   const router = inject(Router);
-  if (!session.autenticado()) return router.createUrlTree(['/auth/login']);
-  const membresia = session.membresiaActiva();
-  return router.parseUrl(membresia ? session.rutaInicio(membresia) : session.rutaPostLogin());
+  if (!session.isAuthenticated()) return router.createUrlTree(['/auth/login']);
+  const membership = session.activeMembership();
+  return router.parseUrl(membership ? session.homeRoute(membership) : session.postLoginRoute());
+};
+
+// Platform admins are not members of a space.
+export const platformAdminGuard: CanMatchFn = () => {
+  const session = inject(SessionService);
+  if (!session.isAuthenticated()) return inject(Router).createUrlTree(['/auth/login']);
+  return session.isPlatformAdmin() || inject(Router).createUrlTree(['/no-autorizado']);
+};
+
+// Platform accounts cannot use member screens.
+export const spaceMemberGuard: CanMatchFn = () => {
+  return !inject(SessionService).isPlatformAdmin() || inject(Router).createUrlTree(['/admin']);
 };

@@ -7,7 +7,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCamera, faCheck, faCircleCheck, faClock, faListCheck, faLocationDot, faQrcode, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_MARCACION_LABEL, Marcacion, PuntoMarcacion, TipoMarcacion } from '../../../core/models/time-tracking.model';
-import { hoyIso } from '../../../core/utils/attendance';
+import { todayIso } from '../../../core/utils/attendance';
 import { distanciaLabel, distanciaMetros, leerQr } from '../../../core/utils/time-tracking';
 import { TimeTrackingService } from '../../../services/time-tracking.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -48,9 +48,9 @@ export class TimeTrackingComponent {
   readonly faListCheck = faListCheck;
   readonly faTriangleExclamation = faTriangleExclamation;
 
-  private readonly espacioId = this.session.espacioActivo()!.id;
-  private readonly docenteId = this.session.usuarioId()!;
-  readonly hoy = hoyIso();
+  private readonly espacioId = this.session.activeSpace()!.id;
+  private readonly docenteId = this.session.userId()!;
+  readonly hoy = todayIso();
 
   readonly esperado = this.marcacion.getExpectedAttendance(this.espacioId, this.docenteId, this.hoy);
   readonly puntos = rxResource({ stream: () => this.marcacion.getLocations(this.espacioId), defaultValue: [] });

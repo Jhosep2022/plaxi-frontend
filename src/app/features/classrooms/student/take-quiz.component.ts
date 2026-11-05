@@ -7,8 +7,8 @@ import { faArrowLeft, faArrowRight, faCheck, faCircleQuestion, faClock, faPaperP
 import { SessionService } from '../../../core/auth/session.service';
 import { respuestaCorrecta, textoRespuesta } from '../../../core/models/quiz.model';
 import type { Intento, Pregunta, Respuesta } from '../../../core/models/quiz.model';
-import { fechaCorta } from '../../../core/utils/attendance';
-import { ahoraIso } from '../../../core/utils/assignments';
+import { formatShortDate } from '../../../core/utils/attendance';
+import { currentDateTimeIso } from '../../../core/utils/assignments';
 import { QuizService } from '../../../services/quiz.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -34,7 +34,7 @@ export class TakeQuizComponent {
   readonly quizId = input.required<string>();
 
   readonly letras = LETRAS;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly textoRespuesta = textoRespuesta;
   readonly respuestaCorrecta = respuestaCorrecta;
   readonly faArrowLeft = faArrowLeft;
@@ -46,8 +46,8 @@ export class TakeQuizComponent {
   readonly faRotateRight = faRotateRight;
   readonly faXmark = faXmark;
 
-  private readonly espacioId = this.session.espacioActivo()!.id;
-  private readonly estudianteId = this.session.usuarioId()!;
+  private readonly espacioId = this.session.activeSpace()!.id;
+  private readonly estudianteId = this.session.userId()!;
 
   readonly datos = rxResource({
     params: () => ({ aulaId: Number(this.aulaId()), quizId: Number(this.quizId()) }),
@@ -79,7 +79,7 @@ export class TakeQuizComponent {
   }
 
   rutaAula() {
-    return this.session.rutaRol('aulas', this.aulaId());
+    return this.session.roleRoute('aulas', this.aulaId());
   }
 
   comenzar(): void {
@@ -92,7 +92,7 @@ export class TakeQuizComponent {
     this.indice.set(0);
     this.respuestas.set(new Map());
     this.intento.set(null);
-    this.inicio = ahoraIso();
+    this.inicio = currentDateTimeIso();
     this.fase.set('respondiendo');
     clearInterval(this.reloj);
     if (q.tiempoMin) {

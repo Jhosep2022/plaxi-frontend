@@ -8,7 +8,7 @@
 @if (!gestion.isLoading() && !gestion.value()) {
   <div class="ui-card">
     <app-empty-state [icono]="faCalendarDays" titulo="No hay una gestión activa" texto="Las asignaciones pertenecen a la gestión activa.">
-      <a class="ui-btn" [routerLink]="session.rutaRol('academico', 'gestion')">Ir a Gestión y periodos</a>
+      <a class="ui-btn" [routerLink]="session.roleRoute('academico', 'gestion')">Ir a Gestión y periodos</a>
     </app-empty-state>
   </div>
 } @else {

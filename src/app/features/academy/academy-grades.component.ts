@@ -6,7 +6,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartColumn, faCircleQuestion, faFileCsv, faStar } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaCorta } from '../../core/utils/attendance';
+import { formatShortDate } from '../../core/utils/attendance';
 import { downloadCsv } from '../../core/utils/reports';
 import { ClassroomsService } from '../../services/classrooms.service';
 import { QuizService } from '../../services/quiz.service';
@@ -76,7 +76,7 @@ const estilos = `
                   <tr>
                     <th>Estudiante</th>
                     @for (q of n.quizzes; track q.id) {
-                      <th class="num"><a [routerLink]="session.rutaRol('clases', cursoId(), 'quiz', q.id, 'resultados')">{{ q.titulo }}</a><small>{{ q.cerrado ? 'Cerró' : 'Cierra' }} {{ fechaCorta(q.cierre) }}</small></th>
+                      <th class="num"><a [routerLink]="session.roleRoute('clases', cursoId(), 'quiz', q.id, 'resultados')">{{ q.titulo }}</a><small>{{ q.cerrado ? 'Cerró' : 'Cierra' }} {{ formatShortDate(q.cierre) }}</small></th>
                     }
                     <th class="num">Promedio</th>
                   </tr>
@@ -99,7 +99,7 @@ const estilos = `
               </table>
             </div>
           } @else {
-            <p class="vacio">{{ n.estudiantes.length ? 'Este curso todavía no tiene quiz publicados.' : 'Este curso todavía no tiene estudiantes.' }} <a [routerLink]="session.rutaRol('clases', cursoId())" [queryParams]="{ tab: 'quiz' }">Ir al aula</a></p>
+            <p class="vacio">{{ n.estudiantes.length ? 'Este curso todavía no tiene quiz publicados.' : 'Este curso todavía no tiene estudiantes.' }} <a [routerLink]="session.roleRoute('clases', cursoId())" [queryParams]="{ tab: 'quiz' }">Ir al aula</a></p>
           }
         </section>
       }
@@ -112,12 +112,12 @@ export class AcademyTeacherGradesComponent {
   private quiz = inject(QuizService);
 
   readonly aprobacion = APROBACION;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly faFileCsv = faFileCsv;
   readonly faStar = faStar;
 
   readonly cursos = rxResource({
-    stream: () => this.aulas.aulasDocente(this.session.espacioActivo()!.id, this.session.usuarioId()!).pipe(map((as) => as.filter((a) => a.tipo === 'curso').sort((a, b) => a.nombre.localeCompare(b.nombre)))),
+    stream: () => this.aulas.aulasDocente(this.session.activeSpace()!.id, this.session.userId()!).pipe(map((as) => as.filter((a) => a.tipo === 'curso').sort((a, b) => a.nombre.localeCompare(b.nombre)))),
     defaultValue: [],
   });
   readonly cursoId = linkedSignal(() => this.cursos.value()[0]?.id ?? 0);
@@ -156,7 +156,7 @@ export class AcademyTeacherGradesComponent {
             <ul class="quizzes">
               @for (q of c.quizzes; track q.id) {
                 <li>
-                  <span>{{ q.titulo }}<small>{{ q.cerrado ? 'Cerró' : 'Cierra' }} el {{ fechaCorta(q.cierre) }}</small></span>
+                  <span>{{ q.titulo }}<small>{{ q.cerrado ? 'Cerró' : 'Cierra' }} el {{ formatShortDate(q.cierre) }}</small></span>
                   @if (c.notas.has(q.id)) { <strong [class.baja]="c.notas.get(q.id)! < aprobacion">{{ c.notas.get(q.id) }}%</strong> }
                   @else if (q.cerrado) { <span class="ui-badge">No respondiste</span> }
                   @else { <span class="ui-badge tono-crema">Pendiente</span> }
@@ -165,7 +165,7 @@ export class AcademyTeacherGradesComponent {
                 <li class="vacio">Este curso todavía no tiene quiz.</li>
               }
             </ul>
-            <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('aulas', c.aula.id)"><fa-icon [icon]="faCircleQuestion" /> Ir al curso</a>
+            <a class="ui-btn ui-btn--secundario" [routerLink]="session.roleRoute('aulas', c.aula.id)"><fa-icon [icon]="faCircleQuestion" /> Ir al curso</a>
           </article>
         } @empty {
           <div class="ui-card"><app-empty-state [icono]="faChartColumn" titulo="Todavía no estás en ningún curso" /></div>
@@ -180,15 +180,15 @@ export class AcademyStudentGradesComponent {
   private quiz = inject(QuizService);
 
   readonly aprobacion = APROBACION;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly subjectIcon = subjectIcon;
   readonly faChartColumn = faChartColumn;
   readonly faCircleQuestion = faCircleQuestion;
 
-  private readonly estudianteId = this.session.usuarioId()!;
+  private readonly estudianteId = this.session.userId()!;
   readonly cursos = rxResource({
     stream: () =>
-      this.aulas.aulasEstudiante(this.session.espacioActivo()!.id, this.estudianteId).pipe(
+      this.aulas.aulasEstudiante(this.session.activeSpace()!.id, this.estudianteId).pipe(
         switchMap((aulas) => {
           const cursos = aulas.filter((a) => a.tipo === 'curso');
           if (!cursos.length) return of([]);

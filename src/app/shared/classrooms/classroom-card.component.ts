@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChevronRight, faCircleQuestion, faListCheck, faUsers } from '@fortawesome/free-solid-svg-icons';
-import { hoyIso, sumarDias } from '../../core/utils/attendance';
+import { todayIso, addDays } from '../../core/utils/attendance';
 import { AulaResumen } from '../../services/classrooms.service';
 import { ProgressRingComponent } from './progress-ring.component';
 import { ClassroomCoverComponent } from './classroom-cover.component';
@@ -10,12 +10,12 @@ import { ClassroomCoverComponent } from './classroom-cover.component';
 // "Hace 2 h", "Ayer", "Hace 5 días"
 function haceCuanto(iso: string): string {
   const fecha = iso.slice(0, 10);
-  if (fecha === hoyIso()) {
+  if (fecha === todayIso()) {
     const horas = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 3600000));
     return horas < 1 ? 'Hace un momento' : `Hace ${horas} h`;
   }
-  if (fecha === sumarDias(hoyIso(), -1)) return 'Ayer';
-  const dias = Math.round((Date.parse(`${hoyIso()}T12:00:00`) - Date.parse(`${fecha}T12:00:00`)) / 86400000);
+  if (fecha === addDays(todayIso(), -1)) return 'Ayer';
+  const dias = Math.round((Date.parse(`${todayIso()}T12:00:00`) - Date.parse(`${fecha}T12:00:00`)) / 86400000);
   return `Hace ${dias} días`;
 }
 

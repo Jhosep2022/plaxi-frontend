@@ -1,6 +1,6 @@
 <app-page-header miga="Asistencia" titulo="Asistencia de estudiantes" descripcion="Resumen diario generado automáticamente a partir de la asistencia que toma cada docente por clase.">
   @if (pendientes()) {
-    <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('asistencia', 'licencias')"><fa-icon [icon]="faFileMedical" /> {{ pendientes() }} licencia(s) por revisar</a>
+    <a class="ui-btn ui-btn--secundario" [routerLink]="session.roleRoute('asistencia', 'licencias')"><fa-icon [icon]="faFileMedical" /> {{ pendientes() }} licencia(s) por revisar</a>
   }
   <label class="fecha">
     <fa-icon [icon]="faCalendarDays" />
@@ -11,7 +11,7 @@
 @if (base.isLoading() && !base.value()) {
   <p class="cargando">Cargando asistencia…</p>
 } @else if (resumen(); as r) {
-  <h2 class="dia">{{ fechaLarga(fecha()) }}</h2>
+  <h2 class="dia">{{ formatLongDate(fecha()) }}</h2>
 
   @if (r.general.total === 0) {
     <div class="ui-card">

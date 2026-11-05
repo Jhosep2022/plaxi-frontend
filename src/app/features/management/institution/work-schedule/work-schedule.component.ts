@@ -81,7 +81,7 @@ const aModelo = (h: HorarioLaboral | undefined) => ({
 export class WorkScheduleComponent {
   private marcacion = inject(TimeTrackingService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly turnos = TURNOS;
   readonly horario = rxResource({ stream: () => this.marcacion.getWorkSchedule(this.espacioId) });

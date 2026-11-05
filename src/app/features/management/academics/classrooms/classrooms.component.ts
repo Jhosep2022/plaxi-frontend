@@ -34,7 +34,7 @@ const AULA_VACIA = { nombre: '', tipo: 'aula' as TipoAula, capacidad: 30, ubicac
 export class ClassroomsComponent {
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly tipos = TIPOS_AULA;
   readonly iconoAula = CLASSROOM_ICONS;

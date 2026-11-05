@@ -6,9 +6,9 @@ import {
   faAddressCard, faBriefcase, faCameraRetro, faChalkboardTeacher, faCircleCheck, faEnvelope, faEye, faGlobe, faHeartPulse, faPen, faPlay, faUser, faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import type { Membresia } from '../../core/models/espacio.model';
+import type { Membership } from '../../core/models/space.model';
 import type { Perfil } from '../../core/models/profile.model';
-import { fechaConAnio, fechaLarga, hoyIso } from '../../core/utils/attendance';
+import { formatDateWithYear, formatLongDate, todayIso } from '../../core/utils/attendance';
 import { PATRON_CELULAR, PATRON_CORREO, PATRON_ENLACE, PATRON_USUARIO, AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
@@ -30,11 +30,11 @@ export class ProfileDetailsComponent {
   private avisos = inject(NotificationService);
 
   readonly perfil = input.required<Perfil>();
-  readonly membresia = input.required<Membresia>();
+  readonly membresia = input.required<Membership>();
   readonly cambio = output<Perfil | null>();
 
-  readonly fechaConAnio = fechaConAnio;
-  readonly hoy = hoyIso();
+  readonly formatDateWithYear = formatDateWithYear;
+  readonly hoy = todayIso();
   readonly faAddressCard = faAddressCard;
   readonly faBriefcase = faBriefcase;
   readonly faCameraRetro = faCameraRetro;
@@ -49,7 +49,7 @@ export class ProfileDetailsComponent {
   readonly faUser = faUser;
   readonly faUserShield = faUserShield;
 
-  private readonly usuarioId = this.session.usuarioId()!;
+  private readonly usuarioId = this.session.userId()!;
   readonly esDocente = computed(() => this.membresia().rol === 'docente');
   readonly esEstudiante = computed(() => this.membresia().rol === 'estudiante');
   readonly esAcademia = computed(() => this.membresia().espacio.tipo === 'academia');
@@ -122,17 +122,17 @@ export class ProfileDetailsComponent {
     const id = this.usuarioId;
     switch (seccion) {
       case 'personales':
-        return void submit(this.fPersonales, () => this.ejecutar(() => this.servicio.guardarPersonales(id, this.mPersonales()), 'Datos personales actualizados.'));
+        return void submit(this.fPersonales, () => this.ejecutar(() => this.servicio.savePersonalDetails(id, this.mPersonales()), 'Datos personales actualizados.'));
       case 'contacto':
-        return void submit(this.fContacto, () => this.ejecutar(() => this.servicio.guardarContacto(id, this.mContacto()), 'Datos de contacto actualizados.'));
+        return void submit(this.fContacto, () => this.ejecutar(() => this.servicio.saveContactDetails(id, this.mContacto()), 'Datos de contacto actualizados.'));
       case 'cuenta':
-        return void submit(this.fCuenta, () => this.ejecutar(() => this.servicio.guardarUsuario(id, this.mCuenta().username), 'Nombre de usuario actualizado.'));
+        return void submit(this.fCuenta, () => this.ejecutar(() => this.servicio.saveUsername(id, this.mCuenta().username), 'Nombre de usuario actualizado.'));
       case 'docente': {
         const { especialidad, bio, ...enlaces } = this.mDocente();
-        return void submit(this.fDocente, () => this.ejecutar(() => this.servicio.guardarDocente(id, { especialidad, bio, enlaces }), this.esAcademia() ? 'Perfil público actualizado.' : 'Perfil profesional actualizado.'));
+        return void submit(this.fDocente, () => this.ejecutar(() => this.servicio.saveTeacherProfile(id, { especialidad, bio, enlaces }), this.esAcademia() ? 'Perfil público actualizado.' : 'Perfil profesional actualizado.'));
       }
       case 'emergencia':
-        return void submit(this.fEmergencia, () => this.ejecutar(() => this.servicio.guardarEmergencia(id, this.mEmergencia()), 'Contacto de emergencia actualizado.'));
+        return void submit(this.fEmergencia, () => this.ejecutar(() => this.servicio.saveEmergencyContact(id, this.mEmergencia()), 'Contacto de emergencia actualizado.'));
     }
   }
 
@@ -184,6 +184,6 @@ export class ProfileDetailsComponent {
   }
 
   ultimoAcceso(iso: string): string {
-    return iso ? `${fechaLarga(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '—';
+    return iso ? `${formatLongDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '—';
   }
 }

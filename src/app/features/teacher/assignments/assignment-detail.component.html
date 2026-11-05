@@ -7,7 +7,7 @@
     <span class="ui-icono grande" [class]="'tono-' + t.materia.tono"><fa-icon [icon]="subjectIcon(t.materia.icono)" /></span>
     <div class="titulos">
       <h1>{{ t.titulo }}</h1>
-      <p>{{ t.materia.nombre }} · {{ t.curso }} · Entrega: {{ fechaLarga(t.entrega) }}, {{ t.hora }} ({{ venceLabel(t) }})</p>
+      <p>{{ t.materia.nombre }} · {{ t.curso }} · Entrega: {{ formatLongDate(t.entrega) }}, {{ t.hora }} ({{ formatDueDate(t) }})</p>
     </div>
     @if (t.criterio) { <span class="ui-badge tono-azul"><fa-icon [icon]="faStar" /> Cuenta para nota · {{ t.criterio }}</span> }
   </header>

@@ -7,7 +7,7 @@ import { faCalendarDays, faCheck, faCheckDouble, faClock, faUserCheck } from '@f
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academics.model';
 import { ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../core/models/attendance.model';
-import { contar, diaDeSemana, fechaLarga, hoyIso, licenciaCubre, sumarDias } from '../../../core/utils/attendance';
+import { contar, dayOfWeek, formatLongDate, todayIso, leaveCoversDate, addDays } from '../../../core/utils/attendance';
 import { clasesDeDocente, rangoDeBloque } from '../../../core/utils/schedule';
 import { AttendanceService } from '../../../services/attendance.service';
 import { SchedulesService } from '../../../services/schedules.service';
@@ -38,7 +38,7 @@ export class TakeAttendanceComponent {
 
   readonly estados = ESTADOS_ASISTENCIA;
   readonly subjectIcon = subjectIcon;
-  readonly fechaLarga = fechaLarga;
+  readonly formatLongDate = formatLongDate;
   readonly paraleloLabel = paraleloLabel;
   readonly faCalendarDays = faCalendarDays;
   readonly faCheck = faCheck;
@@ -46,9 +46,9 @@ export class TakeAttendanceComponent {
   readonly faClock = faClock;
   readonly faUserCheck = faUserCheck;
 
-  readonly espacio = this.session.espacioActivo()!;
-  private readonly docenteId = this.session.usuarioId()!;
-  readonly hoy = hoyIso();
+  readonly espacio = this.session.activeSpace()!;
+  private readonly docenteId = this.session.userId()!;
+  readonly hoy = todayIso();
 
   readonly datos = rxResource({ stream: () => (this.espacio.tipo === 'colegio' ? this.horarios.datos(this.espacio.id) : of(null)) });
   private readonly misClases = computed(() => {
@@ -60,8 +60,8 @@ export class TakeAttendanceComponent {
   readonly fecha = linkedSignal(() => {
     const dias = new Set(this.misClases().map((c) => c.dia));
     for (let i = 0; i < 14; i++) {
-      const f = sumarDias(this.hoy, -i);
-      if (dias.has(diaDeSemana(f))) return f;
+      const f = addDays(this.hoy, -i);
+      if (dias.has(dayOfWeek(f))) return f;
     }
     return this.hoy;
   });
@@ -70,7 +70,7 @@ export class TakeAttendanceComponent {
   readonly clasesDelDia = computed(() => {
     const d = this.datos.value();
     if (!d) return [];
-    const dia = diaDeSemana(this.fecha());
+    const dia = dayOfWeek(this.fecha());
     return this.misClases()
       .filter((c) => c.dia === dia)
       .map((c) => ({
@@ -105,7 +105,7 @@ export class TakeAttendanceComponent {
   private readonly licencias = rxResource({ stream: () => this.asistencia.getLeaveRequests(this.espacio.id), defaultValue: [] });
 
   // Estudiantes con licencia aprobada en la fecha elegida
-  readonly conLicencia = computed(() => new Set(this.licencias.value().filter((l) => licenciaCubre(l, this.fecha())).map((l) => l.estudianteId)));
+  readonly conLicencia = computed(() => new Set(this.licencias.value().filter((l) => leaveCoversDate(l, this.fecha())).map((l) => l.estudianteId)));
 
   readonly yaTomada = computed(() => this.registros.value().length > 0);
 

@@ -1,25 +1,25 @@
-import { sumarDias } from './attendance';
+import { addDays } from './attendance';
 
-// Descarga una tabla como CSV para abrirla en Excel (separador ";" y BOM para los acentos)
-export function downloadCsv(nombre: string, encabezados: string[], filas: (string | number | null)[][]): void {
-  const celda = (v: string | number | null) => {
-    const texto = v === null ? '' : String(v);
-    return /[";\n]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
+// Download an Excel-compatible CSV using a semicolon separator and UTF-8 BOM.
+export function downloadCsv(filename: string, headers: string[], rows: (string | number | null)[][]): void {
+  const escapeCell = (v: string | number | null) => {
+    const text = v === null ? '' : String(v);
+    return /[";\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
   };
-  const contenido = [encabezados, ...filas].map((f) => f.map(celda).join(';')).join('\r\n');
-  const url = URL.createObjectURL(new Blob(['﻿' + contenido], { type: 'text/csv;charset=utf-8' }));
-  const enlace = document.createElement('a');
-  enlace.href = url;
-  enlace.download = `${nombre}.csv`;
-  enlace.click();
+  const content = [headers, ...rows].map((f) => f.map(escapeCell).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${filename}.csv`;
+  link.click();
   URL.revokeObjectURL(url);
 }
 
-// Fechas (YYYY-MM-DD) entre dos días, ambos incluidos
-export function datesBetween(desde: string, hasta: string): string[] {
-  const fechas: string[] = [];
-  for (let f = desde; f <= hasta && fechas.length < 400; f = sumarDias(f, 1)) fechas.push(f);
-  return fechas;
+// Return inclusive YYYY-MM-DD dates between the bounds.
+export function datesBetween(start: string, end: string): string[] {
+  const dates: string[] = [];
+  for (let f = start; f <= end && dates.length < 400; f = addDays(f, 1)) dates.push(f);
+  return dates;
 }
 
-export const porcentaje = (parte: number, total: number): number => (total ? Math.round((parte / total) * 100) : 0);
+export const calculatePercentage = (part: number, total: number): number => (total ? Math.round((part / total) * 100) : 0);

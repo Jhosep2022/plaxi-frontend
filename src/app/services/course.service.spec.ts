@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CourseService } from './course.service';
-import { CursoDto, ActualizarCursoDto } from '../models/CursoDto';
+import { CourseDto, UpdateCourseDto } from '../models/course.dto';
 import { environment } from '../../environments/environment';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
@@ -31,7 +31,7 @@ describe('CourseService', () => {
   });
 
   it('should retrieve all courses', () => {
-    const dummyCursos: CursoDto[] = [
+    const dummyCursos: CourseDto[] = [
       { idCurso: 1, nombre: 'Curso 1', descripcion: 'Descripción 1', dificultad: 'Básico', estado: true, categoriaId: 1 },
       { idCurso: 2, nombre: 'Curso 2', descripcion: 'Descripción 2', dificultad: 'Intermedio', estado: true, categoriaId: 2 },
     ];
@@ -47,7 +47,7 @@ describe('CourseService', () => {
   });
 
   it('should retrieve a course by ID', () => {
-    const dummyCurso: CursoDto = { idCurso: 1, nombre: 'Curso 1', descripcion: 'Descripción 1', dificultad: 'Básico', estado: true, categoriaId: 1 };
+    const dummyCurso: CourseDto = { idCurso: 1, nombre: 'Curso 1', descripcion: 'Descripción 1', dificultad: 'Básico', estado: true, categoriaId: 1 };
 
     service.getCursoById(1).subscribe((curso) => {
       expect(curso).toEqual(dummyCurso);
@@ -59,7 +59,7 @@ describe('CourseService', () => {
   });
 
   it('should retrieve courses by user ID', () => {
-    const dummyCursos: CursoDto[] = [
+    const dummyCursos: CourseDto[] = [
       { idCurso: 1, nombre: 'Curso 1', descripcion: 'Descripción 1', dificultad: 'Básico', estado: true, categoriaId: 1 },
       { idCurso: 2, nombre: 'Curso 2', descripcion: 'Descripción 2', dificultad: 'Intermedio', estado: true, categoriaId: 2 },
     ];
@@ -93,7 +93,7 @@ describe('CourseService', () => {
   });
 
   it('should update an existing course', () => {
-    const updatedCurso: ActualizarCursoDto = {
+    const updatedCurso: UpdateCourseDto = {
       nombre: 'Curso Actualizado',
       descripcion: 'Descripción Actualizada',
       dificultad: 'Avanzado',

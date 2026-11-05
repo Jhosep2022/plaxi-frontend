@@ -4,8 +4,8 @@ import { delay } from 'rxjs/operators';
 import { MINUTOS_ANTES } from '../core/models/sessions.model';
 import type { AsistenciaSesion, EstadoSesion, Sesion } from '../core/models/sessions.model';
 import { toTime, toMinutes } from '../core/utils/workday';
-import { porcentaje } from '../core/utils/reports';
-import { ahoraIso } from '../core/utils/assignments';
+import { calculatePercentage } from '../core/utils/reports';
+import { currentDateTimeIso } from '../core/utils/assignments';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
 import { MOCK_DELAY, MOCK_INSCRIPCIONES } from '../mocks/mock-data';
 import { MOCK_ASISTENCIA_SESIONES, MOCK_SESIONES } from '../mocks/sessions.mock';
@@ -37,7 +37,7 @@ export type BorradorSesion = Omit<Sesion, 'id' | 'grabacion'> & { id?: number };
 
 // Estado de una sesión según la hora actual (se puede entrar unos minutos antes)
 export function estadoSesion(s: Pick<Sesion, 'fecha' | 'inicio' | 'fin'>): EstadoSesion {
-  const ahora = ahoraIso().slice(0, 16);
+  const ahora = currentDateTimeIso().slice(0, 16);
   const apertura = `${s.fecha}T${toTime(Math.max(0, toMinutes(s.inicio) - MINUTOS_ANTES))}`;
   if (ahora > `${s.fecha}T${s.fin}`) return 'finalizada';
   return ahora >= apertura ? 'en-curso' : 'proxima';
@@ -66,7 +66,7 @@ export class SessionsService {
     if (!borrador.titulo.trim()) return throwError(() => new Error('Ponle un título a la sesión.'));
     if (!/^https?:\/\/\S+\.\S+/.test(borrador.enlace.trim())) return throwError(() => new Error('Pega el enlace de la reunión (empieza con https://).'));
     if (toMinutes(borrador.fin) <= toMinutes(borrador.inicio)) return throwError(() => new Error('La hora de fin debe ser posterior a la de inicio.'));
-    if (!borrador.id && `${borrador.fecha}T${borrador.fin}` < ahoraIso().slice(0, 16)) return throwError(() => new Error('No se puede programar una sesión en el pasado.'));
+    if (!borrador.id && `${borrador.fecha}T${borrador.fin}` < currentDateTimeIso().slice(0, 16)) return throwError(() => new Error('No se puede programar una sesión en el pasado.'));
     const previa = borrador.id ? this.sesionesRepo.readNow((s) => s.id === borrador.id)[0] : undefined;
     return this.sesionesRepo.save({ ...borrador, titulo: borrador.titulo.trim(), enlace: borrador.enlace.trim(), grabacion: previa?.grabacion ?? '' });
   }
@@ -91,7 +91,7 @@ export class SessionsService {
     if (estado === 'proxima') return throwError(() => new Error(`La sesión abre ${MINUTOS_ANTES} minutos antes de empezar.`));
     if (estado === 'finalizada') return throwError(() => new Error('La sesión ya terminó.'));
     if (!this.asistenciaRepo.readNow((a) => a.sesionId === sesionId && a.estudianteId === estudianteId).length) {
-      this.asistenciaRepo.save({ sesionId, estudianteId, unidoEl: ahoraIso() });
+      this.asistenciaRepo.save({ sesionId, estudianteId, unidoEl: currentDateTimeIso() });
     }
     return of(s.enlace).pipe(delay(MOCK_DELAY));
   }
@@ -110,7 +110,7 @@ export class SessionsService {
   // El docente corrige la asistencia a mano
   marcar(sesionId: number, estudianteId: number, presente: boolean): Observable<void> {
     const previo = this.asistenciaRepo.readNow((a) => a.sesionId === sesionId && a.estudianteId === estudianteId)[0];
-    if (presente && !previo) this.asistenciaRepo.save({ sesionId, estudianteId, unidoEl: ahoraIso() });
+    if (presente && !previo) this.asistenciaRepo.save({ sesionId, estudianteId, unidoEl: currentDateTimeIso() });
     if (!presente && previo) this.asistenciaRepo.delete(previo.id);
     return of(undefined).pipe(delay(MOCK_DELAY));
   }
@@ -128,7 +128,7 @@ export class SessionsService {
         sesiones,
         estudiantes: estudiantesDeAula(aula).map((id) => {
           const presentes = new Set(this.asistenciaRepo.readNow((a) => a.estudianteId === id && ids.has(a.sesionId)).map((a) => a.sesionId));
-          return { estudianteId: id, nombre: nombreDe(id), presentes, porcentaje: porcentaje(presentes.size, sesiones.length) };
+          return { estudianteId: id, nombre: nombreDe(id), presentes, porcentaje: calculatePercentage(presentes.size, sesiones.length) };
         }).sort((a, b) => a.nombre.localeCompare(b.nombre)),
       };
     });

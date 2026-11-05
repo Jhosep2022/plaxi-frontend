@@ -131,7 +131,7 @@
         @for (t of tareas(); track t.tarea.id) {
           <a class="ui-card fila-tarea" [routerLink]="ruta('tareas')">
             <span class="ui-icono tono-lima"><fa-icon [icon]="faListCheck" /></span>
-            <span class="texto"><strong>{{ t.tarea.titulo }}</strong><small>{{ venceLabel(t.tarea) }}</small></span>
+            <span class="texto"><strong>{{ t.tarea.titulo }}</strong><small>{{ formatDueDate(t.tarea) }}</small></span>
             <span class="ui-badge" [class]="estados[t.estado].tono">{{ estados[t.estado].label }}</span>
             @if (t.nota !== null) { <span class="ui-badge tono-azul">{{ t.nota }}/{{ t.tarea.notaMaxima }}</span> }
           </a>

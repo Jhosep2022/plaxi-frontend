@@ -5,12 +5,12 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faDesktop, faEye, faEyeSlash, faKey, faLaptop, faMobileScreen, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import type { Dispositivo, Perfil } from '../../core/models/profile.model';
-import { fechaConAnio, fechaLarga } from '../../core/utils/attendance';
-import { errorClave } from '../../core/utils/clave';
+import { formatDateWithYear, formatLongDate } from '../../core/utils/attendance';
+import { getPasswordError } from '../../core/utils/password';
 import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
-import { MedidorClaveComponent } from '../../shared/ui/medidor-clave.component';
+import { PasswordStrengthComponent } from '../../shared/ui/password-strength.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
 
 const VACIA = { actual: '', nueva: '', repetir: '' };
@@ -18,7 +18,7 @@ const VACIA = { actual: '', nueva: '', repetir: '' };
 // Pestaña "Seguridad": cambio de contraseña, dispositivos con la sesión abierta y baja de la cuenta
 @Component({
   selector: 'app-profile-security',
-  imports: [FaIconComponent, FormField, DrawerComponent, MedidorClaveComponent],
+  imports: [FaIconComponent, FormField, DrawerComponent, PasswordStrengthComponent],
   templateUrl: './profile-security.component.html',
   styleUrls: ['./profile-sections.css', './profile-security.component.css'],
 })
@@ -30,31 +30,31 @@ export class ProfileSecurityComponent {
   readonly perfil = input.required<Perfil>();
   readonly cambio = output<Perfil | null>();
 
-  readonly fechaConAnio = fechaConAnio;
+  readonly formatDateWithYear = formatDateWithYear;
   readonly faEye = faEye;
   readonly faEyeSlash = faEyeSlash;
   readonly faKey = faKey;
   readonly faTriangleExclamation = faTriangleExclamation;
 
-  private readonly usuarioId = this.session.usuarioId()!;
+  private readonly usuarioId = this.session.userId()!;
 
   // ---------- Contraseña ----------
   readonly modelo = signal({ ...VACIA });
   readonly formulario = form(this.modelo, (s) => {
     required(s.actual, { message: 'Escribe tu contraseña actual.' });
     required(s.nueva, { message: 'Escribe la nueva contraseña.' });
-    validate(s.nueva, ({ value }) => (errorClave(value()) ? { kind: 'debil', message: errorClave(value()) } : undefined));
+    validate(s.nueva, ({ value }) => (getPasswordError(value()) ? { kind: 'debil', message: getPasswordError(value()) } : undefined));
     validate(s.repetir, ({ value, valueOf }) => (value() !== valueOf(s.nueva) ? { kind: 'distinta', message: 'Las contraseñas no coinciden.' } : undefined));
   });
   readonly mostrar = signal(false);
   readonly guardando = signal(false);
 
-  cambiarClave(): void {
+  changePassword(): void {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
         const m = this.modelo();
-        this.cambio.emit(await firstValueFrom(this.servicio.cambiarClave(this.usuarioId, m.actual, m.nueva)));
+        this.cambio.emit(await firstValueFrom(this.servicio.changePassword(this.usuarioId, m.actual, m.nueva)));
         this.avisos.success('Contraseña actualizada.');
         this.modelo.set({ ...VACIA });
         this.formulario().reset();
@@ -72,14 +72,14 @@ export class ProfileSecurityComponent {
   }
 
   cuando(iso: string): string {
-    return `${fechaLarga(iso.slice(0, 10))}, ${iso.slice(11, 16)}`;
+    return `${formatLongDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}`;
   }
 
   readonly otros = computed(() => this.perfil().dispositivos.filter((d) => !d.actual).length);
 
-  async cerrarDispositivo(d: Dispositivo): Promise<void> {
+  async signOutDevice(d: Dispositivo): Promise<void> {
     try {
-      this.cambio.emit(await firstValueFrom(this.servicio.cerrarDispositivo(this.usuarioId, d.id)));
+      this.cambio.emit(await firstValueFrom(this.servicio.signOutDevice(this.usuarioId, d.id)));
       this.avisos.success(`Cerraste la sesión en ${d.nombre}.`);
     } catch (error) {
       this.avisos.error(getErrorMessage(error));
@@ -89,7 +89,7 @@ export class ProfileSecurityComponent {
   async cerrarOtros(): Promise<void> {
     if (!confirm('¿Cerrar la sesión en todos los demás dispositivos?')) return;
     try {
-      this.cambio.emit(await firstValueFrom(this.servicio.cerrarOtrosDispositivos(this.usuarioId)));
+      this.cambio.emit(await firstValueFrom(this.servicio.signOutOtherDevices(this.usuarioId)));
       this.avisos.success('Cerraste la sesión en los demás dispositivos.');
     } catch (error) {
       this.avisos.error(getErrorMessage(error));
@@ -113,7 +113,7 @@ export class ProfileSecurityComponent {
     try {
       await firstValueFrom(this.servicio.darDeBaja(this.usuarioId));
       this.avisos.success('Tu cuenta fue dada de baja. ¡Gracias por haber sido parte!');
-      this.session.cerrarSesion();
+      this.session.signOut();
     } catch (error) {
       this.avisos.error(getErrorMessage(error));
       this.dandoDeBaja.set(false);

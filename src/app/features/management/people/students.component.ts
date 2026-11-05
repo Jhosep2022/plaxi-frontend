@@ -8,7 +8,7 @@ import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
 import { Estudiante } from '../../../core/models/attendance.model';
 import { PARENTESCOS, edad, iniciales } from '../../../core/models/people.model';
-import { hoyIso } from '../../../core/utils/attendance';
+import { todayIso } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { PeopleService } from '../../../services/people.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -32,7 +32,7 @@ export class StudentsComponent {
   private personas = inject(PeopleService);
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly SIN_CURSO = SIN_CURSO;
   readonly iniciales = iniciales;
@@ -43,7 +43,7 @@ export class StudentsComponent {
   readonly faPlus = faPlus;
   readonly faUserClock = faUserClock;
   readonly faUserGraduate = faUserGraduate;
-  readonly hoy = hoyIso();
+  readonly hoy = todayIso();
 
   readonly estudiantes = rxResource({ stream: () => this.personas.estudiantes(), defaultValue: [] });
   readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });

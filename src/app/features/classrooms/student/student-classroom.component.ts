@@ -9,14 +9,14 @@ import {
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_ENTREGA } from '../../../core/models/assignments.model';
 import type { Tema } from '../../../core/models/classrooms.model';
-import { hoyIso } from '../../../core/utils/attendance';
+import { todayIso } from '../../../core/utils/attendance';
 import { calcularNota, indiceNotas, periodoDeFecha } from '../../../core/utils/grades';
-import { venceLabel } from '../../../core/utils/assignments';
+import { formatDueDate } from '../../../core/utils/assignments';
 import { ClassroomsService, UnidadConTemas } from '../../../services/classrooms.service';
 import { GradesService } from '../../../services/grades.service';
 import { AssignmentsService } from '../../../services/assignments.service';
 import { EstadoQuiz, QuizService } from '../../../services/quiz.service';
-import { fechaCorta } from '../../../core/utils/attendance';
+import { formatShortDate } from '../../../core/utils/attendance';
 import { ProgressRingComponent } from '../../../shared/classrooms/progress-ring.component';
 import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-cover.component';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -50,7 +50,7 @@ export class StudentClassroomComponent {
 
   readonly iconoTema = ICONO_TEMA;
   readonly estados = ESTADO_ENTREGA;
-  readonly venceLabel = venceLabel;
+  readonly formatDueDate = formatDueDate;
   readonly faArrowLeft = faArrowLeft;
   readonly faArrowRight = faArrowRight;
   readonly faBookOpen = faBookOpen;
@@ -65,8 +65,8 @@ export class StudentClassroomComponent {
   readonly faPlay = faPlay;
   readonly faStar = faStar;
 
-  private readonly espacio = this.session.espacioActivo()!;
-  private readonly estudianteId = this.session.usuarioId()!;
+  private readonly espacio = this.session.activeSpace()!;
+  private readonly estudianteId = this.session.userId()!;
   private readonly id = computed(() => Number(this.aulaId()));
 
   // El aula (solo si el estudiante pertenece a ella), su contenido publicado y su avance
@@ -111,7 +111,7 @@ export class StudentClassroomComponent {
   readonly pestana = signal<Pestana>('contenido');
 
   // ---------- Quiz ----------
-  readonly fechaCortaQuiz = fechaCorta;
+  readonly fechaCortaQuiz = formatShortDate;
   readonly estadoQuiz: Record<EstadoQuiz, { label: string; tono: string }> = {
     pendiente: { label: 'Pendiente', tono: 'tono-crema' },
     realizado: { label: 'Realizado', tono: 'tono-lima' },
@@ -135,7 +135,7 @@ export class StudentClassroomComponent {
     const d = this.notas.value();
     const a = this.aula();
     if (!d || !a) return null;
-    const indice = periodoDeFecha(d.gestion, hoyIso());
+    const indice = periodoDeFecha(d.gestion, todayIso());
     const actividades = d.actividades.filter((x) => x.materiaId === a.materiaId && x.periodo === indice);
     return { periodo: d.gestion.periodos[indice]?.nombre ?? '', config: d.config, ...calcularNota(d.config.criterios, actividades, indiceNotas(d.notas), this.estudianteId) };
   });
@@ -145,7 +145,7 @@ export class StudentClassroomComponent {
   }
 
   ruta(...segmentos: (string | number)[]) {
-    return this.session.rutaRol(...segmentos);
+    return this.session.roleRoute(...segmentos);
   }
 
   abrir(t: Tema, bloqueada: boolean): void {

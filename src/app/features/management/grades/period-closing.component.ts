@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { Gestion } from '../../../core/models/academics.model';
-import { fechaCorta, hoyIso } from '../../../core/utils/attendance';
+import { formatShortDate, todayIso } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { GradesService } from '../../../services/grades.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -51,7 +51,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
             <div class="cabecera">
               <div>
                 <h2>{{ p.nombre }}</h2>
-                <span class="fechas"><fa-icon [icon]="faCalendarDays" /> {{ fechaCorta(p.inicio) }} – {{ fechaCorta(p.fin) }}</span>
+                <span class="fechas"><fa-icon [icon]="faCalendarDays" /> {{ formatShortDate(p.inicio) }} – {{ formatShortDate(p.fin) }}</span>
               </div>
               @switch (estado) {
                 @case ('cerrado') { <span class="ui-badge tono-azul"><fa-icon [icon]="faLock" /> Cerrado</span> }
@@ -75,7 +75,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
                   <li class="alerta">{{ pr.materiasSinActividades }} {{ pr.materiasSinActividades === 1 ? 'materia' : 'materias' }} sin actividades</li>
                 }
                 @if (cierreDe(i); as c) {
-                  <li>Cerrado el {{ fechaCorta(c.cerradoEl) }}</li>
+                  <li>Cerrado el {{ formatShortDate(c.cerradoEl) }}</li>
                 }
               </ul>
             }
@@ -86,7 +86,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
               } @else if (estado !== 'proximo') {
                 <button type="button" class="ui-btn" (click)="cerrar(d.gestion, i)"><fa-icon [icon]="faLock" /> Cerrar periodo</button>
               } @else {
-                <span class="fechas">Empieza el {{ fechaCorta(p.inicio) }}</span>
+                <span class="fechas">Empieza el {{ formatShortDate(p.inicio) }}</span>
               }
             </div>
           </article>
@@ -101,13 +101,13 @@ export class PeriodClosingComponent {
   private academico = inject(AcademicsService);
   private calificaciones = inject(GradesService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly faCalendarDays = faCalendarDays;
   readonly faLock = faLock;
   readonly faLockOpen = faLockOpen;
-  readonly fechaCorta = fechaCorta;
-  private readonly hoy = hoyIso();
+  readonly formatShortDate = formatShortDate;
+  private readonly hoy = todayIso();
 
   readonly datos = rxResource({
     stream: () =>
@@ -142,7 +142,7 @@ export class PeriodClosingComponent {
     const faltan = pr.notasEsperadas - pr.notasCargadas;
     const p = gestion.periodos[periodo];
     const avisos = [
-      p.fin >= this.hoy ? `El periodo termina el ${fechaCorta(p.fin)}.` : '',
+      p.fin >= this.hoy ? `El periodo termina el ${formatShortDate(p.fin)}.` : '',
       faltan > 0 ? `Faltan ${faltan} notas por registrar.` : '',
       pr.materiasSinActividades ? `${pr.materiasSinActividades} materias no tienen actividades.` : '',
     ].filter(Boolean);

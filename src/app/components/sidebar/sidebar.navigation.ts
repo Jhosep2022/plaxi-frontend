@@ -35,7 +35,7 @@ import {
   faVideo,
   faCog,
 } from '@fortawesome/free-solid-svg-icons';
-import { Rol, TipoEspacio } from '../../core/models/espacio.model';
+import { SpaceRole, SpaceType } from '../../core/models/space.model';
 
 export interface NavItem {
   label: string;
@@ -75,7 +75,7 @@ const CUENTA: NavModule = {
 };
 
 // Menú del sidebar según el tipo de espacio y el rol del usuario en él
-export function navegacion(tipo: TipoEspacio, rol: Rol): NavModule[] {
+export function navegacion(tipo: SpaceType, rol: SpaceRole): NavModule[] {
   const modulos = rol === 'docente'
     ? tipo === 'colegio' ? docenteColegio() : docenteAcademia()
     : rol === 'estudiante' ? estudiante(tipo)
@@ -148,7 +148,7 @@ function contenidoDocente(label: string, icon: IconDefinition, extras: NavItem[]
   };
 }
 
-function estudiante(tipo: TipoEspacio): NavModule[] {
+function estudiante(tipo: SpaceType): NavModule[] {
   const cursos = tipo === 'colegio' ? 'Mis materias' : 'Mis cursos';
   return [
     { id: 'inicio', label: 'Inicio', icon: faHome, sections: [{ items: [item('Resumen', faHome, 'estudiante/inicio')] }] },

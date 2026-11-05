@@ -3,7 +3,7 @@ import { Observable, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Turno } from '../core/models/academics.model';
 import { HorarioLaboral, Marcacion, PuntoMarcacion, TipoMarcacion } from '../core/models/time-tracking.model';
-import { diaDeSemana, hoyIso } from '../core/utils/attendance';
+import { dayOfWeek, todayIso } from '../core/utils/attendance';
 import { docenteDe, rangoDeBloque } from '../core/utils/schedule';
 import { toTime, toMinutes } from '../core/utils/workday';
 import { codigoDeVentana, distanciaLabel, distanciaMetros, ventanaActual } from '../core/utils/time-tracking';
@@ -77,7 +77,7 @@ export class TimeTrackingService {
     if (!jornada || !horario) return null;
     const ctx = { jornada, paralelos: MOCK_PARALELOS, asignaciones: MOCK_ASIGNACIONES, clases: MOCK_CLASES };
     const clases = MOCK_CLASES
-      .filter((c) => c.dia === diaDeSemana(fecha) && docenteDe(MOCK_ASIGNACIONES, c.paraleloId, c.materiaId) === docenteId)
+      .filter((c) => c.dia === dayOfWeek(fecha) && docenteDe(MOCK_ASIGNACIONES, c.paraleloId, c.materiaId) === docenteId)
       .map((c) => ({ clase: c, rango: rangoDeBloque(ctx, c.paraleloId, c.bloque) }))
       .filter((x) => x.rango)
       .sort((a, b) => a.rango!.inicio.localeCompare(b.rango!.inicio));
@@ -126,7 +126,7 @@ export class TimeTrackingService {
     const validos = [codigoDeVentana(punto.secreto, ventana), codigoDeVentana(punto.secreto, ventana - 1)];
     if (!validos.includes(s.codigo)) return fallo('El código no es válido o ya venció. Escanea el QR que está en pantalla ahora.');
 
-    const fecha = hoyIso();
+    const fecha = todayIso();
     const delDia = this.marcacionesRepo.readNow((m) => m.docenteId === s.docenteId && m.fecha === fecha);
     if (s.tipo === 'entrada' && delDia.some((m) => m.tipo === 'entrada')) return fallo('Ya registraste tu entrada hoy.');
     if (s.tipo === 'salida' && !delDia.some((m) => m.tipo === 'entrada')) return fallo('Primero debes registrar tu entrada.');

@@ -4,181 +4,183 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { SpaceService } from '../../services/space.service';
-import { Espacio, Membresia, Rol } from '../models/espacio.model';
+import { Space, Membership, SpaceRole } from '../models/space.model';
 
-const KEY_USUARIO = 'idUsuario';
-const KEY_MEMBRESIAS = 'membresias';
-const KEY_PREDETERMINADO = 'espacioPredeterminado'; // { [usuarioId]: slug }
+const USER_ID_STORAGE_KEY = 'idUsuario';
+const MEMBERSHIPS_STORAGE_KEY = 'membresias';
+const DEFAULT_SPACE_STORAGE_KEY = 'espacioPredeterminado'; // Existing persisted key; maps user IDs to slugs.
 
-// Claves antiguas que algunos componentes todavía leen de localStorage
-const KEY_LEGACY_USER_ID = 'userId';
-const KEY_LEGACY_ROL = 'userRole';
-const LEGACY_ROL: Record<Rol, string> = { direccion: '1', estudiante: '2', docente: '3', padre: '4' };
+// Existing storage keys still read by older components.
+const LEGACY_USER_ID_STORAGE_KEY = 'userId';
+const LEGACY_ROLE_STORAGE_KEY = 'userRole';
+const LEGACY_ROLE: Record<SpaceRole, string> = { direccion: '1', estudiante: '2', docente: '3', padre: '4' };
 
-// Única fuente de verdad de la sesión: usuario, espacios y espacio/rol activos
+// Source of truth for the current user, memberships, active space, and role.
 @Injectable({ providedIn: 'root' })
 export class SessionService {
   private router = inject(Router);
   private authService = inject(AuthService);
-  private espacioService = inject(SpaceService);
+  private spaceService = inject(SpaceService);
 
-  readonly usuarioId = signal<number | null>(leerNumero(KEY_USUARIO));
-  readonly membresias = signal<Membresia[]>(leerJson<Membresia[]>(KEY_MEMBRESIAS) ?? []);
-  readonly espacioActivo = signal<Espacio | null>(null);
+  readonly userId = signal<number | null>(readNumber(USER_ID_STORAGE_KEY));
+  readonly isPlatformAdmin = computed(() => this.authService.isPlatformAdmin(this.userId()));
+  readonly memberships = signal<Membership[]>(readJson<Membership[]>(MEMBERSHIPS_STORAGE_KEY) ?? []);
+  readonly activeSpace = signal<Space | null>(null);
 
-  readonly autenticado = computed(() => this.usuarioId() !== null);
-  readonly membresiaActiva = computed(() => {
-    const espacio = this.espacioActivo();
-    return espacio ? this.membresias().find((m) => m.espacio.id === espacio.id) ?? null : null;
+  readonly isAuthenticated = computed(() => this.userId() !== null);
+  readonly activeMembership = computed(() => {
+    const space = this.activeSpace();
+    return space ? this.memberships().find((m) => m.espacio.id === space.id) ?? null : null;
   });
-  readonly rolActivo = computed<Rol | null>(() => this.membresiaActiva()?.rol ?? null);
+  readonly activeRole = computed<SpaceRole | null>(() => this.activeMembership()?.rol ?? null);
 
-  // Guarda la sesión tras un login exitoso y carga los espacios del usuario
-  iniciarSesion(usuarioId: number): Observable<Membresia[]> {
-    return this.espacioService.getMemberships(usuarioId).pipe(
-      tap((membresias) => {
-        this.usuarioId.set(usuarioId);
-        this.membresias.set(membresias);
-        guardar(KEY_USUARIO, String(usuarioId));
-        guardar(KEY_LEGACY_USER_ID, String(usuarioId));
-        guardar(KEY_MEMBRESIAS, JSON.stringify(membresias));
+  // Store the session after sign-in and load the user's memberships.
+  startSession(userId: number): Observable<Membership[]> {
+    return this.spaceService.getMemberships(userId).pipe(
+      tap((memberships) => {
+        this.userId.set(userId);
+        this.memberships.set(memberships);
+        writeStorage(USER_ID_STORAGE_KEY, String(userId));
+        writeStorage(LEGACY_USER_ID_STORAGE_KEY, String(userId));
+        writeStorage(MEMBERSHIPS_STORAGE_KEY, JSON.stringify(memberships));
       })
     );
   }
 
-  cerrarSesion(): void {
+  signOut(): void {
     this.authService.logout();
-    this.usuarioId.set(null);
-    this.membresias.set([]);
-    this.espacioActivo.set(null);
-    [KEY_USUARIO, KEY_MEMBRESIAS, KEY_LEGACY_USER_ID, KEY_LEGACY_ROL].forEach(borrar);
+    this.userId.set(null);
+    this.memberships.set([]);
+    this.activeSpace.set(null);
+    [USER_ID_STORAGE_KEY, MEMBERSHIPS_STORAGE_KEY, LEGACY_USER_ID_STORAGE_KEY, LEGACY_ROLE_STORAGE_KEY].forEach(removeStorage);
     this.router.navigate(['/auth/login']);
   }
 
-  membresiaPorSlug(slug: string | null | undefined): Membresia | null {
-    return this.membresias().find((m) => m.espacio.slug === slug) ?? null;
+  membershipBySlug(slug: string | null | undefined): Membership | null {
+    return this.memberships().find((m) => m.espacio.slug === slug) ?? null;
   }
 
-  activarEspacio(membresia: Membresia): void {
-    if (this.espacioActivo()?.id !== membresia.espacio.id) {
-      this.espacioActivo.set(membresia.espacio);
+  activateSpace(membership: Membership): void {
+    if (this.activeSpace()?.id !== membership.espacio.id) {
+      this.activeSpace.set(membership.espacio);
     }
-    guardar(KEY_LEGACY_ROL, LEGACY_ROL[membresia.rol]);
+    writeStorage(LEGACY_ROLE_STORAGE_KEY, LEGACY_ROLE[membership.rol]);
   }
 
-  // Refleja un cambio de nombre del espacio (sidebar, selector de espacios) sin volver a iniciar sesión
-  renombrarEspacio(espacioId: number, nombre: string): void {
-    const membresias = this.membresias().map((m) => (m.espacio.id === espacioId ? { ...m, espacio: { ...m.espacio, nombre } } : m));
-    this.membresias.set(membresias);
-    guardar(KEY_MEMBRESIAS, JSON.stringify(membresias));
-    const activo = this.espacioActivo();
-    if (activo?.id === espacioId) this.espacioActivo.set({ ...activo, nombre });
+  // Keep the sidebar and space selector current without signing in again.
+  renameSpace(spaceId: number, name: string): void {
+    const memberships = this.memberships().map((m) => (m.espacio.id === spaceId ? { ...m, espacio: { ...m.espacio, nombre: name } } : m));
+    this.memberships.set(memberships);
+    writeStorage(MEMBERSHIPS_STORAGE_KEY, JSON.stringify(memberships));
+    const activeSpace = this.activeSpace();
+    if (activeSpace?.id === spaceId) this.activeSpace.set({ ...activeSpace, nombre: name });
   }
 
-  // Quita un espacio de la sesión (el usuario salió de él)
-  quitarMembresia(espacioId: number): void {
-    const slug = this.membresias().find((m) => m.espacio.id === espacioId)?.espacio.slug;
-    if (slug && this.espacioPredeterminado() === slug) this.fijarPredeterminado(null);
-    const membresias = this.membresias().filter((m) => m.espacio.id !== espacioId);
-    this.membresias.set(membresias);
-    guardar(KEY_MEMBRESIAS, JSON.stringify(membresias));
+  // Remove a space after the user leaves it.
+  removeMembership(spaceId: number): void {
+    const slug = this.memberships().find((m) => m.espacio.id === spaceId)?.espacio.slug;
+    if (slug && this.defaultSpace() === slug) this.setDefaultSpace(null);
+    const memberships = this.memberships().filter((m) => m.espacio.id !== spaceId);
+    this.memberships.set(memberships);
+    writeStorage(MEMBERSHIPS_STORAGE_KEY, JSON.stringify(memberships));
   }
 
-  // Espacio que se abre directo al iniciar sesión (null: elegir cada vez)
-  espacioPredeterminado(): string | null {
-    const id = this.usuarioId();
-    return id ? leerJson<Record<number, string>>(KEY_PREDETERMINADO)?.[id] ?? null : null;
+  // Preferred space to open after sign-in; null opens the selector.
+  defaultSpace(): string | null {
+    const id = this.userId();
+    return id ? readJson<Record<number, string>>(DEFAULT_SPACE_STORAGE_KEY)?.[id] ?? null : null;
   }
 
-  fijarPredeterminado(slug: string | null): void {
-    const id = this.usuarioId();
+  setDefaultSpace(slug: string | null): void {
+    const id = this.userId();
     if (!id) return;
-    const mapa = leerJson<Record<number, string>>(KEY_PREDETERMINADO) ?? {};
-    if (slug) mapa[id] = slug;
-    else delete mapa[id];
-    guardar(KEY_PREDETERMINADO, JSON.stringify(mapa));
+    const preferences = readJson<Record<number, string>>(DEFAULT_SPACE_STORAGE_KEY) ?? {};
+    if (slug) preferences[id] = slug;
+    else delete preferences[id];
+    writeStorage(DEFAULT_SPACE_STORAGE_KEY, JSON.stringify(preferences));
   }
 
-  // Inicio del rol dentro de un espacio: /colegio-san-jose/docente/inicio
-  rutaInicio(membresia: Membresia): string {
-    return `/${membresia.espacio.slug}/${membresia.rol}/inicio`;
+  // Home route for a role within a space.
+  homeRoute(membership: Membership): string {
+    return `/${membership.espacio.slug}/${membership.rol}/inicio`;
   }
 
-  // A dónde ir después del login: directo al espacio si hay uno solo
-  rutaPostLogin(): string {
-    // Si venía de un link (ej. una invitación a un curso), vuelve ahí
-    const pendiente = leerVolverA();
-    if (pendiente) return pendiente;
-    const membresias = this.membresias();
-    const predeterminada = this.membresiaPorSlug(this.espacioPredeterminado());
-    if (predeterminada) return this.rutaInicio(predeterminada);
-    return membresias.length === 1 ? this.rutaInicio(membresias[0]) : '/espacios';
+  // Choose a return URL, preferred space, or selector after sign-in.
+  postLoginRoute(): string {
+    // Return to the original link, such as a course invitation.
+    const returnUrl = consumeReturnUrl();
+    if (returnUrl) return returnUrl;
+    if (this.isPlatformAdmin()) return '/admin';
+    const memberships = this.memberships();
+    const preferredMembership = this.membershipBySlug(this.defaultSpace());
+    if (preferredMembership) return this.homeRoute(preferredMembership);
+    return memberships.length === 1 ? this.homeRoute(memberships[0]) : '/espacios';
   }
 
-  // Ruta dentro del espacio activo: ruta('perfil') -> ['/', 'colegio-san-jose', 'perfil']
-  ruta(...segmentos: (string | number)[]): (string | number)[] {
-    return ['/', this.espacioActivo()?.slug ?? '', ...segmentos];
+  // Build a route within the active space.
+  spaceRoute(...segments: (string | number)[]): (string | number)[] {
+    return ['/', this.activeSpace()?.slug ?? '', ...segments];
   }
 
-  // Ruta dentro del área del rol activo: rutaRol('cursos', 5) -> ['/', slug, 'docente', 'cursos', 5]
-  rutaRol(...segmentos: (string | number)[]): (string | number)[] {
-    return this.ruta(this.rolActivo() ?? '', ...segmentos);
+  // Build a route within the active role's area.
+  roleRoute(...segments: (string | number)[]): (string | number)[] {
+    return this.spaceRoute(this.activeRole() ?? '', ...segments);
   }
 }
 
-const KEY_VOLVER_A = 'volverA';
+const RETURN_URL_STORAGE_KEY = 'volverA';
 
-// Página a la que volver después de iniciar sesión (se usa una sola vez)
-export function recordarVolverA(ruta: string): void {
+// Save a return URL for the next sign-in.
+export function rememberReturnUrl(url: string): void {
   try {
-    sessionStorage.setItem(KEY_VOLVER_A, ruta);
+    sessionStorage.setItem(RETURN_URL_STORAGE_KEY, url);
   } catch {
-    // Sin almacenamiento: después del login irá al inicio
+    // Continue to the home page when storage is unavailable.
   }
 }
 
-// Mira la página pendiente sin consumirla (p. ej. para avisar en el login que viene de una invitación)
-export function verVolverA(): string | null {
+// Inspect the return URL without consuming it.
+export function peekReturnUrl(): string | null {
   try {
-    return sessionStorage.getItem(KEY_VOLVER_A);
-  } catch {
-    return null;
-  }
-}
-
-// Descarta la página pendiente (p. ej. al registrarse ya se resolvió la invitación)
-export function olvidarVolverA(): void {
-  try {
-    sessionStorage.removeItem(KEY_VOLVER_A);
-  } catch {
-    // Nada que borrar
-  }
-}
-
-function leerVolverA(): string | null {
-  try {
-    const ruta = sessionStorage.getItem(KEY_VOLVER_A);
-    sessionStorage.removeItem(KEY_VOLVER_A);
-    return ruta;
+    return sessionStorage.getItem(RETURN_URL_STORAGE_KEY);
   } catch {
     return null;
   }
 }
 
-function leerNumero(key: string): number | null {
-  const valor = Number(leer(key));
-  return Number.isFinite(valor) && valor > 0 ? valor : null;
+// Discard the return URL after registration resolves the invitation.
+export function forgetReturnUrl(): void {
+  try {
+    sessionStorage.removeItem(RETURN_URL_STORAGE_KEY);
+  } catch {
+    // The return URL is already absent.
+  }
 }
 
-function leerJson<T>(key: string): T | null {
+function consumeReturnUrl(): string | null {
   try {
-    return JSON.parse(leer(key) ?? 'null') as T | null;
+    const url = sessionStorage.getItem(RETURN_URL_STORAGE_KEY);
+    sessionStorage.removeItem(RETURN_URL_STORAGE_KEY);
+    return url;
   } catch {
     return null;
   }
 }
 
-function leer(key: string): string | null {
+function readNumber(key: string): number | null {
+  const value = Number(readStorage(key));
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function readJson<T>(key: string): T | null {
+  try {
+    return JSON.parse(readStorage(key) ?? 'null') as T | null;
+  } catch {
+    return null;
+  }
+}
+
+function readStorage(key: string): string | null {
   try {
     return localStorage.getItem(key);
   } catch {
@@ -186,18 +188,18 @@ function leer(key: string): string | null {
   }
 }
 
-function guardar(key: string, valor: string): void {
+function writeStorage(key: string, value: string): void {
   try {
-    localStorage.setItem(key, valor);
+    localStorage.setItem(key, value);
   } catch {
-    // Sin almacenamiento: la sesión dura solo mientras la pestaña esté abierta
+    // The session remains in memory when storage is unavailable.
   }
 }
 
-function borrar(key: string): void {
+function removeStorage(key: string): void {
   try {
     localStorage.removeItem(key);
   } catch {
-    // Nada que borrar
+    // The key is already absent.
   }
 }

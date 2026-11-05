@@ -50,7 +50,7 @@ module.exports = async function acceso({ verificar }) {
     await b.esperar(600);
     verificar('sugiere un usuario a partir del nombre', (await b.evaluar(`document.querySelector('#reg-usuario').value`)) === 'ana.lopez');
     verificar('avisa si el correo ya tiene cuenta', (await cuerpo()).includes('Ya existe una cuenta con ese correo'));
-    verificar('valida la contraseña con el medidor', (await cuerpo()).includes('Debe tener al menos 8 caracteres') && (await b.texto('app-medidor-clave .fuerza small')) === 'Débil');
+    verificar('valida la contraseña con el medidor', (await cuerpo()).includes('Debe tener al menos 8 caracteres') && (await b.texto('app-password-strength .fuerza small')) === 'Débil');
     await b.escribir('#reg-correo', 'ana.lopez@example.com');
     await b.escribir('#reg-clave', 'Clases2026!');
     await enviar('Continuar', 1200);

@@ -41,7 +41,7 @@ export class TimeClockLocationsComponent {
   private marcacion = inject(TimeTrackingService);
   private avisos = inject(NotificationService);
   protected readonly session = inject(SessionService);
-  private readonly espacioId = this.session.espacioActivo()!.id;
+  private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly faPlus = faPlus;
   readonly faPen = faPen;

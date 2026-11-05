@@ -30,7 +30,7 @@ export class SelectedChildService {
 
   // Estudiantes a cargo del padre en sesión (MOCK: con backend, GET /padres/:id/hijos)
   hijos(): Observable<Hijo[]> {
-    const padreId = this.session.usuarioId();
+    const padreId = this.session.userId();
     const hijos = MOCK_VINCULOS.filter((v) => v.padreId === padreId).flatMap((v) => {
       const e = MOCK_ESTUDIANTES.find((x) => x.id === v.estudianteId);
       if (!e) return [];

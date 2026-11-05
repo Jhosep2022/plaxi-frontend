@@ -4,7 +4,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { Asignacion, DIAS_SEMANA, Materia, Paralelo, TURNOS, paraleloLabel } from '../core/models/academics.model';
 import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model';
 import { Actividad, ConfigCalificacion } from '../core/models/grades.model';
-import { Conteo, contar, diaDeSemana, hoyIso, sumarDias } from '../core/utils/attendance';
+import { Conteo, contar, dayOfWeek, todayIso, addDays } from '../core/utils/attendance';
 import { ResultadoMateria, aprobado, calcularNota, indiceNotas, periodoDeFecha } from '../core/utils/grades';
 import { rangoDeBloque } from '../core/utils/schedule';
 import { AttendanceService } from './attendance.service';
@@ -55,7 +55,7 @@ export class TeacherClassesService {
   private calificaciones = inject(GradesService);
 
   clasesDe(espacioId: number, docenteId: number): Observable<ClaseDocente[]> {
-    const hoy = hoyIso();
+    const hoy = todayIso();
     return this.horarios.datos(espacioId).pipe(
       switchMap((horario) => {
         const asignaciones = horario.asignaciones.filter((a) => a.docenteId === docenteId);
@@ -129,8 +129,8 @@ function proximaSesion(sesiones: SesionSemanal[], hoy: string): ClaseDocente['pr
   const ahora = new Date();
   const hora = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
   for (let i = 0; i < 7; i++) {
-    const fecha = sumarDias(hoy, i);
-    const sesion = sesiones.find((s) => s.dia === diaDeSemana(fecha) && (i > 0 || s.fin > hora));
+    const fecha = addDays(hoy, i);
+    const sesion = sesiones.find((s) => s.dia === dayOfWeek(fecha) && (i > 0 || s.fin > hora));
     if (sesion) return { fecha, inicio: sesion.inicio, hoy: i === 0 };
   }
   return null;

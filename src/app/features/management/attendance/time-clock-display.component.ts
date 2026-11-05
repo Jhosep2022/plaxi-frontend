@@ -51,7 +51,7 @@ import { QrComponent } from '../../../shared/ui/qr.component';
 })
 export class TimeClockDisplayComponent {
   private marcacion = inject(TimeTrackingService);
-  readonly espacio = inject(SessionService).espacioActivo()!;
+  readonly espacio = inject(SessionService).activeSpace()!;
 
   readonly puntoId = input.required({ transform: numberAttribute });
   readonly total = SEGUNDOS_POR_CODIGO;

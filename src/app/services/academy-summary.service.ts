@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { faCircleQuestion, faCompass, faFilm, faPlus, faStar, faUserCheck, faVideo } from '@fortawesome/free-solid-svg-icons';
-import { Membresia } from '../core/models/espacio.model';
-import { diaDeSemana, fechaCorta, hoyIso, sumarDias } from '../core/utils/attendance';
+import { Membership } from '../core/models/space.model';
+import { dayOfWeek, formatShortDate, todayIso, addDays } from '../core/utils/attendance';
 import { toTime, toMinutes } from '../core/utils/workday';
 import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } from '../shared/dashboard/dashboard.models';
 import { subjectIcon } from '../shared/ui/academic-icons';
@@ -24,11 +24,11 @@ export class AcademySummaryService {
   private academia = inject(AcademyService);
   private quiz = inject(QuizService);
 
-  obtener(membresia: Membresia, usuarioId: number): Observable<ResumenData> {
+  obtener(membresia: Membership, usuarioId: number): Observable<ResumenData> {
     return membresia.rol === 'docente' ? this.docente(membresia, usuarioId) : this.estudiante(membresia, usuarioId);
   }
 
-  private docente({ espacio }: Membresia, usuarioId: number): Observable<ResumenData> {
+  private docente({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/docente`;
     return forkJoin({
       perfil: this.perfiles.getProfile(usuarioId),
@@ -43,7 +43,7 @@ export class AcademySummaryService {
         const sinGrabacion = sesiones.filter((s) => s.estado === 'finalizada' && !s.grabacion);
         const paraHacer: ItemActividad[] = [
           ...solicitudes.map((s) => ({ titulo: `${s.nombre} quiere unirse`, detalle: s.curso, icono: faUserCheck, tono: 'crema' as const, meta: 'Solicitud' })),
-          ...sinGrabacion.slice(0, 2).map((s) => ({ titulo: 'Sube la grabación', detalle: `${s.titulo} · ${s.curso}`, icono: faFilm, tono: 'azul' as const, meta: fechaCorta(s.fecha) })),
+          ...sinGrabacion.slice(0, 2).map((s) => ({ titulo: 'Sube la grabación', detalle: `${s.titulo} · ${s.curso}`, icono: faFilm, tono: 'azul' as const, meta: formatShortDate(s.fecha) })),
           ...cursos.filter((c) => !c.temas).map((c) => ({ titulo: 'Agrega contenido', detalle: `${c.nombre} todavía no tiene temas`, icono: faPlus, tono: 'lima' as const, meta: 'Curso' })),
         ];
         return {
@@ -82,7 +82,7 @@ export class AcademySummaryService {
     );
   }
 
-  private estudiante({ espacio }: Membresia, usuarioId: number): Observable<ResumenData> {
+  private estudiante({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/estudiante`;
     return forkJoin({
       perfil: this.perfiles.getProfile(usuarioId),
@@ -97,9 +97,9 @@ export class AcademySummaryService {
       map(({ perfil, cursos, sesiones, quizzes }): ResumenData => {
         const pendientes = quizzes.filter((q) => q.estado === 'pendiente');
         const novedades: ItemActividad[] = [
-          ...pendientes.map((q) => ({ titulo: q.titulo, detalle: `${q.curso} · cierra ${fechaCorta(q.cierre)}`, icono: faCircleQuestion, tono: 'crema' as const, meta: 'Quiz' })),
+          ...pendientes.map((q) => ({ titulo: q.titulo, detalle: `${q.curso} · cierra ${formatShortDate(q.cierre)}`, icono: faCircleQuestion, tono: 'crema' as const, meta: 'Quiz' })),
           ...quizzes.filter((q) => q.mejor).map((q) => ({ titulo: `${q.titulo}: ${Math.round((q.mejor!.puntaje / q.mejor!.puntajeMax) * 100)}%`, detalle: q.curso, icono: faStar, tono: 'lima' as const, meta: 'Resultado' })),
-          ...sesiones.filter((s) => s.estado === 'finalizada' && s.grabacion && !s.asisti).map((s) => ({ titulo: 'Grabación disponible', detalle: `${s.titulo} · ${s.curso}`, icono: faFilm, tono: 'azul' as const, meta: fechaCorta(s.fecha) })),
+          ...sesiones.filter((s) => s.estado === 'finalizada' && s.grabacion && !s.asisti).map((s) => ({ titulo: 'Grabación disponible', detalle: `${s.titulo} · ${s.curso}`, icono: faFilm, tono: 'azul' as const, meta: formatShortDate(s.fecha) })),
         ];
         return {
           saludo: `¡Hola de nuevo, ${perfil.nombre}!`,
@@ -139,7 +139,7 @@ export class AcademySummaryService {
 
 // ---------- Apoyo ----------
 function cuando(s: SesionVista): string {
-  return s.fecha === hoyIso() ? 'Hoy' : s.fecha === sumarDias(hoyIso(), 1) ? 'Mañana' : fechaCorta(s.fecha);
+  return s.fecha === todayIso() ? 'Hoy' : s.fecha === addDays(todayIso(), 1) ? 'Mañana' : formatShortDate(s.fecha);
 }
 
 function proximas(sesiones: SesionVista[]): SesionVista[] {
@@ -148,7 +148,7 @@ function proximas(sesiones: SesionVista[]): SesionVista[] {
 
 function sesionesDeHoy(sesiones: SesionVista[], titulo: string): ResumenData['horario'] {
   const eventos: EventoHorario[] = sesiones
-    .filter((s) => s.fecha === hoyIso())
+    .filter((s) => s.fecha === todayIso())
     .sort((a, b) => a.inicio.localeCompare(b.inicio))
     .map((s, i) => ({ titulo: s.titulo, detalle: s.curso, inicio: s.inicio, fin: s.fin, icono: faVideo, tono: (['lima', 'azul', 'crema'] as const)[i % 3] }));
   if (!eventos.length) return { titulo, desde: '09:00', hasta: '20:00', eventos };
@@ -159,11 +159,11 @@ function sesionesDeHoy(sesiones: SesionVista[], titulo: string): ResumenData['ho
 
 // Últimos 5 días hábiles: cada día con sesión se marca según la función (dictada, asistida o faltó)
 function semanaDeSesiones(sesiones: SesionVista[], estadoDe: (s: SesionVista) => 'ok' | 'falta', texto: string): ResumenData['perfil']['semana'] {
-  const hoy = hoyIso();
+  const hoy = todayIso();
   const fechas: string[] = [];
-  for (let f = hoy; fechas.length < 5; f = sumarDias(f, -1)) if (diaDeSemana(f) <= 5) fechas.unshift(f);
+  for (let f = hoy; fechas.length < 5; f = addDays(f, -1)) if (dayOfWeek(f) <= 5) fechas.unshift(f);
   const dias: DiaSemana[] = fechas.map((fecha) => {
-    const etiqueta = ETIQUETAS[diaDeSemana(fecha) - 1];
+    const etiqueta = ETIQUETAS[dayOfWeek(fecha) - 1];
     const delDia = sesiones.filter((s) => s.fecha === fecha && s.estado === 'finalizada');
     if (!delDia.length) return { etiqueta, estado: fecha === hoy ? 'hoy' : 'pendiente' };
     return { etiqueta, estado: delDia.some((s) => estadoDe(s) === 'ok') ? 'ok' : 'falta' };

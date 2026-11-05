@@ -9,8 +9,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { iniciales } from '../../../core/models/people.model';
-import { fechaCorta } from '../../../core/utils/attendance';
-import { venceLabel } from '../../../core/utils/assignments';
+import { formatShortDate } from '../../../core/utils/attendance';
+import { formatDueDate } from '../../../core/utils/assignments';
 import { ClassroomsService, PORTADA_MAX_KB } from '../../../services/classrooms.service';
 import { ASISTENCIA_MINIMA, TeacherClassesService, EstudianteDeClase } from '../../../services/teacher-classes.service';
 import { AssignmentsService } from '../../../services/assignments.service';
@@ -49,8 +49,8 @@ export class TeacherClassroomComponent {
 
   readonly ASISTENCIA_MINIMA = ASISTENCIA_MINIMA;
   readonly iniciales = iniciales;
-  readonly fechaCorta = fechaCorta;
-  readonly venceLabel = venceLabel;
+  readonly formatShortDate = formatShortDate;
+  readonly formatDueDate = formatDueDate;
   readonly faArrowLeft = faArrowLeft;
   readonly faBookOpen = faBookOpen;
   readonly faCalendarDays = faCalendarDays;
@@ -74,8 +74,8 @@ export class TeacherClassroomComponent {
   readonly faXmark = faXmark;
   readonly faCheck = faCheck;
 
-  private readonly espacio = this.session.espacioActivo()!;
-  private readonly docenteId = this.session.usuarioId()!;
+  private readonly espacio = this.session.activeSpace()!;
+  private readonly docenteId = this.session.userId()!;
   private readonly id = computed(() => Number(this.asignacionId()));
 
   readonly aula = rxResource({ params: () => this.id(), stream: ({ params }) => this.aulas.aula(params) });
@@ -109,7 +109,7 @@ export class TeacherClassroomComponent {
   readonly pestana = linkedSignal<PestanaAula>(() => (['inicio', 'contenido', 'quiz', 'tareas', 'estudiantes', 'notas'].includes(this.tab() ?? '') ? (this.tab() as PestanaAula) : 'inicio'));
 
   ruta(...segmentos: (string | number)[]) {
-    return this.session.rutaRol(...segmentos);
+    return this.session.roleRoute(...segmentos);
   }
 
   // ---------- "+ Nuevo" ----------

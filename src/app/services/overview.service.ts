@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Membresia } from '../core/models/espacio.model';
+import { Membership } from '../core/models/space.model';
 import { ResumenData } from '../shared/dashboard/dashboard.models';
 import { AcademySummaryService } from './academy-summary.service';
 import { SchoolSummaryService } from './school-summary.service';
@@ -12,7 +12,7 @@ export class OverviewService {
   private colegio = inject(SchoolSummaryService);
   private academia = inject(AcademySummaryService);
 
-  obtener(membresia: Membresia, usuarioId: number): Observable<ResumenData> {
+  obtener(membresia: Membership, usuarioId: number): Observable<ResumenData> {
     return membresia.espacio.tipo === 'colegio' ? this.colegio.obtener(membresia, usuarioId) : this.academia.obtener(membresia, usuarioId);
   }
 }

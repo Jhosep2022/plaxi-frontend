@@ -3,10 +3,10 @@ import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import type { Aula, Progreso, Tema, Unidad } from '../core/models/classrooms.model';
 import { NIVELES, TURNOS, paraleloLabel } from '../core/models/academics.model';
-import { hoyIso } from '../core/utils/attendance';
+import { todayIso } from '../core/utils/attendance';
 import { boletinDe, indiceNotas, periodoDeFecha } from '../core/utils/grades';
-import { porcentaje } from '../core/utils/reports';
-import { ahoraIso } from '../core/utils/assignments';
+import { calculatePercentage } from '../core/utils/reports';
+import { currentDateTimeIso } from '../core/utils/assignments';
 import { MOCK_DOCENTES, MOCK_PARALELOS } from '../mocks/academics.mock';
 import { MOCK_AULAS_VIRTUALES, MOCK_PROGRESO, MOCK_TEMAS_AULA, MOCK_UNIDADES, estudiantesDeAula } from '../mocks/classrooms.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
@@ -67,7 +67,7 @@ export class ClassroomsService {
             tareas: propias.length,
             anillos: [
               { label: 'Avance del grupo', valor: this.avanceGrupo(aula) },
-              { label: 'Entregas', valor: esperadas ? porcentaje(propias.reduce((s, t) => s + t.entregadas, 0), esperadas) : null },
+              { label: 'Entregas', valor: esperadas ? calculatePercentage(propias.reduce((s, t) => s + t.entregadas, 0), esperadas) : null },
             ],
           });
         }).sort((a, b) => b.actualizado.localeCompare(a.actualizado))
@@ -83,7 +83,7 @@ export class ClassroomsService {
       datos: paraleloId ? this.calificaciones.getClassGroupData(espacioId, paraleloId) : of(null),
     }).pipe(
       map(({ tareas, datos }) => {
-        const indice = datos ? periodoDeFecha(datos.gestion, hoyIso()) : 0;
+        const indice = datos ? periodoDeFecha(datos.gestion, todayIso()) : 0;
         const notas = datos ? boletinDe(datos, indiceNotas(datos.notas), estudianteId) : [];
         return aulas.map((aula) => {
           const propias = tareas.filter((t) => t.tarea.aulaId === aula.id);
@@ -95,7 +95,7 @@ export class ClassroomsService {
               { label: 'Mi progreso', valor: this.avanceEstudiante(aula, estudianteId) },
               aula.tipo === 'clase'
                 ? { label: 'Mi nota', valor: nota !== null && datos ? Math.round((nota / datos.config.notaMaxima) * 100) : null }
-                : { label: 'Tareas al día', valor: propias.length ? porcentaje(propias.filter((t) => t.entrega?.entregadaEl).length, propias.length) : null },
+                : { label: 'Tareas al día', valor: propias.length ? calculatePercentage(propias.filter((t) => t.entrega?.entregadaEl).length, propias.length) : null },
             ],
           });
         }).sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -141,14 +141,14 @@ export class ClassroomsService {
     const lista = (aula ? estudiantesDeAula(aula) : []).map((id) => ({
       estudianteId: id,
       nombre: nombre(id),
-      porcentaje: porcentaje(this.progresoRepo.readNow((p) => p.estudianteId === id && temas.has(p.temaId)).length, temas.size),
+      porcentaje: calculatePercentage(this.progresoRepo.readNow((p) => p.estudianteId === id && temas.has(p.temaId)).length, temas.size),
     }));
     return of(lista.sort((a, b) => a.nombre.localeCompare(b.nombre))).pipe(delay(MOCK_DELAY));
   }
 
   marcarVisto(temaId: number, estudianteId: number): Observable<Progreso> {
     const previo = this.progresoRepo.readNow((p) => p.temaId === temaId && p.estudianteId === estudianteId)[0];
-    return previo ? of(structuredClone(previo)) : this.progresoRepo.save({ temaId, estudianteId, completadoEl: ahoraIso() });
+    return previo ? of(structuredClone(previo)) : this.progresoRepo.save({ temaId, estudianteId, completadoEl: currentDateTimeIso() });
   }
 
   guardarUnidad(unidad: Omit<Unidad, 'id' | 'orden'> & { id?: number }): Observable<Unidad> {
@@ -247,7 +247,7 @@ export class ClassroomsService {
     const temas = this.temasDeAula(aula.id, true);
     if (!temas.length) return null;
     const ids = new Set(temas.map((t) => t.id));
-    return porcentaje(this.progresoRepo.readNow((p) => p.estudianteId === estudianteId && ids.has(p.temaId)).length, temas.length);
+    return calculatePercentage(this.progresoRepo.readNow((p) => p.estudianteId === estudianteId && ids.has(p.temaId)).length, temas.length);
   }
 
   private avanceGrupo(aula: Aula): number | null {
@@ -256,7 +256,7 @@ export class ClassroomsService {
     if (!alumnos.length || !temas.length) return null;
     const ids = new Set(temas.map((t) => t.id));
     const alumnosSet = new Set(alumnos);
-    return porcentaje(this.progresoRepo.readNow((p) => ids.has(p.temaId) && alumnosSet.has(p.estudianteId)).length, temas.length * alumnos.length);
+    return calculatePercentage(this.progresoRepo.readNow((p) => ids.has(p.temaId) && alumnosSet.has(p.estudianteId)).length, temas.length * alumnos.length);
   }
 
   private aulaDeUnidad(unidadId: number): number {
@@ -265,7 +265,7 @@ export class ClassroomsService {
 
   private tocar(aulaId: number): void {
     const aula = this.aulasRepo.readNow((a) => a.id === aulaId)[0];
-    if (aula) aula.actualizado = ahoraIso();
+    if (aula) aula.actualizado = currentDateTimeIso();
   }
 
   private eliminarTemaYProgreso(temaId: number): void {

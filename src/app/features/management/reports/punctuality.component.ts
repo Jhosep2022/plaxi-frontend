@@ -4,8 +4,8 @@ import { forkJoin } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClock, faFileCsv, faHourglassHalf, faPrint, faUserClock, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { hoyIso, sumarDias } from '../../../core/utils/attendance';
-import { downloadCsv, datesBetween, porcentaje } from '../../../core/utils/reports';
+import { todayIso, addDays } from '../../../core/utils/attendance';
+import { downloadCsv, datesBetween, calculatePercentage } from '../../../core/utils/reports';
 import { AcademicsService } from '../../../services/academics.service';
 import { TimeTrackingService } from '../../../services/time-tracking.service';
 import { BarChartComponent, ChartItem } from '../../../shared/reports/charts.component';
@@ -36,7 +36,7 @@ interface FilaDocente {
 export class PunctualityComponent {
   private academico = inject(AcademicsService);
   private marcacion = inject(TimeTrackingService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly META = META;
   readonly faClock = faClock;
@@ -46,8 +46,8 @@ export class PunctualityComponent {
   readonly faUserClock = faUserClock;
   readonly faUserXmark = faUserXmark;
 
-  readonly hoy = hoyIso();
-  readonly desde = signal(sumarDias(this.hoy, -14));
+  readonly hoy = todayIso();
+  readonly desde = signal(addDays(this.hoy, -14));
   readonly hasta = signal(this.hoy);
 
   readonly datos = rxResource({
@@ -88,7 +88,7 @@ export class PunctualityComponent {
       }
     }
     return [...filas.values()]
-      .map((f) => ({ ...f, puntualidad: porcentaje(f.aTiempo, f.aTiempo + f.atrasos + f.faltas) }))
+      .map((f) => ({ ...f, puntualidad: calculatePercentage(f.aTiempo, f.aTiempo + f.atrasos + f.faltas) }))
       .sort((a, b) => a.puntualidad - b.puntualidad || a.nombre.localeCompare(b.nombre));
   });
 
@@ -97,7 +97,7 @@ export class PunctualityComponent {
     const suma = (k: keyof FilaDocente) => fs.reduce((s, f) => s + (f[k] as number), 0);
     const aTiempo = suma('aTiempo');
     return {
-      puntualidad: porcentaje(aTiempo, aTiempo + suma('atrasos') + suma('faltas')),
+      puntualidad: calculatePercentage(aTiempo, aTiempo + suma('atrasos') + suma('faltas')),
       atrasos: suma('atrasos'),
       minutos: suma('minutosAtraso'),
       faltas: suma('faltas'),

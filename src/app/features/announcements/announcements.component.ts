@@ -4,36 +4,36 @@ import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { InboxComponent } from './inbox.component';
 import { SentComponent } from './sent.component';
 
-// Comunicados según el rol: la dirección gestiona los enviados; el docente recibe y envía; padre y estudiante reciben
+// Show the appropriate inbox and sent announcements for each role.
 @Component({
   selector: 'app-announcements',
   host: { class: 'ui-pagina' },
   imports: [PageHeaderComponent, InboxComponent, SentComponent],
   template: `
-    <app-page-header [miga]="rol === 'direccion' ? 'Comunicación' : 'Seguimiento'" titulo="Comunicados" [descripcion]="descripcion">
-      @if (rol === 'docente') {
+    <app-page-header [miga]="role === 'direccion' ? 'Comunicación' : 'Seguimiento'" titulo="Comunicados" [descripcion]="description">
+      @if (role === 'docente') {
         <div class="ui-tabs" role="tablist">
-          <button type="button" role="tab" class="ui-tab" [class.activa]="pestana() === 'recibidos'" (click)="pestana.set('recibidos')">Recibidos</button>
-          <button type="button" role="tab" class="ui-tab" [class.activa]="pestana() === 'enviados'" (click)="pestana.set('enviados')">Enviados</button>
+          <button type="button" role="tab" class="ui-tab" [class.activa]="selectedTab() === 'recibidos'" (click)="selectedTab.set('recibidos')">Recibidos</button>
+          <button type="button" role="tab" class="ui-tab" [class.activa]="selectedTab() === 'enviados'" (click)="selectedTab.set('enviados')">Enviados</button>
         </div>
       }
     </app-page-header>
 
-    @if (rol === 'direccion' || (rol === 'docente' && pestana() === 'enviados')) {
-      <app-sent-announcements [esDireccion]="rol === 'direccion'" />
+    @if (role === 'direccion' || (role === 'docente' && selectedTab() === 'enviados')) {
+      <app-sent-announcements [esDireccion]="role === 'direccion'" />
     } @else {
       <app-announcements-inbox />
     }
   `,
 })
 export class AnnouncementsComponent {
-  readonly rol = inject(SessionService).rolActivo();
-  readonly pestana = signal<'recibidos' | 'enviados'>('recibidos');
+  readonly role = inject(SessionService).activeRole();
+  readonly selectedTab = signal<'recibidos' | 'enviados'>('recibidos');
 
-  readonly descripcion = {
+  readonly description = {
     direccion: 'Envía avisos a padres, estudiantes y docentes, y revisa quién los leyó.',
     docente: 'Avisos de la dirección y los que envías a las familias de tus cursos.',
     padre: 'Avisos de la dirección y de los docentes de tus hijos.',
     estudiante: 'Avisos de la dirección y de tus docentes.',
-  }[this.rol ?? 'estudiante'];
+  }[this.role ?? 'estudiante'];
 }

@@ -21,8 +21,8 @@
         </header>
         <p class="para"><fa-icon [icon]="faUsers" /> Para {{ publicoLabel(c.publico) }} · {{ cursosLabel(c) }}</p>
         <div class="alcance">
-          <div class="linea"><span>Leído por {{ c.alcance.leidos }} de {{ c.alcance.destinatarios }}</span><strong>{{ porcentaje(c.alcance.leidos, c.alcance.destinatarios) }}%</strong></div>
-          <div class="ui-barra tono-lima"><span [style.width.%]="porcentaje(c.alcance.leidos, c.alcance.destinatarios)"></span></div>
+          <div class="linea"><span>Leído por {{ c.alcance.leidos }} de {{ c.alcance.destinatarios }}</span><strong>{{ calculatePercentage(c.alcance.leidos, c.alcance.destinatarios) }}%</strong></div>
+          <div class="ui-barra tono-lima"><span [style.width.%]="calculatePercentage(c.alcance.leidos, c.alcance.destinatarios)"></span></div>
           @if (c.pideConfirmacion) {
             <small class="confirmados">{{ c.alcance.confirmados }} confirmaron "Enterado"</small>
           }
@@ -108,7 +108,7 @@
 <app-drawer [abierto]="!!detalle()" [titulo]="detalle()?.titulo ?? ''" [subtitulo]="detalle() ? 'Enviado por ' + detalle()!.autorNombre + ' · ' + cuando(detalle()!.enviado) : ''" (cerrar)="detalle.set(null)">
   @if (detalle(); as c) {
     @if (c.fechaEvento) {
-      <div class="evento"><fa-icon [icon]="faCalendarDays" /> <span>Fecha: <strong>{{ fechaLarga(c.fechaEvento) }}</strong></span></div>
+      <div class="evento"><fa-icon [icon]="faCalendarDays" /> <span>Fecha: <strong>{{ formatLongDate(c.fechaEvento) }}</strong></span></div>
     }
     <p class="mensaje">{{ c.mensaje }}</p>
     <div class="ficha-alcance">

@@ -1,16 +1,16 @@
 // Contratos de /auth (cuando exista el backend, son los cuerpos y respuestas de cada endpoint)
 
-export type TipoCuenta = 'estudiante' | 'docente';
+export type AccountType = 'estudiante' | 'docente';
 
 // POST /auth/login
-export interface Credenciales {
+export interface Credentials {
   usuario: string; // nombre de usuario o correo
   clave: string;
 }
 
 // POST /auth/registro
-export interface Registro {
-  tipo: TipoCuenta;
+export interface RegistrationData {
+  tipo: AccountType;
   nombre: string;
   primerApellido: string;
   segundoApellido: string;
@@ -21,7 +21,7 @@ export interface Registro {
   codigoCurso?: string; // estudiante que llega con un código o link de invitación
 }
 
-export interface ResultadoRegistro {
+export interface RegistrationResult {
   usuarioId: number;
   espacioSlug: string | null; // academia creada o a la que se unió
   aulaId: number | null; // curso al que se unió o primer curso creado
@@ -29,9 +29,9 @@ export interface ResultadoRegistro {
 }
 
 // POST /auth/solicitudes-colegio (los colegios no se registran solos: dejan una solicitud)
-export type EstadoSolicitudColegio = 'nueva' | 'contactado' | 'convertido' | 'descartado';
+export type SchoolRequestStatus = 'nueva' | 'contactado' | 'convertido' | 'descartado';
 
-export interface SolicitudColegio {
+export interface SchoolRequest {
   id: number;
   colegio: string;
   ciudad: string;
@@ -42,15 +42,15 @@ export interface SolicitudColegio {
   estudiantes: number; // aproximado
   mensaje: string;
   fecha: string; // ISO
-  estado: EstadoSolicitudColegio;
+  estado: SchoolRequestStatus;
 }
 
-export type NuevaSolicitudColegio = Omit<SolicitudColegio, 'id' | 'fecha' | 'estado'>;
+export type NewSchoolRequest = Omit<SchoolRequest, 'id' | 'fecha' | 'estado'>;
 
-export const CIUDADES = ['La Paz', 'El Alto', 'Cochabamba', 'Santa Cruz', 'Sucre', 'Oruro', 'Potosí', 'Tarija', 'Trinidad', 'Cobija'];
+export const CITIES = ['La Paz', 'El Alto', 'Cochabamba', 'Santa Cruz', 'Sucre', 'Oruro', 'Potosí', 'Tarija', 'Trinidad', 'Cobija'];
 
 // Dirección web de un espacio a partir de su nombre: "Academia de Ana López" -> "academia-de-ana-lopez"
-export function slugDe(texto: string): string {
+export function createSlug(texto: string): string {
   return texto
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -60,4 +60,4 @@ export function slugDe(texto: string): string {
     .slice(0, 40);
 }
 
-export const PATRON_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+export const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;

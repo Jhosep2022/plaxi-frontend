@@ -4,8 +4,8 @@ import { delay } from 'rxjs/operators';
 import { esCorrecta } from '../core/models/quiz.model';
 import type { Intento, Pregunta, Quiz, Respuesta } from '../core/models/quiz.model';
 import { periodoDeFecha } from '../core/utils/grades';
-import { porcentaje } from '../core/utils/reports';
-import { ahoraIso } from '../core/utils/assignments';
+import { calculatePercentage } from '../core/utils/reports';
+import { currentDateTimeIso } from '../core/utils/assignments';
 import { MOCK_GESTIONES } from '../mocks/academics.mock';
 import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
@@ -49,7 +49,7 @@ export interface NotasCurso {
 export type BorradorQuiz =Omit<Quiz, 'id' | 'actividadId' | 'creado'> & { id?: number };
 export type BorradorPregunta = Omit<Pregunta, 'id' | 'quizId' | 'orden'>;
 
-const limite = (q: Pick<Quiz, 'cierre' | 'horaCierre'>) => `${q.cierre}T${q.horaCierre}`;
+const deadline = (q: Pick<Quiz, 'cierre' | 'horaCierre'>) => `${q.cierre}T${q.horaCierre}`;
 
 // Quiz con corrección automática: los arma el docente, los responden los estudiantes y la nota puede ir a la planilla.
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
@@ -106,7 +106,7 @@ export class QuizService {
       }));
       actividadId = actividad.id;
     }
-    const quiz = await firstValueFrom(this.quizRepo.save({ ...b, titulo: b.titulo.trim(), actividadId, creado: previo?.creado ?? ahoraIso() }));
+    const quiz = await firstValueFrom(this.quizRepo.save({ ...b, titulo: b.titulo.trim(), actividadId, creado: previo?.creado ?? currentDateTimeIso() }));
     for (const p of this.preguntasRepo.readNow((x) => x.quizId === quiz.id)) this.preguntasRepo.delete(p.id);
     preguntas.forEach((p, i) => this.preguntasRepo.save({
       ...p, quizId: quiz.id, orden: i + 1, enunciado: p.enunciado.trim(),
@@ -139,7 +139,7 @@ export class QuizService {
       quiz: this.resumenDocente(quiz),
       preguntas: this.preguntasDe(quizId).map((p) => {
         const respuestas = mejores.map((m) => m.respuestas.find((r) => r.preguntaId === p.id)).filter((r) => !!r);
-        return { ...structuredClone(p), acierto: respuestas.length ? porcentaje(respuestas.filter((r) => r.correcta).length, respuestas.length) : null };
+        return { ...structuredClone(p), acierto: respuestas.length ? calculatePercentage(respuestas.filter((r) => r.correcta).length, respuestas.length) : null };
       }),
       estudiantes: (aula ? estudiantesDeAula(aula) : [])
         .map((id) => ({ estudianteId: id, nombre: nombre(id), mejor: structuredClone(mejores.find((m) => m.estudianteId === id) ?? null), intentos: intentos.filter((x) => x.estudianteId === id).length }))
@@ -152,7 +152,7 @@ export class QuizService {
     const lista = this.quizRepo.readNow((q) => q.aulaId === aulaId && q.publicado).map((q) => {
       const intentos = this.intentosRepo.readNow((x) => x.quizId === q.id && x.estudianteId === estudianteId);
       const mejor = this.mejoresIntentos(intentos)[0] ?? null;
-      const cerrado = ahoraIso() > limite(q);
+      const cerrado = currentDateTimeIso() > deadline(q);
       const estado: EstadoQuiz = cerrado ? 'cerrado' : intentos.length >= q.intentos ? 'agotado' : intentos.length ? 'realizado' : 'pendiente';
       return { ...structuredClone(q), preguntas: this.preguntasDe(q.id).length, intentosHechos: intentos.length, mejor: structuredClone(mejor), estado, cerrado };
     });
@@ -167,7 +167,7 @@ export class QuizService {
   private async enviarAsync(espacioId: number, quizId: number, estudianteId: number, inicio: string, respuestas: { preguntaId: number; valor: Respuesta }[]): Promise<Intento> {
     const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
     if (!quiz?.publicado) throw new Error('El quiz no está disponible.');
-    if (ahoraIso() > limite(quiz)) throw new Error('El quiz ya cerró.');
+    if (currentDateTimeIso() > deadline(quiz)) throw new Error('El quiz ya cerró.');
     const hechos = this.intentosRepo.readNow((x) => x.quizId === quizId && x.estudianteId === estudianteId).length;
     if (hechos >= quiz.intentos) throw new Error('Ya usaste todos tus intentos.');
     const preguntas = this.preguntasDe(quizId);
@@ -176,7 +176,7 @@ export class QuizService {
       return { preguntaId: p.id, valor, correcta: esCorrecta(p, valor) };
     });
     const intento = await firstValueFrom(this.intentosRepo.save({
-      quizId, estudianteId, inicio, fin: ahoraIso(), respuestas: corregidas,
+      quizId, estudianteId, inicio, fin: currentDateTimeIso(), respuestas: corregidas,
       puntaje: preguntas.reduce((s, p, i) => s + (corregidas[i].correcta ? p.puntos : 0), 0),
       puntajeMax: preguntas.reduce((s, p) => s + p.puntos, 0),
     }));
@@ -203,14 +203,14 @@ export class QuizService {
       const notas = new Map<number, number>();
       for (const q of quizzes) {
         const mejor = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === q.id && x.estudianteId === id))[0];
-        if (mejor) notas.set(q.id, porcentaje(mejor.puntaje, mejor.puntajeMax));
+        if (mejor) notas.set(q.id, calculatePercentage(mejor.puntaje, mejor.puntajeMax));
       }
       // Promedio sobre los quiz ya cerrados (los no respondidos cuentan 0) y los abiertos que ya respondió
-      const computables = quizzes.filter((q) => notas.has(q.id) || ahoraIso() > limite(q));
+      const computables = quizzes.filter((q) => notas.has(q.id) || currentDateTimeIso() > deadline(q));
       const promedio = computables.length ? Math.round(computables.reduce((s, q) => s + (notas.get(q.id) ?? 0), 0) / computables.length) : null;
       return { estudianteId: id, nombre: nombre(id), notas, promedio };
     }).sort((a, b) => a.nombre.localeCompare(b.nombre));
-    return of({ quizzes: quizzes.map((q) => ({ ...structuredClone(q), cerrado: ahoraIso() > limite(q) })), estudiantes }).pipe(delay(MOCK_DELAY));
+    return of({ quizzes: quizzes.map((q) => ({ ...structuredClone(q), cerrado: currentDateTimeIso() > deadline(q) })), estudiantes }).pipe(delay(MOCK_DELAY));
   }
 
   // ---------- Interno ----------
@@ -240,8 +240,8 @@ export class QuizService {
       respondieron: mejores.length,
       estudiantes,
       precision: mejores.length ? Math.round(mejores.reduce((s, m) => s + m.puntaje / m.puntajeMax, 0) / mejores.length * 100) : null,
-      completado: q.publicado && estudiantes ? porcentaje(mejores.length, estudiantes) : null,
-      cerrado: ahoraIso() > limite(q),
+      completado: q.publicado && estudiantes ? calculatePercentage(mejores.length, estudiantes) : null,
+      cerrado: currentDateTimeIso() > deadline(q),
       cuentaParaNota: !!q.actividadId,
     };
   }

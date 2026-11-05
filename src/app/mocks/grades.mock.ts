@@ -3,7 +3,7 @@
 // Se generan de forma determinística: siempre son los mismos al recargar.
 // ============================================================================
 import { Actividad, CierrePeriodo, ConfigCalificacion, Nota, configPorDefecto } from '../core/models/grades.model';
-import { sumarDias } from '../core/utils/attendance';
+import { addDays } from '../core/utils/attendance';
 import { MOCK_ASIGNACIONES, MOCK_GESTIONES } from './academics.mock';
 import { MOCK_ESTUDIANTES } from './attendance.mock';
 
@@ -34,7 +34,7 @@ const gestion = MOCK_GESTIONES.find((g) => g.id === 2)!;
 let idActividad = 0;
 export const MOCK_ACTIVIDADES: Actividad[] = MOCK_ASIGNACIONES.flatMap((asig) =>
   gestion.periodos.flatMap((periodo, indice) => {
-    const actividades = PLAN.map((p) => ({ ...p, fecha: sumarDias(periodo.inicio, p.dias) })).filter((p) => p.fecha <= HOY_MOCK);
+    const actividades = PLAN.map((p) => ({ ...p, fecha: addDays(periodo.inicio, p.dias) })).filter((p) => p.fecha <= HOY_MOCK);
     // María (docente 3) ya tomó la Práctica 3 del periodo en curso pero todavía no cargó las notas
     if (indice === 2 && asig.docenteId === 3) actividades.push({ criterioId: 3, nombre: 'Práctica 3', dias: 0, fecha: '2026-10-16' });
     return actividades.map((p) => ({

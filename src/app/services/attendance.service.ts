@@ -9,7 +9,7 @@ import {
   RegistroAsistencia,
   TOLERANCIA_POR_DEFECTO,
 } from '../core/models/attendance.model';
-import { hoyIso } from '../core/utils/attendance';
+import { todayIso } from '../core/utils/attendance';
 import { MOCK_CONFIG_ASISTENCIA, MOCK_ESTUDIANTES, MOCK_LICENCIAS, MOCK_REGISTROS } from '../mocks/attendance.mock';
 import { MockRepository } from './mock-repository';
 
@@ -62,7 +62,7 @@ export class AttendanceService {
 
   // Guarda la asistencia de una clase (reemplaza la que ya se haya tomado ese día)
   saveAttendance(clase: ClaseDelDia, marcas: MarcaAsistencia[]): Observable<number> {
-    if (clase.fecha > hoyIso()) return throwError(() => new Error('No se puede tomar asistencia de una fecha futura.'));
+    if (clase.fecha > todayIso()) return throwError(() => new Error('No se puede tomar asistencia de una fecha futura.'));
     const existentes = this.registrosRepo.readNow((r) =>
       r.paraleloId === clase.paraleloId && r.materiaId === clase.materiaId && r.bloque === clase.bloque && r.fecha === clase.fecha);
     for (const marca of marcas) {
@@ -101,7 +101,7 @@ export class AttendanceService {
     if (licencia.hasta < licencia.desde) return throwError(() => new Error('La fecha de fin no puede ser anterior a la de inicio.'));
     const cruzada = this.licenciasRepo.readNow((l) => l.estudianteId === licencia.estudianteId && l.estado !== 'rechazada' && l.desde <= licencia.hasta && licencia.desde <= l.hasta);
     if (cruzada.length) return throwError(() => new Error('Ya hay una licencia solicitada o aprobada para esas fechas.'));
-    return this.licenciasRepo.save({ ...licencia, estado: 'pendiente', respuesta: '', creada: hoyIso() });
+    return this.licenciasRepo.save({ ...licencia, estado: 'pendiente', respuesta: '', creada: todayIso() });
   }
 
   // Aprueba o rechaza; al aprobar, la asistencia ya tomada en esas fechas pasa a "licencia"

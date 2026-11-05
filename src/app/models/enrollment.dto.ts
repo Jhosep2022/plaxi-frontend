@@ -1,9 +1,9 @@
-export interface InscripcionDto {
+export interface EnrollmentDto {
   usuarioId: number;
   cursoId: number;
 }
 
-export interface InscripcionResponseDto {
+export interface EnrollmentResponseDto {
   idInscripcion: number;
   fechaInscripcion: string;
   estadoInscripcion: string;

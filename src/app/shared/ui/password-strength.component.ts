@@ -1,19 +1,19 @@
 import { Component, computed, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { REGLAS_CLAVE, fuerzaClave } from '../../core/utils/clave';
+import { PASSWORD_RULES, getPasswordStrength } from '../../core/utils/password';
 
 // Barra de fuerza de la contraseña + reglas que se van marcando
 @Component({
-  selector: 'app-medidor-clave',
+  selector: 'app-password-strength',
   imports: [FaIconComponent],
   template: `
-    <div class="fuerza" [attr.data-nivel]="fuerza().nivel">
-      <div class="barras">@for (n of [1, 2, 3, 4]; track n) { <span [class.llena]="fuerza().nivel >= n"></span> }</div>
-      <small>{{ fuerza().label || 'Escribe una contraseña para ver qué tan segura es' }}</small>
+    <div class="fuerza" [attr.data-nivel]="strength().level">
+      <div class="barras">@for (n of [1, 2, 3, 4]; track n) { <span [class.llena]="strength().level >= n"></span> }</div>
+      <small>{{ strength().label || 'Escribe una contraseña para ver qué tan segura es' }}</small>
     </div>
     <ul class="reglas">
-      @for (r of reglas(); track r.label) {
+      @for (r of rules(); track r.label) {
         <li [class.ok]="r.ok"><fa-icon [icon]="r.ok ? faCheck : faXmark" /> {{ r.label }}</li>
       }
     </ul>
@@ -32,12 +32,12 @@ import { REGLAS_CLAVE, fuerzaClave } from '../../core/utils/clave';
     .reglas li.ok { color: var(--lime-strong); font-weight: bold; }
   `,
 })
-export class MedidorClaveComponent {
-  readonly clave = input.required<string>();
+export class PasswordStrengthComponent {
+  readonly password = input.required<string>();
 
   readonly faCheck = faCheck;
   readonly faXmark = faXmark;
 
-  readonly fuerza = computed(() => fuerzaClave(this.clave()));
-  readonly reglas = computed(() => REGLAS_CLAVE.map((r) => ({ label: r.label, ok: r.cumple(this.clave()) })));
+  readonly strength = computed(() => getPasswordStrength(this.password()));
+  readonly rules = computed(() => PASSWORD_RULES.map((r) => ({ label: r.label, ok: r.matches(this.password()) })));
 }

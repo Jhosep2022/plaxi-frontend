@@ -1,5 +1,5 @@
 <app-page-header miga="Personas" titulo="Padres y tutores legales" descripcion="Responsables de cada estudiante. Reciben los avisos de asistencia, pueden solicitar licencias y ver las calificaciones de sus hijos.">
-  <button type="button" class="ui-btn" (click)="nuevo()"><fa-icon [icon]="faPlus" /> Nuevo padre o tutor</button>
+  <button type="button" class="ui-btn" (click)="startNewParent()"><fa-icon [icon]="faPlus" /> Nuevo padre o tutor</button>
 </app-page-header>
 
 <div class="indicadores">
@@ -70,8 +70,8 @@
               </td>
               <td>
                 <div class="acciones">
-                  <button type="button" class="ui-btn ui-btn--icono" (click)="editar(p)" [attr.aria-label]="'Editar ' + p.nombre"><fa-icon [icon]="faPen" /></button>
-                  <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(p)" [attr.aria-label]="'Eliminar ' + p.nombre"><fa-icon [icon]="faTrash" /></button>
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="editParent(p)" [attr.aria-label]="'Editar ' + p.nombre"><fa-icon [icon]="faPen" /></button>
+                  <button type="button" class="ui-btn ui-btn--icono" (click)="deleteParent(p)" [attr.aria-label]="'Eliminar ' + p.nombre"><fa-icon [icon]="faTrash" /></button>
                 </div>
               </td>
             </tr>
@@ -85,7 +85,7 @@
 </div>
 
 <app-drawer [abierto]="drawerAbierto()" [titulo]="editando() ? 'Editar padre o tutor' : 'Nuevo padre o tutor'" subtitulo="Datos de contacto y estudiantes a su cargo." (cerrar)="drawerAbierto.set(false)">
-  <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
+  <form class="ui-form" (submit)="$event.preventDefault(); saveParent()" novalidate>
     <div class="ui-campo">
       <label for="pad-nombre">Nombre completo</label>
       <input id="pad-nombre" class="ui-input" placeholder="Ej. Rosa Quispe Mamani" [formField]="formulario.nombre" />
@@ -127,7 +127,7 @@
     <div class="hijos">
       @for (h of hijos(); track $index; let i = $index) {
         <div class="hijo">
-          <select class="ui-input" [id]="'pad-hijo-' + i" aria-label="Estudiante" (change)="cambiarHijo(i, { estudianteId: $any($event.target).value })">
+          <select class="ui-input" [id]="'pad-hijo-' + i" aria-label="Estudiante" (change)="updateDependentStudent(i, { estudianteId: $any($event.target).value })">
             <option value="" [selected]="h.estudianteId === ''">Elige un estudiante</option>
             @for (g of opcionesEstudiante(); track g.label) {
               <optgroup [label]="g.label">
@@ -137,19 +137,19 @@
               </optgroup>
             }
           </select>
-          <select class="ui-input" [id]="'pad-par-' + i" aria-label="Parentesco" (change)="cambiarHijo(i, { parentesco: $any($event.target).value })">
+          <select class="ui-input" [id]="'pad-par-' + i" aria-label="Parentesco" (change)="updateDependentStudent(i, { parentesco: $any($event.target).value })">
             @for (p of parentescos; track p.id) {
               <option [value]="p.id" [selected]="h.parentesco === p.id">{{ p.label }}</option>
             }
           </select>
-          <button type="button" class="ui-btn ui-btn--icono" (click)="quitarHijo(i)" aria-label="Quitar estudiante"><fa-icon [icon]="faTrash" /></button>
+          <button type="button" class="ui-btn ui-btn--icono" (click)="removeDependentStudent(i)" aria-label="Quitar estudiante"><fa-icon [icon]="faTrash" /></button>
         </div>
       }
-      <button type="button" class="ui-btn ui-btn--secundario" (click)="agregarHijo()"><fa-icon [icon]="faPlus" /> Agregar otro estudiante</button>
+      <button type="button" class="ui-btn ui-btn--secundario" (click)="addDependentStudent()"><fa-icon [icon]="faPlus" /> Agregar otro estudiante</button>
     </div>
   </form>
   <ng-container pie>
     <button type="button" class="ui-btn ui-btn--secundario" (click)="drawerAbierto.set(false)">Cancelar</button>
-    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Registrar' }}</button>
+    <button type="button" class="ui-btn" [disabled]="guardando()" (click)="saveParent()">{{ guardando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Registrar' }}</button>
   </ng-container>
 </app-drawer>

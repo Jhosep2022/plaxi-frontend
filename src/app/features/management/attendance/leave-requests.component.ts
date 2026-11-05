@@ -7,7 +7,7 @@ import { faCheck, faFileMedical, faPaperclip, faXmark } from '@fortawesome/free-
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academics.model';
 import { EstadoLicencia, Licencia } from '../../../core/models/attendance.model';
-import { fechaCorta } from '../../../core/utils/attendance';
+import { formatShortDate } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { AttendanceService } from '../../../services/attendance.service';
 import { ProfileService } from '../../../services/profile.service';
@@ -36,7 +36,7 @@ export class LeaveRequestsComponent {
   readonly faXmark = faXmark;
   readonly faPaperclip = faPaperclip;
   readonly faFileMedical = faFileMedical;
-  private readonly espacioId = this.session.espacioActivo()!.id;
+  private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly datos = rxResource({
     stream: () => forkJoin({
@@ -104,7 +104,7 @@ export class LeaveRequestsComponent {
   }
 
   rango(l: Licencia): string {
-    return l.desde === l.hasta ? fechaCorta(l.desde) : `${fechaCorta(l.desde)} – ${fechaCorta(l.hasta)}`;
+    return l.desde === l.hasta ? formatShortDate(l.desde) : `${formatShortDate(l.desde)} – ${formatShortDate(l.hasta)}`;
   }
 
   dias(l: Licencia): number {

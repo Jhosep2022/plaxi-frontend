@@ -4,8 +4,8 @@ import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 // import { Observable, throwError } from 'rxjs'; // MOCK: desconectado del backend
 // import { catchError, tap } from 'rxjs/operators'; // MOCK: desconectado del backend
-import { TemaDto } from '../models/TemaDto'; //src\app\models\temaDto.ts
-import { PaginadoDto } from '../models/PaginadoDto'; //src\app\models\paginadoDto.ts
+import { TopicDto } from '../models/topic.dto';
+import { PaginationDto } from '../models/pagination.dto';
 // import { environment } from '../../environments/environment'; // MOCK: desconectado del backend
 import { Page } from '../models/page';
 import { MOCK_DELAY, MOCK_TEMAS, nextId, toPage } from '../mocks/mock-data';
@@ -13,7 +13,7 @@ import { MOCK_DELAY, MOCK_TEMAS, nextId, toPage } from '../mocks/mock-data';
 @Injectable({
   providedIn: 'root'
 })
-export class TemaService {
+export class TopicService {
 
   // private apiUrl = `${environment.API_URL}/tema`; // MOCK: desconectado del backend
 
@@ -21,7 +21,7 @@ export class TemaService {
   constructor() {}
 
   // Obtener todos los temas con paginación
-  getAllTemas(paginadoDto: PaginadoDto): Observable<any> {
+  getAllTopics(paginadoDto: PaginationDto): Observable<any> {
     // return this.http.post<any>(`${this.apiUrl}/all`, paginadoDto, this.httpOptions())
     //   .pipe(
     //     catchError(this.handleError)
@@ -33,7 +33,7 @@ export class TemaService {
   }
 
   // Obtener un tema por ID
-  getTemaById(idTema: number): Observable<TemaDto> {
+  getTopicById(idTema: number): Observable<TopicDto> {
     // const url = `${this.apiUrl}/${idTema}`;
     // return this.http.get<TemaDto>(url)
     //   .pipe(
@@ -46,7 +46,7 @@ export class TemaService {
   }
 
   // Obtener temas por lección con paginación (método GET)
-  getTemasByLeccion(lessonId: number, paginadoDto: PaginadoDto): Observable<Page<TemaDto>> {
+  getTopicsByLesson(lessonId: number, paginadoDto: PaginationDto): Observable<Page<TopicDto>> {
     // const options = {
     //   headers: new HttpHeaders({
     //     'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export class TemaService {
 
 
   // Crear un nuevo tema con archivo
-  createTema(temaDto: TemaDto, file: File): Observable<any> {
+  createTopic(temaDto: TopicDto, file: File): Observable<any> {
     // const formData: FormData = new FormData();
     // formData.append('titulo', temaDto.titulo);
     // formData.append('orden', temaDto.orden.toString());
@@ -97,7 +97,7 @@ export class TemaService {
 
 
   // Actualizar un tema existente con archivo
-  updateTema(idTema: number, temaDto: TemaDto, file?: File): Observable<any> {
+  updateTopic(idTema: number, temaDto: TopicDto, file?: File): Observable<any> {
     // const formData: FormData = new FormData();
     // formData.append('idTema', idTema.toString());
     // formData.append('titulo', temaDto.titulo);
@@ -116,31 +116,31 @@ export class TemaService {
     //   );
 
     // MOCK
-    this.actualizarTemaMock(idTema, temaDto, file);
+    this.updateMockTopic(idTema, temaDto, file);
     return of('Tema actualizado (mock)').pipe(delay(MOCK_DELAY));
   }
 
-  updateTemaWithFile(id: number, tema: TemaDto, file: File): Observable<any> {
+  updateTopicWithFile(id: number, tema: TopicDto, file: File): Observable<any> {
     // const formData = new FormData();
     // formData.append('tema', new Blob([JSON.stringify(tema)], { type: 'application/json' }));
     // formData.append('file', file);
     // return this.http.put(`${this.apiUrl}/update`, formData);
 
     // MOCK
-    this.actualizarTemaMock(id, tema, file);
+    this.updateMockTopic(id, tema, file);
     return of('Tema actualizado (mock)').pipe(delay(MOCK_DELAY));
   }
 
-  updateTemaWithoutFile(id: number, tema: TemaDto): Observable<any> {
+  updateTopicWithoutFile(id: number, tema: TopicDto): Observable<any> {
     // return this.http.put(`${this.apiUrl}/update/${id}`, tema);
 
     // MOCK
-    this.actualizarTemaMock(id, tema);
+    this.updateMockTopic(id, tema);
     return of('Tema actualizado (mock)').pipe(delay(MOCK_DELAY));
   }
 
   // Eliminar un tema por ID
-  deleteTema(idTema: number): Observable<void> {
+  deleteTopic(idTema: number): Observable<void> {
     // const url = `${this.apiUrl}/delete/${idTema}`;
     // return this.http.delete<void>(url)
     //   .pipe(
@@ -154,7 +154,7 @@ export class TemaService {
   }
 
   // MOCK: actualiza el tema en memoria
-  private actualizarTemaMock(idTema: number, temaDto: TemaDto, file?: File): void {
+  private updateMockTopic(idTema: number, temaDto: TopicDto, file?: File): void {
     const index = MOCK_TEMAS.findIndex((t) => t.idTema === Number(idTema));
     if (index < 0) return;
     MOCK_TEMAS[index] = {

@@ -5,7 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBookOpen, faChartLine, faCircleCheck, faFileLines, faLock, faStar } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaCorta, hoyIso } from '../../core/utils/attendance';
+import { formatShortDate, todayIso } from '../../core/utils/attendance';
 import { aprobado, calcularNota, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/grades';
 import { AcademicsService } from '../../services/academics.service';
 import { GradesService } from '../../services/grades.service';
@@ -44,11 +44,11 @@ export class MyGradesComponent {
   readonly faCircleCheck = faCircleCheck;
   readonly faBookOpen = faBookOpen;
   readonly subjectIcon = subjectIcon;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
 
-  readonly espacio = this.session.espacioActivo()!;
-  readonly esPadre = this.session.rolActivo() === 'padre';
-  private readonly usuarioId = this.session.usuarioId()!;
+  readonly espacio = this.session.activeSpace()!;
+  readonly esPadre = this.session.activeRole() === 'padre';
+  private readonly usuarioId = this.session.userId()!;
 
   // Estudiante (el propio o el hijo) y los datos de su paralelo
   readonly vista = rxResource({
@@ -72,7 +72,7 @@ export class MyGradesComponent {
 
   readonly pestana = linkedSignal(() => {
     const v = this.vista.value();
-    return v ? periodoDeFecha(v.datos.gestion, hoyIso()) : 0;
+    return v ? periodoDeFecha(v.datos.gestion, todayIso()) : 0;
   });
 
   readonly cerrado = (i: number) => !!this.vista.value()?.datos.cierres.some((c) => c.periodo === i);

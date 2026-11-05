@@ -57,8 +57,8 @@ export class StudentSessionsComponent {
   readonly faCirclePlay = faCirclePlay;
   readonly faVideo = faVideo;
 
-  private readonly estudianteId = this.session.usuarioId()!;
-  readonly sesiones = rxResource({ stream: () => this.servicio.sesionesEstudiante(this.session.espacioActivo()!.id, this.estudianteId), defaultValue: [] });
+  private readonly estudianteId = this.session.userId()!;
+  readonly sesiones = rxResource({ stream: () => this.servicio.sesionesEstudiante(this.session.activeSpace()!.id, this.estudianteId), defaultValue: [] });
   readonly pestana = signal<Pestana>('proximas');
   readonly proximas = computed(() => this.sesiones.value().filter((s) => s.estado !== 'finalizada').sort((a, b) => `${a.fecha}${a.inicio}`.localeCompare(`${b.fecha}${b.inicio}`)));
   readonly pasadas = computed(() => this.sesiones.value().filter((s) => s.estado === 'finalizada').sort((a, b) => `${b.fecha}${b.inicio}`.localeCompare(`${a.fecha}${a.inicio}`)));

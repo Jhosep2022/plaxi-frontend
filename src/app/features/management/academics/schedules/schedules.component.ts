@@ -57,7 +57,7 @@ export class SchedulesComponent {
   private horarios = inject(SchedulesService);
   private avisos = inject(NotificationService);
   protected readonly session = inject(SessionService);
-  private readonly espacioId = this.session.espacioActivo()!.id;
+  private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly paraleloLabel = paraleloLabel;
   readonly subjectIcon = subjectIcon;

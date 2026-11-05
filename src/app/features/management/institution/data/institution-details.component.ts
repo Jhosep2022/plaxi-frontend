@@ -37,7 +37,7 @@ export class InstitutionDetailsComponent {
   private academico = inject(AcademicsService);
   private personas = inject(PeopleService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = this.session.espacioActivo()!.id;
+  private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly niveles = NIVELES;
   readonly dependencias = DEPENDENCIAS;
@@ -56,7 +56,7 @@ export class InstitutionDetailsComponent {
   readonly datos = rxResource({ stream: () => this.institucion.datos(this.espacioId) });
   private readonly original = computed<Modelo>(() => {
     const d = this.datos.value();
-    if (!d) return { ...VACIO, nombre: this.session.espacioActivo()!.nombre };
+    if (!d) return { ...VACIO, nombre: this.session.activeSpace()!.nombre };
     const { id: _id, ...resto } = d;
     return resto;
   });
@@ -103,7 +103,7 @@ export class InstitutionDetailsComponent {
   });
 
   ruta(...segmentos: string[]) {
-    return this.session.rutaRol(...segmentos);
+    return this.session.roleRoute(...segmentos);
   }
 
   tieneNivel(nivel: Nivel): boolean {
@@ -150,7 +150,7 @@ export class InstitutionDetailsComponent {
       try {
         const m = this.modelo();
         const guardado = await firstValueFrom(this.institucion.guardar({ ...m, id: this.espacioId, fundacion: Number(m.fundacion) }));
-        this.session.renombrarEspacio(this.espacioId, guardado.nombre);
+        this.session.renameSpace(this.espacioId, guardado.nombre);
         this.avisos.success('Datos de la institución guardados.');
         this.datos.reload();
       } catch (error) {

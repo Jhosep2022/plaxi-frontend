@@ -19,14 +19,14 @@ import {
   faWandMagicSparkles,
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
+import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
 import { CourseService } from '../../services/course.service';
-import { InscripcionService } from '../../services/inscripcion.service';
+import { EnrollmentService } from '../../services/enrollment.service';
 import { ClassroomsService } from '../../services/classrooms.service';
 import { subjectIcon } from '../../shared/ui/academic-icons';
 import { AccountProfileService } from '../../services/account-profile.service';
 import { ProfileService } from '../../services/profile.service';
-import { PerfilDto } from '../../models/PerfilDto';
+import { ProfileDto } from '../../models/profile.dto';
 import { NavItem, NavModule, navegacion } from './sidebar.navigation';
 
 const COLLAPSED_KEY = 'sidebarCollapsed';
@@ -48,7 +48,7 @@ export class SidebarComponent {
   private profileService = inject(ProfileService);
   private perfilService = inject(AccountProfileService);
   private courseService = inject(CourseService);
-  private inscripcionService = inject(InscripcionService);
+  private inscripcionService = inject(EnrollmentService);
   private aulas = inject(ClassroomsService);
   private elementRef = inject(ElementRef<HTMLElement>);
 
@@ -64,21 +64,21 @@ export class SidebarComponent {
   readonly faWandMagicSparkles = faWandMagicSparkles;
   readonly faSchool = faSchool;
   readonly faChalkboardTeacher = faChalkboardTeacher;
-  readonly rolLabel = ROL_LABEL;
-  readonly tipoLabel = TIPO_ESPACIO_LABEL;
+  readonly rolLabel = SPACE_ROLE_LABEL;
+  readonly tipoLabel = SPACE_TYPE_LABEL;
 
   // Espacio y rol activos (el layout se recrea al cambiar de espacio)
-  readonly membresia = this.session.membresiaActiva;
+  readonly membresia = this.session.activeMembership;
   readonly espacio = computed(() => this.membresia()?.espacio ?? null);
   readonly rol = computed(() => this.membresia()?.rol ?? null);
   private readonly slug = computed(() => this.espacio()?.slug ?? '');
 
   // Se vuelve a cargar cuando el usuario cambia su nombre o su foto en "Mi perfil"
   private readonly perfilRecurso = rxResource({
-    params: () => ({ id: this.session.usuarioId(), version: this.perfilService.version() }),
+    params: () => ({ id: this.session.userId(), version: this.perfilService.version() }),
     stream: ({ params }) => (params.id ? this.profileService.getProfile(params.id) : of(null)),
   });
-  readonly profile = computed<PerfilDto | null>(() => this.perfilRecurso.value() ?? null);
+  readonly profile = computed<ProfileDto | null>(() => this.perfilRecurso.value() ?? null);
 
   readonly fullName = computed(() => {
     const p = this.profile();
@@ -171,7 +171,7 @@ export class SidebarComponent {
 
   logout(): void {
     this.cerrarMenus();
-    this.session.cerrarSesion();
+    this.session.signOut();
   }
 
   // Cierra los menús desplegables al hacer clic fuera de ellos
@@ -187,11 +187,11 @@ export class SidebarComponent {
   }
 
   private cargarMisCursos(): Observable<NavItem[]> {
-    const usuarioId = this.session.usuarioId();
+    const usuarioId = this.session.userId();
     const rol = this.rol();
     if (!usuarioId) return of([]);
 
-    const espacioId = this.session.espacioActivo()?.id;
+    const espacioId = this.session.activeSpace()?.id;
     if (!espacioId) return of([]);
     if (rol === 'docente') {
       return this.aulas.aulasDocente(espacioId, usuarioId).pipe(

@@ -1,12 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { delay, map, switchMap } from 'rxjs/operators';
-import type { Membresia } from '../core/models/espacio.model';
+import type { Membership } from '../core/models/space.model';
 import type { ContactoEmergencia, EnlacesPerfil, EspacioDelPerfil, IndicadorPerfil, Perfil, PreferenciasNotificacion } from '../core/models/profile.model';
 import { FOTO_MAX_KB } from '../core/models/profile.model';
-import { hoyIso } from '../core/utils/attendance';
-import { claveValida } from '../core/utils/clave';
-import { porcentaje } from '../core/utils/reports';
+import { todayIso } from '../core/utils/attendance';
+import { isPasswordValid } from '../core/utils/password';
+import { calculatePercentage } from '../core/utils/reports';
 import { MOCK_CLAVES } from '../mocks/auth.mock';
 import { MOCK_AULAS_VIRTUALES } from '../mocks/classrooms.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
@@ -67,9 +67,9 @@ export class AccountProfileService {
   }
 
   // ---------- Datos personales ----------
-  guardarPersonales(usuarioId: number, datos: DatosPersonales): Observable<Perfil | null> {
+  savePersonalDetails(usuarioId: number, datos: DatosPersonales): Observable<Perfil | null> {
     if (!datos.nombre.trim() || !datos.primerApellido.trim()) return throwError(() => new Error('El nombre y el primer apellido son obligatorios.'));
-    if (datos.fechaNacimiento && datos.fechaNacimiento > hoyIso()) return throwError(() => new Error('La fecha de nacimiento no puede ser futura.'));
+    if (datos.fechaNacimiento && datos.fechaNacimiento > todayIso()) return throwError(() => new Error('La fecha de nacimiento no puede ser futura.'));
     return this.actualizar(usuarioId, (dto, extra) => {
       dto.nombre = datos.nombre.trim();
       dto.primerApellido = datos.primerApellido.trim();
@@ -79,7 +79,7 @@ export class AccountProfileService {
     });
   }
 
-  guardarContacto(usuarioId: number, datos: DatosContacto): Observable<Perfil | null> {
+  saveContactDetails(usuarioId: number, datos: DatosContacto): Observable<Perfil | null> {
     const correo = datos.gmail.trim().toLowerCase();
     if (!PATRON_CORREO.test(correo)) return throwError(() => new Error('Escribe un correo válido.'));
     if (MOCK_PERFILES.some((p) => p.gmail === correo && p.idUsuario !== usuarioId)) return throwError(() => new Error('Ese correo ya lo usa otra cuenta.'));
@@ -91,14 +91,14 @@ export class AccountProfileService {
     });
   }
 
-  guardarUsuario(usuarioId: number, username: string): Observable<Perfil | null> {
+  saveUsername(usuarioId: number, username: string): Observable<Perfil | null> {
     const nombre = username.trim().toLowerCase();
     if (!PATRON_USUARIO.test(nombre)) return throwError(() => new Error('De 3 a 20 caracteres: letras, números, punto o guion bajo.'));
     if (MOCK_PERFILES.some((p) => p.username === nombre && p.idUsuario !== usuarioId)) return throwError(() => new Error('Ese nombre de usuario ya está ocupado.'));
     return this.actualizar(usuarioId, (dto) => (dto.username = nombre));
   }
 
-  guardarDocente(usuarioId: number, datos: DatosDocente): Observable<Perfil | null> {
+  saveTeacherProfile(usuarioId: number, datos: DatosDocente): Observable<Perfil | null> {
     if (datos.bio.length > 400) return throwError(() => new Error('La presentación puede tener hasta 400 caracteres.'));
     const malos = Object.values(datos.enlaces).filter((e) => e && !PATRON_ENLACE.test(e));
     if (malos.length) return throwError(() => new Error('Los enlaces deben empezar con https://'));
@@ -109,33 +109,33 @@ export class AccountProfileService {
     });
   }
 
-  guardarEmergencia(usuarioId: number, contacto: ContactoEmergencia): Observable<Perfil | null> {
+  saveEmergencyContact(usuarioId: number, contacto: ContactoEmergencia): Observable<Perfil | null> {
     if (contacto.telefono && !PATRON_CELULAR.test(contacto.telefono)) return throwError(() => new Error('El celular debe tener 8 dígitos y empezar con 6 o 7.'));
     return this.actualizar(usuarioId, (_, extra) => (extra.contactoEmergencia = { nombre: contacto.nombre.trim(), parentesco: contacto.parentesco.trim(), telefono: contacto.telefono.trim() }));
   }
 
   // Foto como data URL ('' para quitarla y volver a las iniciales)
-  cambiarFoto(usuarioId: number, foto: string): Observable<Perfil | null> {
+  changePhoto(usuarioId: number, foto: string): Observable<Perfil | null> {
     if (foto.length > FOTO_MAX_KB * 1024 * 1.37) return throwError(() => new Error(`La foto debe pesar menos de ${FOTO_MAX_KB} KB.`));
     return this.actualizar(usuarioId, (dto) => (dto.imagenUrl = foto || undefined));
   }
 
   // ---------- Seguridad ----------
-  cambiarClave(usuarioId: number, actual: string, nueva: string): Observable<Perfil | null> {
+  changePassword(usuarioId: number, actual: string, nueva: string): Observable<Perfil | null> {
     if (!actual) return throwError(() => new Error('Escribe tu contraseña actual.'));
-    if (!claveValida(nueva)) return throwError(() => new Error('La nueva contraseña debe tener al menos 8 caracteres, con letras y números.'));
+    if (!isPasswordValid(nueva)) return throwError(() => new Error('La nueva contraseña debe tener al menos 8 caracteres, con letras y números.'));
     if (nueva === actual) return throwError(() => new Error('La nueva contraseña debe ser distinta de la actual.'));
     const guardada = MOCK_CLAVES[usuarioId];
     if (guardada !== undefined && guardada !== actual) return throwError(() => new Error('La contraseña actual no es correcta.'));
     MOCK_CLAVES[usuarioId] = nueva;
-    return this.actualizar(usuarioId, (_, extra) => (extra.claveActualizada = hoyIso()));
+    return this.actualizar(usuarioId, (_, extra) => (extra.claveActualizada = todayIso()));
   }
 
-  cerrarDispositivo(usuarioId: number, dispositivoId: number): Observable<Perfil | null> {
+  signOutDevice(usuarioId: number, dispositivoId: number): Observable<Perfil | null> {
     return this.actualizar(usuarioId, (_, extra) => (extra.dispositivos = extra.dispositivos.filter((d) => d.actual || d.id !== dispositivoId)));
   }
 
-  cerrarOtrosDispositivos(usuarioId: number): Observable<Perfil | null> {
+  signOutOtherDevices(usuarioId: number): Observable<Perfil | null> {
     return this.actualizar(usuarioId, (_, extra) => (extra.dispositivos = extra.dispositivos.filter((d) => d.actual)));
   }
 
@@ -148,7 +148,7 @@ export class AccountProfileService {
   }
 
   // ---------- Preferencias ----------
-  guardarNotificaciones(usuarioId: number, notificaciones: PreferenciasNotificacion): Observable<Perfil | null> {
+  saveNotificationPreferences(usuarioId: number, notificaciones: PreferenciasNotificacion): Observable<Perfil | null> {
     return this.actualizar(usuarioId, (_, extra) => (extra.notificaciones = structuredClone(notificaciones)));
   }
 
@@ -181,7 +181,7 @@ export class AccountProfileService {
   }
 
   // ---------- Indicadores de la cabecera (según el rol en el espacio activo) ----------
-  indicadores(membresia: Membresia, usuarioId: number): Observable<IndicadorPerfil[]> {
+  indicadores(membresia: Membership, usuarioId: number): Observable<IndicadorPerfil[]> {
     const espacioId = membresia.espacio.id;
     const colegio = membresia.espacio.tipo === 'colegio';
     switch (membresia.rol) {
@@ -194,7 +194,7 @@ export class AccountProfileService {
                   { label: 'Clases', valor: String(aulas.length), detalle: 'asignadas esta gestión', tono: 'lima' },
                   { label: 'Estudiantes', valor: String(aulas.reduce((s, a) => s + a.estudiantes, 0)), detalle: 'en todas tus clases', tono: 'azul' },
                   { label: 'Por revisar', valor: String(aulas.reduce((s, a) => s + a.pendientes, 0)), detalle: 'entregas de tareas', tono: 'crema' },
-                  { label: 'Puntualidad', valor: entradas.length ? `${porcentaje(entradas.filter((m) => m.estado === 'a-tiempo').length, entradas.length)}%` : '—', detalle: 'entradas a tiempo', tono: 'lima' },
+                  { label: 'Puntualidad', valor: entradas.length ? `${calculatePercentage(entradas.filter((m) => m.estado === 'a-tiempo').length, entradas.length)}%` : '—', detalle: 'entradas a tiempo', tono: 'lima' },
                 ];
               })
             )
@@ -267,5 +267,5 @@ export class AccountProfileService {
 }
 
 function porcentajeOpt(parte: number, total: number): string {
-  return total ? `${porcentaje(parte, total)}%` : '—';
+  return total ? `${calculatePercentage(parte, total)}%` : '—';
 }

@@ -6,8 +6,8 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClock, faCommentDots, faPaperclip, faPaperPlane, faStar, faTasks } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { ESTADO_ENTREGA } from '../../core/models/assignments.model';
-import { fechaCorta } from '../../core/utils/attendance';
-import { urgente, venceLabel } from '../../core/utils/assignments';
+import { formatShortDate } from '../../core/utils/attendance';
+import { isDueSoon, formatDueDate } from '../../core/utils/assignments';
 import { SelectedChildService } from '../../services/selected-child.service';
 import { TareaDeEstudiante, AssignmentsService } from '../../services/assignments.service';
 import { NotificationService } from '../../shared/ui/notification.service';
@@ -36,8 +36,8 @@ export class MyAssignmentsComponent {
 
   readonly estados = ESTADO_ENTREGA;
   readonly subjectIcon = subjectIcon;
-  readonly venceLabel = venceLabel;
-  readonly urgente = urgente;
+  readonly formatDueDate = formatDueDate;
+  readonly isDueSoon = isDueSoon;
   readonly faClock = faClock;
   readonly faCommentDots = faCommentDots;
   readonly faPaperclip = faPaperclip;
@@ -45,8 +45,8 @@ export class MyAssignmentsComponent {
   readonly faStar = faStar;
   readonly faTasks = faTasks;
 
-  readonly espacio = this.session.espacioActivo()!;
-  readonly esPadre = this.session.rolActivo() === 'padre';
+  readonly espacio = this.session.activeSpace()!;
+  readonly esPadre = this.session.activeRole() === 'padre';
 
   // Estudiante del que se muestran las tareas (el propio o el hijo elegido) y sus tareas
   readonly datos = rxResource({
@@ -54,7 +54,7 @@ export class MyAssignmentsComponent {
     stream: () => {
       const quien$ = this.esPadre
         ? this.hijoActivo.activo().pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)))
-        : of({ id: this.session.usuarioId()!, nombre: '' });
+        : of({ id: this.session.userId()!, nombre: '' });
       return quien$.pipe(
         switchMap((quien) => (quien ? this.servicio.tareasDeEstudiante(this.espacio.id, quien.id).pipe(map((tareas) => ({ quien, tareas }))) : of(null)))
       );
@@ -75,7 +75,7 @@ export class MyAssignmentsComponent {
 
   entregadaLabel(t: TareaDeEstudiante): string {
     const iso = t.entrega?.entregadaEl ?? '';
-    return iso ? `${fechaCorta(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '';
+    return iso ? `${formatShortDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '';
   }
 
   // ---------- Entregar ----------
@@ -99,7 +99,7 @@ export class MyAssignmentsComponent {
     if (!t) return;
     this.enviando.set(true);
     try {
-      await firstValueFrom(this.servicio.entregar(t.tarea.id, this.session.usuarioId()!, this.texto(), this.archivo()));
+      await firstValueFrom(this.servicio.entregar(t.tarea.id, this.session.userId()!, this.texto(), this.archivo()));
       this.avisos.success(t.entrega ? 'Entrega actualizada.' : `¡Listo! Entregaste "${t.tarea.titulo}".`);
       this.entregando.set(null);
       this.pestana.set('entregadas');

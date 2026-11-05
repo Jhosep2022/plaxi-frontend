@@ -45,9 +45,9 @@
           @if (x.comunicado.importante) { <span class="ui-badge importante"><fa-icon [icon]="faExclamation" /> Importante</span> }
         </span>
         <h2>{{ x.comunicado.titulo }}</h2>
-        <p class="meta">De <strong>{{ x.comunicado.autorNombre }}</strong> ({{ x.comunicado.autorRol === 'direccion' ? 'Dirección' : 'Docente' }}) · {{ fechaLarga(x.comunicado.enviado.slice(0, 10)) }}, {{ x.comunicado.enviado.slice(11, 16) }}</p>
+        <p class="meta">De <strong>{{ x.comunicado.autorNombre }}</strong> ({{ x.comunicado.autorRol === 'direccion' ? 'Dirección' : 'Docente' }}) · {{ formatLongDate(x.comunicado.enviado.slice(0, 10)) }}, {{ x.comunicado.enviado.slice(11, 16) }}</p>
         @if (x.comunicado.fechaEvento) {
-          <div class="evento"><fa-icon [icon]="faCalendarDays" /> <span>Fecha: <strong>{{ fechaLarga(x.comunicado.fechaEvento) }}</strong></span></div>
+          <div class="evento"><fa-icon [icon]="faCalendarDays" /> <span>Fecha: <strong>{{ formatLongDate(x.comunicado.fechaEvento) }}</strong></span></div>
         }
         <p class="mensaje">{{ x.comunicado.mensaje }}</p>
         @if (x.comunicado.pideConfirmacion) {

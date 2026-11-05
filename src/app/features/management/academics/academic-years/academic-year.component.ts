@@ -42,7 +42,7 @@ type EstadoPeriodo = 'concluido' | 'en-curso' | 'proximo';
 export class AcademicYearComponent {
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).espacioActivo()!.id;
+  private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly tiposPeriodo = TIPOS_PERIODO;
   readonly faPlus = faPlus;

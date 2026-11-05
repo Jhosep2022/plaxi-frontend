@@ -29,7 +29,7 @@
         </header>
 
         <div class="chips">
-          <span class="ui-badge" [class]="t.estado === 'no-entregada' ? 'alerta' : urgente(t.tarea) && t.estado === 'pendiente' ? 'tono-crema' : ''"><fa-icon [icon]="faClock" /> {{ venceLabel(t.tarea) }}</span>
+          <span class="ui-badge" [class]="t.estado === 'no-entregada' ? 'alerta' : isDueSoon(t.tarea) && t.estado === 'pendiente' ? 'tono-crema' : ''"><fa-icon [icon]="faClock" /> {{ formatDueDate(t.tarea) }}</span>
           @if (t.tarea.criterio) { <span class="ui-badge tono-azul"><fa-icon [icon]="faStar" /> Cuenta para la nota</span> }
         </div>
 
@@ -73,7 +73,7 @@
 <app-drawer [abierto]="!!entregando()" [titulo]="entregando()?.entrega ? 'Editar entrega' : 'Entregar tarea'" [subtitulo]="entregando()?.tarea?.titulo ?? ''" (cerrar)="entregando.set(null)">
   @if (entregando(); as t) {
     <form class="ui-form" (submit)="$event.preventDefault(); entregar()" novalidate>
-      <p class="ui-aviso">{{ venceLabel(t.tarea) }}. Puedes editar tu entrega hasta que el docente la revise.</p>
+      <p class="ui-aviso">{{ formatDueDate(t.tarea) }}. Puedes editar tu entrega hasta que el docente la revise.</p>
       <div class="ui-campo">
         <label for="ent-texto">Comentario o respuesta</label>
         <textarea id="ent-texto" class="ui-input area" rows="5" placeholder="Escribe tu respuesta o un comentario para tu docente" [value]="texto()" (input)="texto.set($any($event.target).value)"></textarea>

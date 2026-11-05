@@ -6,9 +6,9 @@ import { FormField, form, maxLength, required, submit, validate } from '@angular
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClipboardCheck, faClock, faPlus, faStar, faTasks, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { hoyIso } from '../../../core/utils/attendance';
-import { porcentaje } from '../../../core/utils/reports';
-import { urgente, vencida, venceLabel } from '../../../core/utils/assignments';
+import { todayIso } from '../../../core/utils/attendance';
+import { calculatePercentage } from '../../../core/utils/reports';
+import { isDueSoon, isPastDue, formatDueDate } from '../../../core/utils/assignments';
 import { ClassroomsService } from '../../../services/classrooms.service';
 import { GradesService } from '../../../services/grades.service';
 import { TareaDocente, AssignmentsService } from '../../../services/assignments.service';
@@ -39,10 +39,10 @@ export class TeacherAssignmentsComponent {
   private avisos = inject(NotificationService);
 
   readonly subjectIcon = subjectIcon;
-  readonly venceLabel = venceLabel;
-  readonly vencida = vencida;
-  readonly urgente = urgente;
-  readonly porcentaje = porcentaje;
+  readonly formatDueDate = formatDueDate;
+  readonly isPastDue = isPastDue;
+  readonly isDueSoon = isDueSoon;
+  readonly calculatePercentage = calculatePercentage;
   readonly faClipboardCheck = faClipboardCheck;
   readonly faClock = faClock;
   readonly faPlus = faPlus;
@@ -50,10 +50,10 @@ export class TeacherAssignmentsComponent {
   readonly faTasks = faTasks;
   readonly faTrash = faTrash;
 
-  readonly espacio = this.session.espacioActivo()!;
+  readonly espacio = this.session.activeSpace()!;
   private readonly espacioId = this.espacio.id;
-  private readonly docenteId = this.session.usuarioId()!;
-  readonly hoy = hoyIso();
+  private readonly docenteId = this.session.userId()!;
+  readonly hoy = todayIso();
 
   readonly tareas = rxResource({ stream: () => this.servicio.tareasDocente(this.espacioId, this.docenteId), defaultValue: [] });
 
@@ -76,7 +76,7 @@ export class TeacherAssignmentsComponent {
   readonly clase = input<string>(); // ?clase=aulaId (desde el aula)
   readonly claseFiltro = linkedSignal(() => this.clase() ?? '');
   readonly conteo = computed(() => ({
-    activas: this.tareas.value().filter((t) => !vencida(t)).length,
+    activas: this.tareas.value().filter((t) => !isPastDue(t)).length,
     porRevisar: this.tareas.value().filter((t) => t.porRevisar > 0).length,
     todas: this.tareas.value().length,
     entregasPorRevisar: this.tareas.value().reduce((s, t) => s + t.porRevisar, 0),
@@ -84,11 +84,11 @@ export class TeacherAssignmentsComponent {
   readonly visibles = computed(() =>
     this.tareas.value()
       .filter((t) => !this.claseFiltro() || String(t.aulaId) === this.claseFiltro())
-      .filter((t) => this.filtro() === 'todas' || (this.filtro() === 'activas' ? !vencida(t) : t.porRevisar > 0))
+      .filter((t) => this.filtro() === 'todas' || (this.filtro() === 'activas' ? !isPastDue(t) : t.porRevisar > 0))
   );
 
   ruta(...segmentos: (string | number)[]) {
-    return this.session.rutaRol(...segmentos);
+    return this.session.roleRoute(...segmentos);
   }
 
   // ---------- Nueva tarea ----------

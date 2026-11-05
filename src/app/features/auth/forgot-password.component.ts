@@ -8,18 +8,18 @@ import { AuthService } from '../../services/auth.service';
 import { PATRON_CORREO } from '../../services/account-profile.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
 
-// "¿Olvidaste tu contraseña?": pide el correo y envía un enlace para crear una nueva
+// Request a password reset link by email.
 @Component({
-  selector: 'app-recuperar',
+  selector: 'app-forgot-password',
   imports: [FormField, RouterLink, FaIconComponent],
   styleUrls: ['./auth.css'],
   template: `
-    @if (enviadoA(); as correo) {
+    @if (sentTo(); as email) {
       <div class="exito">
         <span class="icono"><fa-icon [icon]="faEnvelopeOpenText" /></span>
         <h1>Revisa tu correo</h1>
-        <p>Si <strong>{{ correo }}</strong> tiene una cuenta en QuizWiz, te enviamos un enlace para crear una contraseña nueva. Vence en 1 hora.</p>
-        <p class="ui-ayuda">¿No llegó? Revisa la carpeta de spam o <button type="button" class="enlace boton-enlace" (click)="enviadoA.set(null)">inténtalo con otro correo</button>.</p>
+        <p>Si <strong>{{ email }}</strong> tiene una cuenta en QuizWiz, te enviamos un enlace para crear una contraseña nueva. Vence en 1 hora.</p>
+        <p class="ui-ayuda">¿No llegó? Revisa la carpeta de spam o <button type="button" class="enlace boton-enlace" (click)="sentTo.set(null)">inténtalo con otro correo</button>.</p>
         @if (token()) {
           <div class="simulacion">
             Mientras no haya servidor de correo, abre el enlace desde aquí:
@@ -33,49 +33,49 @@ import { getErrorMessage } from '../management/academics/academics.ui';
         <h1>¿Olvidaste tu contraseña?</h1>
         <p>Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva.</p>
       </header>
-      <form class="ui-form" (submit)="$event.preventDefault(); enviar()" novalidate>
+      <form class="ui-form" (submit)="$event.preventDefault(); requestPasswordReset()" novalidate>
         <div class="ui-campo">
           <label for="rec-correo">Correo electrónico</label>
-          <input id="rec-correo" type="email" class="ui-input" autocomplete="email" [formField]="formulario.correo" />
-          @if (formulario.correo().touched() && formulario.correo().invalid()) { <span class="ui-error">{{ formulario.correo().errors()[0].message }}</span> }
+          <input id="rec-correo" type="email" class="ui-input" autocomplete="email" [formField]="resetForm.email" />
+          @if (resetForm.email().touched() && resetForm.email().invalid()) { <span class="ui-error">{{ resetForm.email().errors()[0].message }}</span> }
         </div>
         @if (error()) { <p class="error-general" role="alert"><fa-icon [icon]="faCircleExclamation" /> {{ error() }}</p> }
-        <button type="submit" class="ui-btn boton-ancho" [disabled]="enviando()">{{ enviando() ? 'Enviando…' : 'Enviar enlace' }}</button>
+        <button type="submit" class="ui-btn boton-ancho" [disabled]="isSubmitting()">{{ isSubmitting() ? 'Enviando…' : 'Enviar enlace' }}</button>
       </form>
       <p class="alterno"><a class="enlace" routerLink="/auth/login"><fa-icon [icon]="faArrowLeft" /> Volver a iniciar sesión</a></p>
     }
   `,
   styles: `.boton-enlace { padding: 0; border: none; background: none; font: inherit; cursor: pointer; }`,
 })
-export class RecuperarComponent {
+export class ForgotPasswordComponent {
   private auth = inject(AuthService);
 
   readonly faArrowLeft = faArrowLeft;
   readonly faCircleExclamation = faCircleExclamation;
   readonly faEnvelopeOpenText = faEnvelopeOpenText;
 
-  readonly modelo = signal({ correo: '' });
-  readonly formulario = form(this.modelo, (s) => {
-    required(s.correo, { message: 'Escribe tu correo.' });
-    pattern(s.correo, PATRON_CORREO, { message: 'Escribe un correo válido.' });
+  readonly formData = signal({ email: '' });
+  readonly resetForm = form(this.formData, (fields) => {
+    required(fields.email, { message: 'Escribe tu correo.' });
+    pattern(fields.email, PATRON_CORREO, { message: 'Escribe un correo válido.' });
   });
-  readonly enviando = signal(false);
+  readonly isSubmitting = signal(false);
   readonly error = signal('');
-  readonly enviadoA = signal<string | null>(null);
+  readonly sentTo = signal<string | null>(null);
   readonly token = signal<string | null>(null);
 
-  enviar(): void {
-    submit(this.formulario, async () => {
-      this.enviando.set(true);
+  requestPasswordReset(): void {
+    submit(this.resetForm, async () => {
+      this.isSubmitting.set(true);
       this.error.set('');
       try {
-        const { token } = await firstValueFrom(this.auth.recuperar(this.modelo().correo));
+        const { token } = await firstValueFrom(this.auth.requestPasswordReset(this.formData().email));
         this.token.set(token);
-        this.enviadoA.set(this.modelo().correo.trim().toLowerCase());
+        this.sentTo.set(this.formData().email.trim().toLowerCase());
       } catch (e) {
         this.error.set(getErrorMessage(e));
       } finally {
-        this.enviando.set(false);
+        this.isSubmitting.set(false);
       }
     });
   }

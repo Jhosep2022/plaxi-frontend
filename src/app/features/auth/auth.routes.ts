@@ -8,10 +8,10 @@ export default [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'login' },
       { path: 'login', title: 'Iniciar sesión', loadComponent: () => import('./login.component').then((m) => m.LoginComponent) },
-      { path: 'registro', title: 'Crear cuenta', loadComponent: () => import('./registro.component').then((m) => m.RegistroComponent) },
-      { path: 'recuperar-contrasena', title: 'Recuperar contraseña', loadComponent: () => import('./recuperar.component').then((m) => m.RecuperarComponent) },
-      { path: 'nueva-contrasena', title: 'Nueva contraseña', loadComponent: () => import('./nueva-contrasena.component').then((m) => m.NuevaContrasenaComponent) },
-      { path: 'colegio', title: 'QuizWiz para colegios', loadComponent: () => import('./solicitud-colegio.component').then((m) => m.SolicitudColegioComponent) },
+      { path: 'registro', title: 'Crear cuenta', loadComponent: () => import('./registration.component').then((m) => m.RegistrationComponent) },
+      { path: 'recuperar-contrasena', title: 'Recuperar contraseña', loadComponent: () => import('./forgot-password.component').then((m) => m.ForgotPasswordComponent) },
+      { path: 'nueva-contrasena', title: 'Nueva contraseña', loadComponent: () => import('./reset-password.component').then((m) => m.ResetPasswordComponent) },
+      { path: 'colegio', title: 'QuizWiz para colegios', loadComponent: () => import('./school-request.component').then((m) => m.SchoolRequestComponent) },
     ],
   },
 ] satisfies Routes;

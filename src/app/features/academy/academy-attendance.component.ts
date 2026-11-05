@@ -4,8 +4,8 @@ import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faUserCheck, faUserXmark, faVideo, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { fechaCorta } from '../../core/utils/attendance';
-import { porcentaje } from '../../core/utils/reports';
+import { formatShortDate } from '../../core/utils/attendance';
+import { calculatePercentage } from '../../core/utils/reports';
 import { SessionsService } from '../../services/sessions.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 
@@ -48,7 +48,7 @@ const estilos = `
             @if (c.sesiones.length && c.estudiantes.length) {
               <div class="ui-tabla-contenedor">
                 <table class="ui-tabla">
-                  <thead><tr><th>Estudiante</th>@for (s of c.sesiones; track s.id) { <th class="num" [title]="s.titulo">{{ fechaCorta(s.fecha) }}</th> }<th class="num">Asistencia</th></tr></thead>
+                  <thead><tr><th>Estudiante</th>@for (s of c.sesiones; track s.id) { <th class="num" [title]="s.titulo">{{ formatShortDate(s.fecha) }}</th> }<th class="num">Asistencia</th></tr></thead>
                   <tbody>
                     @for (e of c.estudiantes; track e.estudianteId) {
                       <tr>
@@ -77,15 +77,15 @@ export class AcademyTeacherAttendanceComponent {
   private session = inject(SessionService);
   private servicio = inject(SessionsService);
 
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly faCheck = faCheck;
   readonly faVideo = faVideo;
   readonly faXmark = faXmark;
 
-  readonly resumen = rxResource({ stream: () => this.servicio.resumenAsistencia(this.session.espacioActivo()!.id, this.session.usuarioId()!), defaultValue: [] });
+  readonly resumen = rxResource({ stream: () => this.servicio.resumenAsistencia(this.session.activeSpace()!.id, this.session.userId()!), defaultValue: [] });
 
   ruta(...s: string[]) {
-    return this.session.rutaRol(...s);
+    return this.session.roleRoute(...s);
   }
 }
 
@@ -117,7 +117,7 @@ export class AcademyTeacherAttendanceComponent {
             @for (s of c.sesiones; track s.id) {
               <li>
                 <fa-icon [class]="s.asisti ? 'si' : 'no'" [icon]="s.asisti ? faCheck : faXmark" />
-                <span>{{ s.titulo }} <small>· {{ fechaCorta(s.fecha) }}</small></span>
+                <span>{{ s.titulo }} <small>· {{ formatShortDate(s.fecha) }}</small></span>
                 @if (s.grabacion) { <a [href]="s.grabacion" target="_blank" rel="noopener">Ver grabación</a> }
               </li>
             }
@@ -133,24 +133,24 @@ export class AcademyStudentAttendanceComponent {
   private session = inject(SessionService);
   private servicio = inject(SessionsService);
 
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly faCheck = faCheck;
   readonly faUserCheck = faUserCheck;
   readonly faUserXmark = faUserXmark;
   readonly faVideo = faVideo;
   readonly faXmark = faXmark;
 
-  private readonly sesiones = rxResource({ stream: () => this.servicio.sesionesEstudiante(this.session.espacioActivo()!.id, this.session.usuarioId()!), defaultValue: [] });
+  private readonly sesiones = rxResource({ stream: () => this.servicio.sesionesEstudiante(this.session.activeSpace()!.id, this.session.userId()!), defaultValue: [] });
   private readonly pasadas = computed(() => this.sesiones.value().filter((s) => s.estado === 'finalizada').sort((a, b) => b.fecha.localeCompare(a.fecha)));
   readonly resumen = computed(() => {
     const asistidas = this.pasadas().filter((s) => s.asisti).length;
-    return { asistidas, faltas: this.pasadas().length - asistidas, porcentaje: porcentaje(asistidas, this.pasadas().length) };
+    return { asistidas, faltas: this.pasadas().length - asistidas, porcentaje: calculatePercentage(asistidas, this.pasadas().length) };
   });
   readonly porCurso = computed(() => {
     const cursos = [...new Set(this.pasadas().map((s) => s.curso))];
     return cursos.map((curso) => {
       const sesiones = this.pasadas().filter((s) => s.curso === curso);
-      return { curso, sesiones, porcentaje: porcentaje(sesiones.filter((s) => s.asisti).length, sesiones.length) };
+      return { curso, sesiones, porcentaje: calculatePercentage(sesiones.filter((s) => s.asisti).length, sesiones.length) };
     });
   });
 }

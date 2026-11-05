@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProfileService } from './profile.service';
 import { environment } from '../../environments/environment';
-import { PerfilDto, ActualizarPerfilDto } from '../models/PerfilDto';
+import { ProfileDto, UpdateProfileDto } from '../models/profile.dto';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 describe('ProfileService', () => {
@@ -29,7 +29,7 @@ describe('ProfileService', () => {
   });
 
   it('should retrieve all profiles', () => {
-    const dummyProfiles: PerfilDto[] = [
+    const dummyProfiles: ProfileDto[] = [
       { idUsuario: 1, username: 'user1', gmail: 'user1@example.com', status: true, nombre: 'User1', primerApellido: 'Apellido1', segundoApellido: 'Apellido2', telefono: '123456789', ci: 'CI123', imagenUrl: 'http://example.com/image1.png', id_rol: 'admin' },
       { idUsuario: 2, username: 'user2', gmail: 'user2@example.com', status: true, nombre: 'User2', primerApellido: 'Apellido1', segundoApellido: 'Apellido2', telefono: '987654321', ci: 'CI124', imagenUrl: 'http://example.com/image2.png', id_rol: 'user' },
     ];
@@ -45,7 +45,7 @@ describe('ProfileService', () => {
   });
 
   it('should retrieve a profile by ID', () => {
-    const dummyProfile: PerfilDto = { idUsuario: 1, username: 'user1', gmail: 'user1@example.com', status: true, nombre: 'User1', primerApellido: 'Apellido1', segundoApellido: 'Apellido2', telefono: '123456789', ci: 'CI123', imagenUrl: 'http://example.com/image1.png', id_rol: 'admin' };
+    const dummyProfile: ProfileDto = { idUsuario: 1, username: 'user1', gmail: 'user1@example.com', status: true, nombre: 'User1', primerApellido: 'Apellido1', segundoApellido: 'Apellido2', telefono: '123456789', ci: 'CI123', imagenUrl: 'http://example.com/image1.png', id_rol: 'admin' };
 
     service.getProfile(1).subscribe((profile) => {
       expect(profile).toEqual(dummyProfile);
@@ -57,7 +57,7 @@ describe('ProfileService', () => {
   });
 
   it('should update a profile', () => {
-    const updatedProfile: ActualizarPerfilDto = { username: 'user1', gmail: 'newuser1@example.com', nombre: 'User1Updated', primerApellido: 'Apellido1', segundoApellido: 'Apellido2', telefono: '123456789', ci: 'CI123' };
+    const updatedProfile: UpdateProfileDto = { username: 'user1', gmail: 'newuser1@example.com', nombre: 'User1Updated', primerApellido: 'Apellido1', segundoApellido: 'Apellido2', telefono: '123456789', ci: 'CI123' };
 
     service.updateProfile(1, updatedProfile).subscribe((response) => {
       expect(response).toBeTruthy();

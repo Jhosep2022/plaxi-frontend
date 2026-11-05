@@ -20,7 +20,7 @@
       </div>
       <div class="acciones">
         @if (p.activo) {
-          <a class="ui-btn" [routerLink]="session.ruta('pantalla-marcacion', p.id)" target="_blank"><fa-icon [icon]="faDisplay" /> Abrir pantalla</a>
+          <a class="ui-btn" [routerLink]="session.spaceRoute('pantalla-marcacion', p.id)" target="_blank"><fa-icon [icon]="faDisplay" /> Abrir pantalla</a>
         }
         <a class="ui-btn ui-btn--secundario" [href]="mapa(p)" target="_blank" rel="noopener"><fa-icon [icon]="faMapLocationDot" /> Ver en el mapa</a>
         <div class="derecha">

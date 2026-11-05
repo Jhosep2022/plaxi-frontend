@@ -83,7 +83,7 @@
                     @for (a of g.actividades; track a.id) {
                       <th class="actividad">
                         <span class="nombre-act" [title]="a.nombre">{{ a.nombre }}</span>
-                        <small>{{ fechaCorta(a.fecha) }}</small>
+                        <small>{{ formatShortDate(a.fecha) }}</small>
                         @if (!cerrado()) {
                           <span class="acciones-act">
                             <button type="button" class="mini" (click)="editarActividad(a)" [attr.aria-label]="'Editar ' + a.nombre"><fa-icon [icon]="faPen" /></button>

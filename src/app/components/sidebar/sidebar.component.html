@@ -100,8 +100,8 @@
 
           @if (espacioMenuOpen()) {
             <div class="espacio-menu" role="menu">
-              @for (m of session.membresias(); track m.espacio.id) {
-                <a role="menuitem" [routerLink]="session.rutaInicio(m)" [class.actual]="m.espacio.id === espacio.id" (click)="cerrarMenus()">
+              @for (m of session.memberships(); track m.espacio.id) {
+                <a role="menuitem" [routerLink]="session.homeRoute(m)" [class.actual]="m.espacio.id === espacio.id" (click)="cerrarMenus()">
                   <fa-icon [icon]="m.espacio.tipo === 'colegio' ? faSchool : faChalkboardTeacher" />
                   <span>{{ m.espacio.nombre }} <small>{{ rolLabel[m.rol] }}</small></span>
                 </a>

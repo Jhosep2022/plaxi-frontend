@@ -1,4 +1,4 @@
-export interface PerfilDto {
+export interface ProfileDto {
   idUsuario: number;
   username: string;
   gmail: string;
@@ -10,9 +10,11 @@ export interface PerfilDto {
   ci: string;
   imagenUrl?: string;
   id_rol: string;
+  isAdmin?: boolean;
+  pending?: boolean;
 }
 
-export interface ActualizarPerfilDto {
+export interface UpdateProfileDto {
   username: string;
   gmail: string;
   nombre: string;

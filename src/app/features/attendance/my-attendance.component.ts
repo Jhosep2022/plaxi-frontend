@@ -7,7 +7,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBell, faCalendarCheck, faClock, faFileMedical, faPaperclip, faPlus, faUserCheck, faUserXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { ESTADO_DIA_LABEL, EstadoDia, EstadoLicencia } from '../../core/models/attendance.model';
-import { contar, estadoDelDia, fechaCorta, hoyIso } from '../../core/utils/attendance';
+import { contar, getDailyStatus, formatShortDate, todayIso } from '../../core/utils/attendance';
 import { AcademicsService } from '../../services/academics.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { SelectedChildService } from '../../services/selected-child.service';
@@ -41,7 +41,7 @@ export class MyAttendanceComponent {
   private hijoActivo = inject(SelectedChildService);
 
   readonly estadoDiaLabel = ESTADO_DIA_LABEL;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly subjectIcon = subjectIcon;
   readonly faUserCheck = faUserCheck;
   readonly faUserXmark = faUserXmark;
@@ -52,9 +52,9 @@ export class MyAttendanceComponent {
   readonly faPaperclip = faPaperclip;
   readonly faCalendarCheck = faCalendarCheck;
 
-  readonly espacio = this.session.espacioActivo()!;
-  readonly esPadre = this.session.rolActivo() === 'padre';
-  private readonly usuarioId = this.session.usuarioId()!;
+  readonly espacio = this.session.activeSpace()!;
+  readonly esPadre = this.session.activeRole() === 'padre';
+  private readonly usuarioId = this.session.userId()!;
 
   // Estudiante del que se muestra la asistencia (el propio o el hijo)
   readonly estudiante = rxResource({
@@ -102,7 +102,7 @@ export class MyAttendanceComponent {
       .slice(0, 10)
       .map(([fecha, registros]) => ({
         fecha,
-        estado: estadoDelDia(registros) as EstadoDia,
+        estado: getDailyStatus(registros) as EstadoDia,
         detalle: registros
           .filter((r) => r.estado !== 'presente')
           .map((r) => `${nombreMateria.get(r.materiaId) ?? 'Clase'}: ${r.estado === 'atraso' ? `atraso de ${r.minutosTarde} min` : r.estado}`),
@@ -118,7 +118,7 @@ export class MyAttendanceComponent {
   readonly drawerAbierto = signal(false);
   readonly guardando = signal(false);
   readonly archivo = signal('');
-  readonly hoy = hoyIso();
+  readonly hoy = todayIso();
   readonly modelo = signal({ ...LICENCIA_VACIA });
   readonly formulario = form(this.modelo, (s) => {
     required(s.desde, { message: 'Elige desde qué día.' });
@@ -171,6 +171,6 @@ export class MyAttendanceComponent {
   }
 
   rango(desde: string, hasta: string): string {
-    return desde === hasta ? fechaCorta(desde) : `${fechaCorta(desde)} – ${fechaCorta(hasta)}`;
+    return desde === hasta ? formatShortDate(desde) : `${formatShortDate(desde)} – ${formatShortDate(hasta)}`;
   }
 }

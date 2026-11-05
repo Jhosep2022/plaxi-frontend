@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBell, faEnvelope, faGlobe, faMobileScreen } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import type { Membresia } from '../../core/models/espacio.model';
+import type { Membership } from '../../core/models/space.model';
 import { NOTIFICACIONES } from '../../core/models/profile.model';
 import type { CanalNotificacion, Perfil, PreferenciasNotificacion, TipoNotificacion } from '../../core/models/profile.model';
 import { AccountProfileService } from '../../services/account-profile.service';
@@ -23,7 +23,7 @@ export class ProfilePreferencesComponent {
   private avisos = inject(NotificationService);
 
   readonly perfil = input.required<Perfil>();
-  readonly membresia = input.required<Membresia>();
+  readonly membresia = input.required<Membership>();
   readonly cambio = output<Perfil | null>();
 
   readonly faBell = faBell;
@@ -65,7 +65,7 @@ export class ProfilePreferencesComponent {
   async guardar(): Promise<void> {
     this.guardando.set(true);
     try {
-      this.cambio.emit(await firstValueFrom(this.servicio.guardarNotificaciones(this.session.usuarioId()!, this.notificaciones())));
+      this.cambio.emit(await firstValueFrom(this.servicio.saveNotificationPreferences(this.session.userId()!, this.notificaciones())));
       this.avisos.success('Preferencias de avisos guardadas.');
     } catch (error) {
       this.avisos.error(getErrorMessage(error));

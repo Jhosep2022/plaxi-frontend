@@ -34,7 +34,7 @@
         <div class="chips">
           <span class="ui-badge tono-lima">{{ rolLabel }}</span>
           <span class="ui-badge">{{ membresia.espacio.nombre }}</span>
-          @if (p.miembroDesde) { <span class="ui-badge tono-crema"><fa-icon [icon]="faCalendarDays" /> Miembro desde {{ mesAnio(p.miembroDesde) }}</span> }
+          @if (p.miembroDesde) { <span class="ui-badge tono-crema"><fa-icon [icon]="faCalendarDays" /> Miembro desde {{ formatMonthYear(p.miembroDesde) }}</span> }
         </div>
       </div>
 

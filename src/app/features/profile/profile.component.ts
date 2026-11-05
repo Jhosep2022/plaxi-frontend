@@ -5,9 +5,9 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faCamera, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { ROL_LABEL } from '../../core/models/espacio.model';
+import { SPACE_ROLE_LABEL } from '../../core/models/space.model';
 import { FOTO_MAX_KB, Perfil } from '../../core/models/profile.model';
-import { mesAnio } from '../../core/utils/attendance';
+import { formatMonthYear } from '../../core/utils/attendance';
 import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
@@ -34,13 +34,13 @@ export class ProfileComponent {
   readonly faCamera = faCamera;
   readonly faTrash = faTrash;
   readonly faCalendarDays = faCalendarDays;
-  readonly mesAnio = mesAnio;
+  readonly formatMonthYear = formatMonthYear;
   readonly FOTO_MAX_KB = FOTO_MAX_KB;
 
   readonly tab = input<PestanaPerfil>('datos'); // de la ruta (data)
-  readonly membresia = this.session.membresiaActiva()!;
-  readonly rolLabel = ROL_LABEL[this.membresia.rol];
-  private readonly usuarioId = this.session.usuarioId()!;
+  readonly membresia = this.session.activeMembership()!;
+  readonly rolLabel = SPACE_ROLE_LABEL[this.membresia.rol];
+  private readonly usuarioId = this.session.userId()!;
 
   readonly datos = rxResource({ stream: () => this.servicio.perfil(this.usuarioId) });
   // Copia local que se actualiza al guardar cualquier sección sin volver a cargar la página
@@ -57,10 +57,10 @@ export class ProfileComponent {
   });
 
   readonly pestanas: { id: PestanaPerfil; label: string; link: (string | number)[] }[] = [
-    { id: 'datos', label: 'Datos personales', link: this.session.ruta('perfil') },
-    { id: 'espacios', label: 'Mis espacios', link: this.session.ruta('perfil', 'espacios') },
-    { id: 'seguridad', label: 'Seguridad', link: this.session.ruta('perfil', 'seguridad') },
-    { id: 'preferencias', label: 'Preferencias', link: this.session.ruta('perfil', 'preferencias') },
+    { id: 'datos', label: 'Datos personales', link: this.session.spaceRoute('perfil') },
+    { id: 'espacios', label: 'Mis espacios', link: this.session.spaceRoute('perfil', 'espacios') },
+    { id: 'seguridad', label: 'Seguridad', link: this.session.spaceRoute('perfil', 'seguridad') },
+    { id: 'preferencias', label: 'Preferencias', link: this.session.spaceRoute('perfil', 'preferencias') },
   ];
 
   actualizado(perfil: Perfil | null): void {
@@ -82,7 +82,7 @@ export class ProfileComponent {
 
   async guardarFoto(foto: string, mensaje: string): Promise<void> {
     try {
-      this.perfil.set(await firstValueFrom(this.servicio.cambiarFoto(this.usuarioId, foto)));
+      this.perfil.set(await firstValueFrom(this.servicio.changePhoto(this.usuarioId, foto)));
       this.avisos.success(mensaje);
     } catch (error) {
       this.avisos.error(getErrorMessage(error));

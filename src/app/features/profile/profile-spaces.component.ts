@@ -5,9 +5,9 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowRight, faChalkboardTeacher, faDoorOpen, faKey, faSchool, faStar } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { ROL_LABEL, TIPO_ESPACIO_LABEL } from '../../core/models/espacio.model';
+import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
 import type { EspacioDelPerfil } from '../../core/models/profile.model';
-import { mesAnio } from '../../core/utils/attendance';
+import { formatMonthYear } from '../../core/utils/attendance';
 import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
@@ -25,9 +25,9 @@ export class ProfileSpacesComponent {
   private avisos = inject(NotificationService);
   private router = inject(Router);
 
-  readonly rolLabel = ROL_LABEL;
-  readonly tipoLabel = TIPO_ESPACIO_LABEL;
-  readonly mesAnio = mesAnio;
+  readonly rolLabel = SPACE_ROLE_LABEL;
+  readonly tipoLabel = SPACE_TYPE_LABEL;
+  readonly formatMonthYear = formatMonthYear;
   readonly faArrowRight = faArrowRight;
   readonly faChalkboardTeacher = faChalkboardTeacher;
   readonly faDoorOpen = faDoorOpen;
@@ -35,13 +35,13 @@ export class ProfileSpacesComponent {
   readonly faSchool = faSchool;
   readonly faStar = faStar;
 
-  private readonly usuarioId = this.session.usuarioId()!;
+  private readonly usuarioId = this.session.userId()!;
   readonly espacios = rxResource({ stream: () => this.servicio.espacios(this.usuarioId), defaultValue: [] });
-  readonly predeterminado = signal(this.session.espacioPredeterminado());
+  readonly predeterminado = signal(this.session.defaultSpace());
   readonly codigo = signal('');
 
   esActual(e: EspacioDelPerfil): boolean {
-    return this.session.espacioActivo()?.id === e.espacioId;
+    return this.session.activeSpace()?.id === e.espacioId;
   }
 
   rutaInicio(e: EspacioDelPerfil): string {
@@ -50,7 +50,7 @@ export class ProfileSpacesComponent {
 
   fijar(e: EspacioDelPerfil): void {
     const slug = this.predeterminado() === e.slug ? null : e.slug;
-    this.session.fijarPredeterminado(slug);
+    this.session.setDefaultSpace(slug);
     this.predeterminado.set(slug);
     this.avisos.success(slug ? `Al iniciar sesión entrarás directo a ${e.nombre}.` : 'Al iniciar sesión podrás elegir el espacio.');
   }
@@ -60,9 +60,9 @@ export class ProfileSpacesComponent {
     try {
       await firstValueFrom(this.servicio.salirDeEspacio(this.usuarioId, e.espacioId));
       const eraActual = this.esActual(e);
-      this.session.quitarMembresia(e.espacioId);
+      this.session.removeMembership(e.espacioId);
       this.avisos.success(`Saliste de ${e.nombre}.`);
-      if (eraActual) this.router.navigateByUrl(this.session.rutaPostLogin());
+      if (eraActual) this.router.navigateByUrl(this.session.postLoginRoute());
       else this.espacios.reload();
     } catch (error) {
       this.avisos.error(getErrorMessage(error));

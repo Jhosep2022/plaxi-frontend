@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faLink, faMagnifyingGlass, faUserCheck, faUsers, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { iniciales } from '../../../core/models/people.model';
-import { fechaCorta } from '../../../core/utils/attendance';
+import { formatShortDate } from '../../../core/utils/attendance';
 import { AcademyService, Solicitud } from '../../../services/academy.service';
 import { ClassroomsService } from '../../../services/classrooms.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -69,7 +69,7 @@ type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
                   <tr>
                     <td><span class="persona"><span class="avatar">{{ iniciales(e.nombre) }}</span><span><strong>{{ e.nombre }}</strong><small>{{ e.gmail }}</small></span></span></td>
                     <td><div class="cursos">
-                      @for (c of e.cursos; track c.aulaId) { <a class="ui-badge tono-azul" [routerLink]="session.rutaRol('clases', c.aulaId)" [queryParams]="{ tab: 'estudiantes' }">{{ c.nombre }} · {{ c.progreso }}%</a> }
+                      @for (c of e.cursos; track c.aulaId) { <a class="ui-badge tono-azul" [routerLink]="session.roleRoute('clases', c.aulaId)" [queryParams]="{ tab: 'estudiantes' }">{{ c.nombre }} · {{ c.progreso }}%</a> }
                     </div></td>
                   </tr>
                 } @empty {
@@ -84,7 +84,7 @@ type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
         <div class="solicitudes">
           @for (s of datos.value()?.solicitudes ?? []; track s.idInscripcion) {
             <article class="ui-card solicitud">
-              <span class="persona"><span class="avatar">{{ iniciales(s.nombre) }}</span><span><strong>{{ s.nombre }}</strong><small>Quiere unirse a <b>{{ s.curso }}</b> · {{ fechaCorta(s.fecha) }}</small></span></span>
+              <span class="persona"><span class="avatar">{{ iniciales(s.nombre) }}</span><span><strong>{{ s.nombre }}</strong><small>Quiere unirse a <b>{{ s.curso }}</b> · {{ formatShortDate(s.fecha) }}</small></span></span>
               <button type="button" class="ui-btn chico" (click)="responder(s, true)"><fa-icon [icon]="faCheck" /> Aprobar</button>
               <button type="button" class="ui-btn ui-btn--secundario chico" (click)="responder(s, false)"><fa-icon [icon]="faXmark" /> Rechazar</button>
             </article>
@@ -97,7 +97,7 @@ type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
         <div class="invitaciones">
           @for (c of cursos(); track c.id) {
             <section class="ui-card">
-              <h3><a [routerLink]="session.rutaRol('clases', c.id)">{{ c.nombre }}</a></h3>
+              <h3><a [routerLink]="session.roleRoute('clases', c.id)">{{ c.nombre }}</a></h3>
               <app-course-invitation [aula]="c" (cambio)="datos.reload()" />
             </section>
           } @empty {
@@ -117,7 +117,7 @@ export class AcademyStudentsComponent {
   readonly tab = input<string>(); // data de la ruta: 'solicitudes' o 'invitaciones'
 
   readonly iniciales = iniciales;
-  readonly fechaCorta = fechaCorta;
+  readonly formatShortDate = formatShortDate;
   readonly faCheck = faCheck;
   readonly faLink = faLink;
   readonly faMagnifyingGlass = faMagnifyingGlass;
@@ -125,8 +125,8 @@ export class AcademyStudentsComponent {
   readonly faUsers = faUsers;
   readonly faXmark = faXmark;
 
-  private readonly espacioId = this.session.espacioActivo()!.id;
-  private readonly docenteId = this.session.usuarioId()!;
+  private readonly espacioId = this.session.activeSpace()!.id;
+  private readonly docenteId = this.session.userId()!;
 
   readonly datos = rxResource({
     stream: () => forkJoin({

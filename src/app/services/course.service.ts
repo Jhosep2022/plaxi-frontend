@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 // import { HttpClient, HttpHeaders } from '@angular/common/http'; // MOCK: desconectado del backend
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { CursoDto, ActualizarCursoDto } from '../models/CursoDto';
+import { CourseDto, UpdateCourseDto } from '../models/course.dto';
 // import { environment } from '../../environments/environment'; // MOCK: desconectado del backend
 import { MOCK_CURSOS, MOCK_CURSOS_POR_USUARIO, MOCK_DELAY, nextId } from '../mocks/mock-data';
 
@@ -17,7 +17,7 @@ export class CourseService {
   constructor() {}
 
   // Obtener todos los cursos
-  getAllCursos(): Observable<CursoDto[]> {
+  getAllCursos(): Observable<CourseDto[]> {
     // return this.http.get<CursoDto[]>(`${this.apiUrl}/all`);
 
     // MOCK
@@ -25,7 +25,7 @@ export class CourseService {
   }
 
   // Obtener un curso por ID
-  getCursoById(idCurso: number): Observable<CursoDto> {
+  getCursoById(idCurso: number): Observable<CourseDto> {
     // return this.http.get<CursoDto>(`${this.apiUrl}/${idCurso}`);
 
     // MOCK
@@ -34,7 +34,7 @@ export class CourseService {
   }
 
   // Obtener cursos por ID del usuario creador
-  getCursosByUsuario(usuarioId: number): Observable<CursoDto[]> {
+  getCursosByUsuario(usuarioId: number): Observable<CourseDto[]> {
     // return this.http.get<CursoDto[]>(`${this.apiUrl}/usuario/${usuarioId}`);
 
     // MOCK
@@ -49,7 +49,7 @@ export class CourseService {
     // MOCK
     const usuarioId = Number(formData.get('usuarioCreadorId'));
     const portada = formData.get('portada') ?? formData.get('file');
-    const nuevo: CursoDto = {
+    const nuevo: CourseDto = {
       idCurso: nextId(MOCK_CURSOS, 'idCurso'),
       nombre: String(formData.get('nombre') ?? 'Nuevo curso'),
       descripcion: String(formData.get('descripcion') ?? ''),
@@ -66,7 +66,7 @@ export class CourseService {
   }
 
   // Actualizar un curso por ID
-  updateCurso(idCurso: number, curso: ActualizarCursoDto): Observable<ActualizarCursoDto> {
+  updateCurso(idCurso: number, curso: UpdateCourseDto): Observable<UpdateCourseDto> {
     // return this.http.put<ActualizarCursoDto>(`${this.apiUrl}/${idCurso}`, curso);
 
     // MOCK
@@ -93,7 +93,7 @@ export class CourseService {
   }
 
   // Obtener los cursos recientes
-  getRecentCursos(): Observable<CursoDto[]> {
+  getRecentCursos(): Observable<CourseDto[]> {
     // return this.http.get<CursoDto[]>(`${this.apiUrl}/recent`);
 
     // MOCK
@@ -101,7 +101,7 @@ export class CourseService {
   }
 
   // Obtener cursos recomendados para un usuario
-  getRecommendedCursosByUserId(userId: number): Observable<CursoDto[]> {
+  getRecommendedCursosByUserId(userId: number): Observable<CourseDto[]> {
     // return this.http.get<CursoDto[]>(`${this.apiUrl}/recomendaciones/${userId}`);
 
     // MOCK

@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import type { Aula } from '../core/models/classrooms.model';
-import { Espacio } from '../core/models/espacio.model';
-import { hoyIso } from '../core/utils/attendance';
-import { ahoraIso } from '../core/utils/assignments';
+import { Space } from '../core/models/space.model';
+import { todayIso } from '../core/utils/attendance';
+import { currentDateTimeIso } from '../core/utils/assignments';
 import { MOCK_DOCENTES } from '../mocks/academics.mock';
 import { MOCK_AULAS_VIRTUALES, MOCK_TEMAS_AULA, MOCK_UNIDADES } from '../mocks/classrooms.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
@@ -61,7 +61,7 @@ export class AcademyService {
       ...datos, nombre: datos.nombre.trim(), descripcion: datos.descripcion.trim(),
       espacioId, tipo: 'curso', docenteId, paraleloId: 0, materiaId: 0,
       icono: /dise|ui|ux|figma|arte/i.test(`${datos.categoria} ${datos.nombre}`) ? 'arte' : /idiom|ingl/i.test(datos.categoria) ? 'idioma' : /matem/i.test(datos.categoria) ? 'calculadora' : 'computo',
-      tono: TONOS[propios % 3], actualizado: ahoraIso(), codigo: this.generateCode(datos.nombre),
+      tono: TONOS[propios % 3], actualizado: currentDateTimeIso(), codigo: this.generateCode(datos.nombre),
     });
   }
 
@@ -81,7 +81,7 @@ export class AcademyService {
   }
 
   // ---------- Invitación y catálogo ----------
-  getCourseByCode(codigo: string, usuarioId: number | null): Observable<(CursoPublico & { espacio: Espacio }) | null> {
+  getCourseByCode(codigo: string, usuarioId: number | null): Observable<(CursoPublico & { espacio: Space }) | null> {
     const aula = this.aulasRepo.readNow((a) => a.tipo === 'curso' && a.codigo.toLowerCase() === codigo.trim().toLowerCase())[0];
     const espacio = aula ? MOCK_ESPACIOS.find((e) => e.id === aula.espacioId) : undefined;
     return of(aula && espacio ? { ...this.toPublicCourse(aula, usuarioId), espacio } : null).pipe(delay(MOCK_DELAY));
@@ -105,10 +105,10 @@ export class AcademyService {
     const perfil = MOCK_PERFILES.find((p) => p.idUsuario === usuarioId);
     if (previa) {
       previa.estadoInscripcion = estado;
-      previa.fechaInscripcion = hoyIso();
+      previa.fechaInscripcion = todayIso();
     } else {
       MOCK_INSCRIPCIONES.push({
-        idInscripcion: Math.max(0, ...MOCK_INSCRIPCIONES.map((i) => i.idInscripcion)) + 1, fechaInscripcion: hoyIso(), estadoInscripcion: estado,
+        idInscripcion: Math.max(0, ...MOCK_INSCRIPCIONES.map((i) => i.idInscripcion)) + 1, fechaInscripcion: todayIso(), estadoInscripcion: estado,
         usuarioId, usuarioNombre: perfil ? `${perfil.nombre} ${perfil.primerApellido}` : `Usuario ${usuarioId}`, usuarioGmail: perfil?.gmail ?? '',
         cursoId: cursoIdDe(aulaId), cursoNombre: aula.nombre, usuarioCreadorId: aula.docenteId, cursoDescripcion: aula.descripcion, cursoPortadaUrl: aula.portada || null,
       });

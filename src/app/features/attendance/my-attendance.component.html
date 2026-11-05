@@ -69,7 +69,7 @@
         <ul class="dias">
           @for (d of dias(); track d.fecha) {
             <li>
-              <span class="fecha">{{ fechaCorta(d.fecha) }}</span>
+              <span class="fecha">{{ formatShortDate(d.fecha) }}</span>
               <span class="ui-badge estado-dia" [class]="'dia-' + d.estado">{{ estadoDiaLabel[d.estado] }}</span>
               @if (d.detalle.length) {
                 <small class="detalle">{{ d.detalle.join(' · ') }}</small>
@@ -89,7 +89,7 @@
             @for (a of alertas(); track a.fecha) {
               <li [class]="'aviso-' + a.estado">
                 <strong>{{ estadoDiaLabel[a.estado] }}</strong>
-                <span>{{ fechaCorta(a.fecha) }}</span>
+                <span>{{ formatShortDate(a.fecha) }}</span>
                 @if (a.detalle.length) {
                   <small>{{ a.detalle.join(' · ') }}</small>
                 }

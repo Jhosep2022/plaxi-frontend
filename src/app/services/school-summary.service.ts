@@ -7,16 +7,16 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { IconoMateria, NIVELES, compararParalelos, paraleloLabel } from '../core/models/academics.model';
 import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model';
-import { Membresia } from '../core/models/espacio.model';
+import { Membership } from '../core/models/space.model';
 import { Marcacion } from '../core/models/time-tracking.model';
-import { contar, diaDeSemana, estadoDelDia, fechaCorta, hoyIso, sumarDias } from '../core/utils/attendance';
+import { contar, dayOfWeek, getDailyStatus, formatShortDate, todayIso, addDays } from '../core/utils/attendance';
 import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../core/utils/grades';
 import { DatosHorario, clasesDeDocente, itemsDeClases } from '../core/utils/schedule';
 import { toTime, toMinutes } from '../core/utils/workday';
-import { porcentaje } from '../core/utils/reports';
-import { urgente, venceLabel } from '../core/utils/assignments';
+import { calculatePercentage } from '../core/utils/reports';
+import { isDueSoon, formatDueDate } from '../core/utils/assignments';
 import { cuando } from '../features/announcements/announcements.ui';
-import { PerfilDto } from '../models/PerfilDto';
+import { ProfileDto } from '../models/profile.dto';
 import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } from '../shared/dashboard/dashboard.models';
 import { subjectIcon } from '../shared/ui/academic-icons';
 import { AcademicsService } from './academics.service';
@@ -47,7 +47,7 @@ export class SchoolSummaryService {
   private marcacion = inject(TimeTrackingService);
   private hijoActivo = inject(SelectedChildService);
 
-  obtener(membresia: Membresia, usuarioId: number): Observable<ResumenData> {
+  obtener(membresia: Membership, usuarioId: number): Observable<ResumenData> {
     switch (membresia.rol) {
       case 'docente': return this.docente(membresia, usuarioId);
       case 'estudiante': return this.estudiante(membresia, usuarioId);
@@ -57,7 +57,7 @@ export class SchoolSummaryService {
   }
 
   // ---------- Docente ----------
-  private docente({ espacio }: Membresia, usuarioId: number): Observable<ResumenData> {
+  private docente({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/docente`;
     return forkJoin({
       perfil: this.perfiles.getProfile(usuarioId),
@@ -120,7 +120,7 @@ export class SchoolSummaryService {
   }
 
   // ---------- Estudiante ----------
-  private estudiante({ espacio }: Membresia, usuarioId: number): Observable<ResumenData> {
+  private estudiante({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/estudiante`;
     return this.academico.getStudentClassGroup(usuarioId).pipe(
       switchMap((paraleloId) => forkJoin({
@@ -162,7 +162,7 @@ export class SchoolSummaryService {
   }
 
   // ---------- Padre / tutor legal ----------
-  private padre({ espacio }: Membresia, usuarioId: number): Observable<ResumenData> {
+  private padre({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/padre`;
     return this.hijoActivo.activo().pipe(
       switchMap((hijo) => {
@@ -175,10 +175,10 @@ export class SchoolSummaryService {
       }),
       map(({ perfil, seguimiento: s, recibidos, hijo }): ResumenData => {
         const nombre = hijo.nombre.split(' ')[0];
-        const hoy = hoyIso();
+        const hoy = todayIso();
         const noLeidos = sinLeer(recibidos, 99).length;
         const eventos = recibidos.filter((r) => r.comunicado.fechaEvento >= hoy).sort((a, b) => a.comunicado.fechaEvento.localeCompare(b.comunicado.fechaEvento));
-        const faltasRecientes = s.registros.filter((r) => r.fecha >= sumarDias(hoy, -7) && r.estado !== 'presente' && r.estado !== 'licencia');
+        const faltasRecientes = s.registros.filter((r) => r.fecha >= addDays(hoy, -7) && r.estado !== 'presente' && r.estado !== 'licencia');
         const baja = s.notas.filter((n) => n.nota !== null).sort((a, b) => a.nota! - b.nota!)[0];
         return {
           saludo: `¡Hola, ${perfil.nombre}!`,
@@ -190,7 +190,7 @@ export class SchoolSummaryService {
             titulo: 'Próximos eventos',
             verTodo: `${base}/comunicados`,
             items: eventos.slice(0, 3).map((r, i): ItemProximo => ({
-              titulo: r.comunicado.titulo, icono: faCalendarDays, horario: fechaCorta(r.comunicado.fechaEvento), detalle: r.comunicado.autorNombre,
+              titulo: r.comunicado.titulo, icono: faCalendarDays, horario: formatShortDate(r.comunicado.fechaEvento), detalle: r.comunicado.autorNombre,
               participantes: [], totalParticipantes: 0,
               accion: i === 0 && r.comunicado.pideConfirmacion && !r.lectura?.confirmado ? { label: 'Confirmar', icono: faClipboardCheck, link: `${base}/comunicados` } : undefined,
             })),
@@ -219,7 +219,7 @@ export class SchoolSummaryService {
               })),
               ...faltasRecientes.slice(0, 2).map((r) => ({
                 titulo: r.estado === 'atraso' ? `Atraso de ${r.minutosTarde} min` : 'Faltó a una clase', detalle: s.nombreMateria(r.materiaId),
-                icono: r.estado === 'atraso' ? faClock : faUserXmark, tono: 'crema' as const, meta: fechaCorta(r.fecha),
+                icono: r.estado === 'atraso' ? faClock : faUserXmark, tono: 'crema' as const, meta: formatShortDate(r.fecha),
               })),
             ].slice(0, 4),
           },
@@ -230,14 +230,14 @@ export class SchoolSummaryService {
   }
 
   // ---------- Dirección ----------
-  private direccion({ espacio }: Membresia, usuarioId: number): Observable<ResumenData> {
+  private direccion({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/direccion`;
-    const hoy = hoyIso();
+    const hoy = todayIso();
     return forkJoin({
       perfil: this.perfiles.getProfile(usuarioId),
       datos: this.horarios.datos(espacio.id),
-      marcaciones: this.marcacion.getEntriesBetween(espacio.id, sumarDias(hoy, -14), hoy),
-      registros: this.asistencia.getRecordsBetween(espacio.id, sumarDias(hoy, -21), hoy),
+      marcaciones: this.marcacion.getEntriesBetween(espacio.id, addDays(hoy, -14), hoy),
+      registros: this.asistencia.getRecordsBetween(espacio.id, addDays(hoy, -21), hoy),
       estudiantes: this.asistencia.getStudents(),
       licencias: this.asistencia.getLeaveRequests(espacio.id),
       gestion: this.academico.getActiveAcademicYear(espacio.id),
@@ -247,7 +247,7 @@ export class SchoolSummaryService {
       map(({ perfil, datos, marcaciones, registros, estudiantes, licencias, gestion, enviados, cierres }): ResumenData => {
         // Docentes que marcaron: hoy, o el último día con clases
         let fechaMarc = hoy;
-        for (let i = 0; i < 14 && !this.marcacion.getExpectedTeachers(espacio.id, fechaMarc).length; i++) fechaMarc = sumarDias(fechaMarc, -1);
+        for (let i = 0; i < 14 && !this.marcacion.getExpectedTeachers(espacio.id, fechaMarc).length; i++) fechaMarc = addDays(fechaMarc, -1);
         const esperados = this.marcacion.getExpectedTeachers(espacio.id, fechaMarc).map((e) => e.docenteId);
         const marcaronHoy = new Set(marcaciones.filter((m) => m.fecha === fechaMarc && m.tipo === 'entrada').map((m) => m.docenteId));
         const sinMarcar = esperados.filter((id) => !marcaronHoy.has(id));
@@ -256,12 +256,12 @@ export class SchoolSummaryService {
         const fechaAsis = registros.map((r) => r.fecha).sort().at(-1) ?? hoy;
         const delDia = registros.filter((r) => r.fecha === fechaAsis);
         const porEstudiante = agrupar(delDia, (r) => r.estudianteId);
-        const asistioCompleto = (rs: RegistroAsistencia[]) => ['presente', 'atraso'].includes(estadoDelDia(rs) ?? '');
+        const asistioCompleto = (rs: RegistroAsistencia[]) => ['presente', 'atraso'].includes(getDailyStatus(rs) ?? '');
         const asistieron = [...porEstudiante.values()].filter(asistioCompleto).length;
 
         // Avance del periodo en curso (días hábiles)
         const periodo = gestion ? gestion.periodos[periodoDeFecha(gestion, hoy)] : null;
-        const habiles = (desde: string, hasta: string) => { let n = 0; for (let f = desde; f <= hasta; f = sumarDias(f, 1)) if (diaDeSemana(f) <= 5) n++; return n; };
+        const habiles = (desde: string, hasta: string) => { let n = 0; for (let f = desde; f <= hasta; f = addDays(f, 1)) if (dayOfWeek(f) <= 5) n++; return n; };
 
         const pendientes = licencias.filter((l) => l.estado === 'pendiente');
         const sinCurso = estudiantes.filter((e) => !e.paraleloId);
@@ -270,7 +270,7 @@ export class SchoolSummaryService {
         const alertas: ItemProximo[] = [
           ...(sinMarcar.length ? [{
             titulo: `${sinMarcar.length} ${sinMarcar.length === 1 ? 'docente sin marcar' : 'docentes sin marcar'}`, icono: faTriangleExclamation,
-            horario: fechaMarc === hoy ? 'Hoy' : fechaCorta(fechaMarc), detalle: 'Entrada del personal',
+            horario: fechaMarc === hoy ? 'Hoy' : formatShortDate(fechaMarc), detalle: 'Entrada del personal',
             participantes: sinMarcar.map(nombreDocente), totalParticipantes: sinMarcar.length,
             accion: { label: 'Ver marcaciones', icono: faQrcode, link: `${base}/asistencia/personal` },
           }] : []),
@@ -285,7 +285,7 @@ export class SchoolSummaryService {
             accion: { label: 'Inscribir', icono: faUserGraduate, link: `${base}/personas/inscripciones` },
           }] : []),
           ...terminadosSinCerrar.map((p) => ({
-            titulo: `${p.nombre} sin cerrar`, icono: faCalendarDays, horario: `Terminó el ${fechaCorta(p.fin)}`, detalle: 'Cierre de periodos',
+            titulo: `${p.nombre} sin cerrar`, icono: faCalendarDays, horario: `Terminó el ${formatShortDate(p.fin)}`, detalle: 'Cierre de periodos',
             participantes: [], totalParticipantes: 0, accion: { label: 'Cerrar', icono: faCalendarDays, link: `${base}/calificaciones/periodos` },
           })),
         ];
@@ -296,7 +296,7 @@ export class SchoolSummaryService {
           const alumnos = new Set(delDia.filter((r) => r.paraleloId === p.id).map((r) => r.estudianteId)).size;
           const presentes = [...agrupar(delDia.filter((r) => r.paraleloId === p.id), (r) => r.estudianteId).values()].filter(asistioCompleto).length;
           return [{
-            titulo: `${paraleloLabel(p)} · ${NIVELES.find((n) => n.id === p.nivel)?.label}`, subtitulo: `${presentes} de ${alumnos} asistieron a todas sus clases · ${fechaCorta(fechaAsis)}`,
+            titulo: `${paraleloLabel(p)} · ${NIVELES.find((n) => n.id === p.nivel)?.label}`, subtitulo: `${presentes} de ${alumnos} asistieron a todas sus clases · ${formatShortDate(fechaAsis)}`,
             icono: faSitemap, tono: c.porcentaje >= 95 ? 'lima' as const : c.porcentaje >= 90 ? 'azul' as const : 'crema' as const, meta: `${c.porcentaje}%`,
             link: `${base}/asistencia/estudiantes`,
           }];
@@ -308,7 +308,7 @@ export class SchoolSummaryService {
           subtitulo: `Así está ${espacio.nombre} hoy.`,
           accion: { label: 'Ver reportes', icono: faChartLine, link: `${base}/reportes` },
           progreso: [
-            { titulo: `Asistencia · ${fechaCorta(fechaAsis)}`, icono: faUserGraduate, tono: 'lima', actual: asistieron, total: porEstudiante.size, unidad: 'estudiantes asistieron' },
+            { titulo: `Asistencia · ${formatShortDate(fechaAsis)}`, icono: faUserGraduate, tono: 'lima', actual: asistieron, total: porEstudiante.size, unidad: 'estudiantes asistieron' },
             { titulo: 'Docentes que marcaron', icono: faQrcode, tono: 'azul', actual: esperados.length - sinMarcar.length, total: esperados.length, unidad: 'docentes' },
             ...(periodo ? [{ titulo: `Avance del ${periodo.nombre}`, icono: faCalendarDays, tono: 'crema' as const, actual: habiles(periodo.inicio, hoy < periodo.fin ? hoy : periodo.fin), total: habiles(periodo.inicio, periodo.fin), unidad: 'días hábiles' }] : []),
           ],
@@ -326,7 +326,7 @@ export class SchoolSummaryService {
             titulo: 'Últimos comunicados',
             verTodo: `${base}/comunicados`,
             items: enviados.slice(0, 4).map((c) => ({
-              titulo: c.titulo, detalle: `${c.autorNombre} · leído por ${porcentaje(c.alcance.leidos, c.alcance.destinatarios)}%`,
+              titulo: c.titulo, detalle: `${c.autorNombre} · leído por ${calculatePercentage(c.alcance.leidos, c.alcance.destinatarios)}%`,
               icono: faBullhorn, tono: c.importante ? 'crema' as const : 'lima' as const, meta: cuando(c.enviado),
             })),
           },
@@ -372,7 +372,7 @@ function seguimientoDe(
   paraleloId: number
 ): Seguimiento {
   const paralelo = d.horario.paralelos.find((p) => p.id === paraleloId);
-  const indice = d.datos ? periodoDeFecha(d.datos.gestion, hoyIso()) : 0;
+  const indice = d.datos ? periodoDeFecha(d.datos.gestion, todayIso()) : 0;
   const notas = d.datos
     ? boletinDe(d.datos, indiceNotas(d.datos.notas), estudianteId).map((f) => ({ materia: f.materia.nombre, docente: f.docente, icono: f.materia.icono, tono: f.materia.tono, nota: f.periodos[indice] }))
     : [];
@@ -406,12 +406,12 @@ function listaDeMaterias(s: Seguimiento, link: string): ResumenData['lista']['it
 // Tareas por entregar (las vencidas primero) y las últimas revisadas
 function novedadesDeTareas(tareas: TareaDeEstudiante[], deHijo: boolean): ItemActividad[] {
   const vencidas = tareas.filter((t) => t.estado === 'no-entregada').map((t) => ({
-    titulo: deHijo ? `No entregó: ${t.tarea.titulo}` : `Vencida: ${t.tarea.titulo}`, detalle: `${t.tarea.materia.nombre} · ${venceLabel(t.tarea)}`,
+    titulo: deHijo ? `No entregó: ${t.tarea.titulo}` : `Vencida: ${t.tarea.titulo}`, detalle: `${t.tarea.materia.nombre} · ${formatDueDate(t.tarea)}`,
     icono: faTriangleExclamation, tono: 'crema' as const, meta: 'Tarea',
   }));
   const pendientes = tareas.filter((t) => t.estado === 'pendiente').map((t) => ({
-    titulo: t.tarea.titulo, detalle: `${t.tarea.materia.nombre} · ${venceLabel(t.tarea)}`, icono: faListCheck,
-    tono: urgente(t.tarea) ? 'crema' as const : 'lima' as const, meta: 'Por entregar',
+    titulo: t.tarea.titulo, detalle: `${t.tarea.materia.nombre} · ${formatDueDate(t.tarea)}`, icono: faListCheck,
+    tono: isDueSoon(t.tarea) ? 'crema' as const : 'lima' as const, meta: 'Por entregar',
   }));
   const revisadas = tareas.filter((t) => t.estado === 'revisada').slice(-1).map((t) => ({
     titulo: `${t.tarea.titulo} · revisada`, detalle: t.entrega?.comentario || t.tarea.materia.nombre, icono: faStar, tono: 'azul' as const,
@@ -437,17 +437,17 @@ function agrupar<T>(lista: T[], clave: (x: T) => number): Map<number, T[]> {
 // Últimos 5 días hábiles (terminando hoy)
 function ultimosDiasHabiles(): string[] {
   const fechas: string[] = [];
-  for (let f = hoyIso(); fechas.length < 5; f = sumarDias(f, -1)) if (diaDeSemana(f) <= 5) fechas.unshift(f);
+  for (let f = todayIso(); fechas.length < 5; f = addDays(f, -1)) if (dayOfWeek(f) <= 5) fechas.unshift(f);
   return fechas;
 }
 const ETIQUETAS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi'];
 
 // Semana de asistencia de un estudiante a partir de su resumen diario
 function semanaDeAsistencia(registros: RegistroAsistencia[], texto: string): Semana {
-  const hoy = hoyIso();
+  const hoy = todayIso();
   const dias: DiaSemana[] = ultimosDiasHabiles().map((fecha) => {
-    const etiqueta = ETIQUETAS[diaDeSemana(fecha) - 1];
-    const estado = estadoDelDia(registros.filter((r) => r.fecha === fecha));
+    const etiqueta = ETIQUETAS[dayOfWeek(fecha) - 1];
+    const estado = getDailyStatus(registros.filter((r) => r.fecha === fecha));
     if (!estado) return { etiqueta, estado: fecha === hoy ? 'hoy' : 'pendiente' };
     return { etiqueta, estado: estado === 'presente' ? 'ok' : estado === 'atraso' ? 'atraso' : estado === 'licencia' ? 'pendiente' : 'falta' };
   });
@@ -456,10 +456,10 @@ function semanaDeAsistencia(registros: RegistroAsistencia[], texto: string): Sem
 
 // Últimos 5 días hábiles del docente según sus marcaciones de entrada
 function semanaDeMarcaciones(marcaciones: Marcacion[], teniaClases: (fecha: string) => boolean): Semana {
-  const hoy = hoyIso();
+  const hoy = todayIso();
   const dias: DiaSemana[] = ultimosDiasHabiles().map((fecha) => {
     const entrada = marcaciones.find((m) => m.fecha === fecha && m.tipo === 'entrada');
-    const etiqueta = ETIQUETAS[diaDeSemana(fecha) - 1];
+    const etiqueta = ETIQUETAS[dayOfWeek(fecha) - 1];
     if (entrada) return { etiqueta, estado: entrada.estado === 'atraso' ? 'atraso' : 'ok' };
     if (fecha === hoy) return { etiqueta, estado: 'hoy' };
     return { etiqueta, estado: teniaClases(fecha) ? 'falta' : 'pendiente' };
@@ -469,11 +469,11 @@ function semanaDeMarcaciones(marcaciones: Marcacion[], teniaClases: (fecha: stri
 
 // Puntualidad del personal en los últimos 5 días hábiles
 function semanaDelPersonal(marcaciones: Marcacion[], esperados: (fecha: string) => number[]): Semana {
-  const hoy = hoyIso();
+  const hoy = todayIso();
   let aTiempo = 0;
   let total = 0;
   const dias: DiaSemana[] = ultimosDiasHabiles().map((fecha) => {
-    const etiqueta = ETIQUETAS[diaDeSemana(fecha) - 1];
+    const etiqueta = ETIQUETAS[dayOfWeek(fecha) - 1];
     if (fecha === hoy) return { etiqueta, estado: 'hoy' };
     const ids = esperados(fecha);
     if (!ids.length) return { etiqueta, estado: 'pendiente' };
@@ -483,12 +483,12 @@ function semanaDelPersonal(marcaciones: Marcacion[], esperados: (fecha: string) 
     if (entradas.some((e) => !e)) return { etiqueta, estado: 'falta' };
     return { etiqueta, estado: entradas.some((e) => e!.estado === 'atraso') ? 'atraso' : 'ok' };
   });
-  return { valor: porcentaje(aTiempo, total), texto: '% de puntualidad del personal esta semana', dias };
+  return { valor: calculatePercentage(aTiempo, total), texto: '% de puntualidad del personal esta semana', dias };
 }
 
 // Clases de hoy como eventos de la línea de tiempo del resumen
 function horarioDeHoy(datos: DatosHorario, clases: DatosHorario['clases'], modo: 'docente' | 'paralelo', titulo: string): ResumenData['horario'] {
-  const hoy = diaDeSemana(hoyIso());
+  const hoy = dayOfWeek(todayIso());
   const eventos: EventoHorario[] = itemsDeClases(datos, clases.filter((c) => c.dia === hoy), modo)
     .sort((a, b) => a.inicio.localeCompare(b.inicio))
     .map((item) => ({
@@ -504,7 +504,7 @@ function horarioDeHoy(datos: DatosHorario, clases: DatosHorario['clases'], modo:
 
 // Todas las clases del colegio de hoy (dirección): materia · curso, docente · aula
 function clasesDelColegioHoy(datos: DatosHorario): ResumenData['horario'] {
-  const hoy = diaDeSemana(hoyIso());
+  const hoy = dayOfWeek(todayIso());
   const curso = new Map(datos.paralelos.map((p) => [p.id, paraleloLabel(p)]));
   const eventos: EventoHorario[] = itemsDeClases(datos, datos.clases.filter((c) => c.dia === hoy), 'paralelo')
     .sort((a, b) => a.inicio.localeCompare(b.inicio) || (curso.get(a.paraleloId) ?? '').localeCompare(curso.get(b.paraleloId) ?? ''))
@@ -529,7 +529,7 @@ function conRango(titulo: string, eventos: EventoHorario[]): ResumenData['horari
 // Clases que quedan hoy (o todas las de hoy si ya terminaron), con los estudiantes del curso como participantes
 function proximasDeHoy(datos: DatosHorario, clases: DatosHorario['clases'], modo: 'docente' | 'paralelo', estudiantes: Estudiante[]): ItemProximo[] {
   const ahora = new Date();
-  const hoy = diaDeSemana(hoyIso());
+  const hoy = dayOfWeek(todayIso());
   const minutos = ahora.getHours() * 60 + ahora.getMinutes();
   const deHoy = itemsDeClases(datos, clases.filter((c) => c.dia === hoy), modo).sort((a, b) => a.inicio.localeCompare(b.inicio));
   const pendientes = deHoy.filter((i) => toMinutes(i.fin) > minutos);

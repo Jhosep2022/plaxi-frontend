@@ -74,7 +74,7 @@ import { getErrorMessage } from '../../management/academics/academics.ui';
               <div class="pie">
                 <span><fa-icon [icon]="faLayerGroup" /> {{ c.temas }} temas · <fa-icon [icon]="faUsers" /> {{ c.estudiantes }}</span>
                 @switch (c.estado) {
-                  @case ('ACTIVA') { <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('aulas', c.aula.id)"><fa-icon [icon]="faBookOpen" /> Ir al curso</a> }
+                  @case ('ACTIVA') { <a class="ui-btn ui-btn--secundario" [routerLink]="session.roleRoute('aulas', c.aula.id)"><fa-icon [icon]="faBookOpen" /> Ir al curso</a> }
                   @case ('PENDIENTE') { <span class="ui-badge tono-crema"><fa-icon [icon]="faClock" /> Solicitud pendiente</span> }
                   @default {
                     <button type="button" class="ui-btn" [disabled]="inscribiendo() === c.aula.id" (click)="inscribirse(c)">
@@ -106,8 +106,8 @@ export class CourseCatalogComponent {
   readonly faUserCheck = faUserCheck;
   readonly faUsers = faUsers;
 
-  private readonly espacio = this.session.espacioActivo()!;
-  readonly cursos = rxResource({ stream: () => this.academia.getCatalog(this.espacio.id, this.session.usuarioId()!), defaultValue: [] });
+  private readonly espacio = this.session.activeSpace()!;
+  readonly cursos = rxResource({ stream: () => this.academia.getCatalog(this.espacio.id, this.session.userId()!), defaultValue: [] });
 
   readonly busqueda = signal('');
   readonly categoria = signal('');
@@ -124,7 +124,7 @@ export class CourseCatalogComponent {
   async inscribirse(c: CursoPublico): Promise<void> {
     this.inscribiendo.set(c.aula.id);
     try {
-      const estado = await firstValueFrom(this.academia.enroll(c.aula.id, this.session.usuarioId()!));
+      const estado = await firstValueFrom(this.academia.enroll(c.aula.id, this.session.userId()!));
       this.avisos.success(estado === 'ACTIVA' ? `¡Listo! Ya estás en "${c.aula.nombre}".` : 'Solicitud enviada: el docente la revisará.');
       this.cursos.reload();
     } catch (error) {

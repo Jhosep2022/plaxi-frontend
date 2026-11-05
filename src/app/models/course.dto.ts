@@ -1,7 +1,7 @@
 // src/app/models/CursoDto.ts
 
 // DTO para mostrar la información de los cursos
-export interface CursoDto {
+export interface CourseDto {
   idCurso: number;
   nombre: string;
   descripcion: string;
@@ -12,7 +12,7 @@ export interface CursoDto {
 }
 
 // DTO para actualizar o crear un curso
-export interface ActualizarCursoDto {
+export interface UpdateCourseDto {
   nombre: string;
   descripcion: string;
   dificultad: string;

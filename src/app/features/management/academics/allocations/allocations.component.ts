@@ -26,7 +26,7 @@ export class AllocationsComponent {
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
   protected readonly session = inject(SessionService);
-  private readonly espacioId = this.session.espacioActivo()!.id;
+  private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly paraleloLabel = paraleloLabel;
   readonly subjectIcon = subjectIcon;

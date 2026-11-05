@@ -37,7 +37,7 @@ type Orden = 'recientes' | 'nombre' | 'avance';
         <button type="button" class="ui-btn" (click)="formAbierto.set(true)"><fa-icon [icon]="faPlus" /> Crear curso</button>
       }
       @if (!esDocente && espacio.tipo === 'academia') {
-        <a class="ui-btn ui-btn--secundario" [routerLink]="session.rutaRol('catalogo')"><fa-icon [icon]="faCompass" /> Explorar cursos</a>
+        <a class="ui-btn ui-btn--secundario" [routerLink]="session.roleRoute('catalogo')"><fa-icon [icon]="faCompass" /> Explorar cursos</a>
       }
     </app-page-header>
 
@@ -65,7 +65,7 @@ type Orden = 'recientes' | 'nombre' | 'avance';
     } @else {
       <div class="grilla">
         @for (a of visibles(); track a.id) {
-          <app-classroom-card [aula]="a" [link]="session.rutaRol(esDocente ? 'clases' : 'aulas', a.id)"
+          <app-classroom-card [aula]="a" [link]="session.roleRoute(esDocente ? 'clases' : 'aulas', a.id)"
             [subtitulo]="esDocente ? '' : 'Prof. ' + a.docente" [textoPendientes]="esDocente ? 'por revisar' : 'por entregar'" />
         } @empty {
           <div class="ui-card" style="grid-column: 1 / -1">
@@ -93,9 +93,9 @@ export class MyClassroomsComponent {
   readonly faMagnifyingGlass = faMagnifyingGlass;
   readonly faPlus = faPlus;
 
-  readonly espacio = this.session.espacioActivo()!;
-  readonly esDocente = this.session.rolActivo() === 'docente';
-  private readonly usuarioId = this.session.usuarioId()!;
+  readonly espacio = this.session.activeSpace()!;
+  readonly esDocente = this.session.activeRole() === 'docente';
+  private readonly usuarioId = this.session.userId()!;
 
   readonly aulas = rxResource({
     stream: () => (this.esDocente ? this.servicio.aulasDocente(this.espacio.id, this.usuarioId) : this.servicio.aulasEstudiante(this.espacio.id, this.usuarioId)),
@@ -120,7 +120,7 @@ export class MyClassroomsComponent {
 
   alCrear(aula: Aula): void {
     this.formAbierto.set(false);
-    this.router.navigate(this.session.rutaRol('clases', aula.id), { queryParams: { tab: 'contenido' } });
+    this.router.navigate(this.session.roleRoute('clases', aula.id), { queryParams: { tab: 'contenido' } });
   }
 
   readonly conPendientes = computed(() => this.aulas.value().filter((a) => a.pendientes > 0).length);

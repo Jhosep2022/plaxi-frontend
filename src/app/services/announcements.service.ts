@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
-import { Rol } from '../core/models/espacio.model';
+import { SpaceRole } from '../core/models/space.model';
 import { Comunicado, Lectura, Publico } from '../core/models/announcements.model';
-import { hoyIso } from '../core/utils/attendance';
+import { todayIso } from '../core/utils/attendance';
 import { MOCK_ASIGNACIONES, MOCK_DOCENTES } from '../mocks/academics.mock';
 import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_COMUNICADOS, MOCK_LECTURAS } from '../mocks/announcements.mock';
@@ -66,13 +66,13 @@ export class AnnouncementsService {
   marcarLeido(comunicadoId: number, usuarioId: number): Observable<Lectura> {
     const previa = this.lecturasRepo.readNow((l) => l.comunicadoId === comunicadoId && l.usuarioId === usuarioId)[0];
     if (previa) return of(structuredClone(previa));
-    return this.lecturasRepo.save({ comunicadoId, usuarioId, leidoEl: ahoraIso(), confirmado: false });
+    return this.lecturasRepo.save({ comunicadoId, usuarioId, leidoEl: currentDateTimeIso(), confirmado: false });
   }
 
   // "Enterado": confirma que recibió un comunicado que lo pide
   confirmar(comunicadoId: number, usuarioId: number): Observable<Lectura> {
     const previa = this.lecturasRepo.readNow((l) => l.comunicadoId === comunicadoId && l.usuarioId === usuarioId)[0];
-    return this.lecturasRepo.save({ id: previa?.id, comunicadoId, usuarioId, leidoEl: previa?.leidoEl ?? ahoraIso(), confirmado: true });
+    return this.lecturasRepo.save({ id: previa?.id, comunicadoId, usuarioId, leidoEl: previa?.leidoEl ?? currentDateTimeIso(), confirmado: true });
   }
 
   // ---------- Enviados ----------
@@ -96,7 +96,7 @@ export class AnnouncementsService {
     return of(lista).pipe(delay(MOCK_DELAY));
   }
 
-  publicar(espacioId: number, autor: { id: number; nombre: string; rol: Rol }, borrador: BorradorComunicado, cursosPermitidos: number[] | null): Observable<Comunicado> {
+  publicar(espacioId: number, autor: { id: number; nombre: string; rol: SpaceRole }, borrador: BorradorComunicado, cursosPermitidos: number[] | null): Observable<Comunicado> {
     if (autor.rol !== 'direccion' && autor.rol !== 'docente') return throwError(() => new Error('Solo la dirección y los docentes envían comunicados.'));
     if (!borrador.titulo.trim()) return throwError(() => new Error('Ponle un título.'));
     if (borrador.mensaje.trim().length < 10) return throwError(() => new Error('El mensaje es muy corto.'));
@@ -110,7 +110,7 @@ export class AnnouncementsService {
     if (!this.destinatarios(borrador).size) return throwError(() => new Error('Con esa selección el comunicado no llega a nadie.'));
     return this.comunicadosRepo.save({
       ...borrador, titulo: borrador.titulo.trim(), mensaje: borrador.mensaje.trim(),
-      espacioId, autorId: autor.id, autorNombre: autor.nombre, autorRol: autor.rol, enviado: ahoraIso(),
+      espacioId, autorId: autor.id, autorNombre: autor.nombre, autorRol: autor.rol, enviado: currentDateTimeIso(),
     });
   }
 
@@ -134,7 +134,7 @@ export class AnnouncementsService {
   private simularLecturas(): void {
     const conCuenta = new Set([1, 2, 3, 6]);
     for (const c of this.comunicadosRepo.readNow()) {
-      const antiguedad = Math.min(1, (Date.parse(`${hoyIso()}T12:00:00`) - Date.parse(c.enviado)) / (7 * 86400000));
+      const antiguedad = Math.min(1, (Date.parse(`${todayIso()}T12:00:00`) - Date.parse(c.enviado)) / (7 * 86400000));
       for (const id of this.destinatarios(c)) {
         if (conCuenta.has(id)) continue;
         const r = azar(`${c.id}-${id}`);
@@ -146,10 +146,10 @@ export class AnnouncementsService {
   }
 }
 
-function ahoraIso(): string {
+function currentDateTimeIso(): string {
   const d = new Date();
   const dos = (n: number) => String(n).padStart(2, '0');
-  return `${hoyIso(d)}T${dos(d.getHours())}:${dos(d.getMinutes())}:${dos(d.getSeconds())}`;
+  return `${todayIso(d)}T${dos(d.getHours())}:${dos(d.getMinutes())}:${dos(d.getSeconds())}`;
 }
 
 function azar(semilla: string): number {

@@ -42,7 +42,7 @@ export class OverviewComponent {
 
   readonly data = toSignal<ResumenData | null | undefined>(
     this.resumenService
-      .obtener(this.session.membresiaActiva()!, this.session.usuarioId()!)
+      .obtener(this.session.activeMembership()!, this.session.userId()!)
       .pipe(catchError(() => of(null))),
     { initialValue: undefined }
   );

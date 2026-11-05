@@ -1,0 +1,30 @@
+:host { display: flex; height: 100vh; width: 100%; }
+.admin-navigation { display: flex; flex-shrink: 0; height: 100%; }
+.rail { width: 72px; background: var(--dark-blue); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 0; box-sizing: border-box; }
+.brand { margin-bottom: 12px; }
+.brand img { width: 40px; filter: invert(1); }
+.rail-link { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; background: transparent; color: rgba(255,255,255,.65); font: inherit; font-size: 18px; text-decoration: none; cursor: pointer; }
+.rail-link:hover { background: rgba(255,255,255,.08); color: var(--text-light); }
+.rail-link.active { background: var(--lime-green); color: var(--dark-blue); }
+.rail-link.sign-out { margin-top: auto; }
+.panel { width: 248px; display: flex; flex-direction: column; gap: 4px; padding: 22px 12px; box-sizing: border-box; background: var(--text-light); border-right: 1px solid var(--line); }
+.panel-title { display: flex; flex-direction: column; gap: 4px; padding: 2px 12px 18px; color: var(--dark-blue); }
+.panel-title small { color: var(--muted); font-size: 12px; }
+.panel a { display: flex; align-items: center; gap: 10px; border-radius: 10px; padding: 11px 12px; color: var(--muted); font-size: 14px; text-decoration: none; }
+.panel a:hover { background: var(--page-bg); color: var(--dark-blue); }
+.panel a.active { background: var(--lime-soft); color: var(--dark-blue); font-weight: bold; }
+.panel a fa-icon { width: 19px; text-align: center; }
+main { flex: 1; min-width: 0; overflow-y: auto; }
+@media (max-width: 700px) {
+  :host, .admin-navigation { flex-direction: column; }
+  :host { height: 100vh; }
+  .admin-navigation { height: auto; }
+  .rail { width: 100%; height: 62px; flex-direction: row; overflow-x: auto; padding: 8px; }
+  .brand { margin: 0 8px 0 0; }
+  .brand img { width: 34px; }
+  .rail-link { flex-shrink: 0; }
+  .rail-link.sign-out { margin: 0 0 0 auto; }
+  .panel { width: 100%; flex-direction: row; overflow-x: auto; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .panel-title { display: none; }
+  .panel a { white-space: nowrap; }
+}

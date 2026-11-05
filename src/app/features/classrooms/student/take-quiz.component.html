@@ -14,7 +14,7 @@
           <div><dt>Preguntas</dt><dd>{{ q.preguntas }}</dd></div>
           <div><dt>Tiempo</dt><dd>{{ q.tiempoMin ? q.tiempoMin + ' min' : 'Sin límite' }}</dd></div>
           <div><dt>Intentos</dt><dd>{{ q.intentosHechos }} de {{ q.intentos }}</dd></div>
-          <div><dt>{{ q.cerrado ? 'Cerró' : 'Cierra' }}</dt><dd>{{ fechaCorta(q.cierre) }}, {{ q.horaCierre }}</dd></div>
+          <div><dt>{{ q.cerrado ? 'Cerró' : 'Cierra' }}</dt><dd>{{ formatShortDate(q.cierre) }}, {{ q.horaCierre }}</dd></div>
         </dl>
         @if (q.mejor; as m) {
           <p class="mejor">Tu mejor resultado: <strong>{{ m.puntaje }}/{{ m.puntajeMax }} ({{ porcentaje(m) }}%)</strong></p>

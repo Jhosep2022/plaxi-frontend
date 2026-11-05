@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 // import { HttpClient } from '@angular/common/http'; // MOCK: desconectado del backend
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { PerfilDto, ActualizarPerfilDto } from '../models/PerfilDto'; //src\app\models\perfilDto.ts
+import { ProfileDto, UpdateProfileDto } from '../models/profile.dto';
 // import { environment } from '../../environments/environment'; // MOCK: desconectado del backend
 import { MOCK_DELAY, MOCK_PERFILES } from '../mocks/mock-data';
 
@@ -16,7 +16,7 @@ export class ProfileService {
   constructor() {}
 
   // Obtener todos los perfiles
-  getAllProfiles(): Observable<PerfilDto[]> {
+  getAllProfiles(): Observable<ProfileDto[]> {
     // return this.http.get<PerfilDto[]>(`${this.apiUrl}/all`);
 
     // MOCK
@@ -24,7 +24,7 @@ export class ProfileService {
   }
 
   // Obtener un perfil específico por ID
-  getProfile(idUsuario: number): Observable<PerfilDto> {
+  getProfile(idUsuario: number): Observable<ProfileDto> {
     // return this.http.get<PerfilDto>(`${this.apiUrl}/${idUsuario}`);
 
     // MOCK
@@ -32,7 +32,7 @@ export class ProfileService {
     return of({ ...perfil }).pipe(delay(MOCK_DELAY));
   }
 
-  updateProfile(idUsuario: number, perfilDto: ActualizarPerfilDto): Observable<any> {
+  updateProfile(idUsuario: number, perfilDto: UpdateProfileDto): Observable<any> {
     // const formData = new FormData();
     // formData.append('username', perfilDto.username);
     // formData.append('gmail', perfilDto.gmail);

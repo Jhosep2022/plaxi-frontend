@@ -4,7 +4,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPrint, faSchool } from '@fortawesome/free-solid-svg-icons';
 import { paraleloLabel } from '../../core/models/academics.model';
 import { aprobado, boletinDe, indiceNotas, promedio } from '../../core/utils/grades';
-import { fechaLarga, hoyIso } from '../../core/utils/attendance';
+import { formatLongDate, todayIso } from '../../core/utils/attendance';
 import { DatosParalelo } from '../../services/grades.service';
 import { InstitutionService } from '../../services/institution.service';
 import { subjectIcon } from '../ui/academic-icons';
@@ -107,7 +107,7 @@ export class ReportCardComponent {
   readonly faPrint = faPrint;
   readonly faSchool = faSchool;
   readonly subjectIcon = subjectIcon;
-  readonly emitido = fechaLarga(hoyIso());
+  readonly emitido = formatLongDate(todayIso());
 
   // Logo, nombre, lema y autoridades de la institución
   private institucionService = inject(InstitutionService);

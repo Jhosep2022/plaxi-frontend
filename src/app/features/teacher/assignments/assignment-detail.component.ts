@@ -7,8 +7,8 @@ import { faArrowLeft, faClock, faPaperclip, faStar, faTasks } from '@fortawesome
 import { SessionService } from '../../../core/auth/session.service';
 import { iniciales } from '../../../core/models/people.model';
 import { ESTADO_ENTREGA } from '../../../core/models/assignments.model';
-import { fechaCorta, fechaLarga } from '../../../core/utils/attendance';
-import { venceLabel } from '../../../core/utils/assignments';
+import { formatShortDate, formatLongDate } from '../../../core/utils/attendance';
+import { formatDueDate } from '../../../core/utils/assignments';
 import { FilaEntrega, RevisionEntrega, AssignmentsService } from '../../../services/assignments.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -41,8 +41,8 @@ export class AssignmentDetailComponent {
   readonly estados = ESTADO_ENTREGA;
   readonly iniciales = iniciales;
   readonly subjectIcon = subjectIcon;
-  readonly venceLabel = venceLabel;
-  readonly fechaLarga = fechaLarga;
+  readonly formatDueDate = formatDueDate;
+  readonly formatLongDate = formatLongDate;
   readonly faArrowLeft = faArrowLeft;
   readonly faClock = faClock;
   readonly faPaperclip = faPaperclip;
@@ -79,7 +79,7 @@ export class AssignmentDetailComponent {
   });
 
   ruta(...segmentos: (string | number)[]) {
-    return this.session.rutaRol(...segmentos);
+    return this.session.roleRoute(...segmentos);
   }
 
   edicion(id: number): Edicion {
@@ -120,7 +120,7 @@ export class AssignmentDetailComponent {
     if (this.hayErrores() || !this.cambios().length) return;
     this.guardando.set(true);
     try {
-      const n = await firstValueFrom(this.servicio.revisar(this.session.espacioActivo()!.id, Number(this.tareaId()), this.cambios()));
+      const n = await firstValueFrom(this.servicio.revisar(this.session.activeSpace()!.id, Number(this.tareaId()), this.cambios()));
       this.avisos.success(`${n} ${n === 1 ? 'entrega revisada' : 'entregas revisadas'}${this.conNota() ? ' y notas guardadas en la planilla' : ''}.`);
       this.datos.reload();
     } catch (error) {
@@ -132,7 +132,7 @@ export class AssignmentDetailComponent {
 
   entregadaLabel(f: FilaEntrega): string {
     const iso = f.entrega?.entregadaEl;
-    return iso ? `${fechaCorta(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '';
+    return iso ? `${formatShortDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '';
   }
 
   private original(f: FilaEntrega): Edicion {

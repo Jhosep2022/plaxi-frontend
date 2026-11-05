@@ -3,14 +3,14 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 // import { catchError } from 'rxjs/operators'; // MOCK: desconectado del backend
-import { Categoria } from '../models/categoriaDto';
+import { Category } from '../models/category.dto';
 // import { environment } from '../../environments/environment'; // MOCK: desconectado del backend
 import { MOCK_CATEGORIAS, MOCK_DELAY, nextId } from '../mocks/mock-data';
 
 @Injectable({
   providedIn: 'root'
 })
-export class CategoriaService {
+export class CategoryService {
 
   // private apiUrl = `${environment.API_URL}/categorias`; // MOCK: desconectado del backend
 
@@ -18,7 +18,7 @@ export class CategoriaService {
   constructor() {}
 
   // Obtener todas las categorías
-  getAllCategorias(): Observable<Categoria[]> {
+  getAllCategories(): Observable<Category[]> {
     // return this.http.get<Categoria[]>(this.apiUrl)
     //   .pipe(
     //     catchError(this.handleError)
@@ -29,7 +29,7 @@ export class CategoriaService {
   }
 
   // Obtener una categoría por su ID
-  getCategoriaById(id: number): Observable<Categoria> {
+  getCategoryById(id: number): Observable<Category> {
     // const url = `${this.apiUrl}/${id}`;
     // return this.http.get<Categoria>(url)
     //   .pipe(
@@ -42,7 +42,7 @@ export class CategoriaService {
   }
 
   // Crear una nueva categoría
-  createCategoria(categoria: Categoria): Observable<Categoria> {
+  createCategory(categoria: Category): Observable<Category> {
     // return this.http.post<Categoria>(this.apiUrl, categoria, this.httpOptions())
     //   .pipe(
     //     catchError(this.handleError)
@@ -55,7 +55,7 @@ export class CategoriaService {
   }
 
   // Actualizar una categoría existente
-  updateCategoria(id: number, categoria: Categoria): Observable<Categoria> {
+  updateCategory(id: number, categoria: Category): Observable<Category> {
     // const url = `${this.apiUrl}/${id}`;
     // return this.http.put<Categoria>(url, categoria, this.httpOptions())
     //   .pipe(
@@ -70,7 +70,7 @@ export class CategoriaService {
   }
 
   // Eliminar una categoría por su ID
-  deleteCategoria(id: number): Observable<void> {
+  deleteCategory(id: number): Observable<void> {
     // const url = `${this.apiUrl}/${id}`;
     // return this.http.delete<void>(url)
     //   .pipe(

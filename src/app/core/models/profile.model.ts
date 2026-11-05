@@ -1,5 +1,5 @@
-import type { PerfilDto } from '../../models/PerfilDto';
-import type { Rol, TipoEspacio } from './espacio.model';
+import type { ProfileDto } from '../../models/profile.dto';
+import type { SpaceRole, SpaceType } from './space.model';
 
 // Datos del perfil que no vienen en PerfilDto (cuando exista el backend serán parte de /perfil)
 export interface EnlacesPerfil {
@@ -43,7 +43,7 @@ export interface PerfilExtra {
   dispositivos: Dispositivo[];
 }
 
-export interface Perfil extends PerfilDto, PerfilExtra {}
+export interface Perfil extends ProfileDto, PerfilExtra {}
 
 // Dato destacado de la cabecera del perfil (cambia según el rol)
 export interface IndicadorPerfil {
@@ -58,15 +58,15 @@ export interface EspacioDelPerfil {
   espacioId: number;
   slug: string;
   nombre: string;
-  tipo: TipoEspacio;
-  rol: Rol;
+  tipo: SpaceType;
+  rol: SpaceRole;
   desde: string; // YYYY-MM-DD
   puedeSalir: boolean;
   motivo: string; // por qué no puede salir ('' si puede)
 }
 
 // Tipos de aviso que el usuario puede configurar (algunos solo aplican a ciertos roles o espacios)
-export const NOTIFICACIONES: { id: TipoNotificacion; label: string; descripcion: string; roles?: Rol[]; tipo?: TipoEspacio }[] = [
+export const NOTIFICACIONES: { id: TipoNotificacion; label: string; descripcion: string; roles?: SpaceRole[]; tipo?: SpaceType }[] = [
   { id: 'comunicados', label: 'Comunicados', descripcion: 'Avisos de la dirección o de tus docentes.' },
   { id: 'tareas', label: 'Tareas', descripcion: 'Tareas nuevas, entregas y revisiones.' },
   { id: 'calificaciones', label: 'Calificaciones', descripcion: 'Cuando se publica una nota nueva.', roles: ['estudiante', 'padre', 'docente'] },

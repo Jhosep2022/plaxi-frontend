@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faCircleXmark, faClock, faFilm, faUsers, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { PLATAFORMAS } from '../../core/models/sessions.model';
-import { fechaCorta, hoyIso, sumarDias } from '../../core/utils/attendance';
+import { formatShortDate, todayIso, addDays } from '../../core/utils/attendance';
 import { SesionVista } from '../../services/sessions.service';
 
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
@@ -72,6 +72,6 @@ export class SessionCardComponent {
   readonly plataforma = computed(() => PLATAFORMAS.find((p) => p.id === this.sesion().plataforma)?.label ?? '');
   readonly cuando = computed(() => {
     const f = this.sesion().fecha;
-    return f === hoyIso() ? 'Hoy' : f === sumarDias(hoyIso(), 1) ? 'Mañana' : fechaCorta(f);
+    return f === todayIso() ? 'Hoy' : f === addDays(todayIso(), 1) ? 'Mañana' : formatShortDate(f);
   });
 }
