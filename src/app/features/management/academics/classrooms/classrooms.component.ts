@@ -45,8 +45,8 @@ export class ClassroomsComponent {
   readonly faUsers = faUsers;
   readonly faDoorOpen = faDoorOpen;
 
-  readonly aulas = rxResource({ stream: () => this.academico.aulas(this.espacioId), defaultValue: [] });
-  private readonly paralelos = rxResource({ stream: () => this.academico.paralelosActivos(this.espacioId), defaultValue: [] });
+  readonly aulas = rxResource({ stream: () => this.academico.getClassrooms(this.espacioId), defaultValue: [] });
+  private readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
 
   readonly filtro = signal<TipoAula | 'todas'>('todas');
 
@@ -105,7 +105,7 @@ export class ClassroomsComponent {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.academico.guardarAula({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId }));
+        await firstValueFrom(this.academico.saveClassroom({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId }));
         this.avisos.success(this.editandoId() ? 'Aula actualizada.' : 'Aula creada.');
         this.drawerAbierto.set(false);
         this.aulas.reload();
@@ -120,7 +120,7 @@ export class ClassroomsComponent {
   async eliminar(aula: Aula): Promise<void> {
     if (!confirm(`¿Eliminar "${aula.nombre}"?`)) return;
     try {
-      await firstValueFrom(this.academico.eliminarAula(aula));
+      await firstValueFrom(this.academico.deleteClassroom(aula));
       this.avisos.success('Aula eliminada.');
       this.aulas.reload();
     } catch (error) {

@@ -196,7 +196,7 @@ export class TeacherClassroomComponent {
   readonly invitando = signal(false);
   readonly solicitudes = rxResource({
     params: () => this.aula.value(),
-    stream: ({ params }) => (params?.tipo === 'curso' ? this.academia.solicitudes(this.espacio.id, this.docenteId, params.id) : of([])),
+    stream: ({ params }) => (params?.tipo === 'curso' ? this.academia.getRequests(this.espacio.id, this.docenteId, params.id) : of([])),
     defaultValue: [],
   });
 
@@ -207,7 +207,7 @@ export class TeacherClassroomComponent {
 
   async responder(s: Solicitud, aprobar: boolean): Promise<void> {
     try {
-      await firstValueFrom(this.academia.responder(s.idInscripcion, aprobar));
+      await firstValueFrom(this.academia.respondToRequest(s.idInscripcion, aprobar));
       this.avisos.success(aprobar ? `${s.nombre} ya está inscrito en el curso.` : 'Solicitud rechazada.');
       this.solicitudes.reload();
       this.aula.reload();
@@ -220,7 +220,7 @@ export class TeacherClassroomComponent {
   async quitarEstudiante(id: number, nombre: string): Promise<void> {
     if (!confirm(`¿Quitar a ${nombre} del curso? Dejará de ver el contenido.`)) return;
     try {
-      await firstValueFrom(this.academia.quitar(this.id(), id));
+      await firstValueFrom(this.academia.removeStudent(this.id(), id));
       this.avisos.success(`${nombre} ya no está en el curso.`);
       this.aula.reload();
       this.extra.reload();

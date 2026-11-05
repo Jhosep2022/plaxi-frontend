@@ -66,7 +66,7 @@ export class SentComponent {
   readonly cursos = rxResource({
     params: () => this.esDireccion(),
     stream: ({ params }) =>
-      forkJoin({ paralelos: this.academico.paralelosActivos(this.espacio.id), asignaciones: params ? of([]) : this.academico.asignacionesActivas(this.espacio.id) }),
+      forkJoin({ paralelos: this.academico.getActiveClassGroups(this.espacio.id), asignaciones: params ? of([]) : this.academico.getActiveAllocations(this.espacio.id) }),
   });
   readonly cursosDisponibles = computed(() => {
     const c = this.cursos.value();

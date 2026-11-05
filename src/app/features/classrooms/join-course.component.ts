@@ -92,7 +92,7 @@ export class JoinCourseComponent {
   readonly faUserCheck = faUserCheck;
   readonly faUsers = faUsers;
 
-  readonly curso = rxResource({ params: () => this.codigo(), stream: ({ params }) => this.academia.cursoPorCodigo(params, this.session.usuarioId()) });
+  readonly curso = rxResource({ params: () => this.codigo(), stream: ({ params }) => this.academia.getCourseByCode(params, this.session.usuarioId()) });
   private readonly nuevoEstado = signal<string | null>(null);
   readonly estado = computed(() => this.nuevoEstado() ?? this.curso.value()?.estado ?? 'ninguna');
   readonly uniendo = signal(false);
@@ -110,7 +110,7 @@ export class JoinCourseComponent {
     this.uniendo.set(true);
     this.error.set('');
     try {
-      const estado = await firstValueFrom(this.academia.inscribirse(c.aula.id, usuarioId));
+      const estado = await firstValueFrom(this.academia.enroll(c.aula.id, usuarioId));
       await firstValueFrom(this.session.iniciarSesion(usuarioId)); // suma el espacio de la academia a sus espacios
       this.nuevoEstado.set(estado);
       if (estado === 'ACTIVA') this.irAlCurso();

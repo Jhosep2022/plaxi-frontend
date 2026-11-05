@@ -4,19 +4,19 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCompass } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'app-no-encontrado',
+  selector: 'app-not-found',
   imports: [RouterLink, FaIconComponent],
-  styleUrls: ['./estado-pagina.css'],
+  styleUrls: ['./status-page.css'],
   template: `
-    <div class="estado">
-      <div class="icono"><fa-icon [icon]="faCompass" /></div>
-      <p class="codigo">ERROR 404</p>
+    <div class="status">
+      <div class="icon"><fa-icon [icon]="faCompass" /></div>
+      <p class="code">ERROR 404</p>
       <h1>Página no encontrada</h1>
       <p>La dirección que buscas no existe o ya no está disponible.</p>
-      <a routerLink="/" class="boton">Volver al inicio</a>
+      <a routerLink="/" class="button">Volver al inicio</a>
     </div>
   `,
 })
-export class NoEncontradoComponent {
+export class NotFoundComponent {
   readonly faCompass = faCompass;
 }

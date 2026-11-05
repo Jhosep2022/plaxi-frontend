@@ -60,9 +60,9 @@ export class MyGradesComponent {
         switchMap((id) =>
           !id
             ? of(null)
-            : forkJoin({ perfil: this.perfiles.getProfile(id), paraleloId: this.academico.paraleloDeEstudiante(id) }).pipe(
+            : forkJoin({ perfil: this.perfiles.getProfile(id), paraleloId: this.academico.getStudentClassGroup(id) }).pipe(
                 switchMap(({ perfil, paraleloId }) =>
-                  this.calificaciones.datosDeParalelo(this.espacio.id, paraleloId).pipe(map((datos) => (datos ? { estudiante: { id, nombre: datos.estudiantes.find((e) => e.id === id)?.nombre ?? perfil.nombre }, datos } : null)))
+                  this.calificaciones.getClassGroupData(this.espacio.id, paraleloId).pipe(map((datos) => (datos ? { estudiante: { id, nombre: datos.estudiantes.find((e) => e.id === id)?.nombre ?? perfil.nombre }, datos } : null)))
                 )
               )
         )

@@ -56,7 +56,7 @@ export class TimeClockDisplayComponent {
   readonly puntoId = input.required({ transform: numberAttribute });
   readonly total = SEGUNDOS_POR_CODIGO;
 
-  readonly puntos = rxResource({ stream: () => this.marcacion.puntos(this.espacio.id), defaultValue: [] });
+  readonly puntos = rxResource({ stream: () => this.marcacion.getLocations(this.espacio.id), defaultValue: [] });
   readonly punto = computed(() => this.puntos.value().find((p) => p.id === this.puntoId() && p.activo) ?? null);
 
   // Reloj que avanza cada segundo

@@ -84,7 +84,7 @@ export class WorkScheduleComponent {
   private readonly espacioId = inject(SessionService).espacioActivo()!.id;
 
   readonly turnos = TURNOS;
-  readonly horario = rxResource({ stream: () => this.marcacion.horarioLaboral(this.espacioId) });
+  readonly horario = rxResource({ stream: () => this.marcacion.getWorkSchedule(this.espacioId) });
   readonly modelo = linkedSignal(() => aModelo(this.horario.value()));
   readonly formulario = form(this.modelo, (s) => {
     min(s.toleranciaMin, 0, { message: 'La tolerancia no puede ser negativa.' });
@@ -101,7 +101,7 @@ export class WorkScheduleComponent {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.marcacion.guardarHorarioLaboral({ id: this.espacioId, ...this.modelo() }));
+        await firstValueFrom(this.marcacion.saveWorkSchedule({ id: this.espacioId, ...this.modelo() }));
         this.avisos.success('Horario laboral guardado.');
         this.horario.reload();
       } catch (error) {

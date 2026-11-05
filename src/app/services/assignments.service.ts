@@ -90,10 +90,10 @@ export class AssignmentsService {
     if (!t) return of(null).pipe(delay(MOCK_DELAY));
     return from(this.infoDe([t])).pipe(
       switchMap(([tarea]) =>
-        (t.actividadId ? this.calificaciones.notasDeActividad(t.actividadId) : of([])).pipe(
+        (t.actividadId ? this.calificaciones.getActivityGrades(t.actividadId) : of([])).pipe(
           map((notas) => ({
             tarea,
-            cerrado: !!t.actividadId && this.calificaciones.actividadCerrada(t.actividadId),
+            cerrado: !!t.actividadId && this.calificaciones.isActivityClosed(t.actividadId),
             filas: this.alumnosDe(t).map((estudiante) => {
               const entrega = this.entregasRepo.readNow((e) => e.tareaId === t.id && e.estudianteId === estudiante.id)[0] ?? null;
               return {
@@ -123,18 +123,18 @@ export class AssignmentsService {
     const gestion = MOCK_GESTIONES.find((g) => g.espacioId === espacioId && g.estado === 'activa');
     if (!gestion) return throwError(() => new Error('No hay una gestión activa.'));
     return this.calificaciones
-      .guardarActividad({ espacioId, gestionId: gestion.id, periodo: periodoDeFecha(gestion, datos.entrega), paraleloId: aula.paraleloId, materiaId: aula.materiaId, criterioId, nombre: tarea.titulo, fecha: datos.entrega, docenteId })
+      .saveActivity({ espacioId, gestionId: gestion.id, periodo: periodoDeFecha(gestion, datos.entrega), paraleloId: aula.paraleloId, materiaId: aula.materiaId, criterioId, nombre: tarea.titulo, fecha: datos.entrega, docenteId })
       .pipe(switchMap((actividad) => this.tareasRepo.save({ ...tarea, actividadId: actividad.id })));
   }
 
   // Elimina la tarea y sus entregas (la actividad de la planilla se quita solo si todavía no tiene notas)
   eliminar(tarea: Tarea): Observable<void> {
-    return (tarea.actividadId ? this.calificaciones.notasDeActividad(tarea.actividadId) : of([])).pipe(
+    return (tarea.actividadId ? this.calificaciones.getActivityGrades(tarea.actividadId) : of([])).pipe(
       switchMap(async (notas) => {
         for (const e of this.entregasRepo.readNow((x) => x.tareaId === tarea.id)) this.entregasRepo.delete(e.id);
-        const actividad = tarea.actividadId ? this.calificaciones.actividad(tarea.actividadId) : undefined;
-        if (actividad && !notas.length && !this.calificaciones.actividadCerrada(actividad.id)) {
-          await firstValueFrom(this.calificaciones.eliminarActividad(actividad));
+        const actividad = tarea.actividadId ? this.calificaciones.getActivity(tarea.actividadId) : undefined;
+        if (actividad && !notas.length && !this.calificaciones.isActivityClosed(actividad.id)) {
+          await firstValueFrom(this.calificaciones.deleteActivity(actividad));
         }
         await firstValueFrom(this.tareasRepo.delete(tarea.id));
       })
@@ -146,7 +146,7 @@ export class AssignmentsService {
     const tarea = this.tareasRepo.readNow((t) => t.id === tareaId)[0];
     if (!tarea) return throwError(() => new Error('La tarea ya no existe.'));
     const notas$ = tarea.actividadId
-      ? this.calificaciones.guardarNotas(espacioId, revisiones.map((r) => ({ actividadId: tarea.actividadId, estudianteId: r.estudianteId, valor: r.nota })))
+      ? this.calificaciones.saveGrades(espacioId, revisiones.map((r) => ({ actividadId: tarea.actividadId, estudianteId: r.estudianteId, valor: r.nota })))
       : of(0);
     return notas$.pipe(
       map(() => {
@@ -170,7 +170,7 @@ export class AssignmentsService {
     return from(this.infoDe(tareas)).pipe(
       switchMap(async (info) => {
         const lista: TareaDeEstudiante[] = [];
-        const notas = info.some((t) => t.actividadId) ? await firstValueFrom(this.calificaciones.notasDeEstudiante(estudianteId)) : [];
+        const notas = info.some((t) => t.actividadId) ? await firstValueFrom(this.calificaciones.getStudentGrades(estudianteId)) : [];
         for (const tarea of info) {
           const entrega = this.entregasRepo.readNow((e) => e.tareaId === tarea.id && e.estudianteId === estudianteId)[0] ?? null;
           lista.push({
@@ -208,9 +208,9 @@ export class AssignmentsService {
   private async infoDe(tareas: Tarea[]): Promise<TareaInfo[]> {
     const lista: TareaInfo[] = [];
     if (!tareas.length) return lista;
-    const config = await firstValueFrom(this.calificaciones.config(tareas[0].espacioId)); // todas son del mismo espacio
+    const config = await firstValueFrom(this.calificaciones.getConfig(tareas[0].espacioId)); // todas son del mismo espacio
     for (const t of tareas) {
-      const actividad = this.calificaciones.actividad(t.actividadId);
+      const actividad = this.calificaciones.getActivity(t.actividadId);
       const criterioId = actividad?.criterioId ?? 0;
       const paralelo = MOCK_PARALELOS.find((p) => p.id === t.paraleloId);
       const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === t.aulaId);

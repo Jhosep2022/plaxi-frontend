@@ -38,8 +38,8 @@ export class EnrollmentsComponent {
   readonly faUserMinus = faUserMinus;
   private readonly hoy = hoyIso();
 
-  readonly gestion = rxResource({ stream: () => this.academico.gestionActiva(this.espacioId) });
-  readonly paralelos = rxResource({ stream: () => this.academico.paralelosActivos(this.espacioId), defaultValue: [] });
+  readonly gestion = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
+  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
   readonly estudiantes = rxResource({ stream: () => this.personas.estudiantes(), defaultValue: [] });
 
   // Paralelos agrupados por nivel

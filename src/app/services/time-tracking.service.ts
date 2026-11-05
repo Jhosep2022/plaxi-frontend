@@ -38,40 +38,40 @@ export class TimeTrackingService {
   private marcacionesRepo = new MockRepository<Marcacion>(MOCK_MARCACIONES);
 
   // ---------- Puntos de marcación ----------
-  puntos(espacioId: number): Observable<PuntoMarcacion[]> {
+  getLocations(espacioId: number): Observable<PuntoMarcacion[]> {
     return this.puntosRepo.list((p) => p.espacioId === espacioId);
   }
 
-  guardarPunto(punto: Omit<PuntoMarcacion, 'id' | 'secreto'> & { id?: number }): Observable<PuntoMarcacion> {
+  saveLocation(punto: Omit<PuntoMarcacion, 'id' | 'secreto'> & { id?: number }): Observable<PuntoMarcacion> {
     const previo = this.puntosRepo.readNow((p) => p.id === punto.id)[0];
     const secreto = previo?.secreto ?? `punto-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     return this.puntosRepo.save({ ...punto, secreto });
   }
 
-  eliminarPunto(id: number): Observable<void> {
+  deleteLocation(id: number): Observable<void> {
     return this.puntosRepo.delete(id);
   }
 
   // Código vigente de un punto (lo muestra la pantalla de marcación)
-  codigoVigente(punto: PuntoMarcacion): string {
+  getCurrentCode(punto: PuntoMarcacion): string {
     return codigoDeVentana(punto.secreto, ventanaActual());
   }
 
   // ---------- Horario laboral ----------
-  horarioLaboral(espacioId: number): Observable<HorarioLaboral> {
+  getWorkSchedule(espacioId: number): Observable<HorarioLaboral> {
     return this.horariosRepo.list((h) => h.id === espacioId).pipe(
       map(([h]) => h ?? { id: espacioId, toleranciaMin: 10, turnos: [{ turno: 'manana', entrada: '07:15', salida: '14:00' }] })
     );
   }
 
-  guardarHorarioLaboral(horario: HorarioLaboral): Observable<HorarioLaboral> {
+  saveWorkSchedule(horario: HorarioLaboral): Observable<HorarioLaboral> {
     const invalido = horario.turnos.find((t) => toMinutes(t.salida) <= toMinutes(t.entrada));
     if (invalido) return throwError(() => new Error('La salida debe ser posterior a la entrada en cada turno.'));
     return this.horariosRepo.save(horario);
   }
 
   // Turno y horario esperado de un docente en una fecha (null si ese día no tiene clases)
-  esperado(espacioId: number, docenteId: number, fecha: string): Esperado | null {
+  getExpectedAttendance(espacioId: number, docenteId: number, fecha: string): Esperado | null {
     const jornada = MOCK_JORNADAS.find((j) => j.espacioId === espacioId);
     const horario = this.horariosRepo.readNow((h) => h.id === espacioId)[0];
     if (!jornada || !horario) return null;
@@ -88,31 +88,31 @@ export class TimeTrackingService {
   }
 
   // Docentes que deben marcar en una fecha (los que tienen clases ese día)
-  docentesEsperados(espacioId: number, fecha: string): { docenteId: number; esperado: Esperado }[] {
+  getExpectedTeachers(espacioId: number, fecha: string): { docenteId: number; esperado: Esperado }[] {
     const ids = [...new Set(MOCK_CLASES.map((c) => docenteDe(MOCK_ASIGNACIONES, c.paraleloId, c.materiaId)))].filter(Boolean);
     return ids.flatMap((docenteId) => {
-      const esperado = this.esperado(espacioId, docenteId, fecha);
+      const esperado = this.getExpectedAttendance(espacioId, docenteId, fecha);
       return esperado ? [{ docenteId, esperado }] : [];
     });
   }
 
   // ---------- Marcaciones ----------
-  marcacionesDe(docenteId: number): Observable<Marcacion[]> {
+  getTeacherEntries(docenteId: number): Observable<Marcacion[]> {
     return this.marcacionesRepo.list((m) => m.docenteId === docenteId).pipe(
       map((ms) => ms.sort((a, b) => b.fecha.localeCompare(a.fecha) || a.hora.localeCompare(b.hora)))
     );
   }
 
-  marcacionesDelDia(espacioId: number, fecha: string): Observable<Marcacion[]> {
+  getEntriesForDay(espacioId: number, fecha: string): Observable<Marcacion[]> {
     return this.marcacionesRepo.list((m) => m.espacioId === espacioId && m.fecha === fecha);
   }
 
-  marcacionesEntre(espacioId: number, desde: string, hasta: string): Observable<Marcacion[]> {
+  getEntriesBetween(espacioId: number, desde: string, hasta: string): Observable<Marcacion[]> {
     return this.marcacionesRepo.list((m) => m.espacioId === espacioId && m.fecha >= desde && m.fecha <= hasta);
   }
 
   // Registra una entrada o salida validando punto, ubicación, código y secuencia
-  marcar(s: SolicitudMarcacion): Observable<Marcacion> {
+  recordEntry(s: SolicitudMarcacion): Observable<Marcacion> {
     const fallo = (mensaje: string) => throwError(() => new Error(mensaje));
     const punto = this.puntosRepo.readNow((p) => p.id === s.puntoId && p.espacioId === s.espacioId)[0];
     if (!punto || !punto.activo) return fallo('El punto de marcación no existe o está desactivado.');
@@ -134,7 +134,7 @@ export class TimeTrackingService {
 
     const ahora = new Date();
     const hora = toTime(ahora.getHours() * 60 + ahora.getMinutes());
-    const esperado = this.esperado(s.espacioId, s.docenteId, fecha);
+    const esperado = this.getExpectedAttendance(s.espacioId, s.docenteId, fecha);
     const tolerancia = this.horariosRepo.readNow((h) => h.id === s.espacioId)[0]?.toleranciaMin ?? 10;
     let estado: Marcacion['estado'] = s.tipo === 'entrada' ? 'a-tiempo' : 'salida';
     let minutos = 0;

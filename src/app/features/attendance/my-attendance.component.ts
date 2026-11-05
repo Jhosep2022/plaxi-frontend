@@ -71,9 +71,9 @@ export class MyAttendanceComponent {
     stream: ({ params }) =>
       params
         ? forkJoin({
-            registros: this.asistencia.registrosDeEstudiante(params),
-            licencias: this.asistencia.licenciasDeEstudiante(params),
-            materias: this.academico.materias(this.espacio.id),
+            registros: this.asistencia.getStudentRecords(params),
+            licencias: this.asistencia.getStudentLeaveRequests(params),
+            materias: this.academico.getSubjects(this.espacio.id),
           })
         : of(null),
   });
@@ -147,7 +147,7 @@ export class MyAttendanceComponent {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.asistencia.solicitarLicencia({
+        await firstValueFrom(this.asistencia.requestLeave({
           espacioId: this.espacio.id,
           estudianteId: est.id,
           solicitadaPor: this.usuarioId,

@@ -36,11 +36,11 @@ export class AllocationsComponent {
   readonly faChalkboardTeacher = faChalkboardTeacher;
   readonly faTriangleExclamation = faTriangleExclamation;
 
-  readonly gestion = rxResource({ stream: () => this.academico.gestionActiva(this.espacioId) });
-  readonly paralelos = rxResource({ stream: () => this.academico.paralelosActivos(this.espacioId), defaultValue: [] });
-  readonly materias = rxResource({ stream: () => this.academico.materias(this.espacioId), defaultValue: [] });
-  readonly docentes = rxResource({ stream: () => this.academico.docentes(this.espacioId), defaultValue: [] });
-  readonly asignaciones = rxResource({ stream: () => this.academico.asignacionesActivas(this.espacioId), defaultValue: [] });
+  readonly gestion = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
+  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
+  readonly materias = rxResource({ stream: () => this.academico.getSubjects(this.espacioId), defaultValue: [] });
+  readonly docentes = rxResource({ stream: () => this.academico.getTeachers(this.espacioId), defaultValue: [] });
+  readonly asignaciones = rxResource({ stream: () => this.academico.getActiveAllocations(this.espacioId), defaultValue: [] });
 
   // Paralelo elegido: por defecto el primero; se mantiene la elección mientras exista
   readonly seleccionadoId = linkedSignal<Paralelo[], number>({
@@ -105,7 +105,7 @@ export class AllocationsComponent {
     if (!p || !gestion) return;
     this.guardandoMateria.set(materiaId);
     try {
-      await firstValueFrom(this.academico.asignar(this.espacioId, gestion.id, p.id, materiaId, docenteId));
+      await firstValueFrom(this.academico.assignTeacher(this.espacioId, gestion.id, p.id, materiaId, docenteId));
       const docente = this.docentes.value().find((d) => d.id === docenteId);
       this.avisos.success(docente ? `${docente.nombre} asignado a ${paraleloLabel(p)}.` : 'Docente quitado de la materia.');
       this.asignaciones.reload();

@@ -29,7 +29,7 @@ export const routes: Routes = [
   {
     path: 'no-autorizado',
     title: 'Sin acceso',
-    loadComponent: () => import('./shared/pages/no-autorizado.component').then((m) => m.NoAutorizadoComponent),
+    loadComponent: () => import('./shared/pages/forbidden.component').then((m) => m.ForbiddenComponent),
   },
 
   // Pantalla de QR para la entrada del colegio (pantalla completa, sin sidebar)
@@ -58,6 +58,6 @@ export const routes: Routes = [
   {
     path: '**',
     title: 'Página no encontrada',
-    loadComponent: () => import('./shared/pages/no-encontrado.component').then((m) => m.NoEncontradoComponent),
+    loadComponent: () => import('./shared/pages/not-found.component').then((m) => m.NotFoundComponent),
   },
 ];

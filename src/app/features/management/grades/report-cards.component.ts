@@ -116,7 +116,7 @@ export class ReportCardsComponent {
   readonly espacio = inject(SessionService).espacioActivo()!;
 
   readonly paralelos = rxResource({
-    stream: () => this.academico.paralelosActivos(this.espacio.id),
+    stream: () => this.academico.getActiveClassGroups(this.espacio.id),
     defaultValue: [],
   });
   private readonly ordenados = computed(() => [...this.paralelos.value()].sort(compararParalelos));
@@ -130,7 +130,7 @@ export class ReportCardsComponent {
 
   readonly datos = rxResource({
     params: () => this.paraleloId(),
-    stream: ({ params }) => (params ? this.calificaciones.datosDeParalelo(this.espacio.id, params) : of(null)),
+    stream: ({ params }) => (params ? this.calificaciones.getClassGroupData(this.espacio.id, params) : of(null)),
   });
 
   readonly busqueda = signal('');

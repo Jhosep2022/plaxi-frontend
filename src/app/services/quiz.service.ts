@@ -100,7 +100,7 @@ export class QuizService {
     if (criterioId && !actividadId && aula?.tipo === 'clase') {
       const gestion = MOCK_GESTIONES.find((g) => g.espacioId === espacioId && g.estado === 'activa');
       if (!gestion) throw new Error('No hay una gestión activa.');
-      const actividad = await firstValueFrom(this.calificaciones.guardarActividad({
+      const actividad = await firstValueFrom(this.calificaciones.saveActivity({
         espacioId, gestionId: gestion.id, periodo: periodoDeFecha(gestion, b.cierre), paraleloId: aula.paraleloId, materiaId: aula.materiaId,
         criterioId, nombre: b.titulo.trim(), fecha: b.cierre, docenteId,
       }));
@@ -182,10 +182,10 @@ export class QuizService {
     }));
     if (quiz.actividadId) {
       const mejor = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === quizId && x.estudianteId === estudianteId))[0];
-      const config = await firstValueFrom(this.calificaciones.config(espacioId));
+      const config = await firstValueFrom(this.calificaciones.getConfig(espacioId));
       const nota = Math.round((mejor.puntaje / Math.max(1, mejor.puntajeMax)) * config.notaMaxima);
       try {
-        await firstValueFrom(this.calificaciones.guardarNotas(espacioId, [{ actividadId: quiz.actividadId, estudianteId, valor: nota }]));
+        await firstValueFrom(this.calificaciones.saveGrades(espacioId, [{ actividadId: quiz.actividadId, estudianteId, valor: nota }]));
       } catch {
         // Periodo cerrado: el intento queda registrado pero la nota ya no cambia
       }

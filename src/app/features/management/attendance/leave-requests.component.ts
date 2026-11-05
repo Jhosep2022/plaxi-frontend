@@ -40,9 +40,9 @@ export class LeaveRequestsComponent {
 
   readonly datos = rxResource({
     stream: () => forkJoin({
-      licencias: this.asistencia.licencias(this.espacioId),
-      estudiantes: this.asistencia.estudiantes(),
-      paralelos: this.academico.paralelosActivos(this.espacioId),
+      licencias: this.asistencia.getLeaveRequests(this.espacioId),
+      estudiantes: this.asistencia.getStudents(),
+      paralelos: this.academico.getActiveClassGroups(this.espacioId),
       perfiles: this.perfiles.getAllProfiles(),
     }),
   });
@@ -92,7 +92,7 @@ export class LeaveRequestsComponent {
     }
     this.guardando.set(true);
     try {
-      await firstValueFrom(this.asistencia.responderLicencia(r.licencia, r.estado, this.comentario().trim()));
+      await firstValueFrom(this.asistencia.respondToLeaveRequest(r.licencia, r.estado, this.comentario().trim()));
       this.avisos.success(r.estado === 'aprobada' ? 'Licencia aprobada. La asistencia de esos días quedó como licencia.' : 'Licencia rechazada.');
       this.respondiendo.set(null);
       this.datos.reload();

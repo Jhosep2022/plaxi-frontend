@@ -89,7 +89,7 @@ export class TimeTrackingHistoryComponent {
   readonly faClock = faClock;
   readonly faRightFromBracket = faRightFromBracket;
 
-  readonly marcaciones = rxResource({ stream: () => this.marcacion.marcacionesDe(this.session.usuarioId()!), defaultValue: [] });
+  readonly marcaciones = rxResource({ stream: () => this.marcacion.getTeacherEntries(this.session.usuarioId()!), defaultValue: [] });
 
   readonly dias = computed(() => {
     const porFecha = new Map<string, { entrada?: Marcacion; salida?: Marcacion }>();

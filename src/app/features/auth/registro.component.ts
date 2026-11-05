@@ -61,7 +61,7 @@ export class RegistroComponent implements OnInit {
   // Curso de la invitación (si llegó con un código)
   readonly invitacion = rxResource({
     params: () => this.codigoInicial(),
-    stream: ({ params }) => (params ? this.academia.cursoPorCodigo(params, null) : of(null)),
+    stream: ({ params }) => (params ? this.academia.getCourseByCode(params, null) : of(null)),
   });
   readonly categorias = rxResource({ stream: () => this.categoriasService.getAllCategorias(), defaultValue: [] });
 

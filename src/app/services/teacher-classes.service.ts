@@ -62,8 +62,8 @@ export class TeacherClassesService {
         const paralelos = [...new Set(asignaciones.map((a) => a.paraleloId))];
         if (!paralelos.length) return of([]);
         return forkJoin({
-          registros: this.asistencia.registrosEntre(espacioId, '2000-01-01', hoy),
-          datos: forkJoin(paralelos.map((id) => this.calificaciones.datosDeParalelo(espacioId, id))),
+          registros: this.asistencia.getRecordsBetween(espacioId, '2000-01-01', hoy),
+          datos: forkJoin(paralelos.map((id) => this.calificaciones.getClassGroupData(espacioId, id))),
         }).pipe(
           map(({ registros, datos }) =>
             asignaciones.flatMap((asignacion): ClaseDocente[] => {

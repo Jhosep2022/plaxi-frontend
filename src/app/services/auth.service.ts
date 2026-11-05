@@ -151,7 +151,7 @@ export class AuthService {
       let aulaId: number | null = null;
       const curso = d.academia.primerCurso;
       if (curso?.nombre.trim()) {
-        const aula = await firstValueFrom(this.academia.crearCurso(espacioId, usuarioId, {
+        const aula = await firstValueFrom(this.academia.createCourse(espacioId, usuarioId, {
           nombre: curso.nombre, descripcion: '', categoria: curso.categoria, nivel: 'Principiante', visibilidad: 'publico', aprobacionManual: false, portada: '',
         }));
         aulaId = aula.id;
@@ -160,9 +160,9 @@ export class AuthService {
     }
 
     if (d.codigoCurso) {
-      const curso = await firstValueFrom(this.academia.cursoPorCodigo(d.codigoCurso, usuarioId));
+      const curso = await firstValueFrom(this.academia.getCourseByCode(d.codigoCurso, usuarioId));
       if (curso) {
-        const inscripcion = await firstValueFrom(this.academia.inscribirse(curso.aula.id, usuarioId));
+        const inscripcion = await firstValueFrom(this.academia.enroll(curso.aula.id, usuarioId));
         MOCK_MIEMBRO_DESDE[`${usuarioId}-${curso.espacio.id}`] = hoyIso();
         return { usuarioId, espacioSlug: curso.espacio.slug, aulaId: curso.aula.id, inscripcion };
       }

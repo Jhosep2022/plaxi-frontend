@@ -51,8 +51,8 @@ export class AcademicPerformanceComponent {
   // Notas de todos los paralelos de la gestión activa
   readonly datos = rxResource({
     stream: () =>
-      this.academico.paralelosActivos(this.espacioId).pipe(
-        switchMap((ps) => (ps.length ? forkJoin([...ps].sort(compararParalelos).map((p) => this.calificaciones.datosDeParalelo(this.espacioId, p.id))) : of([]))),
+      this.academico.getActiveClassGroups(this.espacioId).pipe(
+        switchMap((ps) => (ps.length ? forkJoin([...ps].sort(compararParalelos).map((p) => this.calificaciones.getClassGroupData(this.espacioId, p.id))) : of([]))),
         map((lista) => lista.filter((d): d is DatosParalelo => !!d))
       ),
   });

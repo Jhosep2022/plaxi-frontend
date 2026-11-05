@@ -34,8 +34,8 @@ export class AcademySummaryService {
       perfil: this.perfiles.getProfile(usuarioId),
       aulas: this.aulas.aulasDocente(espacio.id, usuarioId),
       sesiones: this.sesiones.sesionesDocente(espacio.id, usuarioId),
-      solicitudes: this.academia.solicitudes(espacio.id, usuarioId),
-      estudiantes: this.academia.estudiantes(espacio.id, usuarioId),
+      solicitudes: this.academia.getRequests(espacio.id, usuarioId),
+      estudiantes: this.academia.getStudents(espacio.id, usuarioId),
     }).pipe(
       map(({ perfil, aulas, sesiones, solicitudes, estudiantes }): ResumenData => {
         const cursos = aulas.filter((a) => a.tipo === 'curso');

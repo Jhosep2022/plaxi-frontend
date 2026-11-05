@@ -68,7 +68,7 @@ export class CourseInvitationComponent {
   async regenerar(): Promise<void> {
     if (!confirm('¿Generar un link nuevo? El link anterior dejará de funcionar.')) return;
     try {
-      const codigo = await firstValueFrom(this.academia.regenerarCodigo(this.aula().id));
+      const codigo = await firstValueFrom(this.academia.regenerateCode(this.aula().id));
       this.nuevo.set(codigo);
       this.cambio.emit(codigo);
       this.avisos.success('Generaste un link nuevo.');

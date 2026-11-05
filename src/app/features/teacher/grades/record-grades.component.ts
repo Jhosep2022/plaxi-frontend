@@ -53,10 +53,10 @@ export class RecordGradesComponent {
       this.espacio.tipo !== 'colegio'
         ? of(null)
         : forkJoin({
-            gestion: this.academico.gestionActiva(this.espacio.id),
-            asignaciones: this.academico.asignacionesActivas(this.espacio.id),
-            paralelos: this.academico.paralelosActivos(this.espacio.id),
-            materias: this.academico.materias(this.espacio.id),
+            gestion: this.academico.getActiveAcademicYear(this.espacio.id),
+            asignaciones: this.academico.getActiveAllocations(this.espacio.id),
+            paralelos: this.academico.getActiveClassGroups(this.espacio.id),
+            materias: this.academico.getSubjects(this.espacio.id),
           }),
   });
 
@@ -87,7 +87,7 @@ export class RecordGradesComponent {
   // Notas, actividades y estudiantes del paralelo elegido
   readonly datos = rxResource({
     params: () => this.seleccionada()?.paralelo.id ?? 0,
-    stream: ({ params }) => (params ? this.calificaciones.datosDeParalelo(this.espacio.id, params) : of(null)),
+    stream: ({ params }) => (params ? this.calificaciones.getClassGroupData(this.espacio.id, params) : of(null)),
   });
 
   readonly config = computed(() => this.datos.value()?.config);
@@ -176,7 +176,7 @@ export class RecordGradesComponent {
     if (this.hayErrores() || !this.pendientes().length) return;
     this.guardando.set(true);
     try {
-      const n = await firstValueFrom(this.calificaciones.guardarNotas(this.espacio.id, this.pendientes()));
+      const n = await firstValueFrom(this.calificaciones.saveGrades(this.espacio.id, this.pendientes()));
       this.avisos.success(`${n} ${n === 1 ? 'nota guardada' : 'notas guardadas'}.`);
       this.datos.reload();
     } catch (error) {
@@ -225,7 +225,7 @@ export class RecordGradesComponent {
     submit(this.formulario, async () => {
       try {
         const m = this.modelo();
-        await firstValueFrom(this.calificaciones.guardarActividad({
+        await firstValueFrom(this.calificaciones.saveActivity({
           id: this.editando()?.id,
           espacioId: this.espacio.id,
           gestionId: g.id,
@@ -249,7 +249,7 @@ export class RecordGradesComponent {
   async eliminarActividad(a: Actividad): Promise<void> {
     if (!confirm(`¿Eliminar "${a.nombre}"? También se borrarán sus notas.`)) return;
     try {
-      await firstValueFrom(this.calificaciones.eliminarActividad(a));
+      await firstValueFrom(this.calificaciones.deleteActivity(a));
       this.avisos.success('Actividad eliminada.');
       this.datos.reload();
     } catch (error) {

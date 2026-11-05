@@ -36,7 +36,7 @@ export class SchedulesService {
 
   // ---------- Clases ----------
   clasesActivas(espacioId: number): Observable<ClaseHorario[]> {
-    return this.academico.gestionActiva(espacioId).pipe(
+    return this.academico.getActiveAcademicYear(espacioId).pipe(
       switchMap((g) => (g ? this.clasesRepo.list((c) => c.espacioId === espacioId && c.gestionId === g.id) : of([])))
     );
   }
@@ -60,12 +60,12 @@ export class SchedulesService {
   datos(espacioId: number): Observable<DatosHorario> {
     return forkJoin({
       jornada: this.jornada(espacioId),
-      paralelos: this.academico.paralelosActivos(espacioId),
-      asignaciones: this.academico.asignacionesActivas(espacioId),
+      paralelos: this.academico.getActiveClassGroups(espacioId),
+      asignaciones: this.academico.getActiveAllocations(espacioId),
       clases: this.clasesActivas(espacioId),
-      materias: this.academico.materias(espacioId),
-      docentes: this.academico.docentes(espacioId),
-      aulas: this.academico.aulas(espacioId),
+      materias: this.academico.getSubjects(espacioId),
+      docentes: this.academico.getTeachers(espacioId),
+      aulas: this.academico.getClassrooms(espacioId),
     });
   }
 

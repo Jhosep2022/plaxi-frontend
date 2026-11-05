@@ -53,48 +53,48 @@ export class AcademyService {
   private aulasRepo = new MockRepository<Aula>(MOCK_AULAS_VIRTUALES);
 
   // ---------- Cursos ----------
-  crearCurso(espacioId: number, docenteId: number, datos: DatosCurso): Observable<Aula> {
-    const error = this.validar(datos);
+  createCourse(espacioId: number, docenteId: number, datos: DatosCurso): Observable<Aula> {
+    const error = this.validateCourse(datos);
     if (error) return throwError(() => new Error(error));
     const propios = this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso').length;
     return this.aulasRepo.save({
       ...datos, nombre: datos.nombre.trim(), descripcion: datos.descripcion.trim(),
       espacioId, tipo: 'curso', docenteId, paraleloId: 0, materiaId: 0,
       icono: /dise|ui|ux|figma|arte/i.test(`${datos.categoria} ${datos.nombre}`) ? 'arte' : /idiom|ingl/i.test(datos.categoria) ? 'idioma' : /matem/i.test(datos.categoria) ? 'calculadora' : 'computo',
-      tono: TONOS[propios % 3], actualizado: ahoraIso(), codigo: this.nuevoCodigo(datos.nombre),
+      tono: TONOS[propios % 3], actualizado: ahoraIso(), codigo: this.generateCode(datos.nombre),
     });
   }
 
-  actualizarCurso(aulaId: number, datos: DatosCurso): Observable<Aula> {
+  updateCourse(aulaId: number, datos: DatosCurso): Observable<Aula> {
     const aula = this.aulasRepo.readNow((a) => a.id === aulaId)[0];
     if (!aula) return throwError(() => new Error('El curso ya no existe.'));
-    const error = this.validar(datos);
+    const error = this.validateCourse(datos);
     if (error) return throwError(() => new Error(error));
     return this.aulasRepo.save({ ...aula, ...datos, nombre: datos.nombre.trim(), descripcion: datos.descripcion.trim() });
   }
 
-  regenerarCodigo(aulaId: number): Observable<string> {
+  regenerateCode(aulaId: number): Observable<string> {
     const aula = this.aulasRepo.readNow((a) => a.id === aulaId)[0];
     if (!aula) return throwError(() => new Error('El curso ya no existe.'));
-    aula.codigo = this.nuevoCodigo(aula.nombre);
+    aula.codigo = this.generateCode(aula.nombre);
     return of(aula.codigo).pipe(delay(MOCK_DELAY));
   }
 
   // ---------- Invitación y catálogo ----------
-  cursoPorCodigo(codigo: string, usuarioId: number | null): Observable<(CursoPublico & { espacio: Espacio }) | null> {
+  getCourseByCode(codigo: string, usuarioId: number | null): Observable<(CursoPublico & { espacio: Espacio }) | null> {
     const aula = this.aulasRepo.readNow((a) => a.tipo === 'curso' && a.codigo.toLowerCase() === codigo.trim().toLowerCase())[0];
     const espacio = aula ? MOCK_ESPACIOS.find((e) => e.id === aula.espacioId) : undefined;
-    return of(aula && espacio ? { ...this.publico(aula, usuarioId), espacio } : null).pipe(delay(MOCK_DELAY));
+    return of(aula && espacio ? { ...this.toPublicCourse(aula, usuarioId), espacio } : null).pipe(delay(MOCK_DELAY));
   }
 
   // Cursos públicos del espacio, con el estado de inscripción de quien mira
-  catalogo(espacioId: number, usuarioId: number): Observable<CursoPublico[]> {
-    const lista = this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.visibilidad === 'publico').map((a) => this.publico(a, usuarioId));
+  getCatalog(espacioId: number, usuarioId: number): Observable<CursoPublico[]> {
+    const lista = this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.visibilidad === 'publico').map((a) => this.toPublicCourse(a, usuarioId));
     return of(lista.sort((a, b) => a.aula.nombre.localeCompare(b.aula.nombre))).pipe(delay(MOCK_DELAY));
   }
 
   // Inscribe al usuario (o deja la solicitud pendiente si el curso pide aprobación) y lo suma al espacio
-  inscribirse(aulaId: number, usuarioId: number): Observable<'ACTIVA' | 'PENDIENTE'> {
+  enroll(aulaId: number, usuarioId: number): Observable<'ACTIVA' | 'PENDIENTE'> {
     const aula = this.aulasRepo.readNow((a) => a.id === aulaId && a.tipo === 'curso')[0];
     if (!aula) return throwError(() => new Error('El curso ya no existe.'));
     if (aula.docenteId === usuarioId) return throwError(() => new Error('Eres el docente de este curso.'));
@@ -120,8 +120,8 @@ export class AcademyService {
   }
 
   // ---------- Solicitudes y estudiantes (docente) ----------
-  solicitudes(espacioId: number, docenteId: number, aulaId?: number): Observable<Solicitud[]> {
-    const cursos = this.cursosDe(espacioId, docenteId).filter((a) => !aulaId || a.id === aulaId);
+  getRequests(espacioId: number, docenteId: number, aulaId?: number): Observable<Solicitud[]> {
+    const cursos = this.getTeacherCourses(espacioId, docenteId).filter((a) => !aulaId || a.id === aulaId);
     const lista = MOCK_INSCRIPCIONES
       .filter((i) => i.estadoInscripcion === 'PENDIENTE' && cursos.some((a) => cursoIdDe(a.id) === i.cursoId))
       .map((i) => ({
@@ -132,14 +132,14 @@ export class AcademyService {
     return of(lista).pipe(delay(MOCK_DELAY));
   }
 
-  responder(idInscripcion: number, aprobar: boolean): Observable<void> {
+  respondToRequest(idInscripcion: number, aprobar: boolean): Observable<void> {
     const i = MOCK_INSCRIPCIONES.find((x) => x.idInscripcion === idInscripcion);
     if (!i || i.estadoInscripcion !== 'PENDIENTE') return throwError(() => new Error('La solicitud ya fue respondida.'));
     i.estadoInscripcion = aprobar ? 'ACTIVA' : 'RECHAZADA';
     return of(undefined).pipe(delay(MOCK_DELAY));
   }
 
-  quitar(aulaId: number, usuarioId: number): Observable<void> {
+  removeStudent(aulaId: number, usuarioId: number): Observable<void> {
     const i = MOCK_INSCRIPCIONES.find((x) => x.cursoId === cursoIdDe(aulaId) && x.usuarioId === usuarioId && x.estadoInscripcion === 'ACTIVA');
     if (!i) return throwError(() => new Error('El estudiante ya no está en el curso.'));
     i.estadoInscripcion = 'BAJA';
@@ -147,8 +147,8 @@ export class AcademyService {
   }
 
   // Estudiantes de todos los cursos del docente, con su avance en cada uno
-  estudiantes(espacioId: number, docenteId: number): Observable<EstudianteAcademia[]> {
-    const cursos = this.cursosDe(espacioId, docenteId);
+  getStudents(espacioId: number, docenteId: number): Observable<EstudianteAcademia[]> {
+    const cursos = this.getTeacherCourses(espacioId, docenteId);
     if (!cursos.length) return of([]).pipe(delay(MOCK_DELAY));
     return forkJoin(cursos.map((a) => this.aulas.progresoGrupo(a.id).pipe(map((p) => ({ aula: a, progreso: p }))))).pipe(
       map((porCurso) => {
@@ -167,11 +167,11 @@ export class AcademyService {
   }
 
   // ---------- Interno ----------
-  private cursosDe(espacioId: number, docenteId: number): Aula[] {
+  private getTeacherCourses(espacioId: number, docenteId: number): Aula[] {
     return this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.docenteId === docenteId);
   }
 
-  private publico(aula: Aula, usuarioId: number | null): CursoPublico {
+  private toPublicCourse(aula: Aula, usuarioId: number | null): CursoPublico {
     const unidades = MOCK_UNIDADES.filter((u) => u.aulaId === aula.id && u.publicada);
     const ids = new Set(unidades.map((u) => u.id));
     const inscripciones = MOCK_INSCRIPCIONES.filter((i) => i.cursoId === cursoIdDe(aula.id));
@@ -186,7 +186,7 @@ export class AcademyService {
     };
   }
 
-  private validar(d: DatosCurso): string | null {
+  private validateCourse(d: DatosCurso): string | null {
     if (!d.nombre.trim()) return 'Ponle un nombre al curso.';
     if (d.nombre.trim().length > 80) return 'El nombre puede tener hasta 80 caracteres.';
     if (!d.categoria) return 'Elige una categoría.';
@@ -194,7 +194,7 @@ export class AcademyService {
     return null;
   }
 
-  private nuevoCodigo(nombre: string): string {
+  private generateCode(nombre: string): string {
     const prefijo = (nombre.normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3) || 'CUR').toUpperCase();
     const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let codigo = '';

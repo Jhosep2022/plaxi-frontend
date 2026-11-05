@@ -89,7 +89,7 @@ export class TakeAttendanceComponent {
 
   readonly estudiantes = rxResource({
     params: () => this.seleccionada()?.paralelo.id ?? 0,
-    stream: ({ params }) => this.asistencia.estudiantesDeParalelo(params),
+    stream: ({ params }) => this.asistencia.getStudentsByClassGroup(params),
     defaultValue: [],
   });
 
@@ -98,11 +98,11 @@ export class TakeAttendanceComponent {
       const s = this.seleccionada();
       return s ? { paraleloId: s.clase.paraleloId, materiaId: s.clase.materiaId, bloque: s.clase.bloque, fecha: this.fecha() } : null;
     },
-    stream: ({ params }) => (params ? this.asistencia.registrosDeClase(params) : of([])),
+    stream: ({ params }) => (params ? this.asistencia.getClassRecords(params) : of([])),
     defaultValue: [],
   });
 
-  private readonly licencias = rxResource({ stream: () => this.asistencia.licencias(this.espacio.id), defaultValue: [] });
+  private readonly licencias = rxResource({ stream: () => this.asistencia.getLeaveRequests(this.espacio.id), defaultValue: [] });
 
   // Estudiantes con licencia aprobada en la fecha elegida
   readonly conLicencia = computed(() => new Set(this.licencias.value().filter((l) => licenciaCubre(l, this.fecha())).map((l) => l.estudianteId)));
@@ -122,13 +122,13 @@ export class TakeAttendanceComponent {
   readonly conteo = computed(() => contar([...this.marcas().values()]));
 
   // ---------- Tolerancia de atraso ----------
-  readonly tolerancia = rxResource({ stream: () => this.asistencia.tolerancia(this.docenteId), defaultValue: 10 });
+  readonly tolerancia = rxResource({ stream: () => this.asistencia.getTolerance(this.docenteId), defaultValue: 10 });
   readonly editandoTolerancia = signal(false);
   readonly toleranciaNueva = linkedSignal(() => this.tolerancia.value());
 
   async guardarTolerancia(): Promise<void> {
     try {
-      await firstValueFrom(this.asistencia.guardarTolerancia(this.docenteId, Number(this.toleranciaNueva())));
+      await firstValueFrom(this.asistencia.saveTolerance(this.docenteId, Number(this.toleranciaNueva())));
       this.avisos.success(`Tolerancia de atraso: ${this.toleranciaNueva()} minutos.`);
       this.editandoTolerancia.set(false);
       this.tolerancia.reload();
@@ -172,7 +172,7 @@ export class TakeAttendanceComponent {
         estado: this.dentroDeTolerancia(m) ? ('presente' as const) : m.estado,
         minutosTarde: m.minutosTarde,
       }));
-      await firstValueFrom(this.asistencia.guardarAsistencia(
+      await firstValueFrom(this.asistencia.saveAttendance(
         { espacioId: this.espacio.id, paraleloId: s.clase.paraleloId, materiaId: s.clase.materiaId, bloque: s.clase.bloque, fecha: this.fecha(), docenteId: this.docenteId },
         marcas
       ));

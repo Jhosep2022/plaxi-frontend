@@ -99,7 +99,7 @@ export class MyScheduleComponent {
       // Estudiante: su paralelo. Padre: el paralelo del hijo elegido.
       const quien$ = this.rol === 'padre'
         ? this.hijoActivo.activo().pipe(map((h) => ({ paraleloId: h?.paraleloId ?? 0, hijo: h })))
-        : this.academico.paraleloDeEstudiante(this.usuarioId).pipe(map((paraleloId) => ({ paraleloId, hijo: null })));
+        : this.academico.getStudentClassGroup(this.usuarioId).pipe(map((paraleloId) => ({ paraleloId, hijo: null })));
       return quien$.pipe(
         switchMap(({ paraleloId, hijo }) => datos$.pipe(map((datos) => ({ datos, paraleloId, hijo })))),
         map(({ datos, paraleloId, hijo }) => {

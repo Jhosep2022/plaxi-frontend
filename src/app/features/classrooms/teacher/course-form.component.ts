@@ -144,7 +144,7 @@ export class CourseFormComponent {
     this.guardando.set(true);
     try {
       const c = this.curso();
-      const aula = await firstValueFrom(c ? this.academia.actualizarCurso(c.id, this.modelo()) : this.academia.crearCurso(this.session.espacioActivo()!.id, this.session.usuarioId()!, this.modelo()));
+      const aula = await firstValueFrom(c ? this.academia.updateCourse(c.id, this.modelo()) : this.academia.createCourse(this.session.espacioActivo()!.id, this.session.usuarioId()!, this.modelo()));
       this.avisos.success(c ? 'Curso actualizado.' : `Creaste "${aula.nombre}". Ahora agrega su contenido.`);
       this.guardado.emit(aula);
     } catch (error) {

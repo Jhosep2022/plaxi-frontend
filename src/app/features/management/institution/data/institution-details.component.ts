@@ -86,8 +86,8 @@ export class InstitutionDetailsComponent {
   readonly resumen = rxResource({
     stream: () =>
       forkJoin({
-        gestion: this.academico.gestionActiva(this.espacioId),
-        paralelos: this.academico.paralelosActivos(this.espacioId),
+        gestion: this.academico.getActiveAcademicYear(this.espacioId),
+        paralelos: this.academico.getActiveClassGroups(this.espacioId),
         docentes: this.personas.docentes(),
       }),
   });

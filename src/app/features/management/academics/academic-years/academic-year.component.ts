@@ -52,7 +52,7 @@ export class AcademicYearComponent {
   readonly faCalendarDays = faCalendarDays;
   readonly faWandMagicSparkles = faWandMagicSparkles;
 
-  readonly gestiones = rxResource({ stream: () => this.academico.gestiones(this.espacioId), defaultValue: [] });
+  readonly gestiones = rxResource({ stream: () => this.academico.getAcademicYears(this.espacioId), defaultValue: [] });
   readonly activa = computed(() => this.gestiones.value().find((g) => g.estado === 'activa') ?? null);
   readonly otras = computed(() => this.gestiones.value().filter((g) => g.estado !== 'activa'));
 
@@ -115,7 +115,7 @@ export class AcademicYearComponent {
       this.guardando.set(true);
       const editando = this.editando();
       try {
-        await firstValueFrom(this.academico.guardarGestion({
+        await firstValueFrom(this.academico.saveAcademicYear({
           id: editando?.id,
           espacioId: this.espacioId,
           anio,
@@ -139,7 +139,7 @@ export class AcademicYearComponent {
     const aviso = actual ? ` La gestión ${actual.anio} quedará cerrada.` : '';
     if (!confirm(`¿Activar la gestión ${g.anio}?${aviso}`)) return;
     try {
-      await firstValueFrom(this.academico.activarGestion(g));
+      await firstValueFrom(this.academico.activateAcademicYear(g));
       this.avisos.success(`Gestión ${g.anio} activada.`);
       this.gestiones.reload();
     } catch (error) {
@@ -150,7 +150,7 @@ export class AcademicYearComponent {
   async eliminar(g: Gestion): Promise<void> {
     if (!confirm(`¿Eliminar la gestión ${g.anio}?`)) return;
     try {
-      await firstValueFrom(this.academico.eliminarGestion(g));
+      await firstValueFrom(this.academico.deleteAcademicYear(g));
       this.avisos.success(`Gestión ${g.anio} eliminada.`);
       this.gestiones.reload();
     } catch (error) {

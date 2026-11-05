@@ -45,10 +45,10 @@ export class AttendanceReportComponent {
     params: () => ({ desde: this.desde(), hasta: this.hasta() }),
     stream: ({ params }) =>
       forkJoin({
-        registros: this.asistencia.registrosEntre(this.espacioId, params.desde, params.hasta),
-        estudiantes: this.asistencia.estudiantes(),
-        paralelos: this.academico.paralelosActivos(this.espacioId),
-        materias: this.academico.materias(this.espacioId),
+        registros: this.asistencia.getRecordsBetween(this.espacioId, params.desde, params.hasta),
+        estudiantes: this.asistencia.getStudents(),
+        paralelos: this.academico.getActiveClassGroups(this.espacioId),
+        materias: this.academico.getSubjects(this.espacioId),
       }),
   });
 

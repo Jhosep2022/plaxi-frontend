@@ -111,10 +111,10 @@ export class PeriodClosingComponent {
 
   readonly datos = rxResource({
     stream: () =>
-      this.academico.gestionActiva(this.espacioId).pipe(
+      this.academico.getActiveAcademicYear(this.espacioId).pipe(
         switchMap((gestion) =>
           gestion
-            ? forkJoin({ gestion: of(gestion), cierres: this.calificaciones.cierres(this.espacioId, gestion.id), progreso: this.calificaciones.progreso(this.espacioId, gestion) })
+            ? forkJoin({ gestion: of(gestion), cierres: this.calificaciones.getClosures(this.espacioId, gestion.id), progreso: this.calificaciones.getProgress(this.espacioId, gestion) })
             : of(null)
         )
       ),
@@ -148,7 +148,7 @@ export class PeriodClosingComponent {
     ].filter(Boolean);
     if (!confirm(`¿Cerrar el ${p.nombre}? Los docentes ya no podrán modificar sus notas.${avisos.length ? '\n\n' + avisos.join('\n') : ''}`)) return;
     try {
-      await firstValueFrom(this.calificaciones.cerrarPeriodo(this.espacioId, gestion, periodo));
+      await firstValueFrom(this.calificaciones.closePeriod(this.espacioId, gestion, periodo));
       this.avisos.success(`${p.nombre} cerrado. Sus notas ya son definitivas.`);
       this.datos.reload();
     } catch (error) {
@@ -161,7 +161,7 @@ export class PeriodClosingComponent {
     const nombre = this.datos.value()!.gestion.periodos[periodo].nombre;
     if (!cierre || !confirm(`¿Reabrir el ${nombre}? Los docentes podrán volver a modificar sus notas.`)) return;
     try {
-      await firstValueFrom(this.calificaciones.reabrirPeriodo(cierre));
+      await firstValueFrom(this.calificaciones.reopenPeriod(cierre));
       this.avisos.success(`${nombre} reabierto.`);
       this.datos.reload();
     } catch (error) {

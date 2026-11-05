@@ -80,7 +80,7 @@ export class ClassroomsService {
     const paraleloId = aulas.find((a) => a.tipo === 'clase')?.paraleloId ?? 0;
     return forkJoin({
       tareas: this.tareasService.tareasDeEstudiante(espacioId, estudianteId),
-      datos: paraleloId ? this.calificaciones.datosDeParalelo(espacioId, paraleloId) : of(null),
+      datos: paraleloId ? this.calificaciones.getClassGroupData(espacioId, paraleloId) : of(null),
     }).pipe(
       map(({ tareas, datos }) => {
         const indice = datos ? periodoDeFecha(datos.gestion, hoyIso()) : 0;

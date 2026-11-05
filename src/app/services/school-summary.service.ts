@@ -62,11 +62,11 @@ export class SchoolSummaryService {
     return forkJoin({
       perfil: this.perfiles.getProfile(usuarioId),
       datos: this.horarios.datos(espacio.id),
-      marcaciones: this.marcacion.marcacionesDe(usuarioId),
+      marcaciones: this.marcacion.getTeacherEntries(usuarioId),
       clases: this.clasesDocente.clasesDe(espacio.id, usuarioId),
       tareas: this.tareas.tareasDocente(espacio.id, usuarioId),
       recibidos: this.comunicados.recibidos(espacio.id, usuarioId),
-      estudiantes: this.asistencia.estudiantes(),
+      estudiantes: this.asistencia.getStudents(),
     }).pipe(
       map(({ perfil, datos, marcaciones, clases, tareas, recibidos, estudiantes }): ResumenData => {
         const misClases = clasesDeDocente(datos, usuarioId);
@@ -106,7 +106,7 @@ export class SchoolSummaryService {
             organizacion: espacio.nombre,
             insignia: 'Docente',
             imagenUrl: perfil.imagenUrl,
-            semana: semanaDeMarcaciones(marcaciones, (fecha) => !!this.marcacion.esperado(espacio.id, usuarioId, fecha)),
+            semana: semanaDeMarcaciones(marcaciones, (fecha) => !!this.marcacion.getExpectedAttendance(espacio.id, usuarioId, fecha)),
           },
           actividad: { titulo: 'Para hacer', verTodo: `${base}/tareas`, items: paraHacer.slice(0, 4) },
           asistente: {
@@ -122,7 +122,7 @@ export class SchoolSummaryService {
   // ---------- Estudiante ----------
   private estudiante({ espacio }: Membresia, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/estudiante`;
-    return this.academico.paraleloDeEstudiante(usuarioId).pipe(
+    return this.academico.getStudentClassGroup(usuarioId).pipe(
       switchMap((paraleloId) => forkJoin({
         perfil: this.perfiles.getProfile(usuarioId),
         seguimiento: this.seguimiento(espacio.id, usuarioId, paraleloId),
@@ -236,19 +236,19 @@ export class SchoolSummaryService {
     return forkJoin({
       perfil: this.perfiles.getProfile(usuarioId),
       datos: this.horarios.datos(espacio.id),
-      marcaciones: this.marcacion.marcacionesEntre(espacio.id, sumarDias(hoy, -14), hoy),
-      registros: this.asistencia.registrosEntre(espacio.id, sumarDias(hoy, -21), hoy),
-      estudiantes: this.asistencia.estudiantes(),
-      licencias: this.asistencia.licencias(espacio.id),
-      gestion: this.academico.gestionActiva(espacio.id),
+      marcaciones: this.marcacion.getEntriesBetween(espacio.id, sumarDias(hoy, -14), hoy),
+      registros: this.asistencia.getRecordsBetween(espacio.id, sumarDias(hoy, -21), hoy),
+      estudiantes: this.asistencia.getStudents(),
+      licencias: this.asistencia.getLeaveRequests(espacio.id),
+      gestion: this.academico.getActiveAcademicYear(espacio.id),
       enviados: this.comunicados.enviados(espacio.id, null),
     }).pipe(
-      switchMap((d) => (d.gestion ? this.calificaciones.cierres(espacio.id, d.gestion.id) : of([])).pipe(map((cierres) => ({ ...d, cierres })))),
+      switchMap((d) => (d.gestion ? this.calificaciones.getClosures(espacio.id, d.gestion.id) : of([])).pipe(map((cierres) => ({ ...d, cierres })))),
       map(({ perfil, datos, marcaciones, registros, estudiantes, licencias, gestion, enviados, cierres }): ResumenData => {
         // Docentes que marcaron: hoy, o el último día con clases
         let fechaMarc = hoy;
-        for (let i = 0; i < 14 && !this.marcacion.docentesEsperados(espacio.id, fechaMarc).length; i++) fechaMarc = sumarDias(fechaMarc, -1);
-        const esperados = this.marcacion.docentesEsperados(espacio.id, fechaMarc).map((e) => e.docenteId);
+        for (let i = 0; i < 14 && !this.marcacion.getExpectedTeachers(espacio.id, fechaMarc).length; i++) fechaMarc = sumarDias(fechaMarc, -1);
+        const esperados = this.marcacion.getExpectedTeachers(espacio.id, fechaMarc).map((e) => e.docenteId);
         const marcaronHoy = new Set(marcaciones.filter((m) => m.fecha === fechaMarc && m.tipo === 'entrada').map((m) => m.docenteId));
         const sinMarcar = esperados.filter((id) => !marcaronHoy.has(id));
 
@@ -302,7 +302,7 @@ export class SchoolSummaryService {
           }];
         });
 
-        const semana = semanaDelPersonal(marcaciones, (fecha) => this.marcacion.docentesEsperados(espacio.id, fecha).map((e) => e.docenteId));
+        const semana = semanaDelPersonal(marcaciones, (fecha) => this.marcacion.getExpectedTeachers(espacio.id, fecha).map((e) => e.docenteId));
         return {
           saludo: `¡Buen día, ${perfil.nombre}!`,
           subtitulo: `Así está ${espacio.nombre} hoy.`,
@@ -340,10 +340,10 @@ export class SchoolSummaryService {
   private seguimiento(espacioId: number, estudianteId: number, paraleloId: number) {
     return forkJoin({
       horario: this.horarios.datos(espacioId),
-      registros: this.asistencia.registrosDeEstudiante(estudianteId),
+      registros: this.asistencia.getStudentRecords(estudianteId),
       tareas: this.tareas.tareasDeEstudiante(espacioId, estudianteId),
-      estudiantes: this.asistencia.estudiantes(),
-      datos: paraleloId ? this.calificaciones.datosDeParalelo(espacioId, paraleloId) : of(null),
+      estudiantes: this.asistencia.getStudents(),
+      datos: paraleloId ? this.calificaciones.getClassGroupData(espacioId, paraleloId) : of(null),
     }).pipe(map((d) => seguimientoDe(d, estudianteId, paraleloId)));
   }
 }

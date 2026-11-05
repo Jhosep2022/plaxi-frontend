@@ -107,7 +107,7 @@ export class CourseCatalogComponent {
   readonly faUsers = faUsers;
 
   private readonly espacio = this.session.espacioActivo()!;
-  readonly cursos = rxResource({ stream: () => this.academia.catalogo(this.espacio.id, this.session.usuarioId()!), defaultValue: [] });
+  readonly cursos = rxResource({ stream: () => this.academia.getCatalog(this.espacio.id, this.session.usuarioId()!), defaultValue: [] });
 
   readonly busqueda = signal('');
   readonly categoria = signal('');
@@ -124,7 +124,7 @@ export class CourseCatalogComponent {
   async inscribirse(c: CursoPublico): Promise<void> {
     this.inscribiendo.set(c.aula.id);
     try {
-      const estado = await firstValueFrom(this.academia.inscribirse(c.aula.id, this.session.usuarioId()!));
+      const estado = await firstValueFrom(this.academia.enroll(c.aula.id, this.session.usuarioId()!));
       this.avisos.success(estado === 'ACTIVA' ? `¡Listo! Ya estás en "${c.aula.nombre}".` : 'Solicitud enviada: el docente la revisará.');
       this.cursos.reload();
     } catch (error) {

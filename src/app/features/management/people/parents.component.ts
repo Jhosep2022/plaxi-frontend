@@ -57,7 +57,7 @@ export class ParentsComponent {
   readonly padres = rxResource({ stream: () => this.personas.padres(), defaultValue: [] });
   readonly vinculos = rxResource({ stream: () => this.personas.vinculos(), defaultValue: [] });
   readonly estudiantes = rxResource({ stream: () => this.personas.estudiantes(), defaultValue: [] });
-  readonly paralelos = rxResource({ stream: () => this.academico.paralelosActivos(this.espacioId), defaultValue: [] });
+  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
   readonly cuentas = rxResource({ stream: () => this.personas.cuentas(this.espacioId), defaultValue: new Set<number>() });
 
   private readonly cursoPorId = computed(() => new Map(this.paralelos.value().map((p) => [p.id, paraleloLabel(p)])));

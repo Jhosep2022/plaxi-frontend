@@ -62,7 +62,7 @@ export class TeacherAssignmentsComponent {
     stream: () =>
       forkJoin({
         aulas: this.aulas.aulasDocente(this.espacioId, this.docenteId),
-        config: this.calificaciones.config(this.espacioId, this.espacio.tipo),
+        config: this.calificaciones.getConfig(this.espacioId, this.espacio.tipo),
       }),
   });
   readonly clases = computed(() =>

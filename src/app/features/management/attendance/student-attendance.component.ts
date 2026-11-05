@@ -55,11 +55,11 @@ export class StudentAttendanceComponent {
   // Últimas dos semanas para elegir por defecto el día más reciente con asistencia
   readonly base = rxResource({
     stream: () => forkJoin({
-      registros: this.asistencia.registrosEntre(this.espacioId, sumarDias(this.hoy, -21), this.hoy),
-      estudiantes: this.asistencia.estudiantes(),
-      paralelos: this.academico.paralelosActivos(this.espacioId),
-      licencias: this.asistencia.licencias(this.espacioId),
-      materias: this.academico.materias(this.espacioId),
+      registros: this.asistencia.getRecordsBetween(this.espacioId, sumarDias(this.hoy, -21), this.hoy),
+      estudiantes: this.asistencia.getStudents(),
+      paralelos: this.academico.getActiveClassGroups(this.espacioId),
+      licencias: this.asistencia.getLeaveRequests(this.espacioId),
+      materias: this.academico.getSubjects(this.espacioId),
     }),
   });
 

@@ -125,7 +125,7 @@ export class GradingScaleComponent {
   readonly faRotateLeft = faRotateLeft;
   readonly faTrash = faTrash;
 
-  readonly config = rxResource({ stream: () => this.calificaciones.config(this.espacio.id, this.espacio.tipo) });
+  readonly config = rxResource({ stream: () => this.calificaciones.getConfig(this.espacio.id, this.espacio.tipo) });
   readonly modelo = linkedSignal(() => aModelo(this.config.value() ?? configPorDefecto(this.espacio.id, this.espacio.tipo)));
   readonly formulario = form(this.modelo, (s) => {
     required(s.notaMaxima, { message: 'Indica la nota máxima.' });
@@ -186,7 +186,7 @@ export class GradingScaleComponent {
       this.guardando.set(true);
       try {
         const m = this.modelo();
-        await firstValueFrom(this.calificaciones.guardarConfig({
+        await firstValueFrom(this.calificaciones.saveConfig({
           id: this.espacio.id,
           notaMaxima: Number(m.notaMaxima),
           notaAprobacion: Number(m.notaAprobacion),

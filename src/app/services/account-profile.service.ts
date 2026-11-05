@@ -187,7 +187,7 @@ export class AccountProfileService {
     switch (membresia.rol) {
       case 'docente':
         return colegio
-          ? forkJoin({ aulas: this.aulas.aulasDocente(espacioId, usuarioId), marcas: this.marcacion.marcacionesDe(usuarioId) }).pipe(
+          ? forkJoin({ aulas: this.aulas.aulasDocente(espacioId, usuarioId), marcas: this.marcacion.getTeacherEntries(usuarioId) }).pipe(
               map(({ aulas, marcas }): IndicadorPerfil[] => {
                 const entradas = marcas.filter((m) => m.tipo === 'entrada');
                 return [
@@ -198,7 +198,7 @@ export class AccountProfileService {
                 ];
               })
             )
-          : forkJoin({ aulas: this.aulas.aulasDocente(espacioId, usuarioId), estudiantes: this.academia.estudiantes(espacioId, usuarioId), sesiones: this.sesiones.sesionesDocente(espacioId, usuarioId) }).pipe(
+          : forkJoin({ aulas: this.aulas.aulasDocente(espacioId, usuarioId), estudiantes: this.academia.getStudents(espacioId, usuarioId), sesiones: this.sesiones.sesionesDocente(espacioId, usuarioId) }).pipe(
               map(({ aulas, estudiantes, sesiones }): IndicadorPerfil[] => [
                 { label: 'Cursos', valor: String(aulas.length), detalle: 'publicados y privados', tono: 'lima' },
                 { label: 'Estudiantes', valor: String(estudiantes.length), detalle: 'inscritos activos', tono: 'azul' },
@@ -210,7 +210,7 @@ export class AccountProfileService {
         return forkJoin({
           aulas: this.aulas.aulasEstudiante(espacioId, usuarioId),
           asistencia: colegio
-            ? this.asistencia.registrosDeEstudiante(usuarioId).pipe(map((r) => r.filter((x) => x.estado !== 'licencia')), map((r) => porcentajeOpt(r.filter((x) => x.estado !== 'ausente').length, r.length)))
+            ? this.asistencia.getStudentRecords(usuarioId).pipe(map((r) => r.filter((x) => x.estado !== 'licencia')), map((r) => porcentajeOpt(r.filter((x) => x.estado !== 'ausente').length, r.length)))
             : this.sesiones.sesionesEstudiante(espacioId, usuarioId).pipe(map((s) => s.filter((x) => x.estado === 'finalizada')), map((s) => porcentajeOpt(s.filter((x) => x.asisti).length, s.length))),
         }).pipe(
           map(({ aulas, asistencia }): IndicadorPerfil[] => {
@@ -224,7 +224,7 @@ export class AccountProfileService {
           })
         );
       case 'padre':
-        return this.academico.hijosDe(usuarioId).pipe(
+        return this.academico.getChildren(usuarioId).pipe(
           switchMap((hijos) =>
             (hijos.length ? forkJoin(hijos.map((h) => this.tareas.tareasDeEstudiante(espacioId, h))) : of([])).pipe(
               map((listas): IndicadorPerfil[] => [
@@ -236,7 +236,7 @@ export class AccountProfileService {
           )
         );
       default:
-        return forkJoin({ estudiantes: this.personas.estudiantes(), docentes: this.personas.docentes(), paralelos: this.academico.paralelosActivos(espacioId), materias: this.academico.materias(espacioId) }).pipe(
+        return forkJoin({ estudiantes: this.personas.estudiantes(), docentes: this.personas.docentes(), paralelos: this.academico.getActiveClassGroups(espacioId), materias: this.academico.getSubjects(espacioId) }).pipe(
           map(({ estudiantes, docentes, paralelos, materias }): IndicadorPerfil[] => [
             { label: 'Estudiantes', valor: String(estudiantes.length), detalle: 'en la institución', tono: 'lima' },
             { label: 'Docentes', valor: String(docentes.filter((d) => d.activo).length), detalle: 'activos', tono: 'azul' },

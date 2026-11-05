@@ -52,9 +52,9 @@ export class TimeTrackingComponent {
   private readonly docenteId = this.session.usuarioId()!;
   readonly hoy = hoyIso();
 
-  readonly esperado = this.marcacion.esperado(this.espacioId, this.docenteId, this.hoy);
-  readonly puntos = rxResource({ stream: () => this.marcacion.puntos(this.espacioId), defaultValue: [] });
-  readonly marcaciones = rxResource({ stream: () => this.marcacion.marcacionesDe(this.docenteId), defaultValue: [] });
+  readonly esperado = this.marcacion.getExpectedAttendance(this.espacioId, this.docenteId, this.hoy);
+  readonly puntos = rxResource({ stream: () => this.marcacion.getLocations(this.espacioId), defaultValue: [] });
+  readonly marcaciones = rxResource({ stream: () => this.marcacion.getTeacherEntries(this.docenteId), defaultValue: [] });
 
   readonly deHoy = computed(() => this.marcaciones.value().filter((m) => m.fecha === this.hoy));
   readonly entrada = computed(() => this.deHoy().find((m) => m.tipo === 'entrada') ?? null);
@@ -187,7 +187,7 @@ export class TimeTrackingComponent {
     }
     this.enviando.set(true);
     try {
-      const marcacion = await firstValueFrom(this.marcacion.marcar({
+      const marcacion = await firstValueFrom(this.marcacion.recordEntry({
         espacioId: this.espacioId, docenteId: this.docenteId, tipo, puntoId: punto.id, codigo, latitud: u.latitud, longitud: u.longitud,
       }));
       this.resultado.set(marcacion);

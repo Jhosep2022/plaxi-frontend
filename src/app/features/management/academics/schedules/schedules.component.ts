@@ -68,13 +68,13 @@ export class SchedulesComponent {
   readonly faCalendarDays = faCalendarDays;
   readonly faTriangleExclamation = faTriangleExclamation;
 
-  readonly gestion = rxResource({ stream: () => this.academico.gestionActiva(this.espacioId) });
+  readonly gestion = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
   readonly jornada = rxResource({ stream: () => this.horarios.jornada(this.espacioId) });
-  readonly paralelos = rxResource({ stream: () => this.academico.paralelosActivos(this.espacioId), defaultValue: [] });
-  readonly materias = rxResource({ stream: () => this.academico.materias(this.espacioId), defaultValue: [] });
-  readonly docentes = rxResource({ stream: () => this.academico.docentes(this.espacioId), defaultValue: [] });
-  readonly aulas = rxResource({ stream: () => this.academico.aulas(this.espacioId), defaultValue: [] });
-  readonly asignaciones = rxResource({ stream: () => this.academico.asignacionesActivas(this.espacioId), defaultValue: [] });
+  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
+  readonly materias = rxResource({ stream: () => this.academico.getSubjects(this.espacioId), defaultValue: [] });
+  readonly docentes = rxResource({ stream: () => this.academico.getTeachers(this.espacioId), defaultValue: [] });
+  readonly aulas = rxResource({ stream: () => this.academico.getClassrooms(this.espacioId), defaultValue: [] });
+  readonly asignaciones = rxResource({ stream: () => this.academico.getActiveAllocations(this.espacioId), defaultValue: [] });
   readonly clases = rxResource({ stream: () => this.horarios.clasesActivas(this.espacioId), defaultValue: [] });
 
   readonly seleccionadoId = linkedSignal<Paralelo[], number>({

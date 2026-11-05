@@ -43,11 +43,11 @@ export class ClassGroupsComponent {
   readonly faCalendarDays = faCalendarDays;
   readonly faTriangleExclamation = faTriangleExclamation;
 
-  readonly gestion = rxResource({ stream: () => this.academico.gestionActiva(this.espacioId) });
-  readonly paralelos = rxResource({ stream: () => this.academico.paralelosActivos(this.espacioId), defaultValue: [] });
-  readonly aulas = rxResource({ stream: () => this.academico.aulas(this.espacioId), defaultValue: [] });
-  private readonly materias = rxResource({ stream: () => this.academico.materias(this.espacioId), defaultValue: [] });
-  private readonly asignaciones = rxResource({ stream: () => this.academico.asignacionesActivas(this.espacioId), defaultValue: [] });
+  readonly gestion = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
+  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
+  readonly aulas = rxResource({ stream: () => this.academico.getClassrooms(this.espacioId), defaultValue: [] });
+  private readonly materias = rxResource({ stream: () => this.academico.getSubjects(this.espacioId), defaultValue: [] });
+  private readonly asignaciones = rxResource({ stream: () => this.academico.getActiveAllocations(this.espacioId), defaultValue: [] });
 
   readonly nivel = signal<Nivel>('secundaria');
 
@@ -129,7 +129,7 @@ export class ClassGroupsComponent {
       const m = this.modelo();
       const existente = this.paralelos.value().find((p) => p.id === this.editandoId());
       try {
-        const guardado = await firstValueFrom(this.academico.guardarParalelo({
+        const guardado = await firstValueFrom(this.academico.saveClassGroup({
           id: this.editandoId() || undefined,
           espacioId: this.espacioId,
           gestionId: gestion.id,
@@ -156,7 +156,7 @@ export class ClassGroupsComponent {
   async eliminar(p: Paralelo): Promise<void> {
     if (!confirm(`¿Eliminar el paralelo ${paraleloLabel(p)}? También se quitarán sus asignaciones docentes.`)) return;
     try {
-      await firstValueFrom(this.academico.eliminarParalelo(p));
+      await firstValueFrom(this.academico.deleteClassGroup(p));
       this.avisos.success('Paralelo eliminado.');
       this.paralelos.reload();
       this.asignaciones.reload();

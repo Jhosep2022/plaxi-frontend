@@ -43,9 +43,9 @@ export class SubjectsComponent {
   readonly faTrash = faTrash;
   readonly faBook = faBook;
 
-  readonly materias = rxResource({ stream: () => this.academico.materias(this.espacioId), defaultValue: [] });
-  private readonly paralelos = rxResource({ stream: () => this.academico.paralelosActivos(this.espacioId), defaultValue: [] });
-  private readonly asignaciones = rxResource({ stream: () => this.academico.asignacionesActivas(this.espacioId), defaultValue: [] });
+  readonly materias = rxResource({ stream: () => this.academico.getSubjects(this.espacioId), defaultValue: [] });
+  private readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
+  private readonly asignaciones = rxResource({ stream: () => this.academico.getActiveAllocations(this.espacioId), defaultValue: [] });
 
   readonly nivel = signal<Nivel>('secundaria');
 
@@ -95,7 +95,7 @@ export class SubjectsComponent {
       this.guardando.set(true);
       try {
         const guardada = await firstValueFrom(
-          this.academico.guardarMateria({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId })
+          this.academico.saveSubject({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId })
         );
         this.avisos.success(this.editandoId() ? 'Materia actualizada.' : 'Materia creada.');
         this.drawerAbierto.set(false);
@@ -112,7 +112,7 @@ export class SubjectsComponent {
   async eliminar(materia: Materia): Promise<void> {
     if (!confirm(`¿Eliminar la materia "${materia.nombre}"?`)) return;
     try {
-      await firstValueFrom(this.academico.eliminarMateria(materia));
+      await firstValueFrom(this.academico.deleteSubject(materia));
       this.avisos.success('Materia eliminada.');
       this.materias.reload();
     } catch (error) {

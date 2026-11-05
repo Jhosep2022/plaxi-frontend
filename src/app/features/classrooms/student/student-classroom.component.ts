@@ -129,7 +129,7 @@ export class StudentClassroomComponent {
   // Nota de la materia en el periodo, por criterio (solo colegio)
   readonly notas = rxResource({
     params: () => this.aula(),
-    stream: ({ params }) => (params?.tipo === 'clase' ? this.calificaciones.datosDeParalelo(this.espacio.id, params.paraleloId) : of(null)),
+    stream: ({ params }) => (params?.tipo === 'clase' ? this.calificaciones.getClassGroupData(this.espacio.id, params.paraleloId) : of(null)),
   });
   readonly resultado = computed(() => {
     const d = this.notas.value();

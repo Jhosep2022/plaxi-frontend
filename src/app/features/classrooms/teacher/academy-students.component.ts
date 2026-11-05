@@ -130,8 +130,8 @@ export class AcademyStudentsComponent {
 
   readonly datos = rxResource({
     stream: () => forkJoin({
-      estudiantes: this.academia.estudiantes(this.espacioId, this.docenteId),
-      solicitudes: this.academia.solicitudes(this.espacioId, this.docenteId),
+      estudiantes: this.academia.getStudents(this.espacioId, this.docenteId),
+      solicitudes: this.academia.getRequests(this.espacioId, this.docenteId),
       aulas: this.aulas.aulasDocente(this.espacioId, this.docenteId),
     }),
   });
@@ -147,7 +147,7 @@ export class AcademyStudentsComponent {
 
   async responder(s: Solicitud, aprobar: boolean): Promise<void> {
     try {
-      await firstValueFrom(this.academia.responder(s.idInscripcion, aprobar));
+      await firstValueFrom(this.academia.respondToRequest(s.idInscripcion, aprobar));
       this.avisos.success(aprobar ? `${s.nombre} ya está en "${s.curso}".` : 'Solicitud rechazada.');
       this.datos.reload();
     } catch (error) {

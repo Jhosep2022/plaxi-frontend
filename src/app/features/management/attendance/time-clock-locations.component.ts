@@ -52,7 +52,7 @@ export class TimeClockLocationsComponent {
   readonly faCrosshairs = faCrosshairs;
   readonly faMapLocationDot = faMapLocationDot;
 
-  readonly puntos = rxResource({ stream: () => this.marcacion.puntos(this.espacioId), defaultValue: [] });
+  readonly puntos = rxResource({ stream: () => this.marcacion.getLocations(this.espacioId), defaultValue: [] });
 
   readonly drawerAbierto = signal(false);
   readonly editandoId = signal(0);
@@ -93,7 +93,7 @@ export class TimeClockLocationsComponent {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.marcacion.guardarPunto({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId }));
+        await firstValueFrom(this.marcacion.saveLocation({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId }));
         this.avisos.success(this.editandoId() ? 'Punto de marcación actualizado.' : 'Punto de marcación creado.');
         this.drawerAbierto.set(false);
         this.puntos.reload();
@@ -107,7 +107,7 @@ export class TimeClockLocationsComponent {
 
   async eliminar(p: PuntoMarcacion): Promise<void> {
     if (!confirm(`¿Eliminar el punto "${p.nombre}"? Su pantalla de QR dejará de funcionar.`)) return;
-    await firstValueFrom(this.marcacion.eliminarPunto(p.id));
+    await firstValueFrom(this.marcacion.deleteLocation(p.id));
     this.avisos.success('Punto de marcación eliminado.');
     this.puntos.reload();
   }

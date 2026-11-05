@@ -1,4 +1,4 @@
-/* Estilos compartidos por las páginas de estado (404, 403, próximamente) */
+/* Shared styles for status pages. */
 :host {
   display: flex;
   align-items: center;
@@ -9,13 +9,13 @@
   background: var(--text-light);
 }
 
-.estado {
+.status {
   max-width: 440px;
   text-align: center;
   color: var(--dark-blue);
 }
 
-.icono {
+.icon {
   width: 72px;
   height: 72px;
   display: grid;
@@ -26,7 +26,7 @@
   font-size: 30px;
 }
 
-.codigo {
+.code {
   margin: 0;
   font-size: 13px;
   font-weight: bold;
@@ -45,7 +45,7 @@ p {
   line-height: 1.5;
 }
 
-.boton {
+.button {
   display: inline-block;
   padding: 10px 20px;
   border-radius: 8px;
@@ -55,7 +55,7 @@ p {
   text-decoration: none;
 }
 
-.boton:hover {
+.button:hover {
   background: var(--dark-blue);
   color: var(--lime-green);
 }

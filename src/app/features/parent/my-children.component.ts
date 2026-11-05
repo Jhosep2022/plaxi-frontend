@@ -99,10 +99,10 @@ export class MyChildrenComponent {
 
   private ficha(hijo: Hijo) {
     return forkJoin({
-      registros: this.asistencia.registrosDeEstudiante(hijo.id),
-      licencias: this.asistencia.licenciasDeEstudiante(hijo.id),
+      registros: this.asistencia.getStudentRecords(hijo.id),
+      licencias: this.asistencia.getStudentLeaveRequests(hijo.id),
       tareas: this.tareas.tareasDeEstudiante(this.espacioId, hijo.id),
-      datos: hijo.paraleloId ? this.calificaciones.datosDeParalelo(this.espacioId, hijo.paraleloId) : of(null),
+      datos: hijo.paraleloId ? this.calificaciones.getClassGroupData(this.espacioId, hijo.paraleloId) : of(null),
     }).pipe(
       map(({ registros, licencias, tareas, datos }): FichaHijo => {
         const desde = sumarDias(this.hoy, -14);

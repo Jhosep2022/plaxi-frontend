@@ -54,15 +54,15 @@ export class StaffAttendanceComponent {
 
   readonly datos = rxResource({
     stream: () => forkJoin({
-      marcaciones: this.marcacion.marcacionesEntre(this.espacioId, sumarDias(this.hoy, -30), this.hoy),
-      docentes: this.academico.docentes(this.espacioId),
-      puntos: this.marcacion.puntos(this.espacioId),
+      marcaciones: this.marcacion.getEntriesBetween(this.espacioId, sumarDias(this.hoy, -30), this.hoy),
+      docentes: this.academico.getTeachers(this.espacioId),
+      puntos: this.marcacion.getLocations(this.espacioId),
     }),
   });
 
   // Hoy si alguien debe marcar; si no, el último día con marcaciones
   readonly fecha = linkedSignal(() => {
-    if (this.marcacion.docentesEsperados(this.espacioId, this.hoy).length) return this.hoy;
+    if (this.marcacion.getExpectedTeachers(this.espacioId, this.hoy).length) return this.hoy;
     return (this.datos.value()?.marcaciones ?? []).map((m) => m.fecha).sort().at(-1) ?? this.hoy;
   });
 
@@ -72,7 +72,7 @@ export class StaffAttendanceComponent {
     const fecha = this.fecha();
     const delDia = d.marcaciones.filter((m) => m.fecha === fecha);
     const punto = new Map(d.puntos.map((p) => [p.id, p.nombre]));
-    return this.marcacion.docentesEsperados(this.espacioId, fecha)
+    return this.marcacion.getExpectedTeachers(this.espacioId, fecha)
       .map(({ docenteId, esperado }) => {
         const entrada = delDia.find((m) => m.docenteId === docenteId && m.tipo === 'entrada');
         const salida = delDia.find((m) => m.docenteId === docenteId && m.tipo === 'salida');

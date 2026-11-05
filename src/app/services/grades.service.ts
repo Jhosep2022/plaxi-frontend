@@ -53,11 +53,11 @@ export class GradesService {
   private cierresRepo = new MockRepository<CierrePeriodo>(MOCK_CIERRES);
 
   // ---------- Escala y ponderación ----------
-  config(espacioId: number, tipo: TipoEspacio = 'colegio'): Observable<ConfigCalificacion> {
+  getConfig(espacioId: number, tipo: TipoEspacio = 'colegio'): Observable<ConfigCalificacion> {
     return this.configRepo.list((c) => c.id === espacioId).pipe(map(([c]) => c ?? configPorDefecto(espacioId, tipo)));
   }
 
-  guardarConfig(config: ConfigCalificacion): Observable<ConfigCalificacion> {
+  saveConfig(config: ConfigCalificacion): Observable<ConfigCalificacion> {
     const suma = config.criterios.reduce((s, c) => s + c.porcentaje, 0);
     if (suma !== 100) return throwError(() => new Error(`Los pesos deben sumar 100% (ahora suman ${suma}%).`));
     if (config.notaAprobacion <= 0 || config.notaAprobacion > config.notaMaxima) {
@@ -81,22 +81,22 @@ export class GradesService {
   }
 
   // ---------- Cierre de periodos ----------
-  cierres(espacioId: number, gestionId: number): Observable<CierrePeriodo[]> {
+  getClosures(espacioId: number, gestionId: number): Observable<CierrePeriodo[]> {
     return this.cierresRepo.list((c) => c.espacioId === espacioId && c.gestionId === gestionId);
   }
 
-  cerrarPeriodo(espacioId: number, gestion: Gestion, periodo: number): Observable<CierrePeriodo> {
+  closePeriod(espacioId: number, gestion: Gestion, periodo: number): Observable<CierrePeriodo> {
     if (gestion.periodos[periodo].inicio > hoyIso()) return throwError(() => new Error('No se puede cerrar un periodo que todavía no empezó.'));
-    if (this.estaCerrado(gestion.id, periodo)) return throwError(() => new Error('El periodo ya está cerrado.'));
+    if (this.isPeriodClosed(gestion.id, periodo)) return throwError(() => new Error('El periodo ya está cerrado.'));
     return this.cierresRepo.save({ espacioId, gestionId: gestion.id, periodo, cerradoEl: hoyIso() });
   }
 
-  reabrirPeriodo(cierre: CierrePeriodo): Observable<void> {
+  reopenPeriod(cierre: CierrePeriodo): Observable<void> {
     return this.cierresRepo.delete(cierre.id);
   }
 
   // Avance de la carga de notas de cada periodo (para decidir si se puede cerrar)
-  progreso(espacioId: number, gestion: Gestion): Observable<ProgresoPeriodo[]> {
+  getProgress(espacioId: number, gestion: Gestion): Observable<ProgresoPeriodo[]> {
     const asignaciones = MOCK_ASIGNACIONES.filter((a) => a.espacioId === espacioId && a.gestionId === gestion.id);
     const alumnos = (paraleloId: number) => MOCK_ESTUDIANTES.filter((e) => e.paraleloId === paraleloId).length;
     const progreso = gestion.periodos.map((_, periodo) => {
@@ -113,47 +113,47 @@ export class GradesService {
   }
 
   // ---------- Actividades ----------
-  guardarActividad(actividad: Omit<Actividad, 'id'> & { id?: number }): Observable<Actividad> {
-    if (this.estaCerrado(actividad.gestionId, actividad.periodo)) return throwError(() => new Error('El periodo está cerrado: ya no se pueden modificar sus actividades.'));
+  saveActivity(actividad: Omit<Actividad, 'id'> & { id?: number }): Observable<Actividad> {
+    if (this.isPeriodClosed(actividad.gestionId, actividad.periodo)) return throwError(() => new Error('El periodo está cerrado: ya no se pueden modificar sus actividades.'));
     if (!actividad.nombre.trim()) return throwError(() => new Error('La actividad necesita un nombre.'));
     return this.actividadesRepo.save({ ...actividad, nombre: actividad.nombre.trim() });
   }
 
   // Elimina la actividad y sus notas
-  eliminarActividad(actividad: Actividad): Observable<void> {
-    if (this.estaCerrado(actividad.gestionId, actividad.periodo)) return throwError(() => new Error('El periodo está cerrado: ya no se pueden modificar sus actividades.'));
+  deleteActivity(actividad: Actividad): Observable<void> {
+    if (this.isPeriodClosed(actividad.gestionId, actividad.periodo)) return throwError(() => new Error('El periodo está cerrado: ya no se pueden modificar sus actividades.'));
     for (const nota of this.notasRepo.readNow((n) => n.actividadId === actividad.id)) this.notasRepo.delete(nota.id).subscribe();
     return this.actividadesRepo.delete(actividad.id);
   }
 
   // ---------- Notas ----------
-  notasDeActividad(actividadId: number): Observable<Nota[]> {
+  getActivityGrades(actividadId: number): Observable<Nota[]> {
     return this.notasRepo.list((n) => n.actividadId === actividadId);
   }
 
-  notasDeEstudiante(estudianteId: number): Observable<Nota[]> {
+  getStudentGrades(estudianteId: number): Observable<Nota[]> {
     return this.notasRepo.list((n) => n.estudianteId === estudianteId);
   }
 
   // Actividad por id (lectura síncrona para otros servicios mock)
-  actividad(actividadId: number): Actividad | undefined {
+  getActivity(actividadId: number): Actividad | undefined {
     return this.actividadesRepo.readNow((a) => a.id === actividadId)[0];
   }
 
   // ¿El periodo de esta actividad está cerrado? (lectura síncrona para otros servicios mock)
-  actividadCerrada(actividadId: number): boolean {
+  isActivityClosed(actividadId: number): boolean {
     const act = this.actividadesRepo.readNow((a) => a.id === actividadId)[0];
-    return !!act && this.estaCerrado(act.gestionId, act.periodo);
+    return !!act && this.isPeriodClosed(act.gestionId, act.periodo);
   }
 
-  guardarNotas(espacioId: number, cambios: CambioNota[]): Observable<number> {
+  saveGrades(espacioId: number, cambios: CambioNota[]): Observable<number> {
     const config = this.configRepo.readNow((c) => c.id === espacioId)[0];
     const maxima = config?.notaMaxima ?? 100;
     const actividades = new Map(this.actividadesRepo.readNow().map((a) => [a.id, a]));
     for (const c of cambios) {
       const act = actividades.get(c.actividadId);
       if (!act) return throwError(() => new Error('La actividad ya no existe.'));
-      if (this.estaCerrado(act.gestionId, act.periodo)) return throwError(() => new Error('El periodo está cerrado: las notas ya no se pueden modificar.'));
+      if (this.isPeriodClosed(act.gestionId, act.periodo)) return throwError(() => new Error('El periodo está cerrado: las notas ya no se pueden modificar.'));
       if (c.valor !== null && (c.valor < 0 || c.valor > maxima)) return throwError(() => new Error(`Las notas deben estar entre 0 y ${maxima}.`));
     }
     for (const c of cambios) {
@@ -168,19 +168,19 @@ export class GradesService {
   }
 
   // ---------- Datos completos de un paralelo ----------
-  datosDeParalelo(espacioId: number, paraleloId: number): Observable<DatosParalelo | null> {
-    return this.academico.gestionActiva(espacioId).pipe(
+  getClassGroupData(espacioId: number, paraleloId: number): Observable<DatosParalelo | null> {
+    return this.academico.getActiveAcademicYear(espacioId).pipe(
       switchMap((gestion) => {
         if (!gestion) return of(null);
         return forkJoin({
-          config: this.config(espacioId),
-          paralelos: this.academico.paralelos(espacioId, gestion.id),
-          materias: this.academico.materias(espacioId),
-          asignaciones: this.academico.asignaciones(espacioId, gestion.id),
-          docentes: this.academico.docentes(espacioId),
-          estudiantes: this.asistencia.estudiantesDeParalelo(paraleloId),
+          config: this.getConfig(espacioId),
+          paralelos: this.academico.getClassGroups(espacioId, gestion.id),
+          materias: this.academico.getSubjects(espacioId),
+          asignaciones: this.academico.getAllocations(espacioId, gestion.id),
+          docentes: this.academico.getTeachers(espacioId),
+          estudiantes: this.asistencia.getStudentsByClassGroup(paraleloId),
           actividades: this.actividadesRepo.list((a) => a.gestionId === gestion.id && a.paraleloId === paraleloId),
-          cierres: this.cierres(espacioId, gestion.id),
+          cierres: this.getClosures(espacioId, gestion.id),
         }).pipe(
           switchMap((d) => {
             const paralelo = d.paralelos.find((p) => p.id === paraleloId);
@@ -204,7 +204,7 @@ export class GradesService {
     );
   }
 
-  private estaCerrado(gestionId: number, periodo: number): boolean {
+  private isPeriodClosed(gestionId: number, periodo: number): boolean {
     return this.cierresRepo.readNow((c) => c.gestionId === gestionId && c.periodo === periodo).length > 0;
   }
 }

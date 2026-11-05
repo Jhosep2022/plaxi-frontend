@@ -54,8 +54,8 @@ export class PunctualityComponent {
     params: () => ({ desde: this.desde(), hasta: this.hasta() }),
     stream: ({ params }) =>
       forkJoin({
-        marcaciones: this.marcacion.marcacionesEntre(this.espacioId, params.desde, params.hasta),
-        docentes: this.academico.docentes(this.espacioId),
+        marcaciones: this.marcacion.getEntriesBetween(this.espacioId, params.desde, params.hasta),
+        docentes: this.academico.getTeachers(this.espacioId),
       }),
   });
 
@@ -71,7 +71,7 @@ export class PunctualityComponent {
       return filas.get(docenteId)!;
     };
     for (const fecha of datesBetween(this.desde(), this.hasta())) {
-      for (const { docenteId } of this.marcacion.docentesEsperados(this.espacioId, fecha)) {
+      for (const { docenteId } of this.marcacion.getExpectedTeachers(this.espacioId, fecha)) {
         const f = fila(docenteId);
         f.esperados++;
         const delDia = d.marcaciones.filter((m) => m.docenteId === docenteId && m.fecha === fecha);

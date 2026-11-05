@@ -64,7 +64,7 @@ export class QuizEditorComponent {
       forkJoin({
         aula: this.aulas.aula(params.aulaId),
         existente: params.quizId === 'nuevo' ? of(null) : this.servicio.quizConPreguntas(Number(params.quizId)),
-        config: this.calificaciones.config(this.espacio.id),
+        config: this.calificaciones.getConfig(this.espacio.id),
       }),
   });
 
