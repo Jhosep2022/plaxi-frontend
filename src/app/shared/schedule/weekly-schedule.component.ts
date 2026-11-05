@@ -1,15 +1,15 @@
 import { Component, computed, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMugHot } from '@fortawesome/free-solid-svg-icons';
-import { FilaVista, ItemVista } from '../../core/utils/horario';
+import { FilaVista, ItemVista } from '../../core/utils/schedule';
 import { iconoMateria } from '../ui/iconos-academicos';
 
 // Grilla semanal de solo lectura: filas = periodos y recreos, columnas = días.
 // La usan las vistas por docente y por aula, "Mi horario" del docente, estudiante y padre.
 @Component({
-  selector: 'app-horario-semanal',
+  selector: 'app-weekly-schedule',
   imports: [FaIconComponent],
-  styleUrls: ['./horario-semanal.component.css'],
+  styleUrls: ['./weekly-schedule.component.css'],
   template: `
     <div class="contenedor">
       <table class="grilla" [style.--dias]="dias().length">
@@ -64,7 +64,7 @@ import { iconoMateria } from '../ui/iconos-academicos';
     </div>
   `,
 })
-export class HorarioSemanalComponent {
+export class WeeklyScheduleComponent {
   readonly dias = input.required<{ id: number; largo: string }[]>();
   readonly filas = input.required<FilaVista[]>();
   readonly items = input.required<ItemVista[]>();

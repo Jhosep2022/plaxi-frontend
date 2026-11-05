@@ -38,7 +38,7 @@
       </aside>
       <section class="ui-card semana">
         <p class="ui-ayuda">Toca una clase para abrir y editar el horario de su paralelo.</p>
-        <app-horario-semanal [dias]="dias()" [filas]="vistaLectura().filas" [items]="vistaLectura().items" [clicable]="true"
+        <app-weekly-schedule [dias]="dias()" [filas]="vistaLectura().filas" [items]="vistaLectura().items" [clicable]="true"
           (elegir)="irAParalelo($event)" [vacio]="vista() === 'docente' ? 'Este docente no tiene clases en el horario.' : 'Esta aula no tiene clases en el horario.'" />
       </section>
     </div>

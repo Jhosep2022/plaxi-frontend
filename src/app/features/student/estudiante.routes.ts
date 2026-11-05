@@ -18,7 +18,7 @@ export default [
   { path: 'aulas/:aulaId/quiz/:quizId', title: 'Quiz', loadComponent: () => import('../classrooms/student/responder-quiz.component').then((m) => m.ResponderQuizComponent) },
   { path: 'aulas/:aulaId', title: 'Aula', loadComponent: () => import('../classrooms/student/aula-estudiante.component').then((m) => m.AulaEstudianteComponent) },
   { path: 'sesiones', title: 'Sesiones en vivo', canActivate: [tipoEspacioGuard('academia')], loadComponent: () => import('../academy/sesiones-estudiante.component').then((m) => m.SesionesEstudianteComponent) },
-  { path: 'horario', title: 'Mi horario', loadComponent: () => import('../schedule/mi-horario.component').then((m) => m.MiHorarioComponent) },
+  { path: 'horario', title: 'Mi horario', loadComponent: () => import('../schedule/my-schedule.component').then((m) => m.MyScheduleComponent) },
   { path: 'tareas', title: 'Mis tareas', loadComponent: () => import('../assignments/mis-tareas.component').then((m) => m.MisTareasComponent) },
   { path: 'calificaciones', title: 'Mis calificaciones', loadComponent: () => import('../grades/mis-calificaciones.component').then((m) => m.MisCalificacionesComponent) },
   { path: 'comunicados', title: 'Comunicados', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('../announcements/comunicados.component').then((m) => m.ComunicadosComponent) },

@@ -8,9 +8,9 @@ import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academico.model';
 import { ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../core/models/attendance.model';
 import { contar, diaDeSemana, fechaLarga, hoyIso, licenciaCubre, sumarDias } from '../../../core/utils/attendance';
-import { clasesDeDocente, rangoDeBloque } from '../../../core/utils/horario';
+import { clasesDeDocente, rangoDeBloque } from '../../../core/utils/schedule';
 import { AttendanceService } from '../../../services/attendance.service';
-import { HorariosService } from '../../../services/horarios.service';
+import { SchedulesService } from '../../../services/schedules.service';
 import { AvisosService } from '../../../shared/ui/avisos.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { iconoMateria } from '../../../shared/ui/iconos-academicos';
@@ -32,7 +32,7 @@ interface Marca {
 })
 export class TomarAsistenciaComponent {
   private session = inject(SessionService);
-  private horarios = inject(HorariosService);
+  private horarios = inject(SchedulesService);
   private asistencia = inject(AttendanceService);
   private avisos = inject(AvisosService);
 

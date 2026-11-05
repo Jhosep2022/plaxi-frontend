@@ -11,7 +11,7 @@ import { Membresia } from '../core/models/espacio.model';
 import { Marcacion } from '../core/models/marcacion.model';
 import { contar, diaDeSemana, estadoDelDia, fechaCorta, hoyIso, sumarDias } from '../core/utils/attendance';
 import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../core/utils/calificaciones';
-import { DatosHorario, clasesDeDocente, itemsDeClases } from '../core/utils/horario';
+import { DatosHorario, clasesDeDocente, itemsDeClases } from '../core/utils/schedule';
 import { aHora, aMinutos } from '../core/utils/jornada';
 import { porcentaje } from '../core/utils/reportes';
 import { urgente, venceLabel } from '../core/utils/tareas';
@@ -25,7 +25,7 @@ import { CalificacionesService, DatosParalelo } from './calificaciones.service';
 import { ClasesDocenteService } from './clases-docente.service';
 import { ComunicadoRecibido, ComunicadosService } from './comunicados.service';
 import { HijoActivoService } from './hijo-activo.service';
-import { HorariosService } from './horarios.service';
+import { SchedulesService } from './schedules.service';
 import { MarcacionService } from './marcacion.service';
 import { ProfileService } from './profile.service';
 import { TareaDeEstudiante, TareasService } from './tareas.service';
@@ -37,7 +37,7 @@ type Semana = ResumenData['perfil']['semana'];
 @Injectable({ providedIn: 'root' })
 export class ResumenColegioService {
   private perfiles = inject(ProfileService);
-  private horarios = inject(HorariosService);
+  private horarios = inject(SchedulesService);
   private academico = inject(AcademicoService);
   private asistencia = inject(AttendanceService);
   private calificaciones = inject(CalificacionesService);

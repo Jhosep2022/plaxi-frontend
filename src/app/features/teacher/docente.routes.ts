@@ -20,7 +20,7 @@ export default [
   { path: 'clases/:asignacionId/quiz/:quizId', title: 'Quiz', loadComponent: () => import('../classrooms/teacher/quiz-editor.component').then((m) => m.QuizEditorComponent) },
   { path: 'clases/:asignacionId/quiz/:quizId/resultados', title: 'Resultados del quiz', loadComponent: () => import('../classrooms/teacher/quiz-resultados.component').then((m) => m.QuizResultadosComponent) },
   { path: 'clases/:asignacionId', title: 'Aula', loadComponent: () => import('../classrooms/teacher/aula-docente.component').then((m) => m.AulaDocenteComponent) },
-  { path: 'horario', title: 'Mi horario', loadComponent: () => import('../schedule/mi-horario.component').then((m) => m.MiHorarioComponent) },
+  { path: 'horario', title: 'Mi horario', loadComponent: () => import('../schedule/my-schedule.component').then((m) => m.MyScheduleComponent) },
   { path: 'marcacion', title: 'Marcación', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('./time-tracking/marcacion.component').then((m) => m.MarcacionComponent) },
   { path: 'marcacion/historial', title: 'Mi historial de marcaciones', canActivate: [tipoEspacioGuard('colegio')], loadComponent: () => import('./time-tracking/historial-marcacion.component').then((m) => m.HistorialMarcacionComponent) },
 

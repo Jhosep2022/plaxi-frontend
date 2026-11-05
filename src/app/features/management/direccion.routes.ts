@@ -11,7 +11,7 @@ export default [
   { path: 'academico/materias', title: 'Materias', loadComponent: () => import('./academics/subjects/materias.component').then((m) => m.MateriasComponent) },
   { path: 'academico/aulas', title: 'Aulas', loadComponent: () => import('./academics/classrooms/aulas.component').then((m) => m.AulasComponent) },
   { path: 'academico/asignaciones', title: 'Asignación docente', loadComponent: () => import('./academics/allocations/asignaciones.component').then((m) => m.AsignacionesComponent) },
-  { path: 'academico/horarios', title: 'Horarios', loadComponent: () => import('./academics/schedules/horarios.component').then((m) => m.HorariosComponent) },
+  { path: 'academico/horarios', title: 'Horarios', loadComponent: () => import('./academics/schedules/schedules.component').then((m) => m.SchedulesComponent) },
 
   // Personas
   { path: 'personas/docentes', title: 'Docentes', loadComponent: () => import('./people/docentes.component').then((m) => m.DocentesComponent) },

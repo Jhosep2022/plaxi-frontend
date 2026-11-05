@@ -3,7 +3,7 @@
 // Se generan de forma determinística: siempre son los mismos al recargar.
 // ============================================================================
 import { ConfigAsistenciaDocente, EstadoAsistencia, Estudiante, Licencia, RegistroAsistencia } from '../core/models/attendance.model';
-import { docenteDe } from '../core/utils/horario';
+import { docenteDe } from '../core/utils/schedule';
 import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_PARALELOS } from './academico.mock';
 
 const E = 1;

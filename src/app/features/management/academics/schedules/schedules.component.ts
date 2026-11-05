@@ -28,11 +28,11 @@ import {
   filasParaTurnos,
   itemsDeClases,
   turnosDeClases,
-} from '../../../../core/utils/horario';
-import { HorarioSemanalComponent } from '../../../../shared/schedule/horario-semanal.component';
+} from '../../../../core/utils/schedule';
+import { WeeklyScheduleComponent } from '../../../../shared/schedule/weekly-schedule.component';
 import { bloquesNecesarios, duracionLabel } from '../../../../core/utils/jornada';
 import { AcademicoService } from '../../../../services/academico.service';
-import { HorariosService } from '../../../../services/horarios.service';
+import { SchedulesService } from '../../../../services/schedules.service';
 import { AvisosService } from '../../../../shared/ui/avisos.service';
 import { DrawerComponent } from '../../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
@@ -46,15 +46,15 @@ interface CeldaEditada {
 }
 
 @Component({
-  selector: 'app-horarios',
+  selector: 'app-schedules',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent, HorarioSemanalComponent],
-  templateUrl: './horarios.component.html',
-  styleUrls: ['./horarios.component.css'],
+  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent, WeeklyScheduleComponent],
+  templateUrl: './schedules.component.html',
+  styleUrls: ['./schedules.component.css'],
 })
-export class HorariosComponent {
+export class SchedulesComponent {
   private academico = inject(AcademicoService);
-  private horarios = inject(HorariosService);
+  private horarios = inject(SchedulesService);
   private avisos = inject(AvisosService);
   protected readonly session = inject(SessionService);
   private readonly espacioId = this.session.espacioActivo()!.id;

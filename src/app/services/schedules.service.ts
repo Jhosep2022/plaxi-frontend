@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { ClaseHorario, ConfigJornada, paraleloLabel } from '../core/models/academico.model';
-import { ContextoHorario, DatosHorario, buscarChoques, clasesFueraDeJornada } from '../core/utils/horario';
+import { ContextoHorario, DatosHorario, buscarChoques, clasesFueraDeJornada } from '../core/utils/schedule';
 import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_DOCENTES, MOCK_JORNADAS, MOCK_PARALELOS } from '../mocks/academico.mock';
 import { AcademicoService } from './academico.service';
 import { RepositorioMock } from './repositorio-mock';
@@ -10,7 +10,7 @@ import { RepositorioMock } from './repositorio-mock';
 // Jornada escolar (configuración de horarios) y horario semanal de cada paralelo.
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
-export class HorariosService {
+export class SchedulesService {
   private academico = inject(AcademicoService);
   private jornadasRepo = new RepositorioMock<ConfigJornada & { id: number }>(MOCK_JORNADAS);
   private clasesRepo = new RepositorioMock<ClaseHorario>(MOCK_CLASES);

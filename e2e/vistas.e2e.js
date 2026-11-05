@@ -14,21 +14,21 @@ module.exports = async function vistas({ verificar }) {
     await tab('Por docente');
     await b.esperar(400);
     verificar('por docente elige primero a quien tiene más clases', (await b.texto('.lectura .paralelo.elegido .nombre-lista span')) === 'María Fernández');
-    verificar('María tiene 8 clases en la grilla', (await b.evaluar(`document.querySelectorAll('app-horario-semanal .clase').length`)) === 8);
-    verificar('la columna de hoy (lunes) está resaltada', (await b.texto('app-horario-semanal th.hoy')).includes('Lunes'));
-    await b.evaluar(`[...document.querySelectorAll('app-horario-semanal button.clase')].find(x => x.textContent.includes('3ro B')).click()`);
+    verificar('María tiene 8 clases en la grilla', (await b.evaluar(`document.querySelectorAll('app-weekly-schedule .clase').length`)) === 8);
+    verificar('la columna de hoy (lunes) está resaltada', (await b.texto('app-weekly-schedule th.hoy')).includes('Lunes'));
+    await b.evaluar(`[...document.querySelectorAll('app-weekly-schedule button.clase')].find(x => x.textContent.includes('3ro B')).click()`);
     await b.esperar(500);
     verificar('tocar una clase abre el horario de su paralelo', (await b.texto('.semana .cabecera h2')) === '3ro B');
     await tab('Por aula');
     await b.esperar(400);
     await b.evaluar(`[...document.querySelectorAll('.lectura .paralelo')].find(x => x.textContent.includes('Laboratorio de física')).click()`);
     await b.esperar(400);
-    verificar('el laboratorio de física tiene 2 clases', (await b.evaluar(`document.querySelectorAll('app-horario-semanal .clase').length`)) === 2);
+    verificar('el laboratorio de física tiene 2 clases', (await b.evaluar(`document.querySelectorAll('app-weekly-schedule .clase').length`)) === 2);
 
     // Mi horario
     await b.sesion('docente');
     await b.ir('/colegio-san-jose/docente/horario');
-    verificar('Mi horario del docente: 8 clases', (await b.evaluar(`document.querySelectorAll('app-horario-semanal .clase').length`)) === 8);
+    verificar('Mi horario del docente: 8 clases', (await b.evaluar(`document.querySelectorAll('app-weekly-schedule .clase').length`)) === 8);
     await b.sesion('padre');
     await b.ir('/colegio-san-jose/padre/horario');
     verificar('el padre ve el horario de su hijo', (await b.texto('app-page-header h1')) === 'Horario de Luis Mamani');

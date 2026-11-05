@@ -4,7 +4,7 @@ import { map } from 'rxjs/operators';
 import { Turno } from '../core/models/academico.model';
 import { HorarioLaboral, Marcacion, PuntoMarcacion, TipoMarcacion } from '../core/models/marcacion.model';
 import { diaDeSemana, hoyIso } from '../core/utils/attendance';
-import { docenteDe, rangoDeBloque } from '../core/utils/horario';
+import { docenteDe, rangoDeBloque } from '../core/utils/schedule';
 import { aHora, aMinutos } from '../core/utils/jornada';
 import { codigoDeVentana, distanciaLabel, distanciaMetros, ventanaActual } from '../core/utils/marcacion';
 import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_JORNADAS, MOCK_PARALELOS } from '../mocks/academico.mock';

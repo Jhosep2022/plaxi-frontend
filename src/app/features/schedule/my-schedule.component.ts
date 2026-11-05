@@ -6,13 +6,13 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboard, faClock, faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { DIAS_SEMANA, TURNOS, Turno, paraleloLabel } from '../../core/models/academico.model';
-import { DatosHorario, clasesDeDocente, filasParaTurnos, itemsDeClases, turnosDeClases } from '../../core/utils/horario';
+import { DatosHorario, clasesDeDocente, filasParaTurnos, itemsDeClases, turnosDeClases } from '../../core/utils/schedule';
 import { duracionLabel } from '../../core/utils/jornada';
 import { AcademicoService } from '../../services/academico.service';
-import { HorariosService } from '../../services/horarios.service';
+import { SchedulesService } from '../../services/schedules.service';
 import { HijoActivoService } from '../../services/hijo-activo.service';
 import { SelectorHijoComponent } from '../../shared/ui/selector-hijo.component';
-import { HorarioSemanalComponent } from '../../shared/schedule/horario-semanal.component';
+import { WeeklyScheduleComponent } from '../../shared/schedule/weekly-schedule.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 
@@ -28,9 +28,9 @@ interface VistaMiHorario {
 // "Mi horario" del docente (sus clases en todos los paralelos), del estudiante (su paralelo)
 // y del padre (el paralelo de su hijo). Misma grilla, distintos datos.
 @Component({
-  selector: 'app-mi-horario',
+  selector: 'app-my-schedule',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, HorarioSemanalComponent, SelectorHijoComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, WeeklyScheduleComponent, SelectorHijoComponent],
   styles: `
     .resumen { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
     .cargando { color: var(--muted); }
@@ -49,7 +49,7 @@ interface VistaMiHorario {
         </div>
       }
       <div class="ui-card">
-        <app-horario-semanal [dias]="dias()" [filas]="filas()" [items]="items()" vacio="Todavía no hay clases en tu horario." />
+        <app-weekly-schedule [dias]="dias()" [filas]="filas()" [items]="items()" vacio="Todavía no hay clases en tu horario." />
       </div>
     } @else {
       <div class="ui-card">
@@ -58,9 +58,9 @@ interface VistaMiHorario {
     }
   `,
 })
-export class MiHorarioComponent {
+export class MyScheduleComponent {
   private session = inject(SessionService);
-  private horarios = inject(HorariosService);
+  private horarios = inject(SchedulesService);
   private academico = inject(AcademicoService);
   private hijoActivo = inject(HijoActivoService);
 

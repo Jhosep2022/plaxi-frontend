@@ -2,7 +2,7 @@
 // DATOS MOCKEADOS de Marcación docente (Colegio San José). Determinísticos.
 // ============================================================================
 import { HorarioLaboral, Marcacion, PuntoMarcacion } from '../core/models/marcacion.model';
-import { docenteDe } from '../core/utils/horario';
+import { docenteDe } from '../core/utils/schedule';
 import { MOCK_ASIGNACIONES, MOCK_CLASES } from './academico.mock';
 
 const E = 1;

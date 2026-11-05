@@ -7,7 +7,7 @@ import { faClock, faMugHot, faPlus, faTrash } from '@fortawesome/free-solid-svg-
 import { SessionService } from '../../../../core/auth/session.service';
 import { ConfigJornada, DIAS_SEMANA, TURNOS, Turno } from '../../../../core/models/academico.model';
 import { aMinutos, duracionLabel, generarBloques } from '../../../../core/utils/jornada';
-import { HorariosService } from '../../../../services/horarios.service';
+import { SchedulesService } from '../../../../services/schedules.service';
 import { AvisosService } from '../../../../shared/ui/avisos.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { mensajeError } from '../../academics/academico.ui';
@@ -46,7 +46,7 @@ function aModelo(j: ConfigJornada | undefined) {
   styleUrls: ['./jornada.component.css'],
 })
 export class JornadaComponent {
-  private horarios = inject(HorariosService);
+  private horarios = inject(SchedulesService);
   private avisos = inject(AvisosService);
   private readonly espacioId = inject(SessionService).espacioActivo()!.id;
 

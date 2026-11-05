@@ -6,10 +6,10 @@ import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model'
 import { Actividad, ConfigCalificacion } from '../core/models/calificaciones.model';
 import { Conteo, contar, diaDeSemana, hoyIso, sumarDias } from '../core/utils/attendance';
 import { ResultadoMateria, aprobado, calcularNota, indiceNotas, periodoDeFecha } from '../core/utils/calificaciones';
-import { rangoDeBloque } from '../core/utils/horario';
+import { rangoDeBloque } from '../core/utils/schedule';
 import { AttendanceService } from './attendance.service';
 import { CalificacionesService, DatosParalelo } from './calificaciones.service';
-import { HorariosService } from './horarios.service';
+import { SchedulesService } from './schedules.service';
 
 export interface SesionSemanal {
   dia: number;
@@ -50,7 +50,7 @@ export const ASISTENCIA_MINIMA = 85; // % por debajo del cual el estudiante qued
 // Junta datos de horarios, asistencia y calificaciones; con backend sería un solo endpoint.
 @Injectable({ providedIn: 'root' })
 export class ClasesDocenteService {
-  private horarios = inject(HorariosService);
+  private horarios = inject(SchedulesService);
   private asistencia = inject(AttendanceService);
   private calificaciones = inject(CalificacionesService);
 
