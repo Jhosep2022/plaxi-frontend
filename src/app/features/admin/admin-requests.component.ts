@@ -1,16 +1,24 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
+import { readApiError } from '../../core/api/api-error';
 import { createSlug } from '../../core/models/auth.model';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
-import { AdminService, requestStatusLabel } from './admin.service';
+import { requestStatusLabel, type AdminRequestStatus } from './admin.service';
+import { AdminRequestsApiService } from './admin-requests-api.service';
 
 @Component({
   selector: 'app-admin-requests', host: { class: 'ui-pagina' }, imports: [PageHeaderComponent],
   template: `
     <app-page-header miga="Plataforma" titulo="Solicitudes de colegios" descripcion="Da seguimiento a cada contacto antes de crear el espacio." />
-    <section class="ui-card admin-section"><div class="admin-filters"><select class="ui-input" aria-label="Filtrar solicitudes" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)"><option value="">Todos los estados</option><option value="new">Nuevas</option><option value="contacted">Contactadas</option><option value="converted">Convertidas</option><option value="discarded">Descartadas</option></select></div><div class="ui-tabla-contenedor"><table class="ui-tabla"><thead><tr><th>Colegio</th><th>Contacto</th><th>Estudiantes</th><th>Estado</th><th></th></tr></thead><tbody>
+    <section class="ui-card admin-section"><div class="admin-filters"><select class="ui-input" aria-label="Filtrar solicitudes" [value]="statusFilter()" (change)="changeFilter($any($event.target).value)"><option value="">Todos los estados</option><option value="new">Nuevas</option><option value="contacted">Contactadas</option><option value="converted">Convertidas</option><option value="discarded">Descartadas</option></select></div>
+    @if (requests.isLoading()) { <p role="status">Cargando solicitudes…</p> }
+    @else if (requests.error()) { <p role="alert">No pudimos cargar las solicitudes. <button class="ui-btn ui-btn--secundario" type="button" (click)="requests.reload()">Reintentar</button></p> }
+    @else if (visible().length === 0) { <p>No hay solicitudes con este estado.</p> }
+    <div class="ui-tabla-contenedor"><table class="ui-tabla"><thead><tr><th>Colegio</th><th>Contacto</th><th>Estudiantes</th><th>Estado</th><th></th></tr></thead><tbody>
       @for (request of visible(); track request.id) { <tr><td><strong>{{ request.school }}</strong><br /><small>{{ request.city }}</small></td><td>{{ request.contact }}<br /><small>{{ request.email }}</small></td><td>{{ request.students }}</td><td><span class="ui-badge tono-crema">{{ statusLabel(request.status) }}</span></td><td><button class="ui-btn ui-btn--secundario" type="button" (click)="selectRequest(request.id)">Ver solicitud</button></td></tr> }
-    </tbody></table></div></section>
+    </tbody></table></div><div class="request-actions"><button class="ui-btn ui-btn--secundario" type="button" [disabled]="page() === 1 || requests.isLoading()" (click)="changePage(-1)">Anterior</button><span>Página {{ page() }}</span><button class="ui-btn ui-btn--secundario" type="button" [disabled]="visible().length < 50 || requests.isLoading()" (click)="changePage(1)">Siguiente</button></div></section>
     @if (details(); as request) { <section class="ui-card admin-section">
       <div class="admin-heading"><h2>{{ request.school }}</h2><button class="ui-btn ui-btn--secundario" type="button" (click)="selectedId.set(null)">Cerrar</button></div>
       <p>Datos de la persona que envió la solicitud. Puede ser distinta de quien administrará el colegio.</p>
@@ -23,8 +31,8 @@ import { AdminService, requestStatusLabel } from './admin.service';
           <p>Registra el resultado después de hablar con el colegio. Estas acciones no envían mensajes ni realizan llamadas.</p>
           <div class="ui-campo"><label for="follow-up-note">Nota de seguimiento (opcional)</label><input id="follow-up-note" class="ui-input" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Ej. Llamé al colegio; esperan una propuesta" /><small class="ui-ayuda">La nota se registra cuando eliges una de las siguientes acciones.</small></div>
           <div class="request-actions">
-            <div><button class="ui-btn ui-btn--secundario" type="button" (click)="review('contacted')">Marcar como contactada</button><small>Indica que ya hablaste con el colegio.</small></div>
-            <div><button class="ui-btn ui-btn--peligro" type="button" (click)="review('discarded')">Descartar solicitud</button><small>Marca la solicitud como descartada; no la elimina.</small></div>
+            <div><button class="ui-btn ui-btn--secundario" type="button" [disabled]="saving()" (click)="review('contacted')">Marcar como contactada</button><small>Indica que ya hablaste con el colegio.</small></div>
+            <div><button class="ui-btn ui-btn--peligro" type="button" [disabled]="saving()" (click)="review('discarded')">Descartar solicitud</button><small>Marca la solicitud como descartada; no la elimina.</small></div>
           </div>
         </section>
         <section class="request-step" aria-labelledby="school-setup-heading">
@@ -41,7 +49,7 @@ import { AdminService, requestStatusLabel } from './admin.service';
           <div class="ui-campo"><label for="responsible-email">Correo de la persona responsable</label><input id="responsible-email" class="ui-input" type="email" [value]="directorEmail()" (input)="directorEmail.set($any($event.target).value)" /></div>
           <div class="ui-campo"><label for="academic-year">Gestión académica inicial</label><input id="academic-year" class="ui-input" type="number" min="2000" [value]="academicYear()" (input)="academicYear.set(+$any($event.target).value)" /></div>
         </div>
-        <div class="admin-actions"><button class="ui-btn" type="button" (click)="createSchool()">Crear espacio del colegio</button></div>
+        <div class="admin-actions"><button class="ui-btn" type="button" [disabled]="saving()" (click)="createSchool()">{{ saving() ? 'Creando…' : 'Crear espacio del colegio' }}</button></div>
         </section>
       }
     </section> }
@@ -49,20 +57,32 @@ import { AdminService, requestStatusLabel } from './admin.service';
   styleUrl: './admin-pages.css',
 })
 export class AdminRequestsComponent {
-  protected readonly admin = inject(AdminService);
+  private readonly api = inject(AdminRequestsApiService);
   protected readonly statusLabel = requestStatusLabel;
   private readonly notifications = inject(NotificationService);
   protected readonly createSlug = createSlug;
   protected readonly selectedId = signal<number | null>(null);
-  protected readonly statusFilter = signal('');
-  protected readonly visible = computed(() => this.admin.requests().filter((request) => !this.statusFilter() || request.status === this.statusFilter()));
+  protected readonly statusFilter = signal<AdminRequestStatus | ''>('');
+  protected readonly page = signal(1);
+  protected readonly saving = signal(false);
+  protected readonly requests = rxResource({ params: () => ({ page: this.page(), status: this.statusFilter() }), stream: ({ params }) => this.api.list(params.page, params.status) });
+  protected readonly visible = computed(() => this.requests.value() ?? []);
   protected readonly notes = signal('');
   protected readonly slug = signal('');
   protected readonly directorFirstName = signal('');
   protected readonly directorLastName = signal('');
   protected readonly directorEmail = signal('');
   protected readonly academicYear = signal(new Date().getFullYear());
-  protected readonly details = computed(() => this.admin.requests().find((request) => request.id === this.selectedId()) ?? null);
+  protected readonly details = computed(() => this.visible().find((request) => request.id === this.selectedId()) ?? null);
+  protected changeFilter(status: AdminRequestStatus | ''): void {
+    this.statusFilter.set(status);
+    this.page.set(1);
+    this.selectedId.set(null);
+  }
+  protected changePage(delta: number): void {
+    this.page.update((page) => page + delta);
+    this.selectedId.set(null);
+  }
   protected selectRequest(id: number): void {
     this.selectedId.set(id);
     this.notes.set('');
@@ -83,19 +103,39 @@ export class AdminRequestsComponent {
     this.directorEmail.set(request.email);
   }
 
-  review(status: 'contacted' | 'discarded'): void {
-    const id = this.selectedId(); if (!id) return;
-    this.admin.reviewRequest(id, status, this.notes());
-    this.notifications.success(status === 'contacted' ? 'Solicitud marcada como contactada.' : 'Solicitud marcada como descartada.');
+  async review(status: 'contacted' | 'discarded'): Promise<void> {
+    const id = this.selectedId(); if (!id || this.saving()) return;
+    this.saving.set(true);
+    try {
+      await firstValueFrom(this.api.review(id, status, this.notes()));
+      this.requests.reload();
+      this.notifications.success(status === 'contacted' ? 'Solicitud marcada como contactada.' : 'Solicitud marcada como descartada.');
+    } catch (error) {
+      this.notifications.error(readApiError(error).message);
+    } finally {
+      this.saving.set(false);
+    }
   }
-  createSchool(): void {
-    const request = this.details(); if (!request) return;
+  async createSchool(): Promise<void> {
+    const request = this.details(); if (!request || this.saving()) return;
     const slug = this.slug().trim() || createSlug(request.school);
-    if (!slug || this.admin.spaces().some((space) => space.slug === slug)) { this.notifications.error('Ese identificador no está disponible. Elige otro para el colegio.'); return; }
-    const created = this.admin.createSchool(request.id, { slug, directorFirstName: this.directorFirstName(),
-      directorLastName: this.directorLastName(), directorEmail: this.directorEmail(),
-      academicYear: this.academicYear() });
-    if (!created) { this.notifications.error('Completa el nombre y apellido de la persona responsable y revisa su correo.'); return; }
-    this.notifications.success('Colegio agregado a la demostración.');
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length < 3 || slug.length > 40) { this.notifications.error('El identificador debe tener entre 3 y 40 caracteres: letras minúsculas, números o guiones.'); return; }
+    if (!this.directorFirstName().trim() || !this.directorLastName().trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.directorEmail().trim()) || !Number.isInteger(this.academicYear()) || this.academicYear() < 2000) {
+      this.notifications.error('Completa el nombre, primer apellido, correo válido y gestión académica de la persona responsable.'); return;
+    }
+    this.saving.set(true);
+    try {
+      const result = await firstValueFrom(this.api.createSchool(request.id, { name: request.school, slug,
+        directorFirstName: this.directorFirstName().trim(), directorLastName: this.directorLastName().trim(),
+        directorEmail: this.directorEmail().trim(), academicYear: this.academicYear() }));
+      this.requests.reload();
+      this.notifications.success(result.invitationSent
+        ? 'Colegio creado. Enviamos la invitación al correo de la persona responsable.'
+        : 'Colegio creado, pero no se pudo enviar la invitación. Revisa el correo y el servicio de envío.');
+    } catch (error) {
+      this.notifications.error(readApiError(error).message);
+    } finally {
+      this.saving.set(false);
+    }
   }
 }

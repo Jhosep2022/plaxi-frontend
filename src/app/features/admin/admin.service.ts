@@ -1,8 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { MOCK_ESPACIOS as MOCK_SPACES, MOCK_MEMBRESIAS as MOCK_MEMBERSHIPS, MOCK_PERFILES as MOCK_PROFILES } from '../../mocks/mock-data';
 import { MOCK_ADMIN, MOCK_SOLICITUDES_COLEGIO as MOCK_SCHOOL_REQUESTS } from '../../mocks/auth.mock';
-import { createSlug } from '../../core/models/auth.model';
-import { DEFAULT_GRADING_SCALE as DEFAULT_SCALE } from '../../core/models/space.model';
 import type { SchoolRequestStatus as LegacyRequestStatus } from '../../core/models/auth.model';
 import type { ProfileDto } from '../../models/profile.dto';
 
@@ -40,13 +38,6 @@ export interface AdminUser {
   active: boolean;
   isAdmin: boolean;
   pending: boolean;
-}
-export interface CreateSchoolInput {
-  slug: string;
-  directorFirstName: string;
-  directorLastName: string;
-  directorEmail: string;
-  academicYear: number;
 }
 export interface AdminAuditEntry {
   id: number;
@@ -114,40 +105,6 @@ export class AdminService {
     if (!current || !reason.trim()) return;
     this.spaces.update((spaces) => spaces.map((space) => space.id === id ? { ...space, ...change } : space));
     this.recordAction('Espacio actualizado', current.name, reason);
-  }
-
-  reviewRequest(id: number, status: AdminRequestStatus, notes: string): void {
-    const current = this.requests().find((request) => request.id === id);
-    if (!current || current.status === 'converted') return;
-    this.requests.update((requests) => requests.map((request) => request.id === id ? { ...request, status } : request));
-    this.recordAction('Solicitud atendida', current.school, notes || status);
-  }
-
-  createSchool(id: number, input: CreateSchoolInput): boolean {
-    const request = this.requests().find((row) => row.id === id);
-    const slug = input.slug.trim();
-    if (!request || request.status === 'converted' || this.spaces().some((space) => space.slug === slug)) return false;
-    if (!slug || !input.directorFirstName.trim() || !input.directorLastName.trim() || !input.directorEmail.includes('@')) return false;
-    const spaceId = Math.max(0, ...this.spaces().map((space) => space.id)) + 1;
-    const userId = Math.max(0, ...this.users().map((user) => user.id)) + 1;
-    const trialEndsOn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const newSpace: AdminSpace = {
-      id: spaceId, slug, name: request.school, type: 'school', status: 'trial', trialEndsOn,
-      limits: { courses: 0, students: 500, storageGb: 5 }, memberCount: 1,
-    };
-    const profile: ProfileDto = {
-      idUsuario: userId, username: `${createSlug(input.directorFirstName)}.${createSlug(input.directorLastName)}`,
-      gmail: input.directorEmail.trim().toLowerCase(), status: true, nombre: input.directorFirstName.trim(),
-      primerApellido: input.directorLastName.trim(), segundoApellido: '', telefono: '', ci: '', id_rol: '1', pending: true,
-    };
-    this.spaces.update((spaces) => [...spaces, newSpace]);
-    this.users.update((users) => [...users, toAdminUser(profile)]);
-    MOCK_SPACES.push({ id: spaceId, slug, nombre: newSpace.name, tipo: 'colegio', escala: DEFAULT_SCALE });
-    MOCK_PROFILES.push(profile);
-    MOCK_MEMBERSHIPS.push({ usuarioId: userId, espacioId: spaceId, rol: 'direccion' });
-    this.reviewRequest(id, 'converted', 'Alta del colegio');
-    this.recordAction('Colegio creado', request.school, `Espacio ${slug} · gestión ${input.academicYear}`);
-    return true;
   }
 
   spacesForUser(id: number): { name: string; role: string }[] {
