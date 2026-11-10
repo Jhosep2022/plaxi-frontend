@@ -1,24 +1,59 @@
-.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
-.admin-metric { display: flex; flex-direction: column; gap: 8px; color: var(--dark-blue); text-decoration: none; }
-.admin-metric small { color: var(--muted); font-size: 13px; }
-.admin-metric strong { font-size: 30px; }
-.admin-metric span { color: var(--lime-strong); font-size: 13px; font-weight: bold; }
-.admin-section { margin-bottom: 18px; }
-.admin-section h2 { margin: 0 0 12px; font-size: 18px; }
-.admin-section p, .admin-empty { color: var(--muted); font-size: 14px; }
-.admin-filters, .admin-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.admin-heading, .admin-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.admin-actions { justify-content: flex-start; margin-top: 16px; }
-.admin-empty { padding: 18px 0; }
-.admin-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 14px 0; }
-.admin-details dt { color: var(--muted); font-size: 12px; }
-.admin-details dd { margin: 4px 0 0; font-size: 14px; }
-.admin-link { color: var(--lime-strong); font-weight: bold; }
+/* Shared pieces of the admin pages: same format as Personas (teachers, students, parents) */
+:host { --muted: #6b6b80; --line: #ececf0; }
+.tono-rojo { --tono-bg: #fdf0ee; --tono-fg: #c0392b; --tono-bar: #c0392b; }
+.cargando { color: var(--muted); }
 
-.request-status { display: flex; align-items: center; gap: 8px; margin: 18px 0; color: var(--muted); font-size: 14px; }
-.request-step { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
-.request-step h3 { margin: 0 0 8px; font-size: 17px; }
-.request-step p { margin: 0 0 16px; line-height: 1.5; }
-.request-actions { display: flex; flex-wrap: wrap; gap: 18px 28px; margin-top: 16px; }
-.request-actions > div { display: grid; justify-items: start; gap: 6px; }
-.request-actions small { color: var(--muted); line-height: 1.4; }
+.indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.indicador { display: flex; align-items: center; gap: 12px; color: var(--dark-blue); text-decoration: none; }
+.indicador div { display: flex; flex-direction: column; }
+.indicador strong { font-size: 22px; }
+.indicador small { font-size: 13px; color: var(--muted); }
+.indicador.destacado { border-color: var(--lime-green); background: var(--lime-soft); }
+a.indicador:hover { border-color: var(--lime-green); }
+
+.filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.buscar { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+.buscar fa-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; }
+.buscar .ui-input { width: 100%; padding-left: 34px; }
+
+.persona { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+a.persona { color: inherit; text-decoration: none; }
+a.persona:hover strong { text-decoration: underline; }
+.persona div { display: flex; flex-direction: column; min-width: 0; }
+.persona small, .secundario { font-size: 12px; color: var(--muted); }
+.contacto { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.contacto span { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.contacto fa-icon { color: var(--muted); font-size: 11px; }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; max-width: 360px; }
+.acciones { display: flex; justify-content: flex-end; gap: 6px; }
+.vacio { padding: 24px; text-align: center; color: var(--muted); }
+.inactivo td { opacity: 0.55; }
+
+/* Overview */
+.dos-columnas { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.tarjeta-titulo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.tarjeta-titulo h2 { margin: 0; font-size: 17px; color: var(--dark-blue); }
+.tarjeta-titulo a { font-size: 13px; font-weight: bold; color: var(--lime-strong); text-decoration: none; }
+.lista-atender { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.lista-atender li { display: flex; align-items: center; gap: 12px; }
+.lista-atender div { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.lista-atender small { font-size: 12px; color: var(--muted); }
+.lista-atender a { font-size: 13px; font-weight: bold; color: var(--lime-strong); text-decoration: none; white-space: nowrap; }
+
+/* Drawer content */
+.ficha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin: 0 0 4px; }
+.ficha dt { font-size: 12px; color: var(--muted); }
+.ficha dd { margin: 3px 0 0; font-size: 14px; color: var(--dark-blue); word-break: break-word; }
+.ficha .ancho { grid-column: 1 / -1; }
+.bloque { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.bloque h3 { margin: 0 0 6px; font-size: 15px; color: var(--dark-blue); }
+.bloque > p { margin: 0 0 12px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.paginas { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 12px 4px 0; font-size: 13px; color: var(--muted); }
+.barra-uso { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+.barra-uso small { font-size: 12px; color: var(--muted); }
+.lista-roles { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lista-roles li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
+
+@media (max-width: 900px) { .dos-columnas { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .ficha { grid-template-columns: 1fr; } }

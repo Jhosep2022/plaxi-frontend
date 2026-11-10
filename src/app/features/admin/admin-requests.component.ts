@@ -1,66 +1,158 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faEnvelope, faEye, faPhone, faSchool } from '@fortawesome/free-solid-svg-icons';
+import { Tooltip } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { readApiError } from '../../core/api/api-error';
 import { createSlug } from '../../core/models/auth.model';
+import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { requestStatusLabel, type AdminRequestStatus } from './admin.service';
 import { AdminRequestsApiService } from './admin-requests-api.service';
+import { requestStatusTone } from './admin-ui';
 
 @Component({
-  selector: 'app-admin-requests', host: { class: 'ui-pagina' }, imports: [PageHeaderComponent],
+  selector: 'app-admin-requests',
+  host: { class: 'ui-pagina' },
+  imports: [PageHeaderComponent, DrawerComponent, FaIconComponent, Tooltip],
   template: `
-    <app-page-header miga="Plataforma" titulo="Solicitudes de colegios" descripcion="Da seguimiento a cada contacto antes de crear el espacio." />
-    <section class="ui-card admin-section"><div class="admin-filters"><select class="ui-input" aria-label="Filtrar solicitudes" [value]="statusFilter()" (change)="changeFilter($any($event.target).value)"><option value="">Todos los estados</option><option value="new">Nuevas</option><option value="contacted">Contactadas</option><option value="converted">Convertidas</option><option value="discarded">Descartadas</option></select></div>
-    @if (requests.isLoading()) { <p role="status">Cargando solicitudes…</p> }
-    @else if (requests.error()) { <p role="alert">No pudimos cargar las solicitudes. <button class="ui-btn ui-btn--secundario" type="button" (click)="requests.reload()">Reintentar</button></p> }
-    @else if (visible().length === 0) { <p>No hay solicitudes con este estado.</p> }
-    <div class="ui-tabla-contenedor"><table class="ui-tabla"><thead><tr><th>Colegio</th><th>Contacto</th><th>Estudiantes</th><th>Estado</th><th></th></tr></thead><tbody>
-      @for (request of visible(); track request.id) { <tr><td><strong>{{ request.school }}</strong><br /><small>{{ request.city }}</small></td><td>{{ request.contact }}<br /><small>{{ request.email }}</small></td><td>{{ request.students }}</td><td><span class="ui-badge tono-crema">{{ statusLabel(request.status) }}</span></td><td><button class="ui-btn ui-btn--secundario" type="button" (click)="selectRequest(request.id)">Ver solicitud</button></td></tr> }
-    </tbody></table></div><div class="request-actions"><button class="ui-btn ui-btn--secundario" type="button" [disabled]="page() === 1 || requests.isLoading()" (click)="changePage(-1)">Anterior</button><span>Página {{ page() }}</span><button class="ui-btn ui-btn--secundario" type="button" [disabled]="visible().length < 50 || requests.isLoading()" (click)="changePage(1)">Siguiente</button></div></section>
-    @if (details(); as request) { <section class="ui-card admin-section">
-      <div class="admin-heading"><h2>{{ request.school }}</h2><button class="ui-btn ui-btn--secundario" type="button" (click)="selectedId.set(null)">Cerrar</button></div>
-      <p>Datos de la persona que envió la solicitud. Puede ser distinta de quien administrará el colegio.</p>
-      <dl class="admin-details"><div><dt>Persona de contacto</dt><dd>{{ request.contact }} · {{ request.role }}</dd></div><div><dt>Correo</dt><dd>{{ request.email }}</dd></div><div><dt>Teléfono</dt><dd>{{ request.phone }}</dd></div><div><dt>Ciudad</dt><dd>{{ request.city }}</dd></div></dl>
-      <p>{{ request.message || 'Sin mensaje adicional.' }}</p>
-      <div class="request-status">Estado actual: <span class="ui-badge tono-crema">{{ statusLabel(request.status) }}</span></div>
-      @if (request.status !== 'converted') {
-        <section class="request-step" aria-labelledby="follow-up-heading">
-          <h3 id="follow-up-heading">Seguimiento de la solicitud</h3>
-          <p>Registra el resultado después de hablar con el colegio. Estas acciones no envían mensajes ni realizan llamadas.</p>
-          <div class="ui-campo"><label for="follow-up-note">Nota de seguimiento (opcional)</label><input id="follow-up-note" class="ui-input" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Ej. Llamé al colegio; esperan una propuesta" /><small class="ui-ayuda">La nota se registra cuando eliges una de las siguientes acciones.</small></div>
-          <div class="request-actions">
-            <div><button class="ui-btn ui-btn--secundario" type="button" [disabled]="saving()" (click)="review('contacted')">Marcar como contactada</button><small>Indica que ya hablaste con el colegio.</small></div>
-            <div><button class="ui-btn ui-btn--peligro" type="button" [disabled]="saving()" (click)="review('discarded')">Descartar solicitud</button><small>Marca la solicitud como descartada; no la elimina.</small></div>
-          </div>
-        </section>
-        <section class="request-step" aria-labelledby="school-setup-heading">
-        <h3 id="school-setup-heading">Crear espacio del colegio</h3>
-        <p>Cuando el colegio esté listo para comenzar, completa sus datos y crea su espacio en Aulix.</p>
-        <div class="ui-campo"><label for="school-identifier">Identificador del colegio en Aulix</label><input id="school-identifier" class="ui-input" [value]="slug() || createSlug(request.school)" (input)="slug.set($any($event.target).value)" aria-describedby="school-identifier-help" /><small id="school-identifier-help" class="ui-ayuda">Identifica el espacio del colegio en Aulix. No necesita tener una página web propia; puedes usar el nombre sugerido.</small></div>
-        <h3>Persona responsable del colegio</h3>
-        <p>Indica quién administrará el colegio en Aulix. Puede ser la persona de contacto u otra persona.</p>
-        <button class="ui-btn ui-btn--secundario" type="button" (click)="useContactDetails()">Usar los datos de la persona de contacto</button>
-        <p>Si la persona de contacto administrará el colegio, puedes usar sus datos. Revisa el nombre y apellido antes de continuar; si será otra persona, escribe sus datos.</p>
-        <div class="admin-forms">
-          <div class="ui-campo"><label for="responsible-first-name">Nombre de la persona responsable</label><input id="responsible-first-name" class="ui-input" [value]="directorFirstName()" (input)="directorFirstName.set($any($event.target).value)" /></div>
-          <div class="ui-campo"><label for="responsible-last-name">Primer apellido de la persona responsable</label><input id="responsible-last-name" class="ui-input" [value]="directorLastName()" (input)="directorLastName.set($any($event.target).value)" /></div>
-          <div class="ui-campo"><label for="responsible-email">Correo de la persona responsable</label><input id="responsible-email" class="ui-input" type="email" [value]="directorEmail()" (input)="directorEmail.set($any($event.target).value)" /></div>
-          <div class="ui-campo"><label for="academic-year">Gestión académica inicial</label><input id="academic-year" class="ui-input" type="number" min="2000" [value]="academicYear()" (input)="academicYear.set(+$any($event.target).value)" /></div>
+    <app-page-header miga="Plataforma · Espacios" titulo="Solicitudes de colegios" descripcion="Colegios que pidieron Aulix desde la web. Llama, registra el seguimiento y, cuando estén listos, crea su espacio." />
+
+    <div class="filtros">
+      <div class="ui-tabs" role="tablist" aria-label="Filtrar solicitudes por estado">
+        @for (tab of tabs; track tab.id) {
+          <button type="button" class="ui-tab" role="tab" [class.activa]="statusFilter() === tab.id" [attr.aria-selected]="statusFilter() === tab.id" (click)="changeFilter(tab.id)">{{ tab.label }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="ui-card">
+      @if (requests.isLoading() && !visible().length) {
+        <p class="cargando" role="status">Cargando solicitudes…</p>
+      } @else if (requests.error()) {
+        <p class="vacio" role="alert">No pudimos cargar las solicitudes. <button class="ui-btn ui-btn--secundario" type="button" (click)="requests.reload()">Reintentar</button></p>
+      } @else {
+        <div class="ui-tabla-contenedor">
+          <table class="ui-tabla">
+            <thead><tr><th>Colegio</th><th>Contacto</th><th>Estudiantes</th><th>Recibida</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              @for (request of visible(); track request.id) {
+                <tr [class.inactivo]="request.status === 'discarded'">
+                  <td>
+                    <div class="persona">
+                      <span class="ui-icono tono-crema"><fa-icon [icon]="faSchool" /></span>
+                      <div><strong>{{ request.school }}</strong><small>{{ request.city }}</small></div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="contacto">
+                      <span><strong>{{ request.contact }}</strong><span class="secundario">· {{ request.role }}</span></span>
+                      @if (request.phone) { <span><fa-icon [icon]="faPhone" /> {{ request.phone }}</span> }
+                      @if (request.email) { <span><fa-icon [icon]="faEnvelope" /> {{ request.email }}</span> }
+                    </div>
+                  </td>
+                  <td>{{ request.students }}</td>
+                  <td>{{ request.createdAt.slice(0, 10) }}</td>
+                  <td><span [class]="statusTone(request.status)">{{ statusLabel(request.status) }}</span></td>
+                  <td>
+                    <div class="acciones">
+                      <button type="button" class="ui-btn ui-btn--icono" (click)="selectRequest(request.id)" [attr.aria-label]="'Ver solicitud de ' + request.school" pTooltip="Ver solicitud, seguimiento y crear espacio" tooltipPosition="left">
+                        <fa-icon [icon]="faEye" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="vacio">No hay solicitudes con este estado.</td></tr>
+              }
+            </tbody>
+          </table>
         </div>
-        <div class="admin-actions"><button class="ui-btn" type="button" [disabled]="saving()" (click)="createSchool()">{{ saving() ? 'Creando…' : 'Crear espacio del colegio' }}</button></div>
-        </section>
+        <div class="paginas">
+          <button class="ui-btn ui-btn--secundario" type="button" [disabled]="page() === 1 || requests.isLoading()" (click)="changePage(-1)">Anterior</button>
+          <span>Página {{ page() }}</span>
+          <button class="ui-btn ui-btn--secundario" type="button" [disabled]="visible().length < 50 || requests.isLoading()" (click)="changePage(1)">Siguiente</button>
+        </div>
       }
-    </section> }
+    </div>
+
+    <app-drawer [abierto]="!!details()" [titulo]="details()?.school ?? ''" [subtitulo]="(details()?.city ?? '') + ' · ' + (details()?.students ?? 0) + ' estudiantes'" (cerrar)="selectedId.set(null)">
+      @if (details(); as request) {
+        <dl class="ficha">
+          <div><dt>Estado</dt><dd><span [class]="statusTone(request.status)">{{ statusLabel(request.status) }}</span></dd></div>
+          <div><dt>Recibida</dt><dd>{{ request.createdAt.slice(0, 10) }}</dd></div>
+          <div><dt>Persona de contacto</dt><dd>{{ request.contact }}<br /><small class="secundario">{{ request.role }}</small></dd></div>
+          <div><dt>Teléfono</dt><dd>{{ request.phone || '—' }}</dd></div>
+          <div class="ancho"><dt>Correo</dt><dd>{{ request.email }}</dd></div>
+          <div class="ancho"><dt>Mensaje</dt><dd>{{ request.message || 'Sin mensaje adicional.' }}</dd></div>
+          @if (request.adminNotes) {
+            <div class="ancho"><dt>Notas de seguimiento</dt><dd>{{ request.adminNotes }}</dd></div>
+          }
+        </dl>
+        <p class="secundario">La persona de contacto puede ser distinta de quien administrará el colegio.</p>
+
+        @if (request.status !== 'converted') {
+          <section class="bloque" aria-labelledby="follow-up-heading">
+            <h3 id="follow-up-heading">Seguimiento</h3>
+            <p>Registra el resultado después de hablar con el colegio. Estas acciones no envían mensajes.</p>
+            <input id="follow-up-note" class="ui-input" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Ej. Llamé; esperan una propuesta" aria-label="Nota de seguimiento (opcional)" />
+            <div class="botones">
+              <button class="ui-btn ui-btn--secundario" type="button" [disabled]="saving()" (click)="review('contacted')" pTooltip="Ya hablaste con el colegio" tooltipPosition="top">Marcar como contactada</button>
+              <button class="ui-btn ui-btn--peligro" type="button" [disabled]="saving()" (click)="review('discarded')" pTooltip="La marca como descartada; no la elimina" tooltipPosition="top">Descartar</button>
+            </div>
+          </section>
+
+          <section class="bloque" aria-labelledby="school-setup-heading">
+            <h3 id="school-setup-heading">Crear el espacio del colegio</h3>
+            <p>Cuando el colegio esté listo, crea su espacio. Enviamos una invitación al correo de la persona responsable.</p>
+            <div class="ui-campo">
+              <label for="school-identifier">Dirección en Aulix</label>
+              <input id="school-identifier" class="ui-input" [value]="slug() || createSlug(request.school)" (input)="slug.set($any($event.target).value)" aria-describedby="school-identifier-help" />
+              <small id="school-identifier-help" class="ui-ayuda">aulix.alclick.dev/{{ slug() || createSlug(request.school) }} · letras minúsculas, números o guiones.</small>
+            </div>
+            <div class="botones">
+              <button class="ui-btn ui-btn--secundario" type="button" (click)="useContactDetails()" pTooltip="Si la persona de contacto administrará el colegio" tooltipPosition="top">Usar los datos del contacto</button>
+            </div>
+            <div class="ui-fila">
+              <div class="ui-campo"><label for="responsible-first-name">Nombre del responsable</label><input id="responsible-first-name" class="ui-input" [value]="directorFirstName()" (input)="directorFirstName.set($any($event.target).value)" /></div>
+              <div class="ui-campo"><label for="responsible-last-name">Primer apellido</label><input id="responsible-last-name" class="ui-input" [value]="directorLastName()" (input)="directorLastName.set($any($event.target).value)" /></div>
+            </div>
+            <div class="ui-fila">
+              <div class="ui-campo"><label for="responsible-email">Correo del responsable</label><input id="responsible-email" class="ui-input" type="email" [value]="directorEmail()" (input)="directorEmail.set($any($event.target).value)" /></div>
+              <div class="ui-campo"><label for="academic-year">Gestión inicial</label><input id="academic-year" class="ui-input" type="number" min="2000" [value]="academicYear()" (input)="academicYear.set(+$any($event.target).value)" /></div>
+            </div>
+          </section>
+        }
+      }
+      <ng-container pie>
+        @if (details() && details()!.status !== 'converted') {
+          <button class="ui-btn ui-btn--secundario" type="button" (click)="selectedId.set(null)">Cerrar</button>
+          <button class="ui-btn" type="button" [disabled]="saving()" (click)="createSchool()">{{ saving() ? 'Creando…' : 'Crear espacio del colegio' }}</button>
+        }
+      </ng-container>
+    </app-drawer>
   `,
   styleUrl: './admin-pages.css',
 })
 export class AdminRequestsComponent {
   private readonly api = inject(AdminRequestsApiService);
   protected readonly statusLabel = requestStatusLabel;
+  protected readonly statusTone = requestStatusTone;
   private readonly notifications = inject(NotificationService);
   protected readonly createSlug = createSlug;
+  protected readonly faSchool = faSchool;
+  protected readonly faPhone = faPhone;
+  protected readonly faEnvelope = faEnvelope;
+  protected readonly faEye = faEye;
+  protected readonly tabs: { id: AdminRequestStatus | ''; label: string }[] = [
+    { id: '', label: 'Todas' },
+    { id: 'new', label: 'Nuevas' },
+    { id: 'contacted', label: 'Contactadas' },
+    { id: 'converted', label: 'Convertidas' },
+    { id: 'discarded', label: 'Descartadas' },
+  ];
   protected readonly selectedId = signal<number | null>(null);
   protected readonly statusFilter = signal<AdminRequestStatus | ''>('');
   protected readonly page = signal(1);
