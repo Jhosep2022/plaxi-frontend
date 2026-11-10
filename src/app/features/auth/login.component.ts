@@ -4,10 +4,10 @@ import { firstValueFrom } from 'rxjs';
 import { FormField, form, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faCircleExclamation, faEye, faEyeSlash, faTicket } from '@fortawesome/free-solid-svg-icons';
-import { SessionService, peekReturnUrl } from '../../core/auth/session.service';
-import { AuthService } from '../../services/auth.service';
+import { SessionService, consumeSessionNotice, peekReturnUrl } from '../../core/auth/session.service';
+import { AuthApiService } from '../../core/api/auth-api.service';
+import { readApiError } from '../../core/api/api-error';
 import { NotificationService } from '../../shared/ui/notification.service';
-import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Sign in with a username or email.
 @Component({
@@ -25,6 +25,9 @@ import { getErrorMessage } from '../management/academics/academics.ui';
     }
     @if (notice() === 'clave') {
       <p class="aviso-invitacion"><fa-icon [icon]="faCircleCheck" /> Tu contraseña se cambió. Ya puedes iniciar sesión.</p>
+    }
+    @if (sessionNotice === 'sesion_reemplazada') {
+      <p class="error-general" role="alert"><fa-icon [icon]="faCircleExclamation" /> Tu cuenta se abrió en otro dispositivo. Vuelve a iniciar sesión.</p>
     }
 
     <form class="ui-form" (submit)="$event.preventDefault(); signIn()" novalidate>
@@ -56,7 +59,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
 })
 export class LoginComponent {
   private router = inject(Router);
-  private auth = inject(AuthService);
+  private auth = inject(AuthApiService);
   private session = inject(SessionService);
   private notifications = inject(NotificationService);
 
@@ -68,6 +71,7 @@ export class LoginComponent {
 
   readonly notice = input<string>(undefined, { alias: 'aviso' });
   readonly hasInvitation = peekReturnUrl()?.startsWith('/unirse/') ?? false;
+  readonly sessionNotice = consumeSessionNotice();
 
   readonly credentials = signal({ username: '', password: '' });
   readonly loginForm = form(this.credentials, (fields) => {
@@ -84,12 +88,12 @@ export class LoginComponent {
       this.error.set('');
       try {
         const { username, password } = this.credentials();
-        const { usuarioId: userId } = await firstValueFrom(this.auth.login({ usuario: username, clave: password }));
-        await firstValueFrom(this.session.startSession(userId));
+        const response = await firstValueFrom(this.auth.login({ username, password }));
+        this.session.applyApiSession(response);
         this.notifications.success('¡Bienvenido a Aulix!');
         this.router.navigateByUrl(this.session.postLoginRoute());
       } catch (e) {
-        const message = getErrorMessage(e);
+        const message = readApiError(e).message;
         this.error.set(message);
         this.notifications.error(message);
         this.isSigningIn.set(false);

@@ -1,13 +1,13 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, switchMap, timer } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCamera, faEye, faEyeSlash, faTrash, faUserCheck } from '@fortawesome/free-solid-svg-icons';
-import { SessionService } from '../../../core/auth/session.service';
+import { faCamera, faChevronDown, faEye, faEyeSlash, faPlus, faTrash, faUserCheck } from '@fortawesome/free-solid-svg-icons';
+import { AcademyCourseApiService } from '../../../core/api/academy-course-api.service';
 import { NIVELES_CURSO } from '../../../core/models/classrooms.model';
 import type { Aula } from '../../../core/models/classrooms.model';
-import { AcademyService, DatosCurso } from '../../../services/academy.service';
-import { CategoryService } from '../../../services/category.service';
+import type { DatosCurso } from '../../../services/academy.service';
+import { CourseCategoryApiService } from '../../../core/api/course-category-api.service';
 import { PORTADA_MAX_KB } from '../../../services/classrooms.service';
 import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-cover.component';
 import { NotificationService } from '../../../shared/ui/notification.service';
@@ -35,6 +35,16 @@ const VACIO: DatosCurso = { nombre: '', descripcion: '', categoria: '', nivel: '
     .opcion small { color: var(--muted); font-size: 12px; }
     .check { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; }
     .check small { display: block; color: var(--muted); font-size: 12px; }
+    .categoria-control { position: relative; }
+    .categoria-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; cursor: pointer; }
+    .categoria-menu { position: absolute; z-index: 10; top: calc(100% + 4px); left: 0; right: 0; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--text-light); box-shadow: 0 12px 28px #0b0d241f; }
+    .categoria-buscar { width: 100%; box-sizing: border-box; margin-bottom: 4px; }
+    .categoria-resultados { max-height: 180px; overflow-y: auto; }
+    .categoria-opcion { display: block; width: 100%; padding: 9px 12px; border: 0; background: transparent; color: var(--dark-blue); text-align: left; cursor: pointer; }
+    .categoria-opcion:hover, .categoria-opcion[aria-selected="true"] { background: var(--lime-soft); }
+    .categoria-accion { width: 100%; padding: 9px 12px; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--dark-blue); text-align: left; font: inherit; font-weight: 600; cursor: pointer; }
+    .categoria-nueva { display: flex; gap: 7px; margin-top: 7px; }
+    .categoria-nueva .ui-input { min-width: 0; flex: 1; }
   `,
   template: `
     <app-drawer [abierto]="abierto()" [titulo]="curso() ? 'Editar curso' : 'Nuevo curso'" subtitulo="Después podrás agregar unidades, temas y quiz." (cerrar)="cerrar.emit()">
@@ -60,10 +70,31 @@ const VACIO: DatosCurso = { nombre: '', descripcion: '', categoria: '', nivel: '
         <div class="ui-fila">
           <div class="ui-campo">
             <label for="curso-cat">Categoría</label>
-            <select id="curso-cat" class="ui-input" (change)="cambiar('categoria', $any($event.target).value)">
-              <option value="" [selected]="!modelo().categoria">Elige una categoría</option>
-              @for (c of categorias.value(); track c.idCategoria) { <option [value]="c.nombre" [selected]="modelo().categoria === c.nombre">{{ c.nombre }}</option> }
-            </select>
+            <div class="categoria-control">
+              <button id="curso-cat" type="button" class="ui-input categoria-trigger" [attr.aria-expanded]="categoriasAbiertas()" aria-controls="curso-categorias" (click)="categoriasAbiertas.set(!categoriasAbiertas())">
+                {{ modelo().categoria || 'Elige una categoría' }} <fa-icon [icon]="faChevronDown" />
+              </button>
+              @if (categoriasAbiertas()) {
+                <div id="curso-categorias" class="categoria-menu">
+                  <input class="ui-input categoria-buscar" aria-label="Buscar categoría" placeholder="Buscar categoría…" autocomplete="off" [value]="busquedaCategoria()" (input)="busquedaCategoria.set($any($event.target).value)" (keydown.escape)="categoriasAbiertas.set(false)" />
+                  <div class="categoria-resultados" role="listbox" aria-label="Categorías disponibles">
+                    @for (c of categorias.value(); track c.id) {
+                      <button type="button" role="option" class="categoria-opcion" [attr.aria-selected]="modelo().categoria === c.name" (click)="seleccionarCategoria(c.name)">{{ c.name }}</button>
+                    } @empty {
+                      <span class="ui-ayuda">{{ categorias.isLoading() ? 'Buscando…' : categorias.error() ? 'No se pudieron cargar las categorías.' : 'No hay coincidencias.' }}</span>
+                    }
+                  </div>
+                  <button type="button" class="categoria-accion" (click)="categoriasAbiertas.set(false); agregandoCategoria.set(true); nombreCategoria.set(busquedaCategoria())"><fa-icon [icon]="faPlus" /> Agregar categoría</button>
+                </div>
+              }
+            </div>
+            @if (agregandoCategoria()) {
+              <div class="categoria-nueva">
+                <input class="ui-input" aria-label="Nueva categoría" maxlength="50" placeholder="Nombre de la categoría" [value]="nombreCategoria()" (input)="nombreCategoria.set($any($event.target).value)" />
+                <button type="button" class="ui-btn ui-btn--secundario" [disabled]="guardandoCategoria()" (click)="agregarCategoria()">{{ guardandoCategoria() ? 'Guardando…' : 'Agregar' }}</button>
+              </div>
+            }
+            @if (errorCategoria()) { <span class="ui-error">{{ errorCategoria() }}</span> }
           </div>
           <div class="ui-campo">
             <label for="curso-nivel">Nivel</label>
@@ -96,8 +127,7 @@ const VACIO: DatosCurso = { nombre: '', descripcion: '', categoria: '', nivel: '
   `,
 })
 export class CourseFormComponent {
-  private session = inject(SessionService);
-  private academia = inject(AcademyService);
+  private academia = inject(AcademyCourseApiService);
   private avisos = inject(NotificationService);
 
   readonly abierto = input(false);
@@ -111,9 +141,21 @@ export class CourseFormComponent {
   readonly faEyeSlash = faEyeSlash;
   readonly faTrash = faTrash;
   readonly faUserCheck = faUserCheck;
+  readonly faPlus = faPlus;
+  readonly faChevronDown = faChevronDown;
 
-  private categoriasService = inject(CategoryService);
-  readonly categorias = rxResource({ stream: () => this.categoriasService.getAllCategories(), defaultValue: [] });
+  private readonly categoriasApi = inject(CourseCategoryApiService);
+  readonly busquedaCategoria = signal('');
+  readonly categoriasAbiertas = signal(false);
+  readonly categorias = rxResource({
+    params: () => this.busquedaCategoria(),
+    stream: ({ params }) => timer(params ? 250 : 0).pipe(switchMap(() => this.categoriasApi.search(params))),
+    defaultValue: [],
+  });
+  readonly agregandoCategoria = signal(false);
+  readonly guardandoCategoria = signal(false);
+  readonly nombreCategoria = signal('');
+  readonly errorCategoria = signal('');
   readonly modelo = signal<DatosCurso>({ ...VACIO });
   readonly guardando = signal(false);
 
@@ -122,7 +164,39 @@ export class CourseFormComponent {
     if (!this.abierto()) return;
     const c = this.curso();
     this.modelo.set(c ? { nombre: c.nombre, descripcion: c.descripcion, categoria: c.categoria, nivel: c.nivel || 'Principiante', visibilidad: c.visibilidad, aprobacionManual: c.aprobacionManual, portada: c.portada } : { ...VACIO });
+    this.busquedaCategoria.set('');
+    this.categoriasAbiertas.set(false);
+    this.agregandoCategoria.set(false);
+    this.errorCategoria.set('');
   });
+
+  seleccionarCategoria(nombre: string): void {
+    this.cambiar('categoria', nombre);
+    this.busquedaCategoria.set(nombre);
+    this.categoriasAbiertas.set(false);
+    this.errorCategoria.set('');
+  }
+
+  async agregarCategoria(): Promise<void> {
+    const nombre = this.nombreCategoria().trim().replace(/\s+/g, ' ');
+    if (!nombre || nombre.length > 50) {
+      this.errorCategoria.set('Escribe una categoría de 1 a 50 caracteres.');
+      return;
+    }
+    this.guardandoCategoria.set(true);
+    this.errorCategoria.set('');
+    try {
+      const categoria = await firstValueFrom(this.categoriasApi.create(nombre));
+      this.seleccionarCategoria(categoria.name);
+      this.agregandoCategoria.set(false);
+      this.nombreCategoria.set('');
+      this.categorias.reload();
+    } catch (error) {
+      this.errorCategoria.set(getErrorMessage(error));
+    } finally {
+      this.guardandoCategoria.set(false);
+    }
+  }
 
   cambiar<K extends keyof DatosCurso>(campo: K, valor: DatosCurso[K]): void {
     this.modelo.update((m) => ({ ...m, [campo]: valor }));
@@ -144,7 +218,7 @@ export class CourseFormComponent {
     this.guardando.set(true);
     try {
       const c = this.curso();
-      const aula = await firstValueFrom(c ? this.academia.updateCourse(c.id, this.modelo()) : this.academia.createCourse(this.session.activeSpace()!.id, this.session.userId()!, this.modelo()));
+      const aula = await firstValueFrom(c ? this.academia.update(c.id, this.modelo()) : this.academia.create(this.modelo()));
       this.avisos.success(c ? 'Curso actualizado.' : `Creaste "${aula.nombre}". Ahora agrega su contenido.`);
       this.guardado.emit(aula);
     } catch (error) {

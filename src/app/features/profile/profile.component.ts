@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faCamera, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { SPACE_ROLE_LABEL } from '../../core/models/space.model';
-import { FOTO_MAX_KB, Perfil } from '../../core/models/profile.model';
+import { PHOTO_MAX_KB, UserProfile } from '../../core/models/profile.model';
 import { formatMonthYear } from '../../core/utils/attendance';
 import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
@@ -35,7 +35,7 @@ export class ProfileComponent {
   readonly faTrash = faTrash;
   readonly faCalendarDays = faCalendarDays;
   readonly formatMonthYear = formatMonthYear;
-  readonly FOTO_MAX_KB = FOTO_MAX_KB;
+  readonly PHOTO_MAX_KB = PHOTO_MAX_KB;
 
   readonly tab = input<PestanaPerfil>('datos'); // de la ruta (data)
   readonly membresia = this.session.activeMembership()!;
@@ -44,7 +44,7 @@ export class ProfileComponent {
 
   readonly datos = rxResource({ stream: () => this.servicio.perfil(this.usuarioId) });
   // Copia local que se actualiza al guardar cualquier sección sin volver a cargar la página
-  readonly perfil = linkedSignal<Perfil | null>(() => this.datos.value() ?? null);
+  readonly perfil = linkedSignal<UserProfile | null>(() => this.datos.value() ?? null);
   readonly indicadores = rxResource({ stream: () => this.servicio.indicadores(this.membresia, this.usuarioId), defaultValue: [] });
 
   readonly nombreCompleto = computed(() => {
@@ -63,7 +63,7 @@ export class ProfileComponent {
     { id: 'preferencias', label: 'Preferencias', link: this.session.spaceRoute('perfil', 'preferencias') },
   ];
 
-  actualizado(perfil: Perfil | null): void {
+  actualizado(perfil: UserProfile | null): void {
     this.perfil.set(perfil);
   }
 
@@ -74,7 +74,7 @@ export class ProfileComponent {
     entrada.value = '';
     if (!archivo) return;
     if (!archivo.type.startsWith('image/')) return this.avisos.error('La foto debe ser una imagen.');
-    if (archivo.size > FOTO_MAX_KB * 1024) return this.avisos.error(`La foto debe pesar menos de ${FOTO_MAX_KB} KB.`);
+    if (archivo.size > PHOTO_MAX_KB * 1024) return this.avisos.error(`La foto debe pesar menos de ${PHOTO_MAX_KB} KB.`);
     const lector = new FileReader();
     lector.onload = () => this.guardarFoto(String(lector.result), 'Foto de perfil actualizada.');
     lector.readAsDataURL(archivo);

@@ -6,9 +6,9 @@ import { FormField, form, required, submit, validate } from '@angular/forms/sign
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleExclamation, faEye, faEyeSlash, faLinkSlash } from '@fortawesome/free-solid-svg-icons';
 import { getPasswordError } from '../../core/utils/password';
-import { AuthService } from '../../services/auth.service';
+import { AuthApiService } from '../../core/api/auth-api.service';
+import { readApiError } from '../../core/api/api-error';
 import { PasswordStrengthComponent } from '../../shared/ui/password-strength.component';
-import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Reset the password using the token from the email link.
 @Component({
@@ -53,7 +53,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
   styles: `.icono.invalid-token { background: #fdf0ee; color: #c0392b; }`,
 })
 export class ResetPasswordComponent {
-  private auth = inject(AuthService);
+  private auth = inject(AuthApiService);
   private router = inject(Router);
 
   readonly faCircleExclamation = faCircleExclamation;
@@ -82,7 +82,7 @@ export class ResetPasswordComponent {
         await firstValueFrom(this.auth.resetPassword(this.token() ?? '', this.formData().password));
         this.router.navigate(['/auth/login'], { queryParams: { aviso: 'clave' } });
       } catch (e) {
-        this.error.set(getErrorMessage(e));
+        this.error.set(readApiError(e).message);
         this.isSaving.set(false);
       }
     });

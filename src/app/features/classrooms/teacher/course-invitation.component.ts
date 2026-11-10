@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCopy, faEye, faEyeSlash, faLink, faRotateRight, faUserCheck } from '@fortawesome/free-solid-svg-icons';
 import type { Aula } from '../../../core/models/classrooms.model';
-import { AcademyService } from '../../../services/academy.service';
+import { AcademyCourseApiService } from '../../../core/api/academy-course-api.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { getErrorMessage } from '../../management/academics/academics.ui';
 
@@ -36,7 +36,7 @@ import { getErrorMessage } from '../../management/academics/academics.ui';
   `,
 })
 export class CourseInvitationComponent {
-  private academia = inject(AcademyService);
+  private academia = inject(AcademyCourseApiService);
   private avisos = inject(NotificationService);
 
   readonly aula = input.required<Aula>();

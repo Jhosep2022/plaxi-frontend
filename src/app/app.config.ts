@@ -1,4 +1,5 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { RouteReuseStrategy, TitleStrategy, provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -10,6 +11,7 @@ import AuraToast from '@primeuix/themes/aura/toast';
 import { routes } from './app.routes';
 import { AulixTitleStrategy, RecrearConParametrosStrategy } from './core/routing/router-strategies';
 import { apiAuthInterceptor } from './core/api/api-auth.interceptor';
+import { SessionService } from './core/auth/session.service';
 
 // Configuración global de la app (reemplaza a app.module.ts y app-routing.module.ts)
 // La app es zoneless (por defecto en Angular 22): la vista se actualiza cuando cambia
@@ -18,6 +20,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     // Reporta errores no capturados (sin zone.js no se interceptan automáticamente)
     provideBrowserGlobalErrorListeners(),
+    provideAppInitializer(() => firstValueFrom(inject(SessionService).restoreSession())),
     provideAnimationsAsync(),
     providePrimeNG({ theme: { preset: { ...AuraBase, components: { toast: AuraToast } }, options: { darkModeSelector: false } } }),
     MessageService,

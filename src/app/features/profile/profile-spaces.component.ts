@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowRight, faChalkboardTeacher, faDoorOpen, faKey, faSchool, faStar } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
-import type { EspacioDelPerfil } from '../../core/models/profile.model';
+import type { ProfileSpace } from '../../core/models/profile.model';
 import { formatMonthYear } from '../../core/utils/attendance';
 import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
@@ -40,22 +40,22 @@ export class ProfileSpacesComponent {
   readonly predeterminado = signal(this.session.defaultSpace());
   readonly codigo = signal('');
 
-  esActual(e: EspacioDelPerfil): boolean {
+  esActual(e: ProfileSpace): boolean {
     return this.session.activeSpace()?.id === e.espacioId;
   }
 
-  rutaInicio(e: EspacioDelPerfil): string {
+  rutaInicio(e: ProfileSpace): string {
     return `/${e.slug}/${e.rol}/inicio`;
   }
 
-  fijar(e: EspacioDelPerfil): void {
+  fijar(e: ProfileSpace): void {
     const slug = this.predeterminado() === e.slug ? null : e.slug;
     this.session.setDefaultSpace(slug);
     this.predeterminado.set(slug);
     this.avisos.success(slug ? `Al iniciar sesión entrarás directo a ${e.nombre}.` : 'Al iniciar sesión podrás elegir el espacio.');
   }
 
-  async salir(e: EspacioDelPerfil): Promise<void> {
+  async salir(e: ProfileSpace): Promise<void> {
     if (!confirm(`¿Salir de ${e.nombre}? Perderás el acceso a sus cursos y tu avance en ellos.`)) return;
     try {
       await firstValueFrom(this.servicio.salirDeEspacio(this.usuarioId, e.espacioId));

@@ -61,7 +61,7 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
                 <input id="esp-academia" class="ui-input" placeholder="Ej. Academia de Ana López" aria-label="Nombre de la academia" [value]="academyName()" (input)="academyName.set($any($event.target).value); academyError.set('')" />
                 <button type="submit" class="ui-btn" [disabled]="!academyName().trim() || isCreating()">{{ isCreating() ? 'Creando…' : 'Crear' }}</button>
               </form>
-              @if (academyName().trim()) { <span class="ui-ayuda">Dirección web: quizwiz.app/{{ slug() }}</span> }
+              @if (academyName().trim()) { <span class="ui-ayuda">Dirección web: aulix.alclick.dev/{{ slug() }}</span> }
               @if (academyError()) { <span class="ui-error">{{ academyError() }}</span> }
             </section>
           </div>

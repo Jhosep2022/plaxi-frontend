@@ -2,25 +2,25 @@ import type { ProfileDto } from '../../models/profile.dto';
 import type { SpaceRole, SpaceType } from './space.model';
 
 // Datos del perfil que no vienen en PerfilDto (cuando exista el backend serán parte de /perfil)
-export interface EnlacesPerfil {
+export interface ProfileLinks {
   sitio: string;
   linkedin: string;
   instagram: string;
   youtube: string;
 }
 
-export interface ContactoEmergencia {
+export interface EmergencyContact {
   nombre: string;
   parentesco: string;
   telefono: string;
 }
 
-export type CanalNotificacion = 'correo' | 'app';
-export type TipoNotificacion = 'comunicados' | 'tareas' | 'calificaciones' | 'asistencia' | 'sesiones' | 'resumen';
-export type PreferenciasNotificacion = Record<TipoNotificacion, Record<CanalNotificacion, boolean>>;
+export type NotificationChannel = 'correo' | 'app';
+export type NotificationType = 'comunicados' | 'tareas' | 'calificaciones' | 'asistencia' | 'sesiones' | 'resumen';
+export type NotificationPreferences = Record<NotificationType, Record<NotificationChannel, boolean>>;
 
 // Dispositivo con la sesión abierta
-export interface Dispositivo {
+export interface ProfileDevice {
   id: number;
   nombre: string; // "Chrome en Windows"
   tipo: 'escritorio' | 'movil';
@@ -29,24 +29,24 @@ export interface Dispositivo {
   actual: boolean;
 }
 
-export interface PerfilExtra {
+export interface ProfileDetails {
   fechaNacimiento: string; // YYYY-MM-DD ('' si no la indicó)
   direccion: string;
   especialidad: string; // docente
   bio: string; // docente: presentación corta (en la academia se ve en el catálogo)
-  enlaces: EnlacesPerfil;
-  contactoEmergencia: ContactoEmergencia; // estudiante
+  enlaces: ProfileLinks;
+  contactoEmergencia: EmergencyContact; // estudiante
   miembroDesde: string; // YYYY-MM-DD
   ultimoAcceso: string; // ISO
   claveActualizada: string; // YYYY-MM-DD
-  notificaciones: PreferenciasNotificacion;
-  dispositivos: Dispositivo[];
+  notificaciones: NotificationPreferences;
+  dispositivos: ProfileDevice[];
 }
 
-export interface Perfil extends ProfileDto, PerfilExtra {}
+export interface UserProfile extends ProfileDto, ProfileDetails {}
 
 // Dato destacado de la cabecera del perfil (cambia según el rol)
-export interface IndicadorPerfil {
+export interface ProfileIndicator {
   label: string;
   valor: string;
   detalle: string;
@@ -54,7 +54,7 @@ export interface IndicadorPerfil {
 }
 
 // Espacio al que pertenece el usuario, para la pestaña "Mis espacios"
-export interface EspacioDelPerfil {
+export interface ProfileSpace {
   espacioId: number;
   slug: string;
   nombre: string;
@@ -66,7 +66,7 @@ export interface EspacioDelPerfil {
 }
 
 // Tipos de aviso que el usuario puede configurar (algunos solo aplican a ciertos roles o espacios)
-export const NOTIFICACIONES: { id: TipoNotificacion; label: string; descripcion: string; roles?: SpaceRole[]; tipo?: SpaceType }[] = [
+export const NOTIFICATION_TYPES: { id: NotificationType; label: string; descripcion: string; roles?: SpaceRole[]; tipo?: SpaceType }[] = [
   { id: 'comunicados', label: 'Comunicados', descripcion: 'Avisos de la dirección o de tus docentes.' },
   { id: 'tareas', label: 'Tareas', descripcion: 'Tareas nuevas, entregas y revisiones.' },
   { id: 'calificaciones', label: 'Calificaciones', descripcion: 'Cuando se publica una nota nueva.', roles: ['estudiante', 'padre', 'docente'] },
@@ -75,4 +75,4 @@ export const NOTIFICACIONES: { id: TipoNotificacion; label: string; descripcion:
   { id: 'resumen', label: 'Resumen semanal', descripcion: 'Un correo cada lunes con lo más importante de la semana.' },
 ];
 
-export const FOTO_MAX_KB = 800;
+export const PHOTO_MAX_KB = 800;

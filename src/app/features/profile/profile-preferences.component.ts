@@ -4,8 +4,8 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBell, faEnvelope, faGlobe, faMobileScreen } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import type { Membership } from '../../core/models/space.model';
-import { NOTIFICACIONES } from '../../core/models/profile.model';
-import type { CanalNotificacion, Perfil, PreferenciasNotificacion, TipoNotificacion } from '../../core/models/profile.model';
+import { NOTIFICATION_TYPES } from '../../core/models/profile.model';
+import type { NotificationChannel, UserProfile, NotificationPreferences, NotificationType } from '../../core/models/profile.model';
 import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
@@ -22,9 +22,9 @@ export class ProfilePreferencesComponent {
   private servicio = inject(AccountProfileService);
   private avisos = inject(NotificationService);
 
-  readonly perfil = input.required<Perfil>();
+  readonly perfil = input.required<UserProfile>();
   readonly membresia = input.required<Membership>();
-  readonly cambio = output<Perfil | null>();
+  readonly cambio = output<UserProfile | null>();
 
   readonly faBell = faBell;
   readonly faEnvelope = faEnvelope;
@@ -34,19 +34,19 @@ export class ProfilePreferencesComponent {
   // Solo los avisos que aplican al rol y al tipo de espacio actual
   readonly tipos = computed(() => {
     const { rol, espacio } = this.membresia();
-    return NOTIFICACIONES.filter((n) => (!n.roles || n.roles.includes(rol)) && (!n.tipo || n.tipo === espacio.tipo));
+    return NOTIFICATION_TYPES.filter((n) => (!n.roles || n.roles.includes(rol)) && (!n.tipo || n.tipo === espacio.tipo));
   });
 
-  readonly notificaciones = linkedSignal<PreferenciasNotificacion>(() => structuredClone(this.perfil().notificaciones));
+  readonly notificaciones = linkedSignal<NotificationPreferences>(() => structuredClone(this.perfil().notificaciones));
   readonly sinGuardar = computed(() => JSON.stringify(this.notificaciones()) !== JSON.stringify(this.perfil().notificaciones));
   readonly guardando = signal(false);
 
-  alternar(tipo: TipoNotificacion, canal: CanalNotificacion): void {
+  alternar(tipo: NotificationType, canal: NotificationChannel): void {
     this.notificaciones.update((n) => ({ ...n, [tipo]: { ...n[tipo], [canal]: !n[tipo][canal] } }));
   }
 
   // Activa o desactiva un canal para todos los avisos visibles
-  todos(canal: CanalNotificacion, valor: boolean): void {
+  todos(canal: NotificationChannel, valor: boolean): void {
     this.notificaciones.update((n) => {
       const copia = structuredClone(n);
       for (const t of this.tipos()) copia[t.id][canal] = valor;
@@ -54,7 +54,7 @@ export class ProfilePreferencesComponent {
     });
   }
 
-  todosActivos(canal: CanalNotificacion): boolean {
+  todosActivos(canal: NotificationChannel): boolean {
     return this.tipos().every((t) => this.notificaciones()[t.id][canal]);
   }
 

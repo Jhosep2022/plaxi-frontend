@@ -11,7 +11,7 @@ import { AcademicsService } from '../../services/academics.service';
 import { GradesService } from '../../services/grades.service';
 import { SelectedChildService } from '../../services/selected-child.service';
 import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
-import { ProfileService } from '../../services/profile.service';
+import { AccountProfileService } from '../../services/account-profile.service';
 import { ReportCardComponent } from '../../shared/grades/report-card.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { subjectIcon } from '../../shared/ui/academic-icons';
@@ -33,7 +33,7 @@ export class MyGradesComponent {
   private session = inject(SessionService);
   private academico = inject(AcademicsService);
   private calificaciones = inject(GradesService);
-  private perfiles = inject(ProfileService);
+  private perfiles = inject(AccountProfileService);
   private hijoActivo = inject(SelectedChildService);
 
   readonly BOLETIN = BOLETIN;
@@ -60,9 +60,9 @@ export class MyGradesComponent {
         switchMap((id) =>
           !id
             ? of(null)
-            : forkJoin({ perfil: this.perfiles.getProfile(id), paraleloId: this.academico.getStudentClassGroup(id) }).pipe(
+            : forkJoin({ perfil: this.perfiles.perfil(id), paraleloId: this.academico.getStudentClassGroup(id) }).pipe(
                 switchMap(({ perfil, paraleloId }) =>
-                  this.calificaciones.getClassGroupData(this.espacio.id, paraleloId).pipe(map((datos) => (datos ? { estudiante: { id, nombre: datos.estudiantes.find((e) => e.id === id)?.nombre ?? perfil.nombre }, datos } : null)))
+                  this.calificaciones.getClassGroupData(this.espacio.id, paraleloId).pipe(map((datos) => (datos ? { estudiante: { id, nombre: datos.estudiantes.find((e) => e.id === id)?.nombre ?? perfil?.nombre ?? '' }, datos } : null)))
                 )
               )
         )

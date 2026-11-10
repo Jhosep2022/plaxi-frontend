@@ -4,7 +4,7 @@ import { FormField, form, required, submit, validate } from '@angular/forms/sign
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faDesktop, faEye, faEyeSlash, faKey, faLaptop, faMobileScreen, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import type { Dispositivo, Perfil } from '../../core/models/profile.model';
+import type { ProfileDevice, UserProfile } from '../../core/models/profile.model';
 import { formatDateWithYear, formatLongDate } from '../../core/utils/attendance';
 import { getPasswordError } from '../../core/utils/password';
 import { AccountProfileService } from '../../services/account-profile.service';
@@ -27,8 +27,8 @@ export class ProfileSecurityComponent {
   private servicio = inject(AccountProfileService);
   private avisos = inject(NotificationService);
 
-  readonly perfil = input.required<Perfil>();
-  readonly cambio = output<Perfil | null>();
+  readonly perfil = input.required<UserProfile>();
+  readonly cambio = output<UserProfile | null>();
 
   readonly formatDateWithYear = formatDateWithYear;
   readonly faEye = faEye;
@@ -67,7 +67,7 @@ export class ProfileSecurityComponent {
   }
 
   // ---------- Dispositivos ----------
-  icono(d: Dispositivo) {
+  icono(d: ProfileDevice) {
     return d.tipo === 'movil' ? faMobileScreen : d.nombre.includes('macOS') ? faLaptop : faDesktop;
   }
 
@@ -77,7 +77,7 @@ export class ProfileSecurityComponent {
 
   readonly otros = computed(() => this.perfil().dispositivos.filter((d) => !d.actual).length);
 
-  async signOutDevice(d: Dispositivo): Promise<void> {
+  async signOutDevice(d: ProfileDevice): Promise<void> {
     try {
       this.cambio.emit(await firstValueFrom(this.servicio.signOutDevice(this.usuarioId, d.id)));
       this.avisos.success(`Cerraste la sesión en ${d.nombre}.`);

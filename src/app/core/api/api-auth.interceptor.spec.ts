@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { apiAuthInterceptor } from './api-auth.interceptor';
 import { ApiSessionService } from './api-session.service';
+import { SessionService } from '../auth/session.service';
 
 describe('apiAuthInterceptor', () => {
   let http: HttpClient;
@@ -13,7 +14,13 @@ describe('apiAuthInterceptor', () => {
   const refreshUrl = `${environment.API_URL}/auth/refresh`;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(withInterceptors([apiAuthInterceptor])), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([apiAuthInterceptor])),
+        provideHttpClientTesting(),
+        { provide: SessionService, useValue: { applyApiSession: jasmine.createSpy(), expireSession: jasmine.createSpy() } },
+      ],
+    });
     http = TestBed.inject(HttpClient);
     controller = TestBed.inject(HttpTestingController);
     session = TestBed.inject(ApiSessionService);
@@ -52,11 +59,19 @@ describe('apiAuthInterceptor', () => {
     retriedSpaces.flush({});
   });
 
-  it('clears the token when refresh fails', () => {
+  it('expires the local session when refresh fails', () => {
     session.setAccessToken('expired-token');
     http.get(profileUrl).subscribe({ error: () => undefined });
     controller.expectOne(profileUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
     controller.expectOne(refreshUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
-    expect(session.accessToken()).toBeNull();
+    expect(TestBed.inject(SessionService).expireSession).toHaveBeenCalled();
+  });
+
+  it('preserves the replacement reason when the old student session is revoked', () => {
+    session.setAccessToken('old-token');
+    http.get(profileUrl).subscribe({ error: () => undefined });
+    controller.expectOne(profileUrl).flush({ code: 'sesion_reemplazada' }, { status: 401, statusText: 'Unauthorized' });
+    controller.expectOne(refreshUrl).flush({ code: 'sesion_reemplazada' }, { status: 401, statusText: 'Unauthorized' });
+    expect(TestBed.inject(SessionService).expireSession).toHaveBeenCalledWith('sesion_reemplazada');
   });
 });

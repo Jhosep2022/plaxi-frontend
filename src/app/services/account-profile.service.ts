@@ -1,9 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { delay, map, switchMap } from 'rxjs/operators';
 import type { Membership } from '../core/models/space.model';
-import type { ContactoEmergencia, EnlacesPerfil, EspacioDelPerfil, IndicadorPerfil, Perfil, PreferenciasNotificacion } from '../core/models/profile.model';
-import { FOTO_MAX_KB } from '../core/models/profile.model';
+import type { EmergencyContact, ProfileLinks, ProfileSpace, ProfileIndicator, UserProfile, NotificationPreferences } from '../core/models/profile.model';
+import { PHOTO_MAX_KB } from '../core/models/profile.model';
 import { todayIso } from '../core/utils/attendance';
 import { isPasswordValid } from '../core/utils/password';
 import { calculatePercentage } from '../core/utils/reports';
@@ -19,6 +20,18 @@ import { TimeTrackingService } from './time-tracking.service';
 import { PeopleService } from './people.service';
 import { SessionsService } from './sessions.service';
 import { AssignmentsService } from './assignments.service';
+import { SessionService } from '../core/auth/session.service';
+import { environment } from '../../environments/environment';
+
+interface ApiProfile {
+  id: number; usuario: string; correo: string; nombre: string; primerApellido: string;
+  segundoApellido: string | null; telefono: string | null; ci: string | null;
+  imagenUrl: string | null; fechaNacimiento: string | null; direccion: string | null;
+  especialidad: string | null; bio: string | null; enlaces: Partial<ProfileLinks> | null;
+  contactoEmergencia: Partial<EmergencyContact> | null;
+  notificaciones: NotificationPreferences | null; esAdmin: boolean;
+  miembroDesde: string; ultimoAcceso: string | null; claveActualizada: string | null;
+}
 
 export interface DatosPersonales {
   nombre: string;
@@ -37,7 +50,7 @@ export interface DatosContacto {
 export interface DatosDocente {
   especialidad: string;
   bio: string;
-  enlaces: EnlacesPerfil;
+  enlaces: ProfileLinks;
 }
 
 export const PATRON_USUARIO = /^[a-z0-9._]{3,20}$/;
@@ -49,6 +62,8 @@ export const PATRON_ENLACE = /^https?:\/\/\S+\.\S+/;
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP a /perfil.
 @Injectable({ providedIn: 'root' })
 export class AccountProfileService {
+  private http = inject(HttpClient);
+  private currentSession = inject(SessionService);
   private aulas = inject(ClassroomsService);
   private academia = inject(AcademyService);
   private academico = inject(AcademicsService);
@@ -61,13 +76,33 @@ export class AccountProfileService {
   // Sube cada vez que cambia el nombre o la foto (el sidebar se vuelve a cargar)
   readonly version = signal(0);
 
-  perfil(usuarioId: number): Observable<Perfil | null> {
+  perfil(usuarioId: number): Observable<UserProfile | null> {
+    if (this.currentSession.isAuthenticated() && this.currentSession.userId() === usuarioId) {
+      return this.http.get<ApiProfile>(`${environment.API_URL}/perfil`).pipe(map((profile) => {
+        const empty = perfilExtraVacio();
+        return {
+          idUsuario: profile.id, username: profile.usuario, gmail: profile.correo,
+          status: true, nombre: profile.nombre, primerApellido: profile.primerApellido,
+          segundoApellido: profile.segundoApellido ?? '', telefono: profile.telefono ?? '',
+          ci: profile.ci ?? '', imagenUrl: profile.imagenUrl ?? undefined,
+          id_rol: String(this.currentSession.activeRole() ?? ''), isAdmin: profile.esAdmin,
+          pending: false, fechaNacimiento: profile.fechaNacimiento ?? '',
+          direccion: profile.direccion ?? '', especialidad: profile.especialidad ?? '',
+          bio: profile.bio ?? '', enlaces: { ...empty.enlaces, ...profile.enlaces },
+          contactoEmergencia: { ...empty.contactoEmergencia, ...profile.contactoEmergencia },
+          miembroDesde: profile.miembroDesde, ultimoAcceso: profile.ultimoAcceso ?? '',
+          claveActualizada: profile.claveActualizada?.slice(0, 10) ?? '',
+          notificaciones: profile.notificaciones ?? empty.notificaciones,
+          dispositivos: [],
+        } satisfies UserProfile;
+      }));
+    }
     const dto = MOCK_PERFILES.find((p) => p.idUsuario === usuarioId);
     return of(dto ? structuredClone({ ...dto, ...this.extra(usuarioId) }) : null).pipe(delay(MOCK_DELAY));
   }
 
   // ---------- Datos personales ----------
-  savePersonalDetails(usuarioId: number, datos: DatosPersonales): Observable<Perfil | null> {
+  savePersonalDetails(usuarioId: number, datos: DatosPersonales): Observable<UserProfile | null> {
     if (!datos.nombre.trim() || !datos.primerApellido.trim()) return throwError(() => new Error('El nombre y el primer apellido son obligatorios.'));
     if (datos.fechaNacimiento && datos.fechaNacimiento > todayIso()) return throwError(() => new Error('La fecha de nacimiento no puede ser futura.'));
     return this.actualizar(usuarioId, (dto, extra) => {
@@ -79,7 +114,7 @@ export class AccountProfileService {
     });
   }
 
-  saveContactDetails(usuarioId: number, datos: DatosContacto): Observable<Perfil | null> {
+  saveContactDetails(usuarioId: number, datos: DatosContacto): Observable<UserProfile | null> {
     const correo = datos.gmail.trim().toLowerCase();
     if (!PATRON_CORREO.test(correo)) return throwError(() => new Error('Escribe un correo válido.'));
     if (MOCK_PERFILES.some((p) => p.gmail === correo && p.idUsuario !== usuarioId)) return throwError(() => new Error('Ese correo ya lo usa otra cuenta.'));
@@ -91,14 +126,14 @@ export class AccountProfileService {
     });
   }
 
-  saveUsername(usuarioId: number, username: string): Observable<Perfil | null> {
+  saveUsername(usuarioId: number, username: string): Observable<UserProfile | null> {
     const nombre = username.trim().toLowerCase();
     if (!PATRON_USUARIO.test(nombre)) return throwError(() => new Error('De 3 a 20 caracteres: letras, números, punto o guion bajo.'));
     if (MOCK_PERFILES.some((p) => p.username === nombre && p.idUsuario !== usuarioId)) return throwError(() => new Error('Ese nombre de usuario ya está ocupado.'));
     return this.actualizar(usuarioId, (dto) => (dto.username = nombre));
   }
 
-  saveTeacherProfile(usuarioId: number, datos: DatosDocente): Observable<Perfil | null> {
+  saveTeacherProfile(usuarioId: number, datos: DatosDocente): Observable<UserProfile | null> {
     if (datos.bio.length > 400) return throwError(() => new Error('La presentación puede tener hasta 400 caracteres.'));
     const malos = Object.values(datos.enlaces).filter((e) => e && !PATRON_ENLACE.test(e));
     if (malos.length) return throwError(() => new Error('Los enlaces deben empezar con https://'));
@@ -109,19 +144,19 @@ export class AccountProfileService {
     });
   }
 
-  saveEmergencyContact(usuarioId: number, contacto: ContactoEmergencia): Observable<Perfil | null> {
+  saveEmergencyContact(usuarioId: number, contacto: EmergencyContact): Observable<UserProfile | null> {
     if (contacto.telefono && !PATRON_CELULAR.test(contacto.telefono)) return throwError(() => new Error('El celular debe tener 8 dígitos y empezar con 6 o 7.'));
     return this.actualizar(usuarioId, (_, extra) => (extra.contactoEmergencia = { nombre: contacto.nombre.trim(), parentesco: contacto.parentesco.trim(), telefono: contacto.telefono.trim() }));
   }
 
   // Foto como data URL ('' para quitarla y volver a las iniciales)
-  changePhoto(usuarioId: number, foto: string): Observable<Perfil | null> {
-    if (foto.length > FOTO_MAX_KB * 1024 * 1.37) return throwError(() => new Error(`La foto debe pesar menos de ${FOTO_MAX_KB} KB.`));
+  changePhoto(usuarioId: number, foto: string): Observable<UserProfile | null> {
+    if (foto.length > PHOTO_MAX_KB * 1024 * 1.37) return throwError(() => new Error(`La foto debe pesar menos de ${PHOTO_MAX_KB} KB.`));
     return this.actualizar(usuarioId, (dto) => (dto.imagenUrl = foto || undefined));
   }
 
   // ---------- Seguridad ----------
-  changePassword(usuarioId: number, actual: string, nueva: string): Observable<Perfil | null> {
+  changePassword(usuarioId: number, actual: string, nueva: string): Observable<UserProfile | null> {
     if (!actual) return throwError(() => new Error('Escribe tu contraseña actual.'));
     if (!isPasswordValid(nueva)) return throwError(() => new Error('La nueva contraseña debe tener al menos 8 caracteres, con letras y números.'));
     if (nueva === actual) return throwError(() => new Error('La nueva contraseña debe ser distinta de la actual.'));
@@ -131,11 +166,11 @@ export class AccountProfileService {
     return this.actualizar(usuarioId, (_, extra) => (extra.claveActualizada = todayIso()));
   }
 
-  signOutDevice(usuarioId: number, dispositivoId: number): Observable<Perfil | null> {
+  signOutDevice(usuarioId: number, dispositivoId: number): Observable<UserProfile | null> {
     return this.actualizar(usuarioId, (_, extra) => (extra.dispositivos = extra.dispositivos.filter((d) => d.actual || d.id !== dispositivoId)));
   }
 
-  signOutOtherDevices(usuarioId: number): Observable<Perfil | null> {
+  signOutOtherDevices(usuarioId: number): Observable<UserProfile | null> {
     return this.actualizar(usuarioId, (_, extra) => (extra.dispositivos = extra.dispositivos.filter((d) => d.actual)));
   }
 
@@ -148,13 +183,13 @@ export class AccountProfileService {
   }
 
   // ---------- Preferencias ----------
-  saveNotificationPreferences(usuarioId: number, notificaciones: PreferenciasNotificacion): Observable<Perfil | null> {
+  saveNotificationPreferences(usuarioId: number, notificaciones: NotificationPreferences): Observable<UserProfile | null> {
     return this.actualizar(usuarioId, (_, extra) => (extra.notificaciones = structuredClone(notificaciones)));
   }
 
   // ---------- Espacios ----------
-  espacios(usuarioId: number): Observable<EspacioDelPerfil[]> {
-    const lista = MOCK_MEMBRESIAS.filter((m) => m.usuarioId === usuarioId).map((m): EspacioDelPerfil => {
+  espacios(usuarioId: number): Observable<ProfileSpace[]> {
+    const lista = MOCK_MEMBRESIAS.filter((m) => m.usuarioId === usuarioId).map((m): ProfileSpace => {
       const espacio = MOCK_ESPACIOS.find((e) => e.id === m.espacioId)!;
       const motivo =
         m.rol === 'direccion' ? 'Administras este espacio.'
@@ -181,14 +216,14 @@ export class AccountProfileService {
   }
 
   // ---------- Indicadores de la cabecera (según el rol en el espacio activo) ----------
-  indicadores(membresia: Membership, usuarioId: number): Observable<IndicadorPerfil[]> {
+  indicadores(membresia: Membership, usuarioId: number): Observable<ProfileIndicator[]> {
     const espacioId = membresia.espacio.id;
     const colegio = membresia.espacio.tipo === 'colegio';
     switch (membresia.rol) {
       case 'docente':
         return colegio
           ? forkJoin({ aulas: this.aulas.aulasDocente(espacioId, usuarioId), marcas: this.marcacion.getTeacherEntries(usuarioId) }).pipe(
-              map(({ aulas, marcas }): IndicadorPerfil[] => {
+              map(({ aulas, marcas }): ProfileIndicator[] => {
                 const entradas = marcas.filter((m) => m.tipo === 'entrada');
                 return [
                   { label: 'Clases', valor: String(aulas.length), detalle: 'asignadas esta gestión', tono: 'lima' },
@@ -199,7 +234,7 @@ export class AccountProfileService {
               })
             )
           : forkJoin({ aulas: this.aulas.aulasDocente(espacioId, usuarioId), estudiantes: this.academia.getStudents(espacioId, usuarioId), sesiones: this.sesiones.sesionesDocente(espacioId, usuarioId) }).pipe(
-              map(({ aulas, estudiantes, sesiones }): IndicadorPerfil[] => [
+              map(({ aulas, estudiantes, sesiones }): ProfileIndicator[] => [
                 { label: 'Cursos', valor: String(aulas.length), detalle: 'publicados y privados', tono: 'lima' },
                 { label: 'Estudiantes', valor: String(estudiantes.length), detalle: 'inscritos activos', tono: 'azul' },
                 { label: 'Sesiones', valor: String(sesiones.filter((s) => s.estado === 'finalizada').length), detalle: 'en vivo dictadas', tono: 'crema' },
@@ -213,7 +248,7 @@ export class AccountProfileService {
             ? this.asistencia.getStudentRecords(usuarioId).pipe(map((r) => r.filter((x) => x.estado !== 'licencia')), map((r) => porcentajeOpt(r.filter((x) => x.estado !== 'ausente').length, r.length)))
             : this.sesiones.sesionesEstudiante(espacioId, usuarioId).pipe(map((s) => s.filter((x) => x.estado === 'finalizada')), map((s) => porcentajeOpt(s.filter((x) => x.asisti).length, s.length))),
         }).pipe(
-          map(({ aulas, asistencia }): IndicadorPerfil[] => {
+          map(({ aulas, asistencia }): ProfileIndicator[] => {
             const avances = aulas.map((a) => a.anillos[0].valor).filter((v): v is number => v !== null);
             return [
               { label: colegio ? 'Materias' : 'Cursos', valor: String(aulas.length), detalle: colegio ? 'en tu paralelo' : 'inscritos', tono: 'lima' },
@@ -227,7 +262,7 @@ export class AccountProfileService {
         return this.academico.getChildren(usuarioId).pipe(
           switchMap((hijos) =>
             (hijos.length ? forkJoin(hijos.map((h) => this.tareas.tareasDeEstudiante(espacioId, h))) : of([])).pipe(
-              map((listas): IndicadorPerfil[] => [
+              map((listas): ProfileIndicator[] => [
                 { label: 'Hijos', valor: String(hijos.length), detalle: 'vinculados a tu cuenta', tono: 'lima' },
                 { label: 'Tareas', valor: String(listas.flat().filter((t) => t.estado === 'pendiente' || t.estado === 'no-entregada').length), detalle: 'pendientes de tus hijos', tono: 'crema' },
                 { label: 'Espacios', valor: String(MOCK_MEMBRESIAS.filter((m) => m.usuarioId === usuarioId).length), detalle: 'a los que perteneces', tono: 'azul' },
@@ -237,7 +272,7 @@ export class AccountProfileService {
         );
       default:
         return forkJoin({ estudiantes: this.personas.estudiantes(), docentes: this.personas.docentes(), paralelos: this.academico.getActiveClassGroups(espacioId), materias: this.academico.getSubjects(espacioId) }).pipe(
-          map(({ estudiantes, docentes, paralelos, materias }): IndicadorPerfil[] => [
+          map(({ estudiantes, docentes, paralelos, materias }): ProfileIndicator[] => [
             { label: 'Estudiantes', valor: String(estudiantes.length), detalle: 'en la institución', tono: 'lima' },
             { label: 'Docentes', valor: String(docentes.filter((d) => d.activo).length), detalle: 'activos', tono: 'azul' },
             { label: 'Paralelos', valor: String(paralelos.length), detalle: 'esta gestión', tono: 'crema' },
@@ -252,11 +287,11 @@ export class AccountProfileService {
     return (MOCK_PERFIL_EXTRA[usuarioId] ??= perfilExtraVacio());
   }
 
-  private actualizar(usuarioId: number, cambio: (dto: (typeof MOCK_PERFILES)[number], extra: Perfil) => void): Observable<Perfil | null> {
+  private actualizar(usuarioId: number, cambio: (dto: (typeof MOCK_PERFILES)[number], extra: UserProfile) => void): Observable<UserProfile | null> {
     const dto = MOCK_PERFILES.find((p) => p.idUsuario === usuarioId);
     if (!dto) return throwError(() => new Error('La cuenta ya no existe.'));
     const extra = this.extra(usuarioId);
-    const combinado = { ...dto, ...extra } as Perfil;
+    const combinado = { ...dto, ...extra } as UserProfile;
     cambio(combinado, combinado);
     const { idUsuario, username, gmail, status, nombre, primerApellido, segundoApellido, telefono, ci, imagenUrl, id_rol, ...resto } = combinado;
     Object.assign(dto, { idUsuario, username, gmail, status, nombre, primerApellido, segundoApellido, telefono, ci, imagenUrl, id_rol });

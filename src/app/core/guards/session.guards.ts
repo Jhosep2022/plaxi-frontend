@@ -6,7 +6,14 @@ import { SessionService } from '../auth/session.service';
 // Require an authenticated session.
 export const authGuard: CanMatchFn = () => {
   const session = inject(SessionService);
+  if (session.passwordChangeRequired()) return inject(Router).createUrlTree(['/cambiar-clave-temporal']);
   return session.isAuthenticated() || inject(Router).createUrlTree(['/auth/login']);
+};
+
+export const temporaryPasswordGuard: CanMatchFn = () => {
+  const session = inject(SessionService);
+  if (!session.isAuthenticated()) return inject(Router).createUrlTree(['/auth/login']);
+  return session.passwordChangeRequired() || inject(Router).parseUrl(session.postLoginRoute());
 };
 
 // Redirect authenticated users away from sign-in pages.
@@ -40,6 +47,7 @@ export const redirectHomeGuard: CanActivateFn = () => {
   const session = inject(SessionService);
   const router = inject(Router);
   if (!session.isAuthenticated()) return router.createUrlTree(['/auth/login']);
+  if (session.passwordChangeRequired()) return router.createUrlTree(['/cambiar-clave-temporal']);
   const membership = session.activeMembership();
   return router.parseUrl(membership ? session.homeRoute(membership) : session.postLoginRoute());
 };
@@ -48,10 +56,13 @@ export const redirectHomeGuard: CanActivateFn = () => {
 export const platformAdminGuard: CanMatchFn = () => {
   const session = inject(SessionService);
   if (!session.isAuthenticated()) return inject(Router).createUrlTree(['/auth/login']);
+  if (session.passwordChangeRequired()) return inject(Router).createUrlTree(['/cambiar-clave-temporal']);
   return session.isPlatformAdmin() || inject(Router).createUrlTree(['/no-autorizado']);
 };
 
 // Platform accounts cannot use member screens.
 export const spaceMemberGuard: CanMatchFn = () => {
-  return !inject(SessionService).isPlatformAdmin() || inject(Router).createUrlTree(['/admin']);
+  const session = inject(SessionService);
+  if (session.passwordChangeRequired()) return inject(Router).createUrlTree(['/cambiar-clave-temporal']);
+  return !session.isPlatformAdmin() || inject(Router).createUrlTree(['/admin']);
 };

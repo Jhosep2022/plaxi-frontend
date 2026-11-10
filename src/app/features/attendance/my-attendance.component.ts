@@ -12,7 +12,7 @@ import { AcademicsService } from '../../services/academics.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { SelectedChildService } from '../../services/selected-child.service';
 import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
-import { ProfileService } from '../../services/profile.service';
+import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
@@ -36,7 +36,7 @@ export class MyAttendanceComponent {
   private session = inject(SessionService);
   private asistencia = inject(AttendanceService);
   private academico = inject(AcademicsService);
-  private perfiles = inject(ProfileService);
+  private perfiles = inject(AccountProfileService);
   private avisos = inject(NotificationService);
   private hijoActivo = inject(SelectedChildService);
 
@@ -62,7 +62,7 @@ export class MyAttendanceComponent {
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
       if (this.esPadre) return this.hijoActivo.activo().pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)));
-      return this.perfiles.getProfile(this.usuarioId).pipe(map((p) => ({ id: this.usuarioId, nombre: p.nombre })));
+      return this.perfiles.perfil(this.usuarioId).pipe(map((p) => ({ id: this.usuarioId, nombre: p?.nombre ?? '' })));
     },
   });
 

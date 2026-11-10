@@ -1,16 +1,13 @@
 import { HttpBackend, HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, finalize, map, shareReplay, tap } from 'rxjs';
+import { Observable, finalize, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-interface RefreshResponse {
-  accessToken: string;
-}
+import type { ApiSessionResponse } from './auth-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class ApiSessionService {
   private readonly http = new HttpClient(inject(HttpBackend));
-  private refreshRequest: Observable<string> | null = null;
+  private refreshRequest: Observable<ApiSessionResponse> | null = null;
   readonly accessToken = signal<string | null>(null);
 
   setAccessToken(token: string): void {
@@ -21,12 +18,11 @@ export class ApiSessionService {
     this.accessToken.set(null);
   }
 
-  refresh(): Observable<string> {
+  refreshSession(): Observable<ApiSessionResponse> {
     if (this.refreshRequest) return this.refreshRequest;
 
-    this.refreshRequest = this.http.post<RefreshResponse>(`${environment.API_URL}/auth/refresh`, {}, { withCredentials: true }).pipe(
-      map((response) => response.accessToken),
-      tap((token) => this.setAccessToken(token)),
+    this.refreshRequest = this.http.post<ApiSessionResponse>(`${environment.API_URL}/auth/refresh`, {}, { withCredentials: true }).pipe(
+      tap((response) => this.setAccessToken(response.accessToken)),
       finalize(() => { this.refreshRequest = null; }),
       shareReplay({ bufferSize: 1, refCount: false }),
     );

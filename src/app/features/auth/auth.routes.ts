@@ -11,6 +11,7 @@ export default [
       { path: 'registro', title: 'Crear cuenta', loadComponent: () => import('./registration.component').then((m) => m.RegistrationComponent) },
       { path: 'recuperar-contrasena', title: 'Recuperar contraseña', loadComponent: () => import('./forgot-password.component').then((m) => m.ForgotPasswordComponent) },
       { path: 'nueva-contrasena', title: 'Nueva contraseña', loadComponent: () => import('./reset-password.component').then((m) => m.ResetPasswordComponent) },
+      { path: 'activar', title: 'Activar cuenta', loadComponent: () => import('./activate-account.component').then((m) => m.ActivateAccountComponent) },
       { path: 'colegio', title: 'Aulix para colegios', loadComponent: () => import('./school-request.component').then((m) => m.SchoolRequestComponent) },
     ],
   },

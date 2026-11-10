@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import type { Membership } from '../../core/models/space.model';
-import type { Perfil } from '../../core/models/profile.model';
+import type { UserProfile } from '../../core/models/profile.model';
 import { formatDateWithYear, formatLongDate, todayIso } from '../../core/utils/attendance';
 import { PATRON_CELULAR, PATRON_CORREO, PATRON_ENLACE, PATRON_USUARIO, AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
@@ -29,9 +29,9 @@ export class ProfileDetailsComponent {
   private servicio = inject(AccountProfileService);
   private avisos = inject(NotificationService);
 
-  readonly perfil = input.required<Perfil>();
+  readonly perfil = input.required<UserProfile>();
   readonly membresia = input.required<Membership>();
-  readonly cambio = output<Perfil | null>();
+  readonly cambio = output<UserProfile | null>();
 
   readonly formatDateWithYear = formatDateWithYear;
   readonly hoy = todayIso();
@@ -136,7 +136,7 @@ export class ProfileDetailsComponent {
     }
   }
 
-  private async ejecutar(accion: () => Observable<Perfil | null>, mensaje: string): Promise<void> {
+  private async ejecutar(accion: () => Observable<UserProfile | null>, mensaje: string): Promise<void> {
     this.guardando.set(true);
     try {
       this.cambio.emit(await firstValueFrom(accion()));

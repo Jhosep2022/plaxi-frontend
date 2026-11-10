@@ -8,13 +8,19 @@ import { faCompass } from '@fortawesome/free-solid-svg-icons';
   imports: [RouterLink, FaIconComponent],
   styleUrls: ['./status-page.css'],
   template: `
-    <div class="status">
-      <div class="icon"><fa-icon [icon]="faCompass" /></div>
-      <p class="code">ERROR 404</p>
-      <h1>Página no encontrada</h1>
-      <p>La dirección que buscas no existe o ya no está disponible.</p>
-      <a routerLink="/" class="button">Volver al inicio</a>
-    </div>
+    <main class="status-page" aria-labelledby="status-title">
+      <header class="status-header"><a routerLink="/" aria-label="Aulix, ir al inicio"><img src="assets/aulix-logo.svg" alt="Aulix" /></a></header>
+      <div class="status-grid">
+        <div class="status-art" aria-hidden="true"><span class="status-number">404</span><span class="status-symbol"><fa-icon [icon]="faCompass" /></span></div>
+        <section class="status-copy">
+          <span class="status-label">Ruta no encontrada</span>
+          <h1 id="status-title">Esta página se salió del mapa.</h1>
+          <p>Puede que el enlace haya cambiado o que la dirección tenga un error. Vuelve al inicio para seguir desde allí.</p>
+          <div class="status-actions"><a routerLink="/" class="button">Volver al inicio</a></div>
+        </section>
+      </div>
+      <footer class="status-footer">Aulix <span>·</span> Tu espacio para aprender y enseñar</footer>
+    </main>
   `,
 })
 export class NotFoundComponent {

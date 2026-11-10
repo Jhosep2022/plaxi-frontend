@@ -4,9 +4,9 @@ import { firstValueFrom } from 'rxjs';
 import { FormField, form, pattern, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
-import { AuthService } from '../../services/auth.service';
+import { AuthApiService } from '../../core/api/auth-api.service';
+import { readApiError } from '../../core/api/api-error';
 import { PATRON_CORREO } from '../../services/account-profile.service';
-import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Request a password reset link by email.
 @Component({
@@ -20,12 +20,6 @@ import { getErrorMessage } from '../management/academics/academics.ui';
         <h1>Revisa tu correo</h1>
         <p>Si <strong>{{ email }}</strong> tiene una cuenta en Aulix, te enviamos un enlace para crear una contraseña nueva. Vence en 1 hora.</p>
         <p class="ui-ayuda">¿No llegó? Revisa la carpeta de spam o <button type="button" class="enlace boton-enlace" (click)="sentTo.set(null)">inténtalo con otro correo</button>.</p>
-        @if (token()) {
-          <div class="simulacion">
-            Mientras no haya servidor de correo, abre el enlace desde aquí:
-            <a class="enlace" id="enlace-recuperacion" routerLink="/auth/nueva-contrasena" [queryParams]="{ token: token() }">Crear mi contraseña nueva</a>
-          </div>
-        }
       </div>
       <a class="ui-btn ui-btn--secundario boton-ancho" routerLink="/auth/login"><fa-icon [icon]="faArrowLeft" /> Volver a iniciar sesión</a>
     } @else {
@@ -48,7 +42,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
   styles: `.boton-enlace { padding: 0; border: none; background: none; font: inherit; cursor: pointer; }`,
 })
 export class ForgotPasswordComponent {
-  private auth = inject(AuthService);
+  private auth = inject(AuthApiService);
 
   readonly faArrowLeft = faArrowLeft;
   readonly faCircleExclamation = faCircleExclamation;
@@ -62,18 +56,17 @@ export class ForgotPasswordComponent {
   readonly isSubmitting = signal(false);
   readonly error = signal('');
   readonly sentTo = signal<string | null>(null);
-  readonly token = signal<string | null>(null);
 
   requestPasswordReset(): void {
     submit(this.resetForm, async () => {
       this.isSubmitting.set(true);
       this.error.set('');
       try {
-        const { token } = await firstValueFrom(this.auth.requestPasswordReset(this.formData().email));
-        this.token.set(token);
+        await firstValueFrom(this.auth.requestPasswordReset(this.formData().email));
         this.sentTo.set(this.formData().email.trim().toLowerCase());
       } catch (e) {
-        this.error.set(getErrorMessage(e));
+        const apiError = readApiError(e);
+        this.error.set(apiError.fields['correo'] ?? apiError.message);
       } finally {
         this.isSubmitting.set(false);
       }

@@ -1,9 +1,9 @@
 // ============================================================================
 // DATOS MOCKEADOS del perfil: lo que no trae PerfilDto (datos personales extra, preferencias, dispositivos)
 // ============================================================================
-import type { PerfilExtra, PreferenciasNotificacion } from '../core/models/profile.model';
+import type { ProfileDetails, NotificationPreferences } from '../core/models/profile.model';
 
-const avisos = (correo: boolean): PreferenciasNotificacion => ({
+const avisos = (correo: boolean): NotificationPreferences => ({
   comunicados: { correo, app: true },
   tareas: { correo: false, app: true },
   calificaciones: { correo, app: true },
@@ -15,7 +15,7 @@ const avisos = (correo: boolean): PreferenciasNotificacion => ({
 const sinEnlaces = { sitio: '', linkedin: '', instagram: '', youtube: '' };
 const sinContacto = { nombre: '', parentesco: '', telefono: '' };
 
-export const MOCK_PERFIL_EXTRA: Record<number, PerfilExtra> = {
+export const MOCK_PERFIL_EXTRA: Record<number, ProfileDetails> = {
   1: {
     fechaNacimiento: '1978-03-14', direccion: 'Av. Ballivián 1234, Cochabamba', especialidad: '', bio: '', enlaces: sinEnlaces, contactoEmergencia: sinContacto,
     miembroDesde: '2024-01-15', ultimoAcceso: '2026-10-19T07:40:00', claveActualizada: '2026-06-02', notificaciones: avisos(true),
@@ -63,7 +63,7 @@ export const MOCK_MIEMBRO_DESDE: Record<string, string> = {
 };
 
 // Perfil extra por defecto para usuarios que no tienen uno (p. ej. los que se registran)
-export const perfilExtraVacio = (): PerfilExtra => ({
+export const perfilExtraVacio = (): ProfileDetails => ({
   fechaNacimiento: '', direccion: '', especialidad: '', bio: '', enlaces: { ...sinEnlaces }, contactoEmergencia: { ...sinContacto },
   miembroDesde: '2026-10-19', ultimoAcceso: '2026-10-19T08:00:00', claveActualizada: '2026-10-19', notificaciones: avisos(false),
   dispositivos: [{ id: 100, nombre: 'Este navegador', tipo: 'escritorio', ubicacion: 'Bolivia', ultimoUso: '2026-10-19T08:00:00', actual: true }],

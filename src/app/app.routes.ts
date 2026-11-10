@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { platformAdminGuard, authGuard, spaceGuard, guestGuard, spaceMemberGuard, redirectHomeGuard, roleGuard } from './core/guards/session.guards';
+import { platformAdminGuard, authGuard, spaceGuard, guestGuard, spaceMemberGuard, redirectHomeGuard, roleGuard, temporaryPasswordGuard } from './core/guards/session.guards';
 import { AppLayoutComponent } from './layouts/app-layout/app-layout.component';
 
 // Estructura general:
@@ -11,6 +11,8 @@ import { AppLayoutComponent } from './layouts/app-layout/app-layout.component';
 // Cada área de rol se carga de forma diferida y está protegida por su guard.
 export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [redirectHomeGuard], children: [] },
+
+  { path: 'cambiar-clave-temporal', canMatch: [temporaryPasswordGuard], title: 'Cambiar contraseña temporal', loadComponent: () => import('./features/auth/change-temporary-password.component').then((m) => m.ChangeTemporaryPasswordComponent) },
 
   {
     path: 'auth',

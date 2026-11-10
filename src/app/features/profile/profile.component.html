@@ -1,5 +1,7 @@
 @if (datos.isLoading() && !perfil()) {
   <p class="cargando">Cargando tu perfil…</p>
+} @else if (datos.error()) {
+  <p class="cargando" role="alert">No pudimos cargar tu perfil. Recarga la página para intentarlo de nuevo.</p>
 } @else if (perfil(); as p) {
   <!-- Cabecera -->
   <section class="ui-card cabecera">

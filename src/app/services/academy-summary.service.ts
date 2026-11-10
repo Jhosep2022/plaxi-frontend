@@ -9,7 +9,7 @@ import { DiaSemana, EventoHorario, ItemActividad, ItemProximo, ResumenData } fro
 import { subjectIcon } from '../shared/ui/academic-icons';
 import { AcademyService } from './academy.service';
 import { ClassroomsService } from './classrooms.service';
-import { ProfileService } from './profile.service';
+import { AccountProfileService } from './account-profile.service';
 import { QuizService } from './quiz.service';
 import { SesionVista, SessionsService } from './sessions.service';
 
@@ -18,11 +18,18 @@ const ETIQUETAS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi'];
 // Resumen (Inicio) de la academia con los mismos datos que usan sus pantallas: cursos, sesiones, quiz y solicitudes
 @Injectable({ providedIn: 'root' })
 export class AcademySummaryService {
-  private perfiles = inject(ProfileService);
+  private cuenta = inject(AccountProfileService);
   private aulas = inject(ClassroomsService);
   private sesiones = inject(SessionsService);
   private academia = inject(AcademyService);
   private quiz = inject(QuizService);
+
+  // Nombre y foto del usuario, desde el perfil real (API) cuando es quien inició sesión
+  private perfil(usuarioId: number): Observable<{ nombre: string; primerApellido: string; imagenUrl?: string }> {
+    return this.cuenta.perfil(usuarioId).pipe(
+      map((p) => ({ nombre: p?.nombre ?? '', primerApellido: p?.primerApellido ?? '', imagenUrl: p?.imagenUrl }))
+    );
+  }
 
   obtener(membresia: Membership, usuarioId: number): Observable<ResumenData> {
     return membresia.rol === 'docente' ? this.docente(membresia, usuarioId) : this.estudiante(membresia, usuarioId);
@@ -31,7 +38,7 @@ export class AcademySummaryService {
   private docente({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/docente`;
     return forkJoin({
-      perfil: this.perfiles.getProfile(usuarioId),
+      perfil: this.perfil(usuarioId),
       aulas: this.aulas.aulasDocente(espacio.id, usuarioId),
       sesiones: this.sesiones.sesionesDocente(espacio.id, usuarioId),
       solicitudes: this.academia.getRequests(espacio.id, usuarioId),
@@ -85,7 +92,7 @@ export class AcademySummaryService {
   private estudiante({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/estudiante`;
     return forkJoin({
-      perfil: this.perfiles.getProfile(usuarioId),
+      perfil: this.perfil(usuarioId),
       aulas: this.aulas.aulasEstudiante(espacio.id, usuarioId),
       sesiones: this.sesiones.sesionesEstudiante(espacio.id, usuarioId),
     }).pipe(

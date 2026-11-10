@@ -5,9 +5,9 @@ import { FormField, form, max, maxLength, min, pattern, required, submit } from 
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { CITIES } from '../../core/models/auth.model';
-import { AuthService } from '../../services/auth.service';
+import { AuthApiService } from '../../core/api/auth-api.service';
+import { readApiError } from '../../core/api/api-error';
 import { PATRON_CELULAR, PATRON_CORREO } from '../../services/account-profile.service';
-import { getErrorMessage } from '../management/academics/academics.ui';
 
 // Schools submit their details for the Aulix team to set up their accounts.
 @Component({
@@ -25,7 +25,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
     } @else {
       <header class="encabezado">
         <h1>Lleva Aulix a tu colegio</h1>
-        <p>Déjanos tus datos. Preparamos tu institución, creamos la cuenta de la dirección y te acompañamos en la puesta en marcha. Incluye 30 días de prueba.</p>
+        <p>Déjanos tus datos. Te contactaremos para conocer tu colegio, mostrarte la demo y preparar una propuesta.</p>
       </header>
       <form class="ui-form" (submit)="$event.preventDefault(); submitSchoolRequest()" novalidate>
         <div class="ui-campo">
@@ -82,7 +82,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
   styles: `textarea.ui-input { resize: vertical; font: inherit; }`,
 })
 export class SchoolRequestComponent {
-  private auth = inject(AuthService);
+  private auth = inject(AuthApiService);
 
   readonly faArrowLeft = faArrowLeft;
   readonly faCircleExclamation = faCircleExclamation;
@@ -117,7 +117,7 @@ export class SchoolRequestComponent {
         }));
         this.isSubmitted.set(true);
       } catch (e) {
-        this.error.set(getErrorMessage(e));
+        this.error.set(readApiError(e).message);
       } finally {
         this.isSubmitting.set(false);
       }

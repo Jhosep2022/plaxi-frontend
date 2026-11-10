@@ -1,22 +1,21 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { firstValueFrom, of } from 'rxjs';
+import { firstValueFrom, of, switchMap, timer } from 'rxjs';
 import { FormField, form, maxLength, pattern, required, submit, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
-  faArrowLeft, faArrowRight, faBookOpen, faChalkboardTeacher, faCheck, faCircleExclamation, faEye, faEyeSlash, faGraduationCap, faLink, faSchool, faTicket, faVideo,
+  faArrowLeft, faArrowRight, faBookOpen, faChalkboardTeacher, faCheck, faChevronDown, faCircleExclamation, faEye, faEyeSlash, faLink, faPlus, faSchool, faTicket, faVideo,
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService, forgetReturnUrl } from '../../core/auth/session.service';
 import type { RegistrationResult, AccountType } from '../../core/models/auth.model';
 import { SLUG_PATTERN, createSlug } from '../../core/models/auth.model';
 import { getPasswordError } from '../../core/utils/password';
-import { AcademyService } from '../../services/academy.service';
-import { AuthService } from '../../services/auth.service';
-import { CategoryService } from '../../services/category.service';
+import { AuthApiService } from '../../core/api/auth-api.service';
+import { readApiError } from '../../core/api/api-error';
+import { CourseCategoryApiService } from '../../core/api/course-category-api.service';
 import { PATRON_CORREO, PATRON_USUARIO } from '../../services/account-profile.service';
 import { PasswordStrengthComponent } from '../../shared/ui/password-strength.component';
-import { getErrorMessage } from '../management/academics/academics.ui';
 
 type RegistrationStep = 1 | 2 | 3 | 4; // 4 = cuenta creada
 
@@ -29,21 +28,21 @@ type RegistrationStep = 1 | 2 | 3 | 4; // 4 = cuenta creada
 })
 export class RegistrationComponent implements OnInit {
   private router = inject(Router);
-  private auth = inject(AuthService);
+  private auth = inject(AuthApiService);
   private session = inject(SessionService);
-  private academyService = inject(AcademyService);
-  private categoryService = inject(CategoryService);
+  private categoryApi = inject(CourseCategoryApiService);
 
   readonly faArrowLeft = faArrowLeft;
   readonly faArrowRight = faArrowRight;
   readonly faBookOpen = faBookOpen;
   readonly faChalkboardTeacher = faChalkboardTeacher;
   readonly faCheck = faCheck;
+  readonly faChevronDown = faChevronDown;
   readonly faCircleExclamation = faCircleExclamation;
   readonly faEye = faEye;
   readonly faEyeSlash = faEyeSlash;
-  readonly faGraduationCap = faGraduationCap;
   readonly faLink = faLink;
+  readonly faPlus = faPlus;
   readonly faSchool = faSchool;
   readonly faTicket = faTicket;
   readonly faVideo = faVideo;
@@ -55,15 +54,54 @@ export class RegistrationComponent implements OnInit {
   readonly step = signal<RegistrationStep>(1);
   readonly accountType = signal<AccountType | null>(null);
   readonly error = signal('');
+  readonly serverFields = signal<Record<string, string>>({});
   readonly isSubmitting = signal(false);
   readonly registrationResult = signal<RegistrationResult | null>(null);
 
   // Curso de la invitación (si llegó con un código)
   readonly invitation = rxResource({
     params: () => this.initialCourseCode(),
-    stream: ({ params }) => (params ? this.academyService.getCourseByCode(params, null) : of(null)),
+    stream: ({ params }) => (params ? this.auth.getInvitedCourse(params) : of(null)),
   });
-  readonly categories = rxResource({ stream: () => this.categoryService.getAllCategories(), defaultValue: [] });
+  readonly categorySearch = signal('');
+  readonly categories = rxResource({
+    params: () => this.categorySearch(),
+    stream: ({ params }) => timer(params ? 250 : 0).pipe(switchMap(() => this.categoryApi.search(params))),
+    defaultValue: [],
+  });
+  readonly addingCategory = signal(false);
+  readonly savingCategory = signal(false);
+  readonly newCategory = signal('');
+  readonly categoryError = signal('');
+  readonly categoryOpen = signal(false);
+
+  selectCategory(name: string): void {
+    this.accountDetails.update((details) => ({ ...details, categoria: name }));
+    this.categoryError.set('');
+    this.categoryOpen.set(false);
+    this.categorySearch.set('');
+  }
+
+  async addCategory(): Promise<void> {
+    const name = this.newCategory().trim().replace(/\s+/g, ' ');
+    if (!name || name.length > 50) {
+      this.categoryError.set('Escribe una categoría de 1 a 50 caracteres.');
+      return;
+    }
+    this.savingCategory.set(true);
+    this.categoryError.set('');
+    try {
+      const category = await firstValueFrom(this.categoryApi.create(name));
+      this.selectCategory(category.name);
+      this.newCategory.set('');
+      this.addingCategory.set(false);
+      this.categories.reload();
+    } catch (error) {
+      this.categoryError.set(readApiError(error).message);
+    } finally {
+      this.savingCategory.set(false);
+    }
+  }
 
   ngOnInit(): void {
     {
@@ -71,8 +109,8 @@ export class RegistrationComponent implements OnInit {
         this.accountType.set('estudiante');
         this.accountDetails.update((m) => ({ ...m, codigo: this.initialCourseCode()!.toUpperCase() }));
         this.step.set(2);
-      } else if (this.initialAccountType() === 'docente' || this.initialAccountType() === 'estudiante') {
-        this.accountType.set(this.initialAccountType() as AccountType);
+      } else if (this.initialAccountType() === 'docente') {
+        this.accountType.set('docente');
       }
     }
   }
@@ -98,24 +136,32 @@ export class RegistrationComponent implements OnInit {
   readonly showPassword = signal(false);
   readonly usernameTaken = signal(false);
   readonly emailTaken = signal(false);
+  private usernameEdited = false;
 
   async checkUsernameAvailability(): Promise<void> {
     const username = this.personalData().usuario.trim().toLowerCase();
-    this.usernameTaken.set(PATRON_USUARIO.test(username) && !(await firstValueFrom(this.auth.isUsernameAvailable(username))));
+    this.usernameTaken.set(PATRON_USUARIO.test(username) && !(await firstValueFrom(this.auth.isAvailable('usuario', username))));
   }
 
   async checkEmailAvailability(): Promise<void> {
     const email = this.personalData().correo.trim().toLowerCase();
-    this.emailTaken.set(PATRON_CORREO.test(email) && !(await firstValueFrom(this.auth.isEmailAvailable(email))));
+    this.emailTaken.set(PATRON_CORREO.test(email) && !(await firstValueFrom(this.auth.isAvailable('correo', email))));
   }
 
-  // Sugiere un usuario a partir del nombre si todavía no escribió uno
+  // Mantiene la sugerencia sincronizada hasta que la persona cambie el usuario.
   suggestUsername(): void {
     const d = this.personalData();
-    if (d.usuario || !d.nombre.trim() || !d.primerApellido.trim()) return;
+    if (this.usernameEdited || !d.nombre.trim() || !d.primerApellido.trim()) return;
     const base = createSlug(`${d.nombre.split(' ')[0]}.${d.primerApellido}`).replace(/-/g, '.').slice(0, 20);
     this.personalData.update((m) => ({ ...m, usuario: base }));
-    this.checkUsernameAvailability();
+    this.usernameTaken.set(false);
+    void this.checkUsernameAvailability();
+  }
+
+  updateUsername(username: string): void {
+    this.usernameEdited = true;
+    this.usernameTaken.set(false);
+    this.personalData.update((data) => ({ ...data, usuario: username }));
   }
 
   continueRegistration(): void {
@@ -153,35 +199,44 @@ export class RegistrationComponent implements OnInit {
 
   async checkSlugAvailability(): Promise<void> {
     const slug = this.accountDetails().slug;
-    this.slugTaken.set(SLUG_PATTERN.test(slug) && !(await firstValueFrom(this.auth.isSlugAvailable(slug))));
+    this.slugTaken.set(SLUG_PATTERN.test(slug) && !(await firstValueFrom(this.auth.isAvailable('slug', slug))));
   }
 
   readonly canSubmit = computed(() => {
     const m = this.accountDetails();
     if (this.accountType() === 'docente') return !!m.academia.trim() && m.slug.length >= 3 && SLUG_PATTERN.test(m.slug) && !this.slugTaken() && (!m.curso.trim() || !!m.categoria);
-    return true;
+    return /^[A-Za-z0-9]{3}-[A-Za-z0-9]{4}$/.test(m.codigo.trim());
   });
 
-  submitRegistration(skipCode = false): void {
+  submitRegistration(): void {
     submit(this.accountForm, async () => {
       if (this.accountType() === 'docente') await this.checkSlugAvailability();
       if (!this.canSubmit()) return;
       this.isSubmitting.set(true);
       this.error.set('');
+      this.serverFields.set({});
       try {
         const d = this.personalData();
         const m = this.accountDetails();
-        const result = await firstValueFrom(this.auth.register({
+        const response = await firstValueFrom(this.auth.register({
           tipo: this.accountType()!, nombre: d.nombre, primerApellido: d.primerApellido, segundoApellido: d.segundoApellido, correo: d.correo, usuario: d.usuario, clave: d.clave,
           academia: this.accountType() === 'docente' ? { nombre: m.academia, slug: m.slug, primerCurso: m.curso.trim() ? { nombre: m.curso, categoria: m.categoria } : null } : undefined,
-          codigoCurso: this.accountType() === 'estudiante' && !skipCode && m.codigo.trim() ? m.codigo.trim() : undefined,
+          codigoCurso: this.accountType() === 'estudiante' ? m.codigo.trim() : undefined,
         }));
-        await firstValueFrom(this.session.startSession(result.usuarioId));
+        this.session.applyApiSession(response);
+        const result: RegistrationResult = {
+          usuarioId: response.usuario.id,
+          espacioSlug: response.membresias[0]?.espacio.slug ?? null,
+          aulaId: null,
+          inscripcion: null,
+        };
         forgetReturnUrl();
         this.registrationResult.set(result);
         this.step.set(4);
       } catch (e) {
-        this.error.set(getErrorMessage(e));
+        const apiError = readApiError(e);
+        this.serverFields.set(apiError.fields);
+        this.error.set(apiError.message);
       } finally {
         this.isSubmitting.set(false);
       }
@@ -191,7 +246,7 @@ export class RegistrationComponent implements OnInit {
   // ---------- RegistrationStep 4: listo ----------
   readonly gettingStartedSteps = computed(() => {
     const r = this.registrationResult();
-    if (!r?.espacioSlug) return [];
+    if (!r?.espacioSlug || this.accountType() !== 'docente') return [];
     const base = `/${r.espacioSlug}/docente`;
     return [
       { titulo: r.aulaId ? 'Agrega contenido a tu curso' : 'Crea tu primer curso', texto: 'Unidades, temas, videos y PDF.', icono: faBookOpen, link: r.aulaId ? `${base}/clases/${r.aulaId}` : `${base}/cursos/nuevo`, query: r.aulaId ? { tab: 'contenido' } : {} },

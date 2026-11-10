@@ -1,11 +1,11 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBookOpen, faCheck, faClock, faLayerGroup, faLinkSlash, faUserCheck, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService, rememberReturnUrl } from '../../core/auth/session.service';
-import { AcademyService } from '../../services/academy.service';
+import { AcademyCourseApiService } from '../../core/api/academy-course-api.service';
 import { ClassroomCoverComponent } from '../../shared/classrooms/classroom-cover.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
 
@@ -80,7 +80,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
 export class JoinCourseComponent {
   readonly session = inject(SessionService);
   private router = inject(Router);
-  private academia = inject(AcademyService);
+  private academia = inject(AcademyCourseApiService);
 
   readonly codigo = input.required<string>();
 
@@ -92,7 +92,14 @@ export class JoinCourseComponent {
   readonly faUserCheck = faUserCheck;
   readonly faUsers = faUsers;
 
-  readonly curso = rxResource({ params: () => this.codigo(), stream: ({ params }) => this.academia.getCourseByCode(params, this.session.userId()) });
+  readonly curso = rxResource({
+    params: () => this.codigo(),
+    stream: ({ params }) => this.academia.invitation(params).pipe(map((course) => ({
+      aula: course, espacio: course.espacio, docente: course.docente,
+      unidades: course.unidades, temas: course.temas, estudiantes: course.estudiantes,
+      estado: course.estado === 'activa' ? 'ACTIVA' : course.estado === 'pendiente' ? 'PENDIENTE' : course.estado,
+    }))),
+  });
   private readonly nuevoEstado = signal<string | null>(null);
   readonly estado = computed(() => this.nuevoEstado() ?? this.curso.value()?.estado ?? 'ninguna');
   readonly uniendo = signal(false);
@@ -105,15 +112,14 @@ export class JoinCourseComponent {
 
   async unirse(): Promise<void> {
     const c = this.curso.value();
-    const usuarioId = this.session.userId();
-    if (!c || !usuarioId) return;
+    if (!c || !this.session.userId()) return;
     this.uniendo.set(true);
     this.error.set('');
     try {
-      const estado = await firstValueFrom(this.academia.enroll(c.aula.id, usuarioId));
-      await firstValueFrom(this.session.startSession(usuarioId)); // suma el espacio de la academia a sus espacios
-      this.nuevoEstado.set(estado);
-      if (estado === 'ACTIVA') this.irAlCurso();
+      const result = await firstValueFrom(this.academia.enroll(this.codigo()));
+      await firstValueFrom(this.session.restoreSession());
+      this.nuevoEstado.set(result.estado === 'activa' ? 'ACTIVA' : 'PENDIENTE');
+      if (result.estado === 'activa') this.irAlCurso();
     } catch (e) {
       this.error.set(getErrorMessage(e));
     } finally {

@@ -25,8 +25,7 @@ import { EnrollmentService } from '../../services/enrollment.service';
 import { ClassroomsService } from '../../services/classrooms.service';
 import { subjectIcon } from '../../shared/ui/academic-icons';
 import { AccountProfileService } from '../../services/account-profile.service';
-import { ProfileService } from '../../services/profile.service';
-import { ProfileDto } from '../../models/profile.dto';
+import type { UserProfile } from '../../core/models/profile.model';
 import { NavItem, NavModule, navegacion } from './sidebar.navigation';
 
 const COLLAPSED_KEY = 'sidebarCollapsed';
@@ -45,7 +44,6 @@ const esMovil = () => typeof window !== 'undefined' && window.innerWidth <= 768;
 export class SidebarComponent {
   private router = inject(Router);
   protected readonly session = inject(SessionService);
-  private profileService = inject(ProfileService);
   private perfilService = inject(AccountProfileService);
   private courseService = inject(CourseService);
   private inscripcionService = inject(EnrollmentService);
@@ -76,9 +74,9 @@ export class SidebarComponent {
   // Se vuelve a cargar cuando el usuario cambia su nombre o su foto en "Mi perfil"
   private readonly perfilRecurso = rxResource({
     params: () => ({ id: this.session.userId(), version: this.perfilService.version() }),
-    stream: ({ params }) => (params.id ? this.profileService.getProfile(params.id) : of(null)),
+    stream: ({ params }) => (params.id ? this.perfilService.perfil(params.id) : of(null)),
   });
-  readonly profile = computed<ProfileDto | null>(() => this.perfilRecurso.value() ?? null);
+  readonly profile = computed<UserProfile | null>(() => this.perfilRecurso.value() ?? null);
 
   readonly fullName = computed(() => {
     const p = this.profile();

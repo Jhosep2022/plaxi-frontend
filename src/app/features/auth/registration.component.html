@@ -24,14 +24,9 @@
       <p>Es gratis. Cuéntanos cómo vas a usar Aulix.</p>
     </header>
     <div class="tipos">
-      <button type="button" class="tipo" [class.elegido]="accountType() === 'estudiante'" (click)="selectAccountType('estudiante')">
-        <span class="ui-icono tono-lima"><fa-icon [icon]="faGraduationCap" /></span>
-        <span class="tipo-texto"><strong>Quiero aprender</strong><small>Únete a los cursos de tus docentes con un link o un código.</small></span>
-        <fa-icon [icon]="faArrowRight" class="flecha" />
-      </button>
       <button type="button" class="tipo" [class.elegido]="accountType() === 'docente'" (click)="selectAccountType('docente')">
         <span class="ui-icono tono-crema"><fa-icon [icon]="faChalkboardTeacher" /></span>
-        <span class="tipo-texto"><strong>Quiero enseñar</strong><small>Crea tu academia, sube tus cursos e invita a tus estudiantes. 30 días gratis.</small></span>
+        <span class="tipo-texto"><strong>Quiero enseñar</strong><small>Crea tu academia, sube tus cursos e invita a tus estudiantes. Gratis hasta 10 estudiantes.</small></span>
         <fa-icon [icon]="faArrowRight" class="flecha" />
       </button>
       <a class="tipo colegio" routerLink="/auth/colegio">
@@ -71,12 +66,14 @@
         <input id="reg-correo" type="email" class="ui-input" autocomplete="email" [formField]="personalDataForm.correo" (blur)="checkEmailAvailability()" (input)="emailTaken.set(false)" />
         @if (personalDataForm.correo().touched() && personalDataForm.correo().invalid()) { <span class="ui-error">{{ personalDataForm.correo().errors()[0].message }}</span> }
         @else if (emailTaken()) { <span class="ui-error">Ya existe una cuenta con ese correo. <a class="enlace" routerLink="/auth/login">¿Iniciar sesión?</a></span> }
+        @else if (serverFields()['correo']) { <span class="ui-error">{{ serverFields()['correo'] }}</span> }
       </div>
       <div class="ui-campo">
         <label for="reg-usuario">Nombre de usuario</label>
-        <input id="reg-usuario" class="ui-input" autocomplete="username" placeholder="Ej. ana.lopez" [formField]="personalDataForm.usuario" (blur)="checkUsernameAvailability()" (input)="usernameTaken.set(false)" />
+        <input id="reg-usuario" class="ui-input" autocomplete="username" placeholder="Ej. ana.lopez" [formField]="personalDataForm.usuario" (blur)="checkUsernameAvailability()" (input)="updateUsername($any($event.target).value)" />
         @if (personalDataForm.usuario().touched() && personalDataForm.usuario().invalid()) { <span class="ui-error">{{ personalDataForm.usuario().errors()[0].message }}</span> }
         @else if (usernameTaken()) { <span class="ui-error">Ese nombre de usuario ya está ocupado.</span> }
+        @else if (serverFields()['usuario']) { <span class="ui-error">{{ serverFields()['usuario'] }}</span> }
       </div>
       <div class="ui-campo">
         <label for="reg-clave">Contraseña</label>
@@ -85,6 +82,7 @@
           <button type="button" class="ver-clave" (click)="showPassword.set(!showPassword())" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"><fa-icon [icon]="showPassword() ? faEyeSlash : faEye" /></button>
         </div>
         @if (personalDataForm.clave().touched() && personalDataForm.clave().invalid()) { <span class="ui-error">{{ personalDataForm.clave().errors()[0].message }}</span> }
+        @else if (serverFields()['clave']) { <span class="ui-error">{{ serverFields()['clave'] }}</span> }
       </div>
       <app-password-strength [password]="personalData().clave" />
       <label class="terminos">
@@ -118,11 +116,12 @@
         <div class="ui-campo">
           <label for="reg-slug">Dirección web</label>
           <div class="slug">
-            <span>quizwiz.app/</span>
+            <span>aulix.alclick.dev/</span>
             <input id="reg-slug" class="ui-input" [value]="accountDetails().slug" (input)="updateSlug($any($event.target).value)" (blur)="checkSlugAvailability()" />
           </div>
           @if (accountForm.slug().invalid()) { <span class="ui-error">{{ accountForm.slug().errors()[0].message }}</span> }
           @else if (slugTaken()) { <span class="ui-error">Esa dirección ya está en uso. Prueba con otra.</span> }
+          @else if (serverFields()['academia.slug']) { <span class="ui-error">{{ serverFields()['academia.slug'] }}</span> }
           @else { <span class="ui-ayuda">Así se verán los links de tus cursos.</span> }
         </div>
 
@@ -134,11 +133,34 @@
               <input id="reg-curso" class="ui-input" placeholder="Ej. Excel desde cero" [formField]="accountForm.curso" />
             </div>
             <div class="ui-campo">
-              <label for="reg-categoria">Categoría</label>
-              <select id="reg-categoria" class="ui-input" [formField]="accountForm.categoria">
-                <option value="">Elige una</option>
-                @for (c of categories.value(); track c.idCategoria) { <option [value]="c.nombre">{{ c.nombre }}</option> }
-              </select>
+              <span id="reg-categoria-label" class="categoria-label">Categoría</span>
+              <div class="categoria-control">
+                <button type="button" class="ui-input categoria-trigger" aria-labelledby="reg-categoria-label" [attr.aria-expanded]="categoryOpen()" aria-controls="reg-categoria-lista" [disabled]="!accountDetails().curso.trim()" (click)="categoryOpen.set(!categoryOpen()); addingCategory.set(false)">
+                  <span [class.categoria-placeholder]="!accountDetails().categoria">{{ accountDetails().categoria || 'Elige una categoría' }}</span>
+                  <fa-icon [icon]="faChevronDown" />
+                </button>
+                @if (categoryOpen()) {
+                  <div id="reg-categoria-lista" class="categoria-menu">
+                    <input class="ui-input categoria-buscar" aria-label="Buscar categoría" placeholder="Buscar categoría…" [value]="categorySearch()" (input)="categorySearch.set($any($event.target).value)" (keydown.escape)="categoryOpen.set(false)" />
+                    <div class="categoria-resultados" role="listbox" aria-labelledby="reg-categoria-label">
+                      @for (category of categories.value(); track category.id) {
+                        <button type="button" role="option" class="categoria-opcion" [attr.aria-selected]="accountDetails().categoria === category.name" (click)="selectCategory(category.name)">{{ category.name }}</button>
+                      } @empty {
+                        <span class="categoria-vacia">{{ categories.isLoading() ? 'Buscando categorías…' : categories.error() ? 'No pudimos cargar las categorías.' : 'No encontramos esa categoría.' }}</span>
+                      }
+                    </div>
+                    <button type="button" class="categoria-agregar" (click)="newCategory.set(categorySearch()); categoryOpen.set(false); addingCategory.set(true); categoryError.set('')"><fa-icon [icon]="faPlus" /> Agregar categoría</button>
+                  </div>
+                }
+              </div>
+              @if (!accountDetails().curso.trim()) { <span class="ui-ayuda">Escribe el nombre del curso para elegir su categoría.</span> }
+              @if (addingCategory()) {
+                <div class="categoria-nueva">
+                  <input id="reg-categoria-nueva" class="ui-input" maxlength="50" placeholder="Nombre de la categoría" [value]="newCategory()" (input)="newCategory.set($any($event.target).value); categoryError.set('')" (keydown.enter)="$event.preventDefault(); addCategory()" />
+                  <button type="button" class="ui-btn" [disabled]="savingCategory()" (click)="addCategory()">{{ savingCategory() ? 'Guardando…' : 'Agregar' }}</button>
+                </div>
+                @if (categoryError()) { <span class="ui-error">{{ categoryError() }}</span> }
+              }
             </div>
           </div>
           @if (accountDetails().curso.trim() && !accountDetails().categoria) { <span class="ui-error">Elige la categoría del curso.</span> }
@@ -150,25 +172,26 @@
           <button type="button" class="ui-btn ui-btn--secundario" (click)="goBack()"><fa-icon [icon]="faArrowLeft" /> Atrás</button>
           <button type="submit" class="ui-btn" [disabled]="isSubmitting() || !canSubmit()">{{ isSubmitting() ? 'Creando tu academia…' : 'Crear mi academia' }}</button>
         </div>
-        <p class="ui-ayuda centro">Empiezas con 30 días de prueba gratis, sin tarjeta.</p>
+        <p class="ui-ayuda centro">Empiezas gratis con hasta 10 estudiantes, sin tarjeta ni vencimiento.</p>
       </form>
     } @else {
       <header class="encabezado">
-        <h1>¿Tienes un código de curso?</h1>
-        <p>Si tu docente te compartió un código, escríbelo y quedarás inscrito. Si no, puedes hacerlo después.</p>
+        <h1>Tu invitación al curso</h1>
+        <p>Escribe el código que te compartió tu docente para crear tu cuenta.</p>
       </header>
       <form class="ui-form" (submit)="$event.preventDefault(); submitRegistration()" novalidate>
         <div class="ui-campo">
           <label for="reg-codigo">Código del curso</label>
           <input id="reg-codigo" class="ui-input codigo" placeholder="ANG-7K2Q" [formField]="accountForm.codigo" />
           @if (accountForm.codigo().invalid()) { <span class="ui-error">{{ accountForm.codigo().errors()[0].message }}</span> }
+          @else if (serverFields()['codigoCurso']) { <span class="ui-error">{{ serverFields()['codigoCurso'] }}</span> }
         </div>
 
         @if (error()) { <p class="error-general" role="alert"><fa-icon [icon]="faCircleExclamation" /> {{ error() }}</p> }
 
         <div class="botones">
           <button type="button" class="ui-btn ui-btn--secundario" (click)="goBack()"><fa-icon [icon]="faArrowLeft" /> Atrás</button>
-          <button type="submit" class="ui-btn" [disabled]="isSubmitting()">{{ isSubmitting() ? 'Creando tu cuenta…' : accountDetails().codigo.trim() ? 'Crear cuenta y unirme' : 'Crear cuenta' }}</button>
+          <button type="submit" class="ui-btn" [disabled]="isSubmitting() || !canSubmit()">{{ isSubmitting() ? 'Creando tu cuenta…' : 'Crear cuenta y unirme' }}</button>
         </div>
       </form>
     }
@@ -180,7 +203,7 @@
       <span class="icono"><fa-icon [icon]="faCheck" /></span>
       @if (accountType() === 'docente') {
         <h1>¡Tu academia está lista!</h1>
-        <p>Bienvenido, {{ personalData().nombre.split(' ')[0] }}. Tienes 30 días de prueba gratis. Estos son tus primeros pasos:</p>
+        <p>Bienvenido, {{ personalData().nombre.split(' ')[0] }}. Tu plan gratis no vence y admite hasta 10 estudiantes. Estos son tus primeros pasos:</p>
       } @else if (registrationResult()?.inscripcion === 'ACTIVA') {
         <h1>¡Ya estás dentro!</h1>
         <p>Tu cuenta está lista y quedaste inscrito en el curso.</p>
@@ -189,7 +212,7 @@
         <p>Tu solicitud para unirte al curso quedó pendiente. El docente la revisará pronto.</p>
       } @else {
         <h1>¡Cuenta creada!</h1>
-        <p>Cuando un docente te comparta un link o un código, podrás unirte a su curso.</p>
+        <p>Ya puedes entrar al espacio de tu docente y ver el estado de tu inscripción.</p>
       }
     </div>
 

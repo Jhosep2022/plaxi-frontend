@@ -11,7 +11,7 @@ import { formatLongDate, todayIso } from '../../core/utils/attendance';
 import { calculatePercentage } from '../../core/utils/reports';
 import { AcademicsService } from '../../services/academics.service';
 import { Alcance, AnnouncementsService } from '../../services/announcements.service';
-import { ProfileService } from '../../services/profile.service';
+import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
@@ -34,7 +34,7 @@ export class SentComponent {
   private servicio = inject(AnnouncementsService);
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private perfiles = inject(ProfileService);
+  private perfiles = inject(AccountProfileService);
 
   readonly esDireccion = input(false);
 
@@ -161,7 +161,7 @@ export class SentComponent {
   readonly hoy = todayIso();
 
   private async nombreAutor(): Promise<string> {
-    const p = await firstValueFrom(this.perfiles.getProfile(this.usuarioId));
-    return `${p.nombre} ${p.primerApellido}`.trim();
+    const p = await firstValueFrom(this.perfiles.perfil(this.usuarioId));
+    return `${p?.nombre ?? ''} ${p?.primerApellido ?? ''}`.trim();
   }
 }

@@ -1,10 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { AuthService } from '../../services/auth.service';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 import { SpaceService } from '../../services/space.service';
-import { Space, Membership, SpaceRole } from '../models/space.model';
+import { DEFAULT_GRADING_SCALE, Space, Membership, SpaceRole } from '../models/space.model';
+import { ApiSessionService } from '../api/api-session.service';
+import { AuthApiService, type ApiSessionResponse } from '../api/auth-api.service';
+import { environment } from '../../../environments/environment';
+import { readApiError } from '../api/api-error';
 
 const USER_ID_STORAGE_KEY = 'idUsuario';
 const MEMBERSHIPS_STORAGE_KEY = 'membresias';
@@ -18,21 +21,61 @@ const LEGACY_ROLE: Record<SpaceRole, string> = { direccion: '1', estudiante: '2'
 // Source of truth for the current user, memberships, active space, and role.
 @Injectable({ providedIn: 'root' })
 export class SessionService {
+  private http = inject(HttpClient);
   private router = inject(Router);
-  private authService = inject(AuthService);
   private spaceService = inject(SpaceService);
+  private authApi = inject(AuthApiService);
+  private apiSession = inject(ApiSessionService);
 
-  readonly userId = signal<number | null>(readNumber(USER_ID_STORAGE_KEY));
-  readonly isPlatformAdmin = computed(() => this.authService.isPlatformAdmin(this.userId()));
-  readonly memberships = signal<Membership[]>(readJson<Membership[]>(MEMBERSHIPS_STORAGE_KEY) ?? []);
+  readonly userId = signal<number | null>(null);
+  readonly isPlatformAdmin = signal(false);
+  readonly passwordChangeRequired = signal(false);
+  readonly memberships = signal<Membership[]>([]);
   readonly activeSpace = signal<Space | null>(null);
 
-  readonly isAuthenticated = computed(() => this.userId() !== null);
+  readonly isAuthenticated = computed(() => this.apiSession.accessToken() !== null);
   readonly activeMembership = computed(() => {
     const space = this.activeSpace();
     return space ? this.memberships().find((m) => m.espacio.id === space.id) ?? null : null;
   });
   readonly activeRole = computed<SpaceRole | null>(() => this.activeMembership()?.rol ?? null);
+
+  restoreSession(): Observable<void> {
+    return this.apiSession.refreshSession().pipe(
+      tap((response) => this.applyApiSession(response)),
+      map(() => undefined),
+      catchError(() => {
+        this.clearLocalSession();
+        return of(undefined);
+      }),
+    );
+  }
+
+  // Al volver a una pestaña protegida, comprueba si otra sesión de estudiante la reemplazó.
+  checkSessionOnFocus(): void {
+    if (!this.isAuthenticated()) return;
+    this.http.get(`${environment.API_URL}/perfil`).subscribe({
+      error: (error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status === 401 && this.isAuthenticated()) {
+          this.expireSession(readApiError(error).code === 'sesion_reemplazada' ? 'sesion_reemplazada' : undefined);
+        }
+      },
+    });
+  }
+
+  applyApiSession(response: ApiSessionResponse): void {
+    this.apiSession.setAccessToken(response.accessToken);
+    this.userId.set(response.usuario.id);
+    this.isPlatformAdmin.set(response.usuario.esAdmin);
+    this.passwordChangeRequired.set(response.usuario.passwordChangeRequired);
+    this.memberships.set(response.membresias.map((membership) => ({
+      espacio: { ...membership.espacio, escala: DEFAULT_GRADING_SCALE },
+      rol: membership.rol as SpaceRole,
+    })));
+    writeStorage(USER_ID_STORAGE_KEY, String(response.usuario.id));
+    writeStorage(LEGACY_USER_ID_STORAGE_KEY, String(response.usuario.id));
+    writeStorage(MEMBERSHIPS_STORAGE_KEY, JSON.stringify(this.memberships()));
+  }
 
   // Store the session after sign-in and load the user's memberships.
   startSession(userId: number): Observable<Membership[]> {
@@ -48,12 +91,31 @@ export class SessionService {
   }
 
   signOut(): void {
-    this.authService.logout();
+    this.authApi.logout().subscribe({ error: () => undefined });
+    this.clearLocalSession();
+    void this.router.navigate(['/auth/login']);
+  }
+
+  expireSession(reason?: 'sesion_reemplazada'): void {
+    const currentUrl = this.router.url;
+    if (currentUrl.startsWith('/') && !currentUrl.startsWith('/auth/')) rememberReturnUrl(currentUrl);
+    if (reason) writeSessionNotice(reason);
+    this.clearLocalSession();
+    void this.router.navigate(['/auth/login']);
+  }
+
+  finishTemporaryPasswordChange(): void {
+    this.passwordChangeRequired.set(false);
+  }
+
+  private clearLocalSession(): void {
+    this.apiSession.clearAccessToken();
     this.userId.set(null);
+    this.isPlatformAdmin.set(false);
+    this.passwordChangeRequired.set(false);
     this.memberships.set([]);
     this.activeSpace.set(null);
     [USER_ID_STORAGE_KEY, MEMBERSHIPS_STORAGE_KEY, LEGACY_USER_ID_STORAGE_KEY, LEGACY_ROLE_STORAGE_KEY].forEach(removeStorage);
-    this.router.navigate(['/auth/login']);
   }
 
   membershipBySlug(slug: string | null | undefined): Membership | null {
@@ -107,6 +169,7 @@ export class SessionService {
 
   // Choose a return URL, preferred space, or selector after sign-in.
   postLoginRoute(): string {
+    if (this.passwordChangeRequired()) return '/cambiar-clave-temporal';
     // Return to the original link, such as a course invitation.
     const returnUrl = consumeReturnUrl();
     if (returnUrl) return returnUrl;
@@ -129,6 +192,19 @@ export class SessionService {
 }
 
 const RETURN_URL_STORAGE_KEY = 'volverA';
+const SESSION_NOTICE_STORAGE_KEY = 'avisoSesion';
+
+function writeSessionNotice(reason: string): void {
+  try { sessionStorage.setItem(SESSION_NOTICE_STORAGE_KEY, reason); } catch { /* Storage may be unavailable. */ }
+}
+
+export function consumeSessionNotice(): string | null {
+  try {
+    const reason = sessionStorage.getItem(SESSION_NOTICE_STORAGE_KEY);
+    sessionStorage.removeItem(SESSION_NOTICE_STORAGE_KEY);
+    return reason;
+  } catch { return null; }
+}
 
 // Save a return URL for the next sign-in.
 export function rememberReturnUrl(url: string): void {
@@ -165,11 +241,6 @@ function consumeReturnUrl(): string | null {
   } catch {
     return null;
   }
-}
-
-function readNumber(key: string): number | null {
-  const value = Number(readStorage(key));
-  return Number.isFinite(value) && value > 0 ? value : null;
 }
 
 function readJson<T>(key: string): T | null {
