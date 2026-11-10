@@ -1,3 +1,4 @@
+import { AvatarComponent } from '../../shared/ui/avatar.component';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
 import { FormField, form, maxLength, pattern, required, submit } from '@angular/forms/signals';
@@ -20,7 +21,7 @@ const PATRON_CI = /^\d{5,10}(-?[A-Za-z0-9]{1,3})?$/;
 // Pestaña "Datos personales": tarjetas que se editan en su lugar, avance del perfil y vista previa del perfil público
 @Component({
   selector: 'app-profile-details',
-  imports: [FaIconComponent, FormField],
+  imports: [FaIconComponent, FormField, AvatarComponent],
   templateUrl: './profile-details.component.html',
   styleUrls: ['./profile-sections.css', './profile-details.component.css'],
 })
@@ -153,7 +154,6 @@ export class ProfileDetailsComponent {
   readonly avance = computed(() => {
     const p = this.perfil();
     const campos: { label: string; listo: boolean }[] = [
-      { label: 'Foto de perfil', listo: !!p.imagenUrl },
       { label: 'Carnet de identidad', listo: !!p.ci },
       { label: 'Fecha de nacimiento', listo: !!p.fechaNacimiento },
       { label: 'Celular', listo: !!p.telefono },
@@ -175,7 +175,6 @@ export class ProfileDetailsComponent {
     ].filter((x) => x.url);
   });
 
-  readonly iniciales = computed(() => `${this.perfil().nombre.charAt(0)}${this.perfil().primerApellido.charAt(0)}`.toUpperCase());
 
   edad(fecha: string): number {
     const [a, m, d] = fecha.split('-').map(Number);

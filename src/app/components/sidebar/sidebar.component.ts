@@ -1,3 +1,4 @@
+import { AvatarComponent } from '../../shared/ui/avatar.component';
 import { Component, ElementRef, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -35,7 +36,7 @@ const esMovil = () => typeof window !== 'undefined' && window.innerWidth <= 768;
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css', './sidebar-space.css', './sidebar-mobile.css'],
-  imports: [RouterLink, RouterLinkActive, FaIconComponent],
+  imports: [RouterLink, RouterLinkActive, FaIconComponent, AvatarComponent],
   host: {
     '(document:click)': 'onDocumentClick($event)',
     '(document:keydown.escape)': 'cerrarMenus()',

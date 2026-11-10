@@ -9,6 +9,8 @@ export interface ProfileDto {
   telefono: string;
   ci: string;
   imagenUrl?: string;
+  avatar?: string; // gallery code, already resolved (the chosen one or the automatic one)
+  canUploadPhoto?: boolean; // only staff (teacher or management) may upload a photo
   id_rol: string;
   isAdmin?: boolean;
   pending?: boolean;

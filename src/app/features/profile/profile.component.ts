@@ -1,9 +1,13 @@
-import { Component, computed, inject, input, linkedSignal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCalendarDays, faCamera, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { Tooltip } from 'primeng/tooltip';
+import { defaultAvatar } from '../../core/avatars';
+import { AvatarComponent } from '../../shared/ui/avatar.component';
+import { AvatarPickerComponent } from './avatar-picker.component';
 import { SessionService } from '../../core/auth/session.service';
 import { SPACE_ROLE_LABEL } from '../../core/models/space.model';
 import { PHOTO_MAX_KB, UserProfile } from '../../core/models/profile.model';
@@ -22,7 +26,7 @@ export type PestanaPerfil = 'datos' | 'espacios' | 'seguridad' | 'preferencias';
 @Component({
   selector: 'app-profile',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, RouterLink, ProfileDetailsComponent, ProfileSpacesComponent, ProfileSecurityComponent, ProfilePreferencesComponent],
+  imports: [FaIconComponent, RouterLink, Tooltip, AvatarComponent, AvatarPickerComponent, ProfileDetailsComponent, ProfileSpacesComponent, ProfileSecurityComponent, ProfilePreferencesComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css'],
 })
@@ -32,7 +36,6 @@ export class ProfileComponent {
   private avisos = inject(NotificationService);
 
   readonly faCamera = faCamera;
-  readonly faTrash = faTrash;
   readonly faCalendarDays = faCalendarDays;
   readonly formatMonthYear = formatMonthYear;
   readonly PHOTO_MAX_KB = PHOTO_MAX_KB;
@@ -42,6 +45,10 @@ export class ProfileComponent {
   readonly rolLabel = SPACE_ROLE_LABEL[this.membresia.rol];
   private readonly usuarioId = this.session.userId()!;
 
+  readonly avatarAutomatico = defaultAvatar(this.usuarioId);
+  readonly galeriaAbierta = signal(false);
+  readonly guardandoAvatar = signal(false);
+
   readonly datos = rxResource({ stream: () => this.servicio.perfil(this.usuarioId) });
   // Copia local que se actualiza al guardar cualquier sección sin volver a cargar la página
   readonly perfil = linkedSignal<UserProfile | null>(() => this.datos.value() ?? null);
@@ -50,10 +57,6 @@ export class ProfileComponent {
   readonly nombreCompleto = computed(() => {
     const p = this.perfil();
     return p ? [p.nombre, p.primerApellido, p.segundoApellido].filter(Boolean).join(' ') : '';
-  });
-  readonly iniciales = computed(() => {
-    const p = this.perfil();
-    return p ? `${p.nombre.charAt(0)}${p.primerApellido.charAt(0)}`.toUpperCase() : '';
   });
 
   readonly pestanas: { id: PestanaPerfil; label: string; link: (string | number)[] }[] = [
@@ -67,7 +70,21 @@ export class ProfileComponent {
     this.perfil.set(perfil);
   }
 
-  // ---------- Foto ----------
+  // ---------- Avatar ----------
+  async elegirAvatar(avatar: string | null): Promise<void> {
+    if (this.guardandoAvatar()) return;
+    this.guardandoAvatar.set(true);
+    try {
+      this.perfil.set(await firstValueFrom(this.servicio.changeAvatar(this.usuarioId, avatar)));
+      this.avisos.success(avatar ? 'Avatar actualizado.' : 'Volviste a tu avatar automático.');
+    } catch (error) {
+      this.avisos.error(getErrorMessage(error));
+    } finally {
+      this.guardandoAvatar.set(false);
+    }
+  }
+
+  // ---------- Foto (solo docentes y dirección) ----------
   elegirFoto(event: Event): void {
     const entrada = event.target as HTMLInputElement;
     const archivo = entrada.files?.[0];

@@ -16,18 +16,13 @@
 
     <div class="identidad">
       <div class="avatar-zona">
-        <div class="avatar">
-          @if (p.imagenUrl) {
-            <img [src]="p.imagenUrl" [alt]="'Foto de ' + nombreCompleto()" />
-          } @else {
-            <span>{{ iniciales() }}</span>
-          }
-        </div>
-        <label class="cambiar-foto" [title]="p.imagenUrl ? 'Cambiar foto' : 'Subir foto'">
+        <button type="button" class="avatar" (click)="galeriaAbierta.set(true)" [attr.aria-label]="'Cambiar avatar de ' + nombreCompleto()">
+          <app-avatar [avatar]="p.avatar" [imageUrl]="p.imagenUrl" [firstName]="p.nombre" [lastName]="p.primerApellido" [size]="114" [label]="(p.imagenUrl ? 'Foto de ' : 'Avatar de ') + nombreCompleto()" />
+        </button>
+        <button type="button" class="cambiar-foto" (click)="galeriaAbierta.set(true)" [pTooltip]="p.canUploadPhoto ? 'Cambiar avatar o foto' : 'Cambiar avatar'" tooltipPosition="right">
           <fa-icon [icon]="faCamera" />
-          <span class="sr">{{ p.imagenUrl ? 'Cambiar foto' : 'Subir foto' }}</span>
-          <input id="perfil-foto" type="file" accept="image/*" (change)="elegirFoto($event)" />
-        </label>
+          <span class="sr">{{ p.canUploadPhoto ? 'Cambiar avatar o foto' : 'Cambiar avatar' }}</span>
+        </button>
       </div>
 
       <div class="texto">
@@ -40,9 +35,6 @@
         </div>
       </div>
 
-      @if (p.imagenUrl) {
-        <button type="button" class="ui-btn ui-btn--secundario quitar-foto" (click)="guardarFoto('', 'Quitaste tu foto de perfil.')"><fa-icon [icon]="faTrash" /> Quitar foto</button>
-      }
     </div>
 
     @if (indicadores.value().length) {
@@ -73,6 +65,20 @@
     @case ('preferencias') { <app-profile-preferences [perfil]="p" [membresia]="membresia" (cambio)="actualizado($event)" /> }
     @default { <app-profile-details [perfil]="p" [membresia]="membresia" (cambio)="actualizado($event)" /> }
   }
+
+  <app-avatar-picker
+    [open]="galeriaAbierta()"
+    [current]="p.avatar ?? ''"
+    [automatic]="avatarAutomatico"
+    [photoUrl]="p.imagenUrl"
+    [firstName]="p.nombre"
+    [lastName]="p.primerApellido"
+    [canUploadPhoto]="!!p.canUploadPhoto"
+    [saving]="guardandoAvatar()"
+    (choose)="elegirAvatar($event)"
+    (uploadPhoto)="elegirFoto($event)"
+    (removePhoto)="guardarFoto('', 'Volviste a tu avatar.')"
+    (close)="galeriaAbierta.set(false)" />
 } @else {
   <p class="cargando">No encontramos tu perfil.</p>
 }

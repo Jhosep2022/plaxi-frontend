@@ -69,6 +69,8 @@
   font-size: 40px;
   font-weight: bold;
   box-shadow: 0 6px 18px rgba(10, 10, 35, 0.15);
+  padding: 0;
+  cursor: pointer;
 }
 
 .avatar img {
@@ -89,6 +91,7 @@
   border-radius: 50%;
   background: var(--lime-green);
   color: var(--dark-blue);
+  padding: 0;
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -140,9 +143,6 @@
   gap: 6px;
 }
 
-.quitar-foto {
-  margin-top: 72px;
-}
 
 /* Indicadores */
 .indicadores {
@@ -196,8 +196,7 @@
     justify-content: center;
   }
 
-  .texto,
-  .quitar-foto {
+  .texto {
     margin-top: 0;
   }
 

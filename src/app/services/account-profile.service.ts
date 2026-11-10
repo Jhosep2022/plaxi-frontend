@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
-import { delay, map, switchMap } from 'rxjs/operators';
+import { delay, map, switchMap, tap } from 'rxjs/operators';
 import type { Membership } from '../core/models/space.model';
 import type { EmergencyContact, ProfileLinks, ProfileSpace, ProfileIndicator, UserProfile, NotificationPreferences } from '../core/models/profile.model';
 import { PHOTO_MAX_KB } from '../core/models/profile.model';
@@ -22,11 +22,12 @@ import { SessionsService } from './sessions.service';
 import { AssignmentsService } from './assignments.service';
 import { SessionService } from '../core/auth/session.service';
 import { environment } from '../../environments/environment';
+import { defaultAvatar } from '../core/avatars';
 
 interface ApiProfile {
   id: number; usuario: string; correo: string; nombre: string; primerApellido: string;
   segundoApellido: string | null; telefono: string | null; ci: string | null;
-  imagenUrl: string | null; fechaNacimiento: string | null; direccion: string | null;
+  imagenUrl: string | null; avatar: string; canUploadPhoto: boolean; fechaNacimiento: string | null; direccion: string | null;
   especialidad: string | null; bio: string | null; enlaces: Partial<ProfileLinks> | null;
   contactoEmergencia: Partial<EmergencyContact> | null;
   notificaciones: NotificationPreferences | null; esAdmin: boolean;
@@ -78,27 +79,41 @@ export class AccountProfileService {
 
   perfil(usuarioId: number): Observable<UserProfile | null> {
     if (this.currentSession.isAuthenticated() && this.currentSession.userId() === usuarioId) {
-      return this.http.get<ApiProfile>(`${environment.API_URL}/perfil`).pipe(map((profile) => {
-        const empty = perfilExtraVacio();
-        return {
-          idUsuario: profile.id, username: profile.usuario, gmail: profile.correo,
-          status: true, nombre: profile.nombre, primerApellido: profile.primerApellido,
-          segundoApellido: profile.segundoApellido ?? '', telefono: profile.telefono ?? '',
-          ci: profile.ci ?? '', imagenUrl: profile.imagenUrl ?? undefined,
-          id_rol: String(this.currentSession.activeRole() ?? ''), isAdmin: profile.esAdmin,
-          pending: false, fechaNacimiento: profile.fechaNacimiento ?? '',
-          direccion: profile.direccion ?? '', especialidad: profile.especialidad ?? '',
-          bio: profile.bio ?? '', enlaces: { ...empty.enlaces, ...profile.enlaces },
-          contactoEmergencia: { ...empty.contactoEmergencia, ...profile.contactoEmergencia },
-          miembroDesde: profile.miembroDesde, ultimoAcceso: profile.ultimoAcceso ?? '',
-          claveActualizada: profile.claveActualizada?.slice(0, 10) ?? '',
-          notificaciones: profile.notificaciones ?? empty.notificaciones,
-          dispositivos: [],
-        } satisfies UserProfile;
-      }));
+      return this.http.get<ApiProfile>(`${environment.API_URL}/perfil`).pipe(map((profile) => this.toUserProfile(profile)));
     }
     const dto = MOCK_PERFILES.find((p) => p.idUsuario === usuarioId);
-    return of(dto ? structuredClone({ ...dto, ...this.extra(usuarioId) }) : null).pipe(delay(MOCK_DELAY));
+    return of(dto ? structuredClone({ avatar: defaultAvatar(usuarioId), ...dto, ...this.extra(usuarioId) }) : null).pipe(delay(MOCK_DELAY));
+  }
+
+  // Saves the chosen gallery avatar; null goes back to the automatic one (HU-AV-02)
+  changeAvatar(usuarioId: number, avatar: string | null): Observable<UserProfile | null> {
+    if (this.currentSession.isAuthenticated() && this.currentSession.userId() === usuarioId) {
+      return this.http.put<ApiProfile>(`${environment.API_URL}/perfil/avatar`, { avatar }).pipe(
+        map((profile) => this.toUserProfile(profile)),
+        tap(() => this.version.update((v) => v + 1)),
+      );
+    }
+    return this.actualizar(usuarioId, (dto) => (dto.avatar = avatar ?? defaultAvatar(usuarioId)));
+  }
+
+  private toUserProfile(profile: ApiProfile): UserProfile {
+    const empty = perfilExtraVacio();
+    return {
+      idUsuario: profile.id, username: profile.usuario, gmail: profile.correo,
+      status: true, nombre: profile.nombre, primerApellido: profile.primerApellido,
+      segundoApellido: profile.segundoApellido ?? '', telefono: profile.telefono ?? '',
+      ci: profile.ci ?? '', imagenUrl: profile.imagenUrl ?? undefined,
+      avatar: profile.avatar, canUploadPhoto: profile.canUploadPhoto,
+      id_rol: String(this.currentSession.activeRole() ?? ''), isAdmin: profile.esAdmin,
+      pending: false, fechaNacimiento: profile.fechaNacimiento ?? '',
+      direccion: profile.direccion ?? '', especialidad: profile.especialidad ?? '',
+      bio: profile.bio ?? '', enlaces: { ...empty.enlaces, ...profile.enlaces },
+      contactoEmergencia: { ...empty.contactoEmergencia, ...profile.contactoEmergencia },
+      miembroDesde: profile.miembroDesde, ultimoAcceso: profile.ultimoAcceso ?? '',
+      claveActualizada: profile.claveActualizada?.slice(0, 10) ?? '',
+      notificaciones: profile.notificaciones ?? empty.notificaciones,
+      dispositivos: [],
+    } satisfies UserProfile;
   }
 
   // ---------- Datos personales ----------
@@ -293,8 +308,8 @@ export class AccountProfileService {
     const extra = this.extra(usuarioId);
     const combinado = { ...dto, ...extra } as UserProfile;
     cambio(combinado, combinado);
-    const { idUsuario, username, gmail, status, nombre, primerApellido, segundoApellido, telefono, ci, imagenUrl, id_rol, ...resto } = combinado;
-    Object.assign(dto, { idUsuario, username, gmail, status, nombre, primerApellido, segundoApellido, telefono, ci, imagenUrl, id_rol });
+    const { idUsuario, username, gmail, status, nombre, primerApellido, segundoApellido, telefono, ci, imagenUrl, avatar, id_rol, ...resto } = combinado;
+    Object.assign(dto, { idUsuario, username, gmail, status, nombre, primerApellido, segundoApellido, telefono, ci, imagenUrl, avatar, id_rol });
     Object.assign(extra, resto);
     this.version.update((v) => v + 1);
     return this.perfil(usuarioId);

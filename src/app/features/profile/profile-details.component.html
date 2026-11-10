@@ -272,7 +272,7 @@
         <h3><fa-icon [icon]="faEye" /> Así te ven tus estudiantes</h3>
         <div class="tarjeta-docente">
           <div class="mini-avatar">
-            @if (p.imagenUrl) { <img [src]="p.imagenUrl" alt="" /> } @else { {{ iniciales() }} }
+            <app-avatar [avatar]="p.avatar" [imageUrl]="p.imagenUrl" [firstName]="p.nombre" [lastName]="p.primerApellido" [size]="66" label="" />
           </div>
           <strong>{{ p.nombre }} {{ p.primerApellido }}</strong>
           <small>{{ p.especialidad || 'Docente' }}</small>

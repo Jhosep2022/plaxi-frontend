@@ -44,8 +44,8 @@
           aria-haspopup="menu"
           [attr.aria-expanded]="userMenuOpen()"
           [attr.aria-label]="'Menú de ' + fullName()">
-          @if (profile()?.imagenUrl; as imagenUrl) {
-            <img [src]="imagenUrl" alt="" />
+          @if (profile(); as p) {
+            <app-avatar [avatar]="p.avatar" [imageUrl]="p.imagenUrl" [firstName]="p.nombre" [lastName]="p.primerApellido" [size]="36" label="" />
           } @else {
             {{ initials() }}
           }
