@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import type { Aula } from '../core/models/classrooms.model';
 import { Space } from '../core/models/space.model';
@@ -8,8 +9,9 @@ import { currentDateTimeIso } from '../core/utils/assignments';
 import { MOCK_DOCENTES } from '../mocks/academics.mock';
 import { MOCK_AULAS_VIRTUALES, MOCK_TEMAS_AULA, MOCK_UNIDADES } from '../mocks/classrooms.mock';
 import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
-import { ClassroomsService } from './classrooms.service';
 import { MockRepository } from './mock-repository';
+import { SessionService } from '../core/auth/session.service';
+import { environment } from '../../environments/environment';
 
 export type DatosCurso = Pick<Aula, 'nombre' | 'descripcion' | 'categoria' | 'nivel' | 'visibilidad' | 'aprobacionManual' | 'portada'>;
 export type EstadoInscripcion = 'ninguna' | 'PENDIENTE' | 'ACTIVA' | 'RECHAZADA';
@@ -49,7 +51,8 @@ const cursoIdDe = (aulaId: number) => aulaId - 1000;
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class AcademyService {
-  private aulas = inject(ClassroomsService);
+  private http = inject(HttpClient);
+  private session = inject(SessionService);
   private aulasRepo = new MockRepository<Aula>(MOCK_AULAS_VIRTUALES);
 
   // ---------- Cursos ----------
@@ -121,52 +124,34 @@ export class AcademyService {
 
   // ---------- Solicitudes y estudiantes (docente) ----------
   getRequests(espacioId: number, docenteId: number, aulaId?: number): Observable<Solicitud[]> {
-    const cursos = this.getTeacherCourses(espacioId, docenteId).filter((a) => !aulaId || a.id === aulaId);
-    const lista = MOCK_INSCRIPCIONES
-      .filter((i) => i.estadoInscripcion === 'PENDIENTE' && cursos.some((a) => cursoIdDe(a.id) === i.cursoId))
-      .map((i) => ({
-        idInscripcion: i.idInscripcion, aulaId: i.cursoId + 1000, curso: cursos.find((a) => cursoIdDe(a.id) === i.cursoId)!.nombre,
-        usuarioId: i.usuarioId, nombre: i.usuarioNombre, gmail: i.usuarioGmail, fecha: i.fechaInscripcion,
-      }))
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
-    return of(lista).pipe(delay(MOCK_DELAY));
+    const base = this.academyUrl();
+    return this.http.get<Array<{ id: number; aulaId: number; curso: string; usuarioId: number; nombre: string; correo: string; fecha: string }>>(
+      `${base}/solicitudes`, { params: aulaId ? { curso: aulaId } : {} },
+    ).pipe(map((requests) => requests.map(({ id, correo, ...request }) => ({ ...request, idInscripcion: id, gmail: correo }))));
   }
 
   respondToRequest(idInscripcion: number, aprobar: boolean): Observable<void> {
-    const i = MOCK_INSCRIPCIONES.find((x) => x.idInscripcion === idInscripcion);
-    if (!i || i.estadoInscripcion !== 'PENDIENTE') return throwError(() => new Error('La solicitud ya fue respondida.'));
-    i.estadoInscripcion = aprobar ? 'ACTIVA' : 'RECHAZADA';
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.post<void>(`${this.academyUrl()}/solicitudes/${idInscripcion}/${aprobar ? 'aprobar' : 'rechazar'}`, {});
   }
 
   removeStudent(aulaId: number, usuarioId: number): Observable<void> {
-    const i = MOCK_INSCRIPCIONES.find((x) => x.cursoId === cursoIdDe(aulaId) && x.usuarioId === usuarioId && x.estadoInscripcion === 'ACTIVA');
-    if (!i) return throwError(() => new Error('El estudiante ya no está en el curso.'));
-    i.estadoInscripcion = 'BAJA';
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.delete<void>(`${this.academyUrl()}/cursos/${aulaId}/estudiantes/${usuarioId}`);
   }
 
   // Estudiantes de todos los cursos del docente, con su avance en cada uno
   getStudents(espacioId: number, docenteId: number): Observable<EstudianteAcademia[]> {
-    const cursos = this.getTeacherCourses(espacioId, docenteId);
-    if (!cursos.length) return of([]).pipe(delay(MOCK_DELAY));
-    return forkJoin(cursos.map((a) => this.aulas.progresoGrupo(a.id).pipe(map((p) => ({ aula: a, progreso: p }))))).pipe(
-      map((porCurso) => {
-        const mapa = new Map<number, EstudianteAcademia>();
-        for (const { aula, progreso } of porCurso) {
-          for (const p of progreso) {
-            const inscripcion = MOCK_INSCRIPCIONES.find((i) => i.usuarioId === p.estudianteId);
-            const e = mapa.get(p.estudianteId) ?? { usuarioId: p.estudianteId, nombre: p.nombre, gmail: inscripcion?.usuarioGmail ?? '', cursos: [] };
-            e.cursos.push({ aulaId: aula.id, nombre: aula.nombre, progreso: p.porcentaje });
-            mapa.set(p.estudianteId, e);
-          }
-        }
-        return [...mapa.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
-      })
-    );
+    return this.http.get<Array<Omit<EstudianteAcademia, 'gmail'> & { correo: string }>>(
+      `${this.academyUrl()}/cursos/estudiantes`,
+    ).pipe(map((students) => students.map(({ correo, ...student }) => ({ ...student, gmail: correo }))));
   }
 
   // ---------- Interno ----------
+  private academyUrl(): string {
+    const slug = this.session.activeSpace()?.slug;
+    if (!slug) throw new Error('Selecciona una academia.');
+    return `${environment.API_URL}/espacios/${encodeURIComponent(slug)}`;
+  }
+
   private getTeacherCourses(espacioId: number, docenteId: number): Aula[] {
     return this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.docenteId === docenteId);
   }

@@ -172,6 +172,8 @@
           </div>
         }
         <section class="ui-card">
+          @if (extra.error() && a.tipo === 'curso') { <p class="ui-error" role="alert">No pudimos cargar la lista de estudiantes. <button type="button" class="ui-btn ui-btn--secundario chico" (click)="extra.reload()">Reintentar</button></p> }
+          @if (extra.isLoading() && a.tipo === 'curso') { <p class="ui-ayuda">Cargando estudiantes…</p> }
           <div class="barra-tab">
             <label class="buscar">
               <fa-icon [icon]="faMagnifyingGlass" />
@@ -207,7 +209,9 @@
                     }
                   </tr>
                 } @empty {
+                  @if (!extra.isLoading() && !extra.error()) {
                   <tr><td colspan="5" class="vacio">Ningún estudiante coincide.</td></tr>
+                  }
                 }
               </tbody>
             </table>

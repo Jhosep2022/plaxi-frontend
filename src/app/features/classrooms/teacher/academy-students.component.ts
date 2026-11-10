@@ -54,6 +54,8 @@ type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
     @switch (pestana()) {
       @case ('estudiantes') {
         <section class="ui-card">
+          @if (datos.error()) { <p class="ui-error" role="alert">No pudimos cargar los estudiantes. <button type="button" class="ui-btn ui-btn--secundario chico" (click)="datos.reload()">Reintentar</button></p> }
+          @if (datos.isLoading()) { <p class="ui-ayuda">Cargando estudiantes…</p> }
           <div class="barra">
             <label class="buscar">
               <fa-icon [icon]="faMagnifyingGlass" />
@@ -73,7 +75,9 @@ type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
                     </div></td>
                   </tr>
                 } @empty {
+                  @if (!datos.isLoading() && !datos.error()) {
                   <tr><td colspan="2" class="vacio">Todavía no hay estudiantes. Comparte el link de invitación de tus cursos.</td></tr>
+                  }
                 }
               </tbody>
             </table>

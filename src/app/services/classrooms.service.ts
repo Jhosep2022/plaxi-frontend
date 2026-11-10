@@ -1,4 +1,8 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { AcademyCourseApiService } from '../core/api/academy-course-api.service';
+import { environment } from '../../environments/environment';
+import { SessionService } from '../core/auth/session.service';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import type { Aula, Progreso, Tema, Unidad } from '../core/models/classrooms.model';
@@ -45,6 +49,9 @@ export const PORTADA_MAX_KB = 800;
 // MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class ClassroomsService {
+  private http = inject(HttpClient);
+  private academyApi = inject(AcademyCourseApiService);
+  private session = inject(SessionService);
   private tareasService = inject(AssignmentsService);
   private calificaciones = inject(GradesService);
   private quizService = inject(QuizService);
@@ -56,6 +63,7 @@ export class ClassroomsService {
 
   // ---------- Listas ----------
   aulasDocente(espacioId: number, docenteId: number): Observable<AulaResumen[]> {
+    if (this.session.activeSpace()?.tipo === 'academia') return this.academyApi.list('docente');
     const aulas = this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.docenteId === docenteId);
     return this.tareasService.tareasDocente(espacioId, docenteId).pipe(
       map((tareas) =>
@@ -76,6 +84,7 @@ export class ClassroomsService {
   }
 
   aulasEstudiante(espacioId: number, estudianteId: number): Observable<AulaResumen[]> {
+    if (this.session.activeSpace()?.tipo === 'academia') return this.academyApi.list('estudiante');
     const aulas = this.aulasRepo.readNow((a) => a.espacioId === espacioId && estudiantesDeAula(a).includes(estudianteId));
     const paraleloId = aulas.find((a) => a.tipo === 'clase')?.paraleloId ?? 0;
     return forkJoin({
@@ -104,6 +113,7 @@ export class ClassroomsService {
   }
 
   aula(aulaId: number): Observable<AulaResumen | null> {
+    if (this.session.activeSpace()?.tipo === 'academia') return this.academyApi.detail(aulaId);
     const aula = this.aulasRepo.readNow((a) => a.id === aulaId)[0];
     return of(aula ? this.resumen(aula, { pendientes: 0, tareas: 0, anillos: [{ label: '', valor: null }, { label: '', valor: null }] }) : null).pipe(delay(MOCK_DELAY));
   }
@@ -135,6 +145,12 @@ export class ClassroomsService {
 
   // Porcentaje de temas publicados que vio cada estudiante del aula
   progresoGrupo(aulaId: number): Observable<{ estudianteId: number; nombre: string; porcentaje: number }[]> {
+    if (this.session.activeSpace()?.tipo === 'academia') {
+      const slug = this.session.activeSpace()!.slug;
+      return this.http.get<{ estudiantes: Array<{ usuarioId: number; nombre: string; porcentaje: number }> }>(
+        `${environment.API_URL}/espacios/${encodeURIComponent(slug)}/aulas/${aulaId}/progreso`,
+      ).pipe(map((group) => group.estudiantes.map((student) => ({ estudianteId: student.usuarioId, nombre: student.nombre, porcentaje: student.porcentaje }))));
+    }
     const aula = this.aulasRepo.readNow((a) => a.id === aulaId)[0];
     const temas = new Set(this.temasDeAula(aulaId, true).map((t) => t.id));
     const nombre = (id: number) => MOCK_ESTUDIANTES.find((e) => e.id === id)?.nombre ?? MOCK_INSCRIPCIONES.find((i) => i.usuarioId === id)?.usuarioNombre ?? `Estudiante ${id}`;
