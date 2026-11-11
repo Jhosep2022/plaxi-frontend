@@ -6,6 +6,7 @@ import { FormField, form, max, maxLength, min, pattern, required, submit } from 
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboardTeacher, faImage, faLocationDot, faSchool, faSitemap, faTrash, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
+import { StorageCardComponent } from '../../../../shared/ui/storage-card.component';
 import { NIVELES, Nivel } from '../../../../core/models/academics.model';
 import { DEPARTAMENTOS, DEPENDENCIAS, Institucion } from '../../../../core/models/institution.model';
 import { AcademicsService } from '../../../../services/academics.service';
@@ -28,7 +29,7 @@ const VACIO: Modelo = {
 @Component({
   selector: 'app-institution-details',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent],
+  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent, StorageCardComponent],
   templateUrl: './institution-details.component.html',
   styleUrls: ['./institution-details.component.css'],
 })
@@ -39,6 +40,7 @@ export class InstitutionDetailsComponent {
   private personas = inject(PeopleService);
   private avisos = inject(NotificationService);
   private readonly espacioId = this.session.activeSpace()!.id;
+  readonly esDireccion = this.session.activeRole() === 'direccion'; // the storage card is only for management
 
   readonly niveles = NIVELES;
   readonly dependencias = DEPENDENCIAS;

@@ -186,6 +186,11 @@
           <li><a [routerLink]="ruta('institucion', 'jornada')"><fa-icon [icon]="faCalendarDays" /> Jornada escolar y horario laboral</a></li>
         </ul>
       </section>
+
+      <!-- Almacenamiento (solo dirección) -->
+      @if (esDireccion) {
+        <section class="ui-card"><app-storage-card /></section>
+      }
     </aside>
   </div>
 }

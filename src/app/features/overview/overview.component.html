@@ -30,6 +30,12 @@
         <app-upcoming-list [items]="d.proximos.items" />
       </app-dash-card>
 
+      @if (showStorage) {
+        <app-dash-card titulo="Mi academia">
+          <app-storage-card />
+        </app-dash-card>
+      }
+
       <app-dash-card titulo="Perfil">
         <app-profile-card [data]="d.perfil" />
         <h3 class="subtitulo">{{ d.actividad.titulo }}</h3>

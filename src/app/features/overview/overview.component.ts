@@ -15,6 +15,7 @@ import { ProfileCardComponent } from '../../shared/dashboard/profile-card.compon
 import { ProgressCardComponent } from '../../shared/dashboard/progress-card.component';
 import { ScheduleTimelineComponent } from '../../shared/dashboard/schedule-timeline.component';
 import { UpcomingListComponent } from '../../shared/dashboard/upcoming-list.component';
+import { StorageCardComponent } from '../../shared/ui/storage-card.component';
 
 // Resumen (inicio) de cualquier rol: misma grilla de widgets, distintos datos
 @Component({
@@ -31,6 +32,7 @@ import { UpcomingListComponent } from '../../shared/dashboard/upcoming-list.comp
     AssistantCardComponent,
     ItemListComponent,
     ProfileCardComponent,
+    StorageCardComponent,
   ],
 })
 export class OverviewComponent {
@@ -39,6 +41,9 @@ export class OverviewComponent {
 
   readonly faChevronDown = faChevronDown;
   readonly faPlus = faPlus;
+  // In an academy the teacher is the owner: they see its storage on their home page
+  readonly showStorage =
+    this.session.activeMembership()?.rol === 'docente' && this.session.activeMembership()?.espacio.tipo === 'academia';
 
   readonly data = toSignal<ResumenData | null | undefined>(
     this.resumenService
