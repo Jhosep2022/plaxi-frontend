@@ -161,12 +161,11 @@
     </div>
     <div class="ui-campo">
       <label for="act-criterio">Criterio</label>
-      <select id="act-criterio" class="ui-input" [formField]="formulario.criterioId">
-        <option value="">Elige un criterio</option>
+      <app-select placeholder="Elige un criterio" inputId="act-criterio" [formField]="formulario.criterioId">
         @for (c of config()?.criterios ?? []; track c.id) {
-          <option [value]="'' + c.id" [selected]="modelo().criterioId === '' + c.id">{{ c.nombre }} ({{ c.porcentaje }}%)</option>
+          <app-option [value]="'' + c.id" [label]="(c.nombre) + ' (' + (c.porcentaje) + '%)'" />
         }
-      </select>
+      </app-select>
       @if (formulario.criterioId().touched() && formulario.criterioId().invalid()) {
         <span class="ui-error">{{ formulario.criterioId().errors()[0].message }}</span>
       }

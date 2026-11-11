@@ -49,6 +49,12 @@ export type NewSchoolRequest = Omit<SchoolRequest, 'id' | 'fecha' | 'estado'>;
 
 export const CITIES = ['La Paz', 'El Alto', 'Cochabamba', 'Santa Cruz', 'Sucre', 'Oruro', 'Potosí', 'Tarija', 'Trinidad', 'Cobija'];
 
+// Usual positions of the person who asks for Aulix on behalf of a school (another one can be typed)
+export const SCHOOL_POSITIONS = [
+  'Director(a)', 'Subdirector(a)', 'Propietario(a) o promotor(a)', 'Administrador(a)', 'Secretario(a)',
+  'Coordinador(a) académico(a)', 'Docente', 'Padre o madre de familia',
+];
+
 // Dirección web de un espacio a partir de su nombre: "Academia de Ana López" -> "academia-de-ana-lopez"
 export function createSlug(texto: string): string {
   return texto

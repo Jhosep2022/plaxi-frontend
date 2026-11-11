@@ -11,12 +11,13 @@ import { GradesService } from '../../../services/grades.service';
 import { ReportCardComponent } from '../../../shared/grades/report-card.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
+import { SELECT } from '../../../shared/ui/select.component';
 
 // Boletines: notas de cada estudiante de un paralelo por periodo, y su boletín imprimible
 @Component({
   selector: 'app-report-cards',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, ReportCardComponent],
+  imports: [...SELECT, FaIconComponent, PageHeaderComponent, EmptyStateComponent, ReportCardComponent],
   styles: `
     .cargando { color: var(--muted); }
     .filtros { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -40,11 +41,11 @@ import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
     } @else {
       <app-page-header miga="Calificaciones" titulo="Boletines" descripcion="Notas finales de cada estudiante por periodo. Abre un boletín para verlo completo o imprimirlo.">
         <div class="filtros">
-          <select class="ui-input" aria-label="Curso" (change)="paraleloId.set(+$any($event.target).value)">
+          <app-select [value]="'' + paraleloId()" class="compacto" ariaLabel="Curso" (valueChange)="paraleloId.set(+$event)">
             @for (p of paralelos.value(); track p.id) {
-              <option [value]="p.id" [selected]="p.id === paraleloId()">{{ paraleloLabel(p) }}</option>
+              <app-option [value]="p.id" [label]="(paraleloLabel(p))" />
             }
-          </select>
+          </app-select>
           <label class="buscar">
             <fa-icon [icon]="faMagnifyingGlass" />
             <input class="ui-input" placeholder="Buscar estudiante" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar estudiante" />

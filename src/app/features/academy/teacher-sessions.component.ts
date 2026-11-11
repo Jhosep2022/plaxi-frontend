@@ -15,6 +15,7 @@ import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
 import { SessionCardComponent } from './session-card.component';
+import { SELECT } from '../../shared/ui/select.component';
 
 type Pestana = 'proximas' | 'pasadas';
 const VACIA = { aulaId: '', titulo: '', descripcion: '', fecha: '', inicio: '18:00', fin: '19:00', plataforma: 'meet' as Plataforma, enlace: '' };
@@ -23,7 +24,7 @@ const VACIA = { aulaId: '', titulo: '', descripcion: '', fecha: '', inicio: '18:
 @Component({
   selector: 'app-teacher-sessions',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, DrawerComponent, EmptyStateComponent, SessionCardComponent],
+  imports: [...SELECT, FaIconComponent, PageHeaderComponent, DrawerComponent, EmptyStateComponent, SessionCardComponent],
   styleUrls: ['./sessions.css'],
   template: `
     <app-page-header miga="Sesiones" titulo="Sesiones en vivo" descripcion="Programa tus clases por Meet o Zoom. Cuando un estudiante entra desde la app, su asistencia queda registrada.">
@@ -35,10 +36,10 @@ const VACIA = { aulaId: '', titulo: '', descripcion: '', fecha: '', inicio: '18:
         <button type="button" class="ui-tab" [class.activa]="pestana() === 'proximas'" (click)="pestana.set('proximas')">Próximas <span class="contador">{{ proximas().length }}</span></button>
         <button type="button" class="ui-tab" [class.activa]="pestana() === 'pasadas'" (click)="pestana.set('pasadas')">Pasadas <span class="contador">{{ pasadas().length }}</span></button>
       </div>
-      <select class="ui-input" aria-label="Curso" (change)="curso.set(+$any($event.target).value)">
-        <option value="0" [selected]="!curso()">Todos mis cursos</option>
-        @for (c of cursos(); track c.id) { <option [value]="c.id" [selected]="curso() === c.id">{{ c.nombre }}</option> }
-      </select>
+      <app-select [value]="'' + curso()" class="compacto" ariaLabel="Curso" (valueChange)="curso.set(+$event)">
+        <app-option [value]="'0'" [label]="'Todos mis cursos'" />
+        @for (c of cursos(); track c.id) { <app-option [value]="c.id" [label]="(c.nombre)" /> }
+      </app-select>
     </div>
 
     @if (datos.isLoading() && !datos.value()) {
@@ -77,10 +78,9 @@ const VACIA = { aulaId: '', titulo: '', descripcion: '', fecha: '', inicio: '18:
       <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
         <div class="ui-campo">
           <label for="ses-curso">Curso</label>
-          <select id="ses-curso" class="ui-input" (change)="cambiar('aulaId', $any($event.target).value)">
-            <option value="" [selected]="!modelo().aulaId">Elige un curso</option>
-            @for (c of cursos(); track c.id) { <option [value]="'' + c.id" [selected]="modelo().aulaId === '' + c.id">{{ c.nombre }}</option> }
-          </select>
+          <app-select placeholder="Elige un curso" [value]="modelo().aulaId" inputId="ses-curso" (valueChange)="cambiar('aulaId', $event)">
+            @for (c of cursos(); track c.id) { <app-option [value]="'' + c.id" [label]="(c.nombre)" /> }
+          </app-select>
         </div>
         <div class="ui-campo">
           <label for="ses-titulo">Tema de la sesión</label>
@@ -97,9 +97,9 @@ const VACIA = { aulaId: '', titulo: '', descripcion: '', fecha: '', inicio: '18:
         </div>
         <div class="ui-campo">
           <label for="ses-plataforma">Plataforma</label>
-          <select id="ses-plataforma" class="ui-input" (change)="cambiar('plataforma', $any($event.target).value)">
-            @for (p of plataformas; track p.id) { <option [value]="p.id" [selected]="modelo().plataforma === p.id">{{ p.label }}</option> }
-          </select>
+          <app-select [value]="modelo().plataforma" inputId="ses-plataforma" (valueChange)="cambiar('plataforma', $event)">
+            @for (p of plataformas; track p.id) { <app-option [value]="p.id" [label]="(p.label)" /> }
+          </app-select>
         </div>
         <div class="ui-campo">
           <label for="ses-enlace">Enlace de la reunión</label>

@@ -146,7 +146,11 @@ h2 small {
 }
 
 .mover {
-  width: 170px;
+  width: 190px;
+  min-width: 0;
+}
+
+.mover .ui-input {
   height: 36px;
 }
 

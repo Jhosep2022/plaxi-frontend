@@ -18,6 +18,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { subjectIcon } from '../../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../../management/academics/academics.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 type Filtro = 'activas' | 'por-revisar' | 'todas';
 
@@ -27,7 +28,7 @@ const NUEVA = { clase: '', titulo: '', instrucciones: '', entrega: '', hora: '23
 @Component({
   selector: 'app-teacher-assignments',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
   templateUrl: './teacher-assignments.component.html',
   styleUrls: ['./teacher-assignments.component.css'],
 })

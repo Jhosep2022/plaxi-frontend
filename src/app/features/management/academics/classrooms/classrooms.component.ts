@@ -12,6 +12,7 @@ import { DrawerComponent } from '../../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { CLASSROOM_ICONS, getErrorMessage } from '../academics.ui';
+import { SELECT } from '../../../../shared/ui/select.component';
 
 const TONO_AULA: Record<TipoAula, string> = {
   aula: 'tono-lima',
@@ -27,7 +28,7 @@ const AULA_VACIA = { nombre: '', tipo: 'aula' as TipoAula, capacidad: 30, ubicac
 @Component({
   selector: 'app-classrooms',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
   templateUrl: './classrooms.component.html',
   styleUrls: ['./classrooms.component.css'],
 })

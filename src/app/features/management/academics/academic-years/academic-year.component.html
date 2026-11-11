@@ -107,11 +107,11 @@
       </div>
       <div class="ui-campo">
         <label for="ges-tipo">Modalidad</label>
-        <select id="ges-tipo" class="ui-input" [formField]="formulario.tipoPeriodo" (change)="repartirFechas($any($event.target).value)">
+        <app-select inputId="ges-tipo" [formField]="formulario.tipoPeriodo" (valueChange)="repartirFechas($any($event))">
           @for (t of tiposPeriodo; track t.id) {
-            <option [value]="t.id">{{ t.label }} ({{ t.cantidad }})</option>
+            <app-option [value]="t.id" [label]="(t.label) + ' (' + (t.cantidad) + ')'" />
           }
-        </select>
+        </app-select>
       </div>
     </div>
 

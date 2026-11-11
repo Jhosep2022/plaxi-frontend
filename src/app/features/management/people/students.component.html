@@ -22,13 +22,13 @@
     <fa-icon [icon]="faMagnifyingGlass" />
     <input class="ui-input" placeholder="Buscar por nombre o CI" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar estudiante" />
   </label>
-  <select class="ui-input" aria-label="Curso" (change)="curso.set($any($event.target).value)">
-    <option value="todos" [selected]="curso() === 'todos'">Todos los cursos</option>
-    <option [value]="SIN_CURSO" [selected]="curso() === SIN_CURSO">Sin inscribir ({{ conteo().sinCurso }})</option>
+  <app-select [value]="curso()" class="compacto" ariaLabel="Curso" (valueChange)="curso.set($event)">
+    <app-option [value]="'todos'" [label]="'Todos los cursos'" />
+    <app-option [value]="SIN_CURSO" [label]="'Sin inscribir (' + (conteo().sinCurso) + ')'" />
     @for (p of cursos(); track p.id) {
-      <option [value]="'' + p.id" [selected]="curso() === '' + p.id">{{ paraleloLabel(p) }}</option>
+      <app-option [value]="'' + p.id" [label]="(paraleloLabel(p))" />
     }
-  </select>
+  </app-select>
   <span class="contador-filas">{{ visibles().length }} de {{ conteo().total }} estudiantes</span>
 </div>
 
@@ -106,14 +106,12 @@
     </div>
     <div class="ui-campo">
       <label for="est-curso">Curso</label>
-      <select id="est-curso" class="ui-input" [formField]="formulario.paraleloId">
-        <option value="0" [selected]="modelo().paraleloId === '0'">Sin inscribir por ahora</option>
+      <app-select inputId="est-curso" [formField]="formulario.paraleloId">
+        <app-option [value]="'0'" [label]="'Sin inscribir por ahora'" />
         @for (p of cursos(); track p.id) {
-          <option [value]="'' + p.id" [selected]="modelo().paraleloId === '' + p.id" [disabled]="!disponible(p.id, p.estudiantes, p.capacidad)">
-            {{ paraleloLabel(p) }} · {{ p.estudiantes }}/{{ p.capacidad }}@if (!disponible(p.id, p.estudiantes, p.capacidad)) { (lleno) }
-          </option>
+          <app-option [value]="'' + p.id" [label]="paraleloLabel(p)" [hint]="p.estudiantes + '/' + p.capacidad + (disponible(p.id, p.estudiantes, p.capacidad) ? '' : ' · lleno')" [disabled]="!disponible(p.id, p.estudiantes, p.capacidad)" />
         }
-      </select>
+      </app-select>
       <span class="ui-ayuda">También puedes inscribirlo o cambiarlo de curso desde Personas → Inscripciones.</span>
     </div>
   </form>

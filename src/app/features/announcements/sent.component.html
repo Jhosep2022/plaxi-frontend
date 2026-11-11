@@ -60,9 +60,9 @@
     <div class="ui-fila">
       <div class="ui-campo">
         <label for="com-cat">Categoría</label>
-        <select id="com-cat" class="ui-input" [formField]="formulario.categoria">
-          @for (c of categorias; track c.id) { <option [value]="c.id" [selected]="modelo().categoria === c.id">{{ c.label }}</option> }
-        </select>
+        <app-select inputId="com-cat" [formField]="formulario.categoria">
+          @for (c of categorias; track c.id) { <app-option [value]="c.id" [label]="(c.label)" /> }
+        </app-select>
       </div>
       <div class="ui-campo">
         <label for="com-evento">Fecha del evento <span class="ui-ayuda">(opcional)</span></label>

@@ -24,9 +24,9 @@
         <article class="ui-card pregunta">
           <header>
             <span class="numero">{{ i + 1 }}</span>
-            <select class="ui-input tipo" [attr.aria-label]="'Tipo de la pregunta ' + (i + 1)" (change)="cambiarTipo(i, $any($event.target).value)">
-              @for (t of tipos; track t.id) { <option [value]="t.id" [selected]="p.tipo === t.id">{{ t.label }}</option> }
-            </select>
+            <app-select [value]="p.tipo" class="tipo compacto" [ariaLabel]="'Tipo de la pregunta ' + (i + 1)" (valueChange)="cambiarTipo(i, $any($event))">
+              @for (t of tipos; track t.id) { <app-option [value]="t.id" [label]="(t.label)" /> }
+            </app-select>
             <label class="puntos">Puntos <input type="number" class="ui-input" min="1" [value]="p.puntos" (input)="actualizar(i, { puntos: +$any($event.target).value })" /></label>
             <span class="acciones">
               <button type="button" class="ui-btn ui-btn--icono" [disabled]="primera" (click)="mover(i, -1)" aria-label="Subir pregunta"><fa-icon [icon]="faArrowUp" /></button>
@@ -120,12 +120,12 @@
           @if (yaCuenta()) {
             <span class="ui-badge tono-azul">Ya cuenta para la nota en la planilla</span>
           } @else {
-            <select id="quiz-criterio" class="ui-input" (change)="criterioId.set($any($event.target).value)">
-              <option value="0" [selected]="criterioId() === '0'">No, es de práctica</option>
+            <app-select [value]="criterioId()" inputId="quiz-criterio" (valueChange)="criterioId.set($event)">
+              <app-option [value]="'0'" [label]="'No, es de práctica'" />
               @for (c of datos.value()?.config?.criterios ?? []; track c.id) {
-                <option [value]="'' + c.id" [selected]="criterioId() === '' + c.id">Sí, en {{ c.nombre }} ({{ c.porcentaje }}%)</option>
+                <app-option [value]="'' + c.id" [label]="'Sí, en ' + (c.nombre) + ' (' + (c.porcentaje) + '%)'" />
               }
-            </select>
+            </app-select>
             <span class="ui-ayuda">El mejor puntaje de cada estudiante se convierte en su nota (sobre {{ datos.value()?.config?.notaMaxima }}).</span>
           }
         </div>

@@ -15,6 +15,7 @@ import { NotificationService } from '../../../../shared/ui/notification.service'
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../../academics/academics.ui';
 import { PATRON_EMAIL, PATRON_TELEFONO } from '../../people/people.ui';
+import { SELECT } from '../../../../shared/ui/select.component';
 
 type Modelo = Omit<Institucion, 'id'>;
 
@@ -27,7 +28,7 @@ const VACIO: Modelo = {
 @Component({
   selector: 'app-institution-details',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent],
+  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent],
   templateUrl: './institution-details.component.html',
   styleUrls: ['./institution-details.component.css'],
 })

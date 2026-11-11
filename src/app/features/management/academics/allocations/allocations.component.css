@@ -102,7 +102,7 @@ h2 {
   min-width: 240px;
 }
 
-.docente .sin-asignar {
+.docente .sin-asignar .ui-input {
   border-color: var(--light-cream);
   background: var(--cream-soft);
   color: var(--cream-strong);

@@ -69,11 +69,11 @@
           </div>
           <div class="ui-campo">
             <label for="inst-dep">Dependencia</label>
-            <select id="inst-dep" class="ui-input" [formField]="formulario.dependencia">
+            <app-select inputId="inst-dep" [formField]="formulario.dependencia">
               @for (d of dependencias; track d.id) {
-                <option [value]="d.id" [selected]="modelo().dependencia === d.id">{{ d.label }}</option>
+                <app-option [value]="d.id" [label]="(d.label)" />
               }
-            </select>
+            </app-select>
           </div>
         </div>
         <span class="ui-etiqueta">Niveles que ofrece</span>
@@ -94,11 +94,11 @@
         <div class="ui-fila">
           <div class="ui-campo">
             <label for="inst-depto">Departamento</label>
-            <select id="inst-depto" class="ui-input" [formField]="formulario.departamento">
+            <app-select inputId="inst-depto" [formField]="formulario.departamento">
               @for (d of departamentos; track d) {
-                <option [value]="d" [selected]="modelo().departamento === d">{{ d }}</option>
+                <app-option [value]="d" [label]="(d)" />
               }
-            </select>
+            </app-select>
           </div>
           <div class="ui-campo">
             <label for="inst-municipio">Municipio</label>

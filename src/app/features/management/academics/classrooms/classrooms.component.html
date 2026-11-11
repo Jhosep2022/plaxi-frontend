@@ -92,11 +92,11 @@
     <div class="ui-fila">
       <div class="ui-campo">
         <label for="aula-tipo">Tipo</label>
-        <select id="aula-tipo" class="ui-input" [formField]="formulario.tipo">
+        <app-select inputId="aula-tipo" [formField]="formulario.tipo">
           @for (tipo of tipos; track tipo.id) {
-            <option [value]="tipo.id">{{ tipo.label }}</option>
+            <app-option [value]="tipo.id" [label]="(tipo.label)" />
           }
-        </select>
+        </app-select>
       </div>
       <div class="ui-campo">
         <label for="aula-capacidad">Capacidad</label>

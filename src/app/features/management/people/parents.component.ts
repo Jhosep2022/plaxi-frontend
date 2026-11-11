@@ -14,6 +14,7 @@ import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics/academics.ui';
 import { PATRON_CI, PATRON_EMAIL, PATRON_TELEFONO } from './people.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 const PADRE_VACIO = { nombre: '', ci: '', telefono: '', email: '', ocupacion: '' };
 
@@ -26,7 +27,7 @@ interface HijoEditable {
 @Component({
   selector: 'app-parents',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, DrawerComponent],
+  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent],
   templateUrl: './parents.component.html',
   styleUrls: ['./people.css'],
   styles: `

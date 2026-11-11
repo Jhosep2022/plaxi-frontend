@@ -13,6 +13,7 @@ import { DrawerComponent } from '../../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics.ui';
+import { SELECT } from '../../../../shared/ui/select.component';
 
 // En el formulario los selects trabajan con texto; se convierten a número al guardar
 const PARALELO_VACIO = { nivel: 'secundaria' as Nivel, grado: '1', letra: 'A', turno: 'manana' as Turno, aulaId: '0', capacidad: 30 };
@@ -20,7 +21,7 @@ const PARALELO_VACIO = { nivel: 'secundaria' as Nivel, grado: '1', letra: 'A', t
 @Component({
   selector: 'app-class-groups',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
   templateUrl: './class-groups.component.html',
   styleUrls: ['./class-groups.component.css'],
 })

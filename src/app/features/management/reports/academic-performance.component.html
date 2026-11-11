@@ -1,12 +1,12 @@
 <app-page-header miga="Reportes" titulo="Rendimiento académico" [descripcion]="'Notas finales de todos los cursos de la gestión ' + (gestion()?.anio ?? '') + '. Aprueba con ' + (config()?.notaAprobacion ?? '') + ' sobre ' + (config()?.notaMaxima ?? '') + '.'">
   <div class="filtros">
     <label>Periodo
-      <select class="ui-input" aria-label="Periodo" (change)="periodo.set(+$any($event.target).value)">
+      <app-select [value]="'' + periodo()" class="compacto" ariaLabel="Periodo" (valueChange)="periodo.set(+$event)">
         @for (p of gestion()?.periodos ?? []; track $index) {
-          <option [value]="$index" [selected]="periodo() === $index">{{ p.nombre }}</option>
+          <app-option [value]="$index" [label]="(p.nombre)" />
         }
-        <option [value]="ANUAL" [selected]="periodo() === ANUAL">Promedio anual</option>
-      </select>
+        <app-option [value]="ANUAL" [label]="'Promedio anual'" />
+      </app-select>
     </label>
     <button type="button" class="ui-btn ui-btn--secundario no-imprimir" (click)="imprimir()"><fa-icon [icon]="faPrint" /> Imprimir</button>
   </div>

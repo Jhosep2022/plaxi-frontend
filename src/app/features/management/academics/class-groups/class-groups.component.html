@@ -87,19 +87,19 @@
     <div class="ui-fila">
       <div class="ui-campo">
         <label for="par-nivel">Nivel</label>
-        <select id="par-nivel" class="ui-input" [formField]="formulario.nivel" (change)="ajustarGrado($any($event.target).value)">
+        <app-select inputId="par-nivel" [formField]="formulario.nivel" (valueChange)="ajustarGrado($any($event))">
           @for (n of niveles; track n.id) {
-            <option [value]="n.id">{{ n.label }}</option>
+            <app-option [value]="n.id" [label]="(n.label)" />
           }
-        </select>
+        </app-select>
       </div>
       <div class="ui-campo">
         <label for="par-grado">Grado</label>
-        <select id="par-grado" class="ui-input" [formField]="formulario.grado">
+        <app-select inputId="par-grado" [formField]="formulario.grado">
           @for (g of gradosDelNivel(); track g) {
-            <option [value]="'' + g">{{ gradoLabel(modelo().nivel, g) }}</option>
+            <app-option [value]="'' + g" [label]="(gradoLabel(modelo().nivel, g))" />
           }
-        </select>
+        </app-select>
       </div>
     </div>
 
@@ -113,22 +113,22 @@
       </div>
       <div class="ui-campo">
         <label for="par-turno">Turno</label>
-        <select id="par-turno" class="ui-input" [formField]="formulario.turno">
+        <app-select inputId="par-turno" [formField]="formulario.turno">
           @for (t of turnos; track t.id) {
-            <option [value]="t.id">{{ t.label }}</option>
+            <app-option [value]="t.id" [label]="(t.label)" />
           }
-        </select>
+        </app-select>
       </div>
     </div>
 
     <div class="ui-campo">
       <label for="par-aula">Aula fija</label>
-      <select id="par-aula" class="ui-input" [formField]="formulario.aulaId">
-        <option value="0">Sin aula fija</option>
+      <app-select inputId="par-aula" [formField]="formulario.aulaId">
+        <app-option [value]="'0'" [label]="'Sin aula fija'" />
         @for (a of aulasDisponibles(); track a.id) {
-          <option [value]="'' + a.id">{{ a.nombre }} · {{ a.capacidad }} personas</option>
+          <app-option [value]="'' + a.id" [label]="(a.nombre) + ' · ' + (a.capacidad) + ' personas'" />
         }
-      </select>
+      </app-select>
       <span class="ui-ayuda">Es el aula por defecto en el horario; cada clase puede cambiarla (ej. laboratorio).</span>
       @if (choqueDeAula(); as otro) {
         <span class="ui-aviso"><fa-icon [icon]="faTriangleExclamation" /> Esta aula ya es el aula fija de {{ paraleloLabel(otro) }} en el mismo turno.</span>

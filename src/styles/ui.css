@@ -139,8 +139,18 @@
   box-shadow: 0 0 0 3px var(--lime-soft);
 }
 
-.ui-input[aria-invalid='true'] {
-  border-color: #e3a49b;
+/* Invalid field: red border. aria-invalid (manual forms and app-select) or .ui-invalido (signal forms, app.config) */
+.ui-input[aria-invalid='true'],
+.ui-input.ui-invalido,
+.ui-invalido > div > .ui-input {
+  border-color: #c0392b;
+}
+
+.ui-input[aria-invalid='true']:focus,
+.ui-input.ui-invalido:focus,
+.ui-invalido > div > .ui-input:focus {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 3px #fbe3df;
 }
 
 .ui-ayuda {

@@ -38,6 +38,7 @@ import { DrawerComponent } from '../../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { subjectIcon, getErrorMessage } from '../academics.ui';
+import { SELECT } from '../../../../shared/ui/select.component';
 
 interface CeldaEditada {
   dia: number;
@@ -48,7 +49,7 @@ interface CeldaEditada {
 @Component({
   selector: 'app-schedules',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent, WeeklyScheduleComponent],
+  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent, WeeklyScheduleComponent],
   templateUrl: './schedules.component.html',
   styleUrls: ['./schedules.component.css'],
 })

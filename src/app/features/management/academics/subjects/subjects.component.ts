@@ -13,6 +13,7 @@ import { DrawerComponent } from '../../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { SUBJECT_ICONS, subjectIcon, getErrorMessage } from '../academics.ui';
+import { SELECT } from '../../../../shared/ui/select.component';
 
 const TONOS: { id: Tono; label: string }[] = [
   { id: 'lima', label: 'Lima' },
@@ -25,7 +26,7 @@ const MATERIA_VACIA = { nombre: '', nivel: 'secundaria' as Nivel, horasSemanales
 @Component({
   selector: 'app-subjects',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
   templateUrl: './subjects.component.html',
   styleUrls: ['./subjects.component.css'],
 })

@@ -11,6 +11,7 @@ import { NotificationService } from '../../../../shared/ui/notification.service'
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { subjectIcon, getErrorMessage } from '../academics.ui';
+import { SELECT } from '../../../../shared/ui/select.component';
 
 // Carga horaria semanal de referencia para un docente a tiempo completo
 const HORAS_COMPLETAS = 40;
@@ -18,7 +19,7 @@ const HORAS_COMPLETAS = 40;
 @Component({
   selector: 'app-allocations',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, RouterLink, PageHeaderComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, RouterLink, PageHeaderComponent, EmptyStateComponent],
   templateUrl: './allocations.component.html',
   styleUrls: ['./allocations.component.css'],
 })

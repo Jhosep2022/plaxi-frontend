@@ -14,12 +14,13 @@ import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics/academics.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 // Inscripciones de la gestión activa: cupos por paralelo, estudiantes sin curso, cambios de paralelo y retiros
 @Component({
   selector: 'app-enrollments',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, PageHeaderComponent, EmptyStateComponent],
   templateUrl: './enrollments.component.html',
   styleUrls: ['./people.css', './enrollments.component.css'],
 })
@@ -93,9 +94,8 @@ export class EnrollmentsComponent {
     await this.mover(e, destino.id, `${e.nombre} fue inscrito en ${paraleloLabel(destino)}.`);
   }
 
-  async cambiar(e: Estudiante, select: HTMLSelectElement): Promise<void> {
-    const destino = this.paralelos.value().find((p) => p.id === Number(select.value));
-    select.value = '';
+  async cambiar(e: Estudiante, paraleloId: string): Promise<void> {
+    const destino = this.paralelos.value().find((p) => p.id === Number(paraleloId));
     if (!destino) return;
     if (!confirm(`¿Cambiar a ${e.nombre} de ${paraleloLabel(this.seleccionado()!)} a ${paraleloLabel(destino)}?\n\nSu asistencia y notas ya registradas quedan en el historial del paralelo anterior.`)) return;
     await this.mover(e, destino.id, `${e.nombre} ahora está en ${paraleloLabel(destino)}.`);

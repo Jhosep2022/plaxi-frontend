@@ -83,11 +83,11 @@
     <div class="ui-fila">
       <div class="ui-campo">
         <label for="materia-nivel">Nivel</label>
-        <select id="materia-nivel" class="ui-input" [formField]="formulario.nivel">
+        <app-select inputId="materia-nivel" [formField]="formulario.nivel">
           @for (n of niveles; track n.id) {
-            <option [value]="n.id">{{ n.label }}</option>
+            <app-option [value]="n.id" [label]="(n.label)" />
           }
-        </select>
+        </app-select>
       </div>
       <div class="ui-campo">
         <label for="materia-horas">Horas semanales</label>

@@ -12,6 +12,7 @@ import { DrawerComponent } from '../../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics.ui';
+import { SELECT } from '../../../../shared/ui/select.component';
 
 const DIA = 24 * 60 * 60 * 1000;
 const aFecha = (texto: string) => new Date(`${texto}T00:00:00`);
@@ -35,7 +36,7 @@ type EstadoPeriodo = 'concluido' | 'en-curso' | 'proximo';
 @Component({
   selector: 'app-academic-year',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
   templateUrl: './academic-year.component.html',
   styleUrls: ['./academic-year.component.css'],
 })

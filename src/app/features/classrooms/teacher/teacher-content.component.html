@@ -94,11 +94,11 @@
   <form class="ui-form" (submit)="$event.preventDefault(); guardarTema()" novalidate>
     <div class="ui-campo">
       <label for="tema-unidad">Unidad</label>
-      <select id="tema-unidad" class="ui-input" [formField]="formTema.unidadId">
+      <app-select inputId="tema-unidad" [formField]="formTema.unidadId">
         @for (u of unidades.value(); track u.id) {
-          <option [value]="'' + u.id" [selected]="modeloTema().unidadId === '' + u.id">{{ u.titulo }}</option>
+          <app-option [value]="'' + u.id" [label]="(u.titulo)" />
         }
-      </select>
+      </app-select>
     </div>
     <div class="ui-campo">
       <label for="tema-titulo">Título</label>

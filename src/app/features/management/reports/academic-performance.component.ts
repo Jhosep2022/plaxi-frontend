@@ -14,6 +14,7 @@ import { GradesService, DatosParalelo } from '../../../services/grades.service';
 import { BarChartComponent, ColumnChartComponent, ChartItem } from '../../../shared/reports/charts.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
+import { SELECT } from '../../../shared/ui/select.component';
 
 const ANUAL = -1;
 
@@ -31,7 +32,7 @@ interface NotaFinal {
 @Component({
   selector: 'app-academic-performance-report',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, BarChartComponent, ColumnChartComponent],
+  imports: [...SELECT, FaIconComponent, PageHeaderComponent, EmptyStateComponent, BarChartComponent, ColumnChartComponent],
   templateUrl: './academic-performance.component.html',
   styleUrls: ['./reports.css'],
 })

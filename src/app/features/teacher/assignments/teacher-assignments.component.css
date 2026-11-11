@@ -18,7 +18,7 @@
   margin-bottom: 16px;
 }
 
-.filtros select {
+.filtros app-select {
   width: 240px;
 }
 

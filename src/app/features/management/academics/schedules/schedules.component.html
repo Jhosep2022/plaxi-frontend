@@ -178,12 +178,11 @@
   <form class="ui-form" (submit)="$event.preventDefault(); guardar()" novalidate>
     <div class="ui-campo">
       <label for="hor-materia">Materia</label>
-      <select id="hor-materia" class="ui-input" [formField]="formulario.materiaId">
-        <option value="">Elige una materia…</option>
+      <app-select placeholder="Elige una materia…" inputId="hor-materia" [formField]="formulario.materiaId">
         @for (m of materiasDelNivel(); track m.id) {
-          <option [value]="'' + m.id">{{ m.nombre }} · {{ m.horasSemanales }} h</option>
+          <app-option [value]="'' + m.id" [label]="(m.nombre) + ' · ' + (m.horasSemanales) + ' h'" />
         }
-      </select>
+      </app-select>
       @if (formulario.materiaId().touched() && formulario.materiaId().invalid()) {
         <span class="ui-error">{{ formulario.materiaId().errors()[0].message }}</span>
       }
@@ -198,12 +197,12 @@
 
     <div class="ui-campo">
       <label for="hor-aula">Aula</label>
-      <select id="hor-aula" class="ui-input" [formField]="formulario.aulaId">
-        <option value="0">Sin aula</option>
+      <app-select inputId="hor-aula" [formField]="formulario.aulaId">
+        <app-option [value]="'0'" [label]="'Sin aula'" />
         @for (a of aulasActivas(); track a.id) {
-          <option [value]="'' + a.id">{{ a.nombre }}{{ a.id === seleccionado()?.aulaId ? ' (aula fija)' : '' }}</option>
+          <app-option [value]="'' + a.id" [label]="(a.nombre) + (a.id === seleccionado()?.aulaId ? ' (aula fija)' : '')" />
         }
-      </select>
+      </app-select>
       <span class="ui-ayuda">Por defecto, el aula fija del paralelo. Cámbiala para laboratorios, coliseo, etc.</span>
     </div>
 

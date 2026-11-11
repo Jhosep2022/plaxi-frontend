@@ -17,6 +17,7 @@ import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
 import { categoria, cuando, publicoLabel } from './announcements.ui';
+import { SELECT } from '../../shared/ui/select.component';
 
 type Enviado = Comunicado & { alcance: Alcance };
 
@@ -25,7 +26,7 @@ const BORRADOR = { titulo: '', mensaje: '', categoria: 'general' as CategoriaCom
 // Comunicados enviados (dirección: todos los del colegio; docente: los suyos), con su alcance, redacción y detalle
 @Component({
   selector: 'app-sent-announcements',
-  imports: [FaIconComponent, FormField, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, DrawerComponent, EmptyStateComponent],
   templateUrl: './sent.component.html',
   styleUrls: ['./announcements.css'],
 })

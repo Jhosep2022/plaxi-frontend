@@ -13,12 +13,12 @@
     <button type="button" class="ui-tab" [class.activa]="filtro() === 'por-revisar'" (click)="filtro.set('por-revisar')">Por revisar <span class="contador">{{ conteo().porRevisar }}</span></button>
     <button type="button" class="ui-tab" [class.activa]="filtro() === 'todas'" (click)="filtro.set('todas')">Todas <span class="contador">{{ conteo().todas }}</span></button>
   </div>
-  <select class="ui-input" aria-label="Clase" (change)="claseFiltro.set($any($event.target).value)">
-    <option value="" [selected]="claseFiltro() === ''">{{ espacio.tipo === 'colegio' ? 'Todas mis clases' : 'Todos mis cursos' }}</option>
+  <app-select [value]="claseFiltro()" class="compacto" ariaLabel="Clase" (valueChange)="claseFiltro.set($event)">
+    <app-option [value]="''" [label]="(espacio.tipo === 'colegio' ? 'Todas mis clases' : 'Todos mis cursos')" />
     @for (c of clases(); track c.valor) {
-      <option [value]="c.valor" [selected]="claseFiltro() === c.valor">{{ c.label }}</option>
+      <app-option [value]="c.valor" [label]="(c.label)" />
     }
-  </select>
+  </app-select>
 </div>
 
 @if (tareas.isLoading() && tareas.value().length === 0) {
@@ -65,12 +65,11 @@
   <form class="ui-form" (submit)="$event.preventDefault(); crear()" novalidate>
     <div class="ui-campo">
       <label for="tar-clase">{{ espacio.tipo === 'colegio' ? 'Clase' : 'Curso' }}</label>
-      <select id="tar-clase" class="ui-input" [formField]="formulario.clase">
-        <option value="">Elige una clase</option>
+      <app-select placeholder="Elige una clase" inputId="tar-clase" [formField]="formulario.clase">
         @for (c of clases(); track c.valor) {
-          <option [value]="c.valor" [selected]="modelo().clase === c.valor">{{ c.label }}</option>
+          <app-option [value]="c.valor" [label]="(c.label)" />
         }
-      </select>
+      </app-select>
       @if (formulario.clase().touched() && formulario.clase().invalid()) { <span class="ui-error">{{ formulario.clase().errors()[0].message }}</span> }
     </div>
     <div class="ui-campo">
@@ -96,12 +95,12 @@
     @if (cuentaParaNota()) {
     <div class="ui-campo">
       <label for="tar-criterio">¿Cuenta para la nota?</label>
-      <select id="tar-criterio" class="ui-input" [formField]="formulario.criterioId">
-        <option value="0" [selected]="modelo().criterioId === '0'">No, solo práctica</option>
+      <app-select inputId="tar-criterio" [formField]="formulario.criterioId">
+        <app-option [value]="'0'" [label]="'No, solo práctica'" />
         @for (c of criterios(); track c.id) {
-          <option [value]="'' + c.id" [selected]="modelo().criterioId === '' + c.id">Sí, en el criterio {{ c.nombre }} ({{ c.porcentaje }}%)</option>
+          <app-option [value]="'' + c.id" [label]="'Sí, en el criterio ' + (c.nombre) + ' (' + (c.porcentaje) + '%)'" />
         }
-      </select>
+      </app-select>
       <span class="ui-ayuda">Si cuenta para la nota, se crea una actividad en tu planilla de Calificaciones y la nota que pongas al revisar se guarda ahí.</span>
     </div>
     } @else if (espacio.tipo !== 'colegio') {

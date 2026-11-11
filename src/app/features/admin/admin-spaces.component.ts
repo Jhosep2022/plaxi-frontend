@@ -9,13 +9,14 @@ import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { AdminService, spaceStatusLabel, type AdminSpaceStatus } from './admin.service';
 import { spaceStatusTone } from './admin-ui';
+import { SELECT } from '../../shared/ui/select.component';
 
 type StatusFilter = AdminSpaceStatus | '';
 
 @Component({
   selector: 'app-admin-spaces',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, Tooltip, DrawerComponent, PageHeaderComponent],
+  imports: [...SELECT, FaIconComponent, Tooltip, DrawerComponent, PageHeaderComponent],
   template: `
     <app-page-header [miga]="'Plataforma · Espacios'" [titulo]="title()" [descripcion]="description()" />
 
@@ -107,9 +108,9 @@ type StatusFilter = AdminSpaceStatus | '';
         <section class="bloque">
           <h3>Estado</h3>
           <p>Solo lectura deja ver sin modificar; suspendido corta el acceso.</p>
-          <select id="estado-admin" class="ui-input" [value]="newStatus()" (change)="newStatus.set($any($event.target).value)" aria-label="Nuevo estado">
-            <option value="active">Activo</option><option value="read_only">Solo lectura</option><option value="suspended">Suspendido</option>
-          </select>
+          <app-select inputId="estado-admin" [value]="newStatus()" (valueChange)="newStatus.set($any($event))" ariaLabel="Nuevo estado">
+            <app-option [value]="'active'" [label]="'Activo'" /><app-option [value]="'read_only'" [label]="'Solo lectura'" /><app-option [value]="'suspended'" [label]="'Suspendido'" />
+          </app-select>
           <div class="botones"><button class="ui-btn" type="button" (click)="saveStatus()">Guardar estado</button></div>
         </section>
 

@@ -16,6 +16,7 @@ import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics/academics.ui';
 import { PATRON_CI } from './people.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 const ESTUDIANTE_VACIO = { nombre: '', ci: '', fechaNacimiento: '', paraleloId: '0' };
 const SIN_CURSO = 'sin-curso';
@@ -24,7 +25,7 @@ const SIN_CURSO = 'sin-curso';
 @Component({
   selector: 'app-students',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, DrawerComponent],
+  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent],
   templateUrl: './students.component.html',
   styleUrls: ['./people.css'],
 })

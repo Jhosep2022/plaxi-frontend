@@ -10,6 +10,7 @@ import { AulaResumen, ClassroomsService } from '../../services/classrooms.servic
 import { ClassroomCardComponent } from '../../shared/classrooms/classroom-card.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
+import { SELECT } from '../../shared/ui/select.component';
 
 type Filtro = 'todas' | 'pendientes';
 type Orden = 'recientes' | 'nombre' | 'avance';
@@ -18,7 +19,7 @@ type Orden = 'recientes' | 'nombre' | 'avance';
 @Component({
   selector: 'app-my-classrooms',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, RouterLink, PageHeaderComponent, EmptyStateComponent, ClassroomCardComponent, CourseFormComponent],
+  imports: [...SELECT, FaIconComponent, RouterLink, PageHeaderComponent, EmptyStateComponent, ClassroomCardComponent, CourseFormComponent],
   styles: `
     .barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
     .contador { font-size: 14px; font-weight: bold; }
@@ -52,11 +53,11 @@ type Orden = 'recientes' | 'nombre' | 'avance';
       </label>
       <label class="orden">
         <fa-icon [icon]="faArrowDownWideShort" />
-        <select class="ui-input" aria-label="Ordenar" (change)="orden.set($any($event.target).value)">
-          <option value="recientes" [selected]="orden() === 'recientes'">Actualizadas recientemente</option>
-          <option value="nombre" [selected]="orden() === 'nombre'">Nombre</option>
-          <option value="avance" [selected]="orden() === 'avance'">{{ esDocente ? 'Avance del grupo' : 'Mi progreso' }}</option>
-        </select>
+        <app-select [value]="orden()" class="compacto" ariaLabel="Ordenar" (valueChange)="orden.set($any($event))">
+          <app-option [value]="'recientes'" [label]="'Actualizadas recientemente'" />
+          <app-option [value]="'nombre'" [label]="'Nombre'" />
+          <app-option [value]="'avance'" [label]="(esDocente ? 'Avance del grupo' : 'Mi progreso')" />
+        </app-select>
       </label>
     </div>
 

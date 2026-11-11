@@ -4,15 +4,16 @@ import { firstValueFrom } from 'rxjs';
 import { FormField, form, max, maxLength, min, pattern, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
-import { CITIES } from '../../core/models/auth.model';
+import { CITIES, SCHOOL_POSITIONS } from '../../core/models/auth.model';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { readApiError } from '../../core/api/api-error';
 import { PATRON_CELULAR, PATRON_CORREO } from '../../services/account-profile.service';
+import { SELECT } from '../../shared/ui/select.component';
 
 // Schools submit their details for the Aulix team to set up their accounts.
 @Component({
   selector: 'app-school-request',
-  imports: [FormField, RouterLink, FaIconComponent],
+  imports: [FormField, RouterLink, FaIconComponent, ...SELECT],
   styleUrls: ['./auth.css'],
   template: `
     @if (isSubmitted()) {
@@ -36,9 +37,8 @@ import { PATRON_CELULAR, PATRON_CORREO } from '../../services/account-profile.se
         <div class="ui-fila">
           <div class="ui-campo">
             <label for="col-ciudad">Ciudad</label>
-            <select id="col-ciudad" class="ui-input" [formField]="requestForm.city">
-              @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
-            </select>
+            <app-select inputId="col-ciudad" [options]="cities" placeholder="Elige la ciudad" searchPlaceholder="Buscar ciudad…" [formField]="requestForm.city" />
+            @if (requestForm.city().touched() && requestForm.city().invalid()) { <span class="ui-error">{{ requestForm.city().errors()[0].message }}</span> }
           </div>
           <div class="ui-campo">
             <label for="col-estudiantes">Estudiantes (aprox.)</label>
@@ -54,7 +54,8 @@ import { PATRON_CELULAR, PATRON_CORREO } from '../../services/account-profile.se
           </div>
           <div class="ui-campo">
             <label for="col-cargo">Cargo</label>
-            <input id="col-cargo" class="ui-input" placeholder="Ej. Director(a)" [formField]="requestForm.position" />
+            <app-select inputId="col-cargo" [options]="positions" placeholder="Elige tu cargo" searchPlaceholder="Buscar o escribir tu cargo…" [allowCustom]="true" [formField]="requestForm.position" />
+            @if (requestForm.position().touched() && requestForm.position().invalid()) { <span class="ui-error">{{ requestForm.position().errors()[0].message }}</span> }
           </div>
         </div>
         <div class="ui-fila">
@@ -88,12 +89,15 @@ export class SchoolRequestComponent {
   readonly faCircleExclamation = faCircleExclamation;
   readonly faPaperPlane = faPaperPlane;
   readonly cities = CITIES;
+  readonly positions = SCHOOL_POSITIONS;
 
   readonly requestDetails = signal({ school: '', city: 'Cochabamba', contact: '', position: '', email: '', phone: '', students: 100, message: '' });
   readonly requestForm = form(this.requestDetails, (fields) => {
     required(fields.school, { message: 'Escribe el nombre del colegio.' });
     maxLength(fields.school, 100, { message: 'Máximo 100 caracteres.' });
+    required(fields.city, { message: 'Elige la ciudad.' });
     required(fields.contact, { message: 'Escribe tu nombre.' });
+    required(fields.position, { message: 'Elige tu cargo.' });
     required(fields.email, { message: 'Escribe tu correo.' });
     pattern(fields.email, PATRON_CORREO, { message: 'Escribe un correo válido.' });
     required(fields.phone, { message: 'Escribe un celular de contacto.' });

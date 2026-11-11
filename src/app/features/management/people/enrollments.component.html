@@ -77,14 +77,13 @@
                 <span class="numero">{{ n + 1 }}</span>
                 <span class="avatar">{{ iniciales(e.nombre) }}</span>
                 <span class="nombre"><strong>{{ e.nombre }}</strong><small>{{ edadDe(e) }} años · CI {{ e.ci }}</small></span>
-                <select #mover class="ui-input mover" [attr.aria-label]="'Cambiar de paralelo a ' + e.nombre" [disabled]="trabajando() === e.id" (change)="cambiar(e, mover)">
-                  <option value="">Cambiar a…</option>
+                <app-select placeholder="Cambiar a…" [value]="''" class="mover compacto" [ariaLabel]="'Cambiar de paralelo a ' + e.nombre" [disabled]="trabajando() === e.id" (valueChange)="cambiar(e, $event)">
                   @for (p of paralelos.value(); track p.id) {
                     @if (p.id !== sel.id) {
-                      <option [value]="p.id" [disabled]="lleno(p)">{{ paraleloLabel(p) }} · {{ p.estudiantes }}/{{ p.capacidad }}</option>
+                      <app-option [value]="p.id" [label]="(paraleloLabel(p)) + ' · ' + (p.estudiantes) + '/' + (p.capacidad)" [disabled]="lleno(p)" />
                     }
                   }
-                </select>
+                </app-select>
                 <button type="button" class="ui-btn ui-btn--icono" [disabled]="trabajando() === e.id" (click)="retirar(e)" [attr.aria-label]="'Retirar a ' + e.nombre" title="Retirar del curso"><fa-icon [icon]="faUserMinus" /></button>
               </li>
             } @empty {

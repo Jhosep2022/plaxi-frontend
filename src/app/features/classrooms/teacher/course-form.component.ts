@@ -13,13 +13,14 @@ import { ClassroomCoverComponent } from '../../../shared/classrooms/classroom-co
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { getErrorMessage } from '../../management/academics/academics.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 const VACIO: DatosCurso = { nombre: '', descripcion: '', categoria: '', nivel: 'Principiante', visibilidad: 'publico', aprobacionManual: false, portada: '' };
 
 // Formulario para crear o editar un curso de academia (nombre, categoría, nivel, visibilidad, aprobación y portada)
 @Component({
   selector: 'app-course-form',
-  imports: [FaIconComponent, DrawerComponent, ClassroomCoverComponent],
+  imports: [...SELECT, FaIconComponent, DrawerComponent, ClassroomCoverComponent],
   styles: `
     .portada { position: relative; }
     .portada-acciones { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; }
@@ -98,9 +99,9 @@ const VACIO: DatosCurso = { nombre: '', descripcion: '', categoria: '', nivel: '
           </div>
           <div class="ui-campo">
             <label for="curso-nivel">Nivel</label>
-            <select id="curso-nivel" class="ui-input" (change)="cambiar('nivel', $any($event.target).value)">
-              @for (n of niveles; track n) { <option [value]="n" [selected]="modelo().nivel === n">{{ n }}</option> }
-            </select>
+            <app-select [value]="modelo().nivel" inputId="curso-nivel" (valueChange)="cambiar('nivel', $event)">
+              @for (n of niveles; track n) { <app-option [value]="n" [label]="(n)" /> }
+            </app-select>
           </div>
         </div>
         <span class="ui-etiqueta">¿Quién puede encontrarlo?</span>

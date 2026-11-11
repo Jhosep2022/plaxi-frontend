@@ -14,6 +14,7 @@ import { BorradorPregunta, QuizService } from '../../../services/quiz.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { getErrorMessage } from '../../management/academics/academics.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 interface PreguntaEditable extends BorradorPregunta {
   clave: number; // identificador local para el @for
@@ -29,7 +30,7 @@ const nueva = (tipo: TipoPregunta): PreguntaEditable => ({
 @Component({
   selector: 'app-quiz-editor',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, RouterLink, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, RouterLink, EmptyStateComponent],
   templateUrl: './quiz-editor.component.html',
   styleUrls: ['./quiz-editor.component.css'],
 })

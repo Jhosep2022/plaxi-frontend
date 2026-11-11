@@ -18,6 +18,7 @@ import { subjectIcon } from '../../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { AcademyTeacherGradesComponent } from '../../academy/academy-grades.component';
 import { getErrorMessage } from '../../management/academics/academics.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 const clave = (actividadId: number, estudianteId: number) => `${actividadId}-${estudianteId}`;
 
@@ -25,7 +26,7 @@ const clave = (actividadId: number, estudianteId: number) => `${actividadId}-${e
 @Component({
   selector: 'app-record-grades',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, AcademyTeacherGradesComponent],
+  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, AcademyTeacherGradesComponent],
   templateUrl: './record-grades.component.html',
   styleUrls: ['./record-grades.component.css'],
 })

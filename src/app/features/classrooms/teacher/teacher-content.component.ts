@@ -13,6 +13,7 @@ import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { getErrorMessage } from '../../management/academics/academics.ui';
+import { SELECT } from '../../../shared/ui/select.component';
 
 export const ICONO_TEMA: Record<TipoTema, typeof faVideo> = { texto: faFileLines, video: faVideo, pdf: faFilePdf, enlace: faLink };
 
@@ -22,7 +23,7 @@ const TEMA_VACIO = { unidadId: '', titulo: '', tipo: 'texto' as TipoTema, conten
 // Editor del contenido del aula: unidades y temas, orden, borradores, bloqueo y copia a otros paralelos
 @Component({
   selector: 'app-teacher-content',
-  imports: [FaIconComponent, FormField, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, DrawerComponent, EmptyStateComponent],
   templateUrl: './teacher-content.component.html',
   styleUrls: ['./teacher-content.component.css'],
 })

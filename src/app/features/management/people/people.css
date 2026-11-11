@@ -64,7 +64,7 @@
   padding-left: 34px;
 }
 
-.filtros select {
+.filtros app-select {
   width: 200px;
 }
 

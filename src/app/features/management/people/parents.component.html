@@ -22,12 +22,12 @@
     <fa-icon [icon]="faMagnifyingGlass" />
     <input class="ui-input" placeholder="Buscar por nombre, CI o nombre del hijo" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar padre o tutor" />
   </label>
-  <select class="ui-input" aria-label="Curso del hijo" (change)="curso.set($any($event.target).value)">
-    <option value="todos" [selected]="curso() === 'todos'">Todos los cursos</option>
+  <app-select [value]="curso()" class="compacto" ariaLabel="Curso del hijo" (valueChange)="curso.set($event)">
+    <app-option [value]="'todos'" [label]="'Todos los cursos'" />
     @for (p of cursos(); track p.id) {
-      <option [value]="'' + p.id" [selected]="curso() === '' + p.id">Hijos en {{ paraleloLabel(p) }}</option>
+      <app-option [value]="'' + p.id" [label]="'Hijos en ' + (paraleloLabel(p))" />
     }
-  </select>
+  </app-select>
   <span class="contador-filas">{{ visibles().length }} de {{ conteo().total }}</span>
 </div>
 
@@ -127,21 +127,18 @@
     <div class="hijos">
       @for (h of hijos(); track $index; let i = $index) {
         <div class="hijo">
-          <select class="ui-input" [id]="'pad-hijo-' + i" aria-label="Estudiante" (change)="updateDependentStudent(i, { estudianteId: $any($event.target).value })">
-            <option value="" [selected]="h.estudianteId === ''">Elige un estudiante</option>
+          <app-select placeholder="Elige un estudiante" [value]="h.estudianteId" [inputId]="'pad-hijo-' + i" ariaLabel="Estudiante" (valueChange)="updateDependentStudent(i, { estudianteId: $event })">
             @for (g of opcionesEstudiante(); track g.label) {
-              <optgroup [label]="g.label">
                 @for (e of g.estudiantes; track e.id) {
-                  <option [value]="'' + e.id" [selected]="h.estudianteId === '' + e.id">{{ e.nombre }}</option>
+                  <app-option [value]="'' + e.id" [label]="e.nombre" [group]="g.label" />
                 }
-              </optgroup>
             }
-          </select>
-          <select class="ui-input" [id]="'pad-par-' + i" aria-label="Parentesco" (change)="updateDependentStudent(i, { parentesco: $any($event.target).value })">
+          </app-select>
+          <app-select [value]="h.parentesco" [inputId]="'pad-par-' + i" ariaLabel="Parentesco" (valueChange)="updateDependentStudent(i, { parentesco: $any($event) })">
             @for (p of parentescos; track p.id) {
-              <option [value]="p.id" [selected]="h.parentesco === p.id">{{ p.label }}</option>
+              <app-option [value]="p.id" [label]="(p.label)" />
             }
-          </select>
+          </app-select>
           <button type="button" class="ui-btn ui-btn--icono" (click)="removeDependentStudent(i)" aria-label="Quitar estudiante"><fa-icon [icon]="faTrash" /></button>
         </div>
       }
