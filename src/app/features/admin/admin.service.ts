@@ -4,7 +4,8 @@ import { MOCK_ADMIN, MOCK_SOLICITUDES_COLEGIO as MOCK_SCHOOL_REQUESTS } from '..
 import type { SchoolRequestStatus as LegacyRequestStatus } from '../../core/models/auth.model';
 import type { ProfileDto } from '../../models/profile.dto';
 
-export type AdminSpaceStatus = 'trial' | 'active' | 'read_only' | 'suspended';
+export type AdminSpaceStatus = 'active' | 'read_only' | 'suspended';
+export type AdminSpacePlan = 'free' | 'paid'; // academies only; schools are always paid
 export type AdminRequestStatus = 'new' | 'contacted' | 'converted' | 'discarded';
 export interface AdminSpace {
   id: number;
@@ -12,8 +13,8 @@ export interface AdminSpace {
   name: string;
   type: 'school' | 'academy';
   status: AdminSpaceStatus;
-  trialEndsOn: string | null;
-  limits: { courses: number; students: number; storageGb: number };
+  plan: AdminSpacePlan;
+  limits: { courses: number | null; students: number | null; storageGb: number }; // null = no limit
   memberCount: number;
 }
 export interface AdminSchoolRequest {
@@ -52,11 +53,11 @@ const INITIAL_SPACES: AdminSpace[] = MOCK_SPACES.map((space) => ({
   slug: space.slug,
   name: space.nombre,
   type: space.tipo === 'colegio' ? 'school' : 'academy',
-  status: space.tipo === 'colegio' ? 'active' : 'trial',
-  trialEndsOn: space.tipo === 'academia' ? '2026-11-15' : null,
+  status: 'active',
+  plan: space.tipo === 'colegio' ? 'paid' : 'free',
   limits: space.tipo === 'academia'
-    ? { courses: 3, students: 30, storageGb: 1 }
-    : { courses: 0, students: 500, storageGb: 5 },
+    ? { courses: 3, students: 10, storageGb: 1 }
+    : { courses: null, students: 500, storageGb: 5 },
   memberCount: MOCK_MEMBERSHIPS.filter((membership) => membership.espacioId === space.id).length,
 }));
 
@@ -100,7 +101,7 @@ export class AdminService {
     suspendedSpaces: this.spaces().filter((space) => space.status === 'suspended').length,
   }));
 
-  updateSpace(id: number, change: Partial<Pick<AdminSpace, 'status' | 'trialEndsOn' | 'limits'>>, reason: string): void {
+  updateSpace(id: number, change: Partial<Pick<AdminSpace, 'status' | 'plan' | 'limits'>>, reason: string): void {
     const current = this.spaces().find((space) => space.id === id);
     if (!current || !reason.trim()) return;
     this.spaces.update((spaces) => spaces.map((space) => space.id === id ? { ...space, ...change } : space));
@@ -134,7 +135,11 @@ export class AdminService {
 }
 
 export function spaceStatusLabel(status: AdminSpaceStatus): string {
-  return { trial: 'En prueba', active: 'Activo', read_only: 'Solo lectura', suspended: 'Suspendido' }[status];
+  return { active: 'Activo', read_only: 'Solo lectura', suspended: 'Suspendido' }[status];
+}
+
+export function spacePlanLabel(plan: AdminSpacePlan): string {
+  return { free: 'Gratis', paid: 'Pagado' }[plan];
 }
 
 export function requestStatusLabel(status: AdminRequestStatus): string {

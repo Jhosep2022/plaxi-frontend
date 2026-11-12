@@ -10,7 +10,6 @@ import { EstadoLicencia, Licencia } from '../../../core/models/attendance.model'
 import { formatShortDate } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { AttendanceService } from '../../../services/attendance.service';
-import { ProfileService } from '../../../services/profile.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -29,7 +28,6 @@ export class LeaveRequestsComponent {
   private session = inject(SessionService);
   private asistencia = inject(AttendanceService);
   private academico = inject(AcademicsService);
-  private perfiles = inject(ProfileService);
   private avisos = inject(NotificationService);
 
   readonly faCheck = faCheck;
@@ -43,7 +41,7 @@ export class LeaveRequestsComponent {
       licencias: this.asistencia.getLeaveRequests(this.espacioId),
       estudiantes: this.asistencia.getStudents(),
       paralelos: this.academico.getActiveClassGroups(this.espacioId),
-      perfiles: this.perfiles.getAllProfiles(),
+      solicitantes: this.asistencia.getLeaveRequesters(),
     }),
   });
 
@@ -63,12 +61,12 @@ export class LeaveRequestsComponent {
       .map((l) => {
         const est = d.estudiantes.find((e) => e.id === l.estudianteId);
         const paralelo = d.paralelos.find((p) => p.id === est?.paraleloId);
-        const padre = d.perfiles.find((p) => p.idUsuario === l.solicitadaPor);
+        const padre = d.solicitantes.get(l.solicitadaPor);
         return {
           licencia: l,
           estudiante: est?.nombre ?? 'Estudiante',
           paralelo: paralelo ? paraleloLabel(paralelo) : '',
-          solicitante: padre ? `Solicitada por ${padre.nombre} ${padre.primerApellido} (tutor legal)` : 'Registrada por el colegio',
+          solicitante: padre ? `Solicitada por ${padre} (tutor legal)` : 'Registrada por el colegio',
         };
       });
   });

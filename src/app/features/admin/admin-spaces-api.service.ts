@@ -1,13 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import type { AdminSpace, AdminSpaceStatus } from './admin.service';
+import type { AdminSpace, AdminSpacePlan, AdminSpaceStatus } from './admin.service';
 
 export interface PlatformSpace extends AdminSpace {
   paidUntil: string | null;
 }
 
-interface SpaceResponse extends Omit<PlatformSpace, 'memberCount'> {
+export interface SpaceResponse extends Omit<PlatformSpace, 'memberCount'> {
   memberCounts: { directors: number; teachers: number; students: number; parents: number };
 }
 
@@ -20,8 +20,13 @@ export class AdminSpacesApiService {
     return this.http.get<SpaceResponse[]>(this.url, { params: new HttpParams().set('type', type).set('page', page) });
   }
 
-  changeStatus(id: number, status: Exclude<AdminSpaceStatus, 'trial'>, reason: string) {
+  changeStatus(id: number, status: AdminSpaceStatus, reason: string) {
     return this.http.put(`${this.url}/${id}/status`, { status, reason });
+  }
+
+  // Academies only: free plan (10 students, 1 GB) or paid plan (10 GB, no student limit)
+  changePlan(id: number, plan: AdminSpacePlan, reason: string) {
+    return this.http.put(`${this.url}/${id}/plan`, { plan, reason });
   }
 
   changeLimits(id: number, limits: PlatformSpace['limits'], reason: string) {

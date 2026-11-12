@@ -21,7 +21,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
-import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { ClassroomsService } from '../../services/classrooms.service';
 import { subjectIcon } from '../../shared/ui/academic-icons';
@@ -46,7 +45,6 @@ export class SidebarComponent {
   private router = inject(Router);
   protected readonly session = inject(SessionService);
   private perfilService = inject(AccountProfileService);
-  private courseService = inject(CourseService);
   private inscripcionService = inject(EnrollmentService);
   private aulas = inject(ClassroomsService);
   private elementRef = inject(ElementRef<HTMLElement>);

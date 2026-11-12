@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   EstadoAsistencia,
@@ -11,6 +11,7 @@ import {
 } from '../core/models/attendance.model';
 import { todayIso } from '../core/utils/attendance';
 import { MOCK_CONFIG_ASISTENCIA, MOCK_ESTUDIANTES, MOCK_LICENCIAS, MOCK_REGISTROS } from '../mocks/attendance.mock';
+import { MOCK_PERFILES } from '../mocks/mock-data';
 import { MockRepository } from './mock-repository';
 
 export interface MarcaAsistencia {
@@ -89,6 +90,11 @@ export class AttendanceService {
   }
 
   // ---------- Licencias ----------
+  // Name of the parent who asked for each leave (MOCK: it goes away when attendance is connected to the API)
+  getLeaveRequesters(): Observable<Map<number, string>> {
+    return of(new Map(MOCK_PERFILES.map((p) => [p.idUsuario, `${p.nombre} ${p.primerApellido}`])));
+  }
+
   getLeaveRequests(espacioId: number): Observable<Licencia[]> {
     return this.licenciasRepo.list((l) => l.espacioId === espacioId).pipe(map((ls) => ls.sort((a, b) => b.creada.localeCompare(a.creada) || b.id - a.id)));
   }

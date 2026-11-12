@@ -2,7 +2,7 @@ import type { AdminRequestStatus, AdminSpaceStatus } from './admin.service';
 
 // Badge classes per status, shared by the admin pages
 export function spaceStatusTone(status: AdminSpaceStatus): string {
-  return { trial: 'ui-badge tono-azul', active: 'ui-badge tono-lima', read_only: 'ui-badge tono-crema', suspended: 'ui-badge tono-rojo' }[status];
+  return { active: 'ui-badge tono-lima', read_only: 'ui-badge tono-crema', suspended: 'ui-badge tono-rojo' }[status];
 }
 
 export function requestStatusTone(status: AdminRequestStatus): string {

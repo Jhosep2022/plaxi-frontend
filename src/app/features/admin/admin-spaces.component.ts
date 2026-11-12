@@ -9,7 +9,7 @@ import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { readApiError } from '../../core/api/api-error';
-import { spaceStatusLabel, type AdminSpaceStatus } from './admin.service';
+import { spacePlanLabel, spaceStatusLabel, type AdminSpacePlan, type AdminSpaceStatus } from './admin.service';
 import { AdminSpacesApiService, toPlatformSpace } from './admin-spaces-api.service';
 import { spaceStatusTone } from './admin-ui';
 import { SELECT } from '../../shared/ui/select.component';
@@ -66,13 +66,20 @@ type StatusFilter = AdminSpaceStatus | '';
                     <div><strong>{{ space.name }}</strong><small>aulix.alclick.dev/{{ space.slug }}</small></div>
                   </div>
                 </td>
-                <td><span [class]="statusTone(space.status)">{{ statusLabel(space.status) }}</span></td>
+                <td>
+                  <div class="chips">
+                    <span [class]="statusTone(space.status)">{{ statusLabel(space.status) }}</span>
+                    @if (!isSchool()) {
+                      <span class="ui-badge" [class.tono-azul]="space.plan === 'paid'" [pTooltip]="space.plan === 'free' ? 'Gratis para siempre hasta 10 estudiantes y 1 GB' : 'Plan pagado: 10 GB y sin tope de estudiantes'" tooltipPosition="top">{{ planLabel(space.plan) }}</span>
+                    }
+                  </div>
+                </td>
                 <td>{{ space.memberCount }}</td>
                 <td>{{ space.paidUntil || '—' }}</td>
                 <td>
                   <div class="chips">
-                    <span class="ui-badge" pTooltip="Estudiantes como máximo" tooltipPosition="top">{{ space.limits.students }} est.</span>
-                    @if (!isSchool()) { <span class="ui-badge" pTooltip="Cursos como máximo" tooltipPosition="top">{{ space.limits.courses }} cursos</span> }
+                    <span class="ui-badge" pTooltip="Estudiantes como máximo" tooltipPosition="top">{{ space.limits.students ?? 'Sin límite de' }} est.</span>
+                    @if (!isSchool()) { <span class="ui-badge" pTooltip="Cursos como máximo" tooltipPosition="top">{{ space.limits.courses ?? 'Sin límite de' }} cursos</span> }
                     <span class="ui-badge" pTooltip="Almacenamiento máximo" tooltipPosition="top">{{ space.limits.storageGb }} GB</span>
                   </div>
                 </td>
@@ -115,11 +122,20 @@ type StatusFilter = AdminSpaceStatus | '';
           <div class="botones"><button class="ui-btn" type="button" (click)="saveStatus()">Guardar estado</button></div>
         </section>
 
+        <section class="bloque" [hidden]="isSchool()">
+          <h3>Plan</h3>
+          <p>Gratis: hasta 10 estudiantes y 1 GB, para siempre. Pagado: 10 GB y sin tope de estudiantes.</p>
+          <app-select inputId="plan-admin" [value]="newPlan()" (valueChange)="newPlan.set($any($event))" ariaLabel="Plan de la academia">
+            <app-option [value]="'free'" [label]="'Gratis'" /><app-option [value]="'paid'" [label]="'Pagado'" />
+          </app-select>
+          <div class="botones"><button class="ui-btn ui-btn--secundario" type="button" [disabled]="newPlan() === space.plan" (click)="savePlan()">Cambiar plan</button></div>
+        </section>
+
         <section class="bloque">
           <h3>Límites del plan</h3>
           <div class="ui-fila">
-            <div class="ui-campo" [hidden]="isSchool()"><label for="cursos-admin">Cursos</label><input id="cursos-admin" class="ui-input" type="number" min="0" [value]="space.limits.courses" #courses /></div>
-            <div class="ui-campo"><label for="estudiantes-admin">Estudiantes</label><input id="estudiantes-admin" class="ui-input" type="number" min="1" [value]="space.limits.students" #students /></div>
+            <div class="ui-campo" [hidden]="isSchool()"><label for="cursos-admin">Cursos</label><input id="cursos-admin" class="ui-input" type="number" min="0" [value]="space.limits.courses ?? ''" placeholder="Sin límite" #courses /></div>
+            <div class="ui-campo"><label for="estudiantes-admin">Estudiantes</label><input id="estudiantes-admin" class="ui-input" type="number" min="1" [value]="space.limits.students ?? ''" placeholder="Sin límite" #students /></div>
             <div class="ui-campo"><label for="almacen-admin">Almacenamiento (GB)</label><input id="almacen-admin" class="ui-input" type="number" min="1" [value]="space.limits.storageGb" #storage /></div>
           </div>
           <div class="botones">
@@ -164,6 +180,8 @@ export class AdminSpacesComponent {
   protected readonly statusFilter = signal<StatusFilter>('');
   protected readonly selectedId = signal<number | null>(null);
   protected readonly newStatus = signal<AdminSpaceStatus>('active');
+  protected readonly newPlan = signal<AdminSpacePlan>('free');
+  protected readonly planLabel = spacePlanLabel;
   protected readonly reason = signal('');
 
   protected readonly page = signal(1);
@@ -200,7 +218,8 @@ export class AdminSpacesComponent {
     const space = this.ofType().find((row) => row.id === id);
     if (!space) return;
     this.selectedId.set(id);
-    this.newStatus.set(space.status === 'trial' ? 'active' : space.status);
+    this.newStatus.set(space.status);
+    this.newPlan.set(space.plan);
     this.reason.set('');
   }
 
@@ -209,9 +228,20 @@ export class AdminSpacesComponent {
     this.notifications.error('Escribe el motivo del cambio.');
     return false;
   }
+  async savePlan(): Promise<void> {
+    if (!this.validate() || !this.selectedId()) return;
+    try {
+      await firstValueFrom(this.api.changePlan(this.selectedId()!, this.newPlan(), this.reason()));
+      this.spaces.reload();
+      this.notifications.success(this.newPlan() === 'paid' ? 'La academia pasó al plan pagado.' : 'La academia volvió al plan gratis.');
+    } catch (error) {
+      this.notifications.error(readApiError(error).message);
+    }
+  }
+
   async saveStatus(): Promise<void> {
     if (this.validate() && this.selectedId()) {
-      try { await firstValueFrom(this.api.changeStatus(this.selectedId()!, this.newStatus() as Exclude<AdminSpaceStatus, 'trial'>, this.reason())); this.spaces.reload(); this.notifications.success('Estado actualizado.'); }
+      try { await firstValueFrom(this.api.changeStatus(this.selectedId()!, this.newStatus(), this.reason())); this.spaces.reload(); this.notifications.success('Estado actualizado.'); }
       catch (error) { this.notifications.error(readApiError(error).message); }
     }
   }
