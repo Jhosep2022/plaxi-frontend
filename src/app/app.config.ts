@@ -6,8 +6,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideSignalFormsConfig } from '@angular/forms/signals';
 import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
-import AuraBase from '@primeuix/themes/aura/base';
-import AuraToast from '@primeuix/themes/aura/toast';
+import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
 import { AulixTitleStrategy, RecrearConParametrosStrategy } from './core/routing/router-strategies';
@@ -23,7 +22,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideAppInitializer(() => firstValueFrom(inject(SessionService).restoreSession())),
     provideAnimationsAsync(),
-    providePrimeNG({ theme: { preset: { ...AuraBase, components: { toast: AuraToast } }, options: { darkModeSelector: false } } }),
+    providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: false } } }),
     MessageService,
     // Every field the person already touched and is invalid gets a red border (.ui-invalido in ui.css)
     provideSignalFormsConfig({ classes: { 'ui-invalido': (field) => field.state().invalid() && field.state().touched() } }),

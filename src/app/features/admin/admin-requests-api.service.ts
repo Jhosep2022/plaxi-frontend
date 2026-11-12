@@ -41,7 +41,8 @@ export class AdminRequestsApiService {
 
   createSchool(id: number, input: {
     name: string; slug: string; directorFirstName: string; directorLastName: string;
-    directorEmail: string; academicYear: number;
+    directorEmail: string; academicYear: number; seats: number; amountBs: string;
+    paidAt: string; periodFrom: string; periodTo: string; paymentReference: string;
   }) {
     return this.http.post<CreateSchoolResult>(`${this.url}/${id}/school`, input);
   }

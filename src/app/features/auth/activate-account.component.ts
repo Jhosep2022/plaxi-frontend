@@ -2,6 +2,8 @@ import { Component, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormField, form, required, submit, validate } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { firstValueFrom, of } from 'rxjs';
 import { AuthApiService, type ActivationStatus } from '../../core/api/auth-api.service';
 import { readApiError } from '../../core/api/api-error';
@@ -10,7 +12,7 @@ import { getPasswordError } from '../../core/utils/password';
 
 @Component({
   selector: 'app-activate-account',
-  imports: [FormField, RouterLink],
+  imports: [FormField, RouterLink, FaIconComponent],
   styleUrls: ['./auth.css'],
   template: `
     @if (invitation.isLoading()) {
@@ -25,12 +27,18 @@ import { getPasswordError } from '../../core/utils/password';
       <form class="ui-form" (submit)="$event.preventDefault(); activate()" novalidate>
         <div class="ui-campo">
           <label for="activation-password">Crea una contraseña</label>
-          <input id="activation-password" type="password" class="ui-input" autocomplete="new-password" [formField]="activationForm.password" />
+          <div class="campo-clave">
+            <input id="activation-password" [type]="showPassword() ? 'text' : 'password'" class="ui-input" autocomplete="new-password" [formField]="activationForm.password" />
+            <button type="button" class="ver-clave" (click)="showPassword.update((visible) => !visible)" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword()"><fa-icon [icon]="showPassword() ? faEyeSlash : faEye" /></button>
+          </div>
           @if (activationForm.password().touched() && activationForm.password().invalid()) { <span class="ui-error">{{ activationForm.password().errors()[0].message }}</span> }
         </div>
         <div class="ui-campo">
           <label for="activation-confirmation">Repite la contraseña</label>
-          <input id="activation-confirmation" type="password" class="ui-input" autocomplete="new-password" [formField]="activationForm.confirmation" />
+          <div class="campo-clave">
+            <input id="activation-confirmation" [type]="showConfirmation() ? 'text' : 'password'" class="ui-input" autocomplete="new-password" [formField]="activationForm.confirmation" />
+            <button type="button" class="ver-clave" (click)="showConfirmation.update((visible) => !visible)" [attr.aria-label]="showConfirmation() ? 'Ocultar confirmación' : 'Mostrar confirmación'" [attr.aria-pressed]="showConfirmation()"><fa-icon [icon]="showConfirmation() ? faEyeSlash : faEye" /></button>
+          </div>
           @if (activationForm.confirmation().touched() && activationForm.confirmation().invalid()) { <span class="ui-error">{{ activationForm.confirmation().errors()[0].message }}</span> }
         </div>
         @if (error()) { <p class="error-general" role="alert">{{ error() }}</p> }
@@ -40,6 +48,8 @@ import { getPasswordError } from '../../core/utils/password';
   `,
 })
 export class ActivateAccountComponent {
+  readonly faEye = faEye;
+  readonly faEyeSlash = faEyeSlash;
   private readonly auth = inject(AuthApiService);
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
@@ -47,6 +57,8 @@ export class ActivateAccountComponent {
   readonly token = input<string>();
   readonly invitation = rxResource({ params: () => this.token(), stream: ({ params }) => params ? this.auth.getActivationStatus(params) : of<ActivationStatus>({ valido: false }) });
   readonly details = signal({ password: '', confirmation: '' });
+  readonly showPassword = signal(false);
+  readonly showConfirmation = signal(false);
   readonly activationForm = form(this.details, (fields) => {
     required(fields.password, { message: 'Crea una contraseña.' });
     validate(fields.password, ({ value }) => getPasswordError(value()) ? { kind: 'weak', message: getPasswordError(value()) } : undefined);
