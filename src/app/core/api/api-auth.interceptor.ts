@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { ApiSessionService } from './api-session.service';
 import { SessionService } from '../auth/session.service';
 import { readApiError } from './api-error';
+import { isTemporaryFailure } from './session-errors';
 
 const authPrefix = `${environment.API_URL}/auth/`;
 
@@ -22,7 +23,11 @@ export const apiAuthInterceptor: HttpInterceptorFn = (request, next) => {
       if (!isExpiredSession(error)) return throwError(() => error);
       return session.refreshSession().pipe(
         catchError((refreshError: unknown) => {
-          sessionState.expireSession(readApiError(refreshError).code === 'sesion_reemplazada' ? 'sesion_reemplazada' : undefined);
+          // Only an invalid session signs out. A network or server failure keeps it: this request fails
+          // and the next one tries again, so a weak signal at school does not log anyone out.
+          if (!isTemporaryFailure(refreshError)) {
+            sessionState.expireSession(readApiError(refreshError).code === 'sesion_reemplazada' ? 'sesion_reemplazada' : undefined);
+          }
           return throwError(() => refreshError);
         }),
         switchMap((response) => {

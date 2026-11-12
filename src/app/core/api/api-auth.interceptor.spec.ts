@@ -1,6 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { apiAuthInterceptor } from './api-auth.interceptor';
 import { ApiSessionService } from './api-session.service';
@@ -73,5 +73,43 @@ describe('apiAuthInterceptor', () => {
     controller.expectOne(profileUrl).flush({ code: 'sesion_reemplazada' }, { status: 401, statusText: 'Unauthorized' });
     controller.expectOne(refreshUrl).flush({ code: 'sesion_reemplazada' }, { status: 401, statusText: 'Unauthorized' });
     expect(TestBed.inject(SessionService).expireSession).toHaveBeenCalledWith('sesion_reemplazada');
+  });
+
+  it('keeps the session when the refresh fails because there is no connection', fakeAsync(() => {
+    session.setAccessToken('expired-token');
+    let failed = false;
+    http.get(profileUrl).subscribe({ error: () => (failed = true) });
+    controller.expectOne(profileUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    controller.expectOne(refreshUrl).error(new ProgressEvent('error'), { status: 0 });
+    tick(1_000);
+    controller.expectOne(refreshUrl).error(new ProgressEvent('error'), { status: 0 });
+    tick(3_000);
+    controller.expectOne(refreshUrl).error(new ProgressEvent('error'), { status: 0 });
+    expect(failed).toBeTrue();
+    expect(TestBed.inject(SessionService).expireSession).not.toHaveBeenCalled();
+  }));
+
+  it('retries a refresh that failed with a server error and continues with the request', fakeAsync(() => {
+    session.setAccessToken('expired-token');
+    let body: unknown;
+    http.get(profileUrl).subscribe((response) => (body = response));
+    controller.expectOne(profileUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    controller.expectOne(refreshUrl).flush({}, { status: 503, statusText: 'Service Unavailable' });
+    tick(1_000);
+    controller.expectOne(refreshUrl).flush({ accessToken: 'new-token' });
+    const retried = controller.expectOne(profileUrl);
+    expect(retried.request.headers.get('Authorization')).toBe('Bearer new-token');
+    retried.flush({ ok: true });
+    expect(body).toEqual({ ok: true });
+    expect(TestBed.inject(SessionService).expireSession).not.toHaveBeenCalled();
+  }));
+
+  it('does not retry an invalid session: one refresh and sign out', () => {
+    session.setAccessToken('expired-token');
+    http.get(profileUrl).subscribe({ error: () => undefined });
+    controller.expectOne(profileUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    controller.expectOne(refreshUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    controller.expectNone(refreshUrl);
+    expect(TestBed.inject(SessionService).expireSession).toHaveBeenCalled();
   });
 });
