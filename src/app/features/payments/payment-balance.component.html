@@ -1,0 +1,62 @@
+@if (account(); as balance) {
+  <section class="ui-card balance-panel" aria-label="Resumen del saldo">
+    <header><div><h2>{{ isSchool() ? 'Saldo del colegio' : 'Saldo de la academia' }}</h2><p>Cuenta completa · todas las gestiones registradas</p></div>
+      @if (sources().length) { <button class="ui-btn ui-btn--secundario" type="button" (click)="view.set('origin')">Ver origen del saldo</button> }
+    </header>
+    <div class="balance-grid">
+      <div><span>Total acordado</span><strong>{{ balance.hasAgreements ? money(balance.agreedBs) : 'Por definir' }}</strong></div>
+      <div><span>Dinero recibido</span><strong>{{ money(balance.receivedBs) }}</strong></div>
+      <div><span>Aplicado a cuotas</span><strong>{{ money(balance.appliedBs) }}</strong></div>
+      <div><span>Deuda por pagar</span><strong>{{ balance.hasAgreements ? money(balance.outstandingBs) : 'Por definir' }}</strong></div>
+      <div class="credit"><span>{{ balance.hasAgreements && !balance.undeterminedCount ? 'Saldo a favor' : 'Dinero disponible' }}</span><strong>{{ money(balance.hasAgreements ? balance.creditBs : balance.availableBs) }}</strong></div>
+    </div>
+    @if (balance.years.length) { <p class="balance-note">Calculado con los acuerdos registrados de {{ balance.years.join(', ') }}. Este saldo general se conserva al consultar otro año del calendario.</p> }
+    @if (!balance.hasAgreements) { <p class="balance-note">Todavía no hay obligaciones configuradas. El dinero recibido se conserva disponible; falta definir el acuerdo para calcular la deuda.</p> }
+    @if (balance.undeterminedCount) { <p class="balance-note">Hay {{ balance.undeterminedCount }} meses con importe por confirmar. El cálculo incluye únicamente las cuotas con monto conocido.</p> }
+    @if (balance.hasPendingAllocation) { <p class="balance-note">Hay {{ money(balance.availableBs) }} disponibles sin aplicar y {{ money(balance.pendingInstallmentsBs) }} de cuotas pendientes de reparto. Revisa su aplicación: el dinero recibido ya está incluido en este resumen.</p> }
+    @if (plan()?.applications?.length) {
+      @if (editable()) { <button class="ui-btn" type="button" (click)="reviewCredit()">Revisar aplicación del saldo</button> }
+      @else { <p class="balance-note">Alclick puede aplicar el dinero disponible a tus cuotas pendientes. El reparto quedará visible en el detalle de los pagos.</p> }
+    } @else if (sources().length) { <p class="balance-note">El dinero disponible se conserva para próximas obligaciones. Para calcular la siguiente gestión, primero deben estar inscritos sus estudiantes; la renovación tiene diez cuotas y no repite el anticipo de instalación.</p> }
+  </section>
+
+  <app-drawer [abierto]="view() === 'credit'" titulo="Aplicar saldo disponible" [subtitulo]="history().space.name" (cerrar)="!saving() && view.set(null)">
+    @if (plan(); as proposal) {
+      <p class="origin-total"><span>Dinero existente que se aplicará</span><strong>{{ money(proposal.amountBs) }}</strong></p>
+      <p class="balance-note">Primero se cubren las cuotas confirmadas más antiguas, aunque pertenezcan a otra gestión. Cada importe conserva el pago de origen. Esta operación no registra otro ingreso.</p>
+      @for (application of proposal.applications; track $index) {
+        <div class="application"><span>{{ application.label }} · {{ application.year }}<br><small>Del pago #{{ application.paymentId }}</small></span><strong>{{ money(application.amountBs) }}</strong></div>
+      }
+      <p class="balance-note">Disponible después: <strong>{{ money(proposal.remainingCreditBs) }}</strong></p>
+      @if (error()) { <p class="ui-error" role="alert">{{ error() }} Cierra este panel y actualiza el historial para revisar el reparto vigente.</p> }
+    }
+    <div pie><button class="ui-btn" type="button" [disabled]="saving() || !plan()?.applications?.length" (click)="applyCredit()">{{ saving() ? 'Aplicando…' : 'Confirmar aplicación del saldo' }}</button></div>
+  </app-drawer>
+
+  <app-drawer [abierto]="view() === 'origin'" titulo="Origen del saldo disponible" [subtitulo]="history().space.name" (cerrar)="view.set(null)">
+    <p class="origin-total"><span>Dinero registrado sin aplicar a cuotas</span><strong>{{ money(balance.availableBs) }}</strong></p>
+    <p class="balance-note">Cada importe sigue vinculado al pago que lo originó. Consultar otro año no lo borra ni registra otro depósito.</p>
+    @for (source of sources(); track source.paymentId) {
+      <section class="source"><button type="button" class="source-link" (click)="openPayment(source.paymentId)">Ver pago #{{ source.paymentId }}</button>
+        <dl><div><dt>Dinero recibido</dt><dd>{{ money(source.receivedBs) }}</dd></div><div><dt>Aplicado a cuotas</dt><dd>{{ money(source.appliedBs) }}</dd></div><div><dt>Importe disponible</dt><dd>{{ money(source.availableBs) }}</dd></div></dl>
+        @if (source.historical) { <p class="balance-note">Este pago se registró con un período escrito manualmente. Su aplicación y cobertura deben revisarse con el acuerdo.</p> }
+      </section>
+    }
+  </app-drawer>
+
+  <app-drawer [abierto]="view() === 'payment'" [titulo]="'Detalle del pago #' + selectedId()" [subtitulo]="history().space.name" (cerrar)="view.set(null)">
+    @if (payment(); as entry) {
+      <dl><div><dt>Dinero recibido</dt><dd>{{ money(entry.amountBs) }}</dd></div><div><dt>Fecha de recepción</dt><dd>{{ date(entry.paidAt) }}</dd></div><div><dt>Registrado por</dt><dd>{{ entry.recordedByName }}</dd></div><div><dt>Fecha de registro</dt><dd>{{ date(entry.createdAt) }}</dd></div><div><dt>Estado</dt><dd>{{ entry.isCurrent ? 'Vigente' : 'Corregido' }}</dd></div>
+        @if (entry.reference) { <div><dt>Detalle</dt><dd>{{ entry.reference }}</dd></div> }
+      </dl>
+      @if (breakdown(); as amounts) {
+        <section class="source"><h3>Aplicación del dinero</h3><dl><div><dt>Aplicado a cuotas</dt><dd>{{ money(amounts.appliedBs) }}</dd></div><div><dt>Disponible de este pago</dt><dd>{{ money(amounts.availableBs) }}</dd></div></dl>
+          @for (application of amounts.applications; track $index) { <div class="application"><span>{{ application.label }} · {{ application.year }}@if (application.creditApplicationId) { <br><small>Aplicación de saldo #{{ application.creditApplicationId }}</small> }</span><strong>{{ money(application.amountBs) }}</strong></div> }
+        </section>
+        @if (amounts.historical) { <p class="balance-note">La aplicación de este registro anterior se calculó por su período. La gestión y cobertura necesitan conciliación; el dinero recibido está incluido una sola vez en la cuenta.</p> }
+      } @else { <p class="balance-note">Este movimiento fue corregido. Su importe histórico no vuelve a sumarse al saldo ni a los pagos vigentes.</p> }
+      <section class="source"><h3>Datos conservados al registrar</h3><dl><div><dt>{{ entry.calendarYear ? 'Base del calendario al pagar' : 'Cantidad informada en el registro anterior' }}</dt><dd>{{ entry.seats }} estudiantes</dd></div></dl><p class="balance-note">Esta cantidad es histórica. Los inscritos actuales y los cupos del contrato se revisan en el acuerdo; no se cambian al registrar otro pago.</p></section>
+      @if (entry.replacesPaymentId) { <p class="balance-note">Corrige el pago #{{ entry.replacesPaymentId }}: {{ entry.correctionReason }}</p> }
+    }
+  </app-drawer>
+}

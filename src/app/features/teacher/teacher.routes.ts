@@ -25,6 +25,7 @@ export default [
   { path: 'marcacion/historial', title: 'Mi historial de marcaciones', canActivate: [spaceTypeGuard('colegio')], loadComponent: () => import('./time-tracking/time-tracking-history.component').then((m) => m.TimeTrackingHistoryComponent) },
 
   // Academia: estudiantes, invitaciones y sesiones en vivo
+  { path: 'pagos', title: 'Pagos e historial', canActivate: [spaceTypeGuard('academia')], loadComponent: () => import('../payments/payments.component').then((m) => m.PaymentsComponent) },
   { path: 'estudiantes', title: 'Estudiantes', canActivate: [spaceTypeGuard('academia')], loadComponent: () => import('../classrooms/teacher/academy-students.component').then((m) => m.AcademyStudentsComponent) },
   { path: 'estudiantes/solicitudes', title: 'Solicitudes de inscripción', canActivate: [spaceTypeGuard('academia')], data: { tab: 'solicitudes' }, loadComponent: () => import('../classrooms/teacher/academy-students.component').then((m) => m.AcademyStudentsComponent) },
   { path: 'invitaciones', title: 'Links de invitación', canActivate: [spaceTypeGuard('academia')], data: { tab: 'invitaciones' }, loadComponent: () => import('../classrooms/teacher/academy-students.component').then((m) => m.AcademyStudentsComponent) },

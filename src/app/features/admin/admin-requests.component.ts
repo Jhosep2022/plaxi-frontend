@@ -1,3 +1,4 @@
+import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -16,7 +17,7 @@ import { requestStatusTone } from './admin-ui';
 @Component({
   selector: 'app-admin-requests',
   host: { class: 'ui-pagina' },
-  imports: [PageHeaderComponent, DrawerComponent, FaIconComponent, Tooltip],
+  imports: [EmptyStateComponent, PageHeaderComponent, DrawerComponent, FaIconComponent, Tooltip],
   template: `
     <app-page-header miga="Plataforma · Espacios" titulo="Solicitudes de colegios" descripcion="Colegios que pidieron Aulix desde la web. Llama, registra el seguimiento y, cuando estén listos, crea su espacio." />
 
@@ -65,7 +66,7 @@ import { requestStatusTone } from './admin-ui';
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="6" class="vacio">No hay solicitudes con este estado.</td></tr>
+                <tr><td colspan="6" class="vacio"><app-empty-state [compact]="true" titulo="No hay solicitudes por aquí" texto="Cuando un colegio solicite Aulix, lo encontrarás en el estado correspondiente." /></td></tr>
               }
             </tbody>
           </table>
@@ -138,7 +139,7 @@ import { requestStatusTone } from './admin-ui';
               </div>
               <div class="ui-fila">
                 <div class="ui-campo"><label for="advance-date">Fecha del pago</label><input id="advance-date" class="ui-input" [attr.aria-invalid]="showError('paidAt') ? 'true' : null" type="date" [value]="paidAt()" (input)="paidAt.set($any($event.target).value)" />@if (showError('paidAt')) { <span class="ui-error">{{ fieldErrors()['paidAt'] }}</span> }</div>
-                <div class="ui-campo"><label for="advance-reference">Referencia del QR</label><input id="advance-reference" class="ui-input" [attr.aria-invalid]="showError('reference') ? 'true' : null" [value]="paymentReference()" (input)="paymentReference.set($any($event.target).value)" />@if (showError('reference')) { <span class="ui-error">{{ fieldErrors()['reference'] }}</span> }</div>
+                <div class="ui-campo"><label for="advance-reference">Detalle del pago (opcional)</label><input id="advance-reference" class="ui-input" [attr.aria-invalid]="showError('reference') ? 'true' : null" [value]="paymentReference()" (input)="paymentReference.set($any($event.target).value)" />@if (showError('reference')) { <span class="ui-error">{{ fieldErrors()['reference'] }}</span> }</div>
               </div>
               <div class="ui-fila">
                 <div class="ui-campo"><label for="advance-from">Período desde</label><input id="advance-from" class="ui-input" [attr.aria-invalid]="showError('periodFrom') ? 'true' : null" type="date" [value]="periodFrom()" (input)="periodFrom.set($any($event.target).value)" />@if (showError('periodFrom')) { <span class="ui-error">{{ fieldErrors()['periodFrom'] }}</span> }</div>
@@ -257,7 +258,6 @@ export class AdminRequestsComponent {
     if (!Number.isInteger(this.seats()) || this.seats() < 1) errors['seats'] = 'Al menos 1 cupo.';
     if (!Number.isFinite(this.amountBs()) || this.amountBs() <= 0) errors['amountBs'] = 'Escribe el monto recibido.';
     if (!this.paidAt()) errors['paidAt'] = 'Elige la fecha del pago.';
-    if (!this.paymentReference().trim()) errors['reference'] = 'Escribe la referencia del QR.';
     if (!this.periodFrom()) errors['periodFrom'] = 'Elige desde cuándo cubre.';
     if (!this.periodTo()) errors['periodTo'] = 'Elige hasta cuándo cubre.';
     else if (this.periodFrom() && this.periodTo() < this.periodFrom()) errors['periodTo'] = 'Debe ser igual o posterior a «desde».';

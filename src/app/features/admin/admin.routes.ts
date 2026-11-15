@@ -7,6 +7,7 @@ export default [{
     { path: 'overview', title: 'Resumen de la plataforma', loadComponent: () => import('./admin-overview.component').then((m) => m.AdminOverviewComponent) },
     { path: 'schools', title: 'Colegios', loadComponent: () => import('./admin-spaces.component').then((m) => m.AdminSpacesComponent), data: { type: 'school' } },
     { path: 'academies', title: 'Academias', loadComponent: () => import('./admin-spaces.component').then((m) => m.AdminSpacesComponent), data: { type: 'academy' } },
+    { path: 'spaces/:spaceId/payments', title: 'Pagos e historial', loadComponent: () => import('../payments/payments.component').then((m) => m.PaymentsComponent) },
     { path: 'requests', title: 'Solicitudes de colegios', loadComponent: () => import('./admin-requests.component').then((m) => m.AdminRequestsComponent) },
     { path: 'users', title: 'Usuarios', loadComponent: () => import('./admin-users.component').then((m) => m.AdminUsersComponent) },
     { path: 'storage', title: 'Almacenamiento', loadComponent: () => import('./admin-storage.component').then((m) => m.AdminStorageComponent) },

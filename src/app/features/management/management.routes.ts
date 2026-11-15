@@ -36,6 +36,7 @@ export default [
   { path: 'reportes/puntualidad', title: 'Puntualidad del personal', loadComponent: () => import('./reports/punctuality.component').then((m) => m.PunctualityComponent) },
   { path: 'comunicados', title: 'Comunicados', loadComponent: () => import('../announcements/announcements.component').then((m) => m.AnnouncementsComponent) },
   { path: 'institucion', title: 'Datos de la institución', loadComponent: () => import('./institution/data/institution-details.component').then((m) => m.InstitutionDetailsComponent) },
+  { path: 'pagos', title: 'Pagos e historial', loadComponent: () => import('../payments/payments.component').then((m) => m.PaymentsComponent) },
   { path: 'institucion/jornada', title: 'Jornada escolar', loadComponent: () => import('./institution/workday/workday.component').then((m) => m.WorkdayComponent) },
   { path: 'institucion/horario-laboral', title: 'Horario laboral', loadComponent: () => import('./institution/work-schedule/work-schedule.component').then((m) => m.WorkScheduleComponent) },
 ] satisfies Routes;

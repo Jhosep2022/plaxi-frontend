@@ -1,0 +1,96 @@
+<section class="ui-card calendar">
+  <header class="calendar-heading">
+    <div><h2>Calendario de pagos</h2><p>Consulta cuánto se pagó y qué falta del año escolar {{ year() }}.</p></div>
+    <div class="calendar-actions">
+      <label for="calendar-year">Año escolar <input id="calendar-year" class="ui-input" type="number" min="2000" max="2100" [value]="year()" (change)="selectYear($any($event.target).value)" /></label>
+      @if (editable() && history().space.plan === 'pagado') {
+        <button class="ui-btn ui-btn--secundario" type="button" (click)="configure()">{{ calendar() ? 'Recalcular cuotas' : 'Crear calendario' }}</button>
+      }
+    </div>
+  </header>
+  @if (!isAcademy()) { <p class="calendar-note"><strong>Este calendario pertenece al año escolar {{ year() }}</strong>, no al año en que se creó la cuenta. Servicio del 1 de diciembre de {{ year() - 1 }} al 30 de noviembre de {{ year() }}; cuotas de febrero a noviembre de {{ year() }}. Para una reserva de otro año, selecciona ese año arriba. El depósito puede recibirse antes sin cambiar la gestión contratada.</p> }
+  @if (calendar(); as current) {
+    @if (current.mode === 'renewal') { <p class="calendar-note"><strong>Renovación sin anticipo.</strong> El total se distribuye en diez cuotas de febrero a noviembre. El saldo disponible puede cubrirlas desde las más antiguas; consulta su reparto en el resumen de arriba.</p> }
+    @if (deadlineMismatch()) { <p class="ui-error" role="alert">La fecha límite del anticipo o anual no corresponde a la gestión {{ year() }}. Alclick debe revisar la gestión y corregir el plazo en «Recalcular cuotas».</p> }
+    @if (current.pricing; as pricing) {
+      <p class="calendar-note"><strong>{{ pricing.studentCount }} estudiantes · Tarifa {{ pricing.priceTier === 'founder' ? 'fundador' : 'normal' }}</strong> · {{ money(pricing.annualRateBs) }} por estudiante y gestión (10 meses de clases). Desde el estudiante 1.001: {{ money(pricing.volumeRateBs) }}.
+        @if (pricing.minimumApplied) { Mínimo por gestión: {{ money(pricing.minimumBs) }}. }
+        @if (pricing.discountPercent) { Descuento anual: {{ pricing.discountPercent }} % ({{ money(pricing.discountBs) }}). }
+        Total calculado: <strong>{{ money(pricing.totalBs) }}</strong>.
+      </p>
+    }
+    @if (pricingChanged()) { <p class="calendar-note">{{ current.pricing ? 'El número de inscritos cambió desde el último cálculo.' : 'Este calendario se creó con un total manual y todavía no usa la tarifa por estudiantes.' }} @if (editable()) { Hay {{ history().schoolPricing?.studentCount ?? 0 }} inscritos en esta gestión. Usa «Recalcular cuotas» para revisar y guardar el cálculo actualizado. } @else { Alclick debe revisar el cálculo de esta gestión. }</p> }
+    <div class="calendar-summary">
+      <div><strong>{{ current.summary.monthlyCount ? current.summary.monthlyPaidCount : current.summary.paidCount }} de {{ current.summary.monthlyCount || current.summary.totalCount }}</strong><span>{{ current.summary.monthlyCount ? 'cuotas mensuales pagadas' : 'pagos completados' }}</span></div>
+      <div><strong>{{ money(current.summary.remainingBs) }}</strong><span>{{ isAcademy() ? 'saldo conocido por pagar' : 'saldo de la gestión' }}</span></div>
+      <div><strong>{{ current.summary.remainingCount }}</strong><span>pagos con saldo pendiente · {{ current.summary.overdueCount }} vencidos</span></div>
+    </div>
+    @if (current.summary.undeterminedCount) { <p class="calendar-note">{{ current.summary.undeterminedCount }} meses por determinar. Alclick confirmará el monto según los estudiantes del mes; esos importes no se suman todavía al saldo.</p> }
+    <div class="ui-tabla-contenedor"><table class="ui-tabla">
+      <thead><tr><th>Cuota y período del servicio</th><th>Fecha límite de pago</th><th>Importe de la cuota</th><th>Abonado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
+      <tbody>@for (item of current.installments; track item.index) {
+        <tr><td><strong>{{ item.label }}</strong><small>{{ date(item.periodFrom) }} — {{ date(item.periodTo) }}</small>
+          @if (item.paymentIds.length) { <small>Movimientos #{{ item.paymentIds.join(', #') }}</small> }</td>
+          <td>{{ date(item.dueDate) }}</td><td>{{ money(item.amountBs) }}</td><td>{{ money(item.paidBs) }}</td><td>{{ money(item.remainingBs) }}</td>
+          <td><span class="ui-badge" [class.tono-lima]="item.status === 'paid'" [class.tono-rojo]="item.isOverdue" [class.tono-crema]="item.status === 'partial' && !item.isOverdue">{{ statusLabels[item.status] }}{{ item.status === 'partial' && item.isOverdue ? ' · vencido' : '' }}</span></td>
+          <td>@if (editable() && isAcademy()) { <button type="button" class="ui-btn ui-btn--secundario" (click)="editAmount(item)">{{ item.amountBs === null ? 'Fijar monto' : 'Ajustar monto' }}</button> }</td>
+        </tr>
+      }</tbody>
+    </table></div>
+    <p class="calendar-note">Los pagos por gestión se aplican según el reparto confirmado. Los registros anteriores por período conservan su aplicación hasta que se revisen. Las correcciones actualizan este calendario sin borrar el historial.</p>
+  } @else if (history().space.plan === 'gratis') {
+    <p class="calendar-note">El plan gratis no genera cuotas ni tiene vencimiento.</p>
+  } @else {
+    <app-empty-state [compact]="true" titulo="Todavía no hay calendario de cuotas" [texto]="editable() ? 'Configura el acuerdo de esta gestión para mostrar las cuotas y los saldos.' : 'Alclick debe configurar el acuerdo de esta gestión. Tus pagos registrados se conservan en el historial.'" />
+  }
+</section>
+
+<app-drawer [abierto]="openConfig()" [titulo]="'Acuerdo de la gestión ' + year()" subtitulo="Las cuotas se calculan con los estudiantes inscritos y la tarifa seleccionada." (cerrar)="!saving() && openConfig.set(false)">
+  @if (!isAcademy()) { <p class="calendar-note"><strong>Vas a guardar cuotas para el año escolar {{ year() }}.</strong> La creación de la cuenta y la fecha del depósito no eligen el año del contrato. Si reservó para otro año, cierra este panel y selecciona ese año antes de calcular.</p> }
+  <form id="calendar-config" class="ui-form" (submit)="$event.preventDefault(); saveConfig()" novalidate>
+    <div class="ui-campo"><label for="calendar-mode">Forma de pago</label><app-select inputId="calendar-mode" [formField]="configForm.mode">
+      @for (mode of modes(); track mode) { <app-option [value]="mode" [label]="modeLabels[mode]" /> }
+    </app-select></div>
+    @if (config().mode !== 'academy') {
+      <div class="ui-campo"><label for="calendar-tier">Tarifa del colegio</label><app-select inputId="calendar-tier" [formField]="configForm.priceTier">
+        <app-option value="normal" label="Normal · Bs 60 por estudiante y gestión" />
+        <app-option value="founder" label="Fundador · Bs 40 por estudiante y gestión" />
+      </app-select></div>
+      <div class="calendar-note" aria-live="polite">
+        <strong>{{ history().schoolPricing?.studentCount ?? 0 }} estudiantes inscritos en {{ year() }}</strong>
+        <p>Se cuentan los estudiantes de esta gestión; docentes, dirección y padres están incluidos.</p>
+        @if (!enrollmentReady()) { <p class="ui-error">{{ history().schoolPricing?.gestionId ? 'No hay estudiantes inscritos en esta gestión. Registra las inscripciones antes de generar las cuotas.' : 'El colegio todavía no tiene esta gestión registrada. Selecciona o crea la gestión correspondiente y registra sus inscripciones.' }}</p> }
+        @else if (quote(); as price) {
+          <p>Primeros 1.000 estudiantes: {{ money(price.annualRateBs) }} por estudiante y gestión. Desde el 1.001: {{ money(price.volumeRateBs) }}.</p>
+          <p>Base anual: {{ money(price.baseBs) }}. @if (price.minimumApplied) { Se aplica el mínimo de {{ money(price.minimumBs) }}. }</p>
+          @if (price.discountPercent) { <p>Descuento por pago anual: {{ price.discountPercent }} % · −{{ money(price.discountBs) }}</p> }
+          <p><strong>Total calculado: {{ money(price.totalBs) }}</strong></p>
+          @if (config().mode === 'first_year') { <p>Anticipo del 20 %: {{ money(advanceBs()) }} · 10 cuotas de {{ money(monthlyBs()) }}.</p> }
+          @else if (config().mode === 'renewal') { <p>10 cuotas de {{ money(monthlyBs()) }}, sin volver a cobrar instalación.</p> }
+          @else { <p>Un pago anual por {{ money(price.totalBs) }}.</p> }
+          <p>El cálculo se confirma al guardar. Las cuotas guardadas se conservan hasta una nueva revisión con motivo; los pagos registrados permanecen.</p>
+        }
+      </div>
+    }
+    @if (config().mode === 'first_year' || config().mode === 'annual') {
+      <div class="ui-campo"><label for="calendar-due">{{ config().mode === 'first_year' ? 'Fecha límite para pagar el anticipo' : 'Fecha límite para pagar el anual' }}</label><input id="calendar-due" class="ui-input" type="date" [formField]="configForm.dueDate" />
+        <small class="ui-ayuda">Es el plazo acordado para pagar, no la fecha en que recibiste dinero. {{ config().mode === 'first_year' ? 'Para esta gestión, la instalación cubre diciembre de ' + (year() - 1) + ' y enero de ' + year() + '; el anticipo vence antes de febrero.' : 'El servicio cubre del 1 de diciembre de ' + (year() - 1) + ' al 30 de noviembre de ' + year() + '.' }}</small>
+        @if ((configForm.dueDate().touched() || config().dueDate) && configForm.dueDate().invalid()) { <span class="ui-error">{{ configForm.dueDate().errors()[0].message }}</span> }</div>
+    }
+    <p class="ui-ayuda">{{ config().mode === 'academy' ? 'Se crearán 12 meses por determinar. Confirma el monto de cada mes al cerrar su conteo de estudiantes.' : config().mode === 'first_year' ? 'Anticipo del 20 % y diez cuotas de febrero a noviembre. El anticipo aparece por separado.' : config().mode === 'renewal' ? 'Diez cuotas de febrero a noviembre, sin anticipo.' : 'Un único pago por el total neto del acuerdo.' }}</p>
+    <div class="ui-campo"><label for="calendar-reason">Acuerdo o motivo del cambio</label><textarea id="calendar-reason" class="ui-input" rows="3" [formField]="configForm.reason"></textarea>
+      @if (configForm.reason().touched() && configForm.reason().invalid()) { <span class="ui-error">{{ configForm.reason().errors()[0].message }}</span> }</div>
+    @if (error()) { <p class="ui-error" role="alert">{{ error() }}</p> }
+  </form>
+  <div pie><button class="ui-btn" type="submit" form="calendar-config" [disabled]="saving() || (!isAcademy() && !enrollmentReady())">{{ saving() ? 'Guardando…' : 'Guardar cuotas de ' + year() }}</button></div>
+</app-drawer>
+<app-drawer [abierto]="amountIndex() !== null" [titulo]="'Monto de ' + amountLabel()" subtitulo="Confirma el importe del mes después de revisar los estudiantes cobrados." (cerrar)="!saving() && amountIndex.set(null)">
+  <form id="calendar-amount" class="ui-form" (submit)="$event.preventDefault(); saveAmount()" novalidate>
+    <div class="ui-campo"><label for="installment-amount">Monto confirmado (Bs)</label><input id="installment-amount" class="ui-input" inputmode="decimal" [formField]="amountForm.amountBs" />
+      @if (amountForm.amountBs().touched() && amountForm.amountBs().invalid()) { <span class="ui-error">{{ amountForm.amountBs().errors()[0].message }}</span> }</div>
+    <div class="ui-campo"><label for="installment-reason">Motivo y conteo verificado</label><textarea id="installment-reason" class="ui-input" rows="3" [formField]="amountForm.reason"></textarea>
+      @if (amountForm.reason().touched() && amountForm.reason().invalid()) { <span class="ui-error">{{ amountForm.reason().errors()[0].message }}</span> }</div>
+    @if (error()) { <p class="ui-error" role="alert">{{ error() }}</p> }
+  </form>
+  <div pie><button class="ui-btn" type="submit" form="calendar-amount" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Confirmar monto' }}</button></div>
+</app-drawer>

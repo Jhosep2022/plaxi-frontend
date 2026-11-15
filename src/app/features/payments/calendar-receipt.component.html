@@ -1,0 +1,60 @@
+<app-drawer [abierto]="opened()" [titulo]="reviewing() ? 'Revisar pago y reparto' : entry() ? 'Corregir pago #' + entry()!.id : 'Registrar pago'" [subtitulo]="history().space.name" (cerrar)="!saving() && closed.emit()">
+  <div class="receipt-guide">
+    <strong>Pago para la gestión {{ year() }}</strong>
+    <p>La gestión indica a qué año escolar abonas. La fecha del pago indica cuándo llegó el dinero.</p>
+  </div>
+  @if (!reviewing()) {
+    <form id="calendar-receipt-form" class="ui-form" (submit)="$event.preventDefault(); review()" novalidate>
+      <div class="ui-campo"><label for="receipt-year">Gestión a la que corresponde el pago</label><input id="receipt-year" class="ui-input" type="number" min="2000" max="2100" [value]="year()" (change)="selectYear($any($event.target).value)" /><small class="ui-ayuda">Ejemplo: para el año escolar 2027, elige 2027 aunque recibas el anticipo en 2026.</small></div>
+      <div class="ui-campo"><label for="receipt-amount">¿Cuánto dinero recibiste? (Bs)</label><input id="receipt-amount" class="ui-input" inputmode="decimal" [formField]="receiptForm.amountBs" />
+        @if (receiptForm.amountBs().touched() && receiptForm.amountBs().invalid()) { <span class="ui-error">{{ receiptForm.amountBs().errors()[0].message }}</span> }</div>
+      <div class="ui-campo"><label for="receipt-date">Dinero recibido el</label><input id="receipt-date" class="ui-input" type="date" [formField]="receiptForm.paidAt" /><small class="ui-ayuda">La fecha del depósito o transferencia. No cambia el año escolar ni el período del servicio.</small>
+        @if (receiptForm.paidAt().touched() && receiptForm.paidAt().invalid()) { <span class="ui-error">{{ receiptForm.paidAt().errors()[0].message }}</span> }</div>
+      <details><summary>Agregar un detalle (opcional)</summary>
+        <div class="ui-campo"><label for="receipt-reference">Detalle del pago</label><input id="receipt-reference" class="ui-input" [formField]="receiptForm.reference" /><small class="ui-ayuda">Ejemplo: efectivo, transferencia o una nota para recordarlo.</small>
+          @if (receiptForm.reference().touched() && receiptForm.reference().invalid()) { <span class="ui-error">{{ receiptForm.reference().errors()[0].message }}</span> }</div>
+      </details>
+      @if (entry()) {
+        <div class="ui-campo"><label for="receipt-reason">Motivo de la corrección</label><textarea id="receipt-reason" class="ui-input" rows="3" [formField]="receiptForm.reason"></textarea>
+          @if (receiptForm.reason().touched() && receiptForm.reason().invalid()) { <span class="ui-error">{{ receiptForm.reason().errors()[0].message }}</span> }</div>
+        <p class="ui-ayuda">Se sustituirá el pago anterior para los cálculos. El original seguirá en el historial.</p>
+      }
+    </form>
+  } @else {
+    <dl class="receipt-summary"><div><dt>Dinero recibido</dt><dd>{{ money(received()) }}</dd></div><div><dt>Fecha del pago</dt><dd>{{ date(model().paidAt) }}</dd></div>@if (model().reference.trim()) { <div><dt>Detalle</dt><dd>{{ model().reference }}</dd></div> }</dl>
+  }
+  @if (preview.isLoading()) { <p role="status">Consultando las cuotas de {{ year() }}…</p> }
+  @else if (preview.error()) { <p class="ui-error" role="alert">No pudimos consultar los saldos de esta gestión.</p><button type="button" class="ui-btn ui-btn--secundario" (click)="refresh()">Actualizar reparto</button> }
+  @else if (calendar()?.pricing) {
+    <section class="receipt-allocation" aria-label="Reparto del dinero recibido">
+      <div class="allocation-heading"><h3>Así se aplicará el dinero</h3>
+        @if (!reviewing()) { <button type="button" class="ui-btn ui-btn--secundario" (click)="manual() ? resetAllocation() : adjust()">{{ manual() ? 'Usar reparto automático' : 'Ajustar reparto' }}</button> }
+      </div>
+      <p class="ui-ayuda">{{ manual() ? 'Asigna cuánto de este pago corresponde a cada cuota.' : 'Primero el anticipo pendiente; después las cuotas más antiguas. Puede adelantar meses futuros.' }}</p>
+      <div class="allocation-list">
+        @for (row of rows(); track row.index) {
+          @if (row.pending > 0 || row.applied > 0) {
+            <div class="allocation-row">
+              <div><label [for]="'receipt-quota-' + row.index">{{ row.label }}</label><small>Saldo antes: {{ money(row.pending) }}</small><small>Quedará: {{ money(row.after) }}</small></div>
+              @if (manual() && !reviewing()) { <input [id]="'receipt-quota-' + row.index" class="ui-input" inputmode="decimal" [value]="row.value" (input)="setAmount(row.index, $any($event.target).value)" /> }
+              @else { <strong>{{ money(row.applied) }}</strong> }
+            </div>
+          }
+        }
+      </div>
+      @if (allocationError()) { <p class="ui-error" role="alert">{{ allocationError() }}</p> }
+      <dl class="receipt-totals"><div><dt>Aplicado a cuotas</dt><dd>{{ money(allocated()) }}</dd></div><div><dt>Saldo por pagar de {{ year() }}</dt><dd>{{ money(balanceAfter()) }}</dd></div>
+        @if (credit() > 0) { <div><dt>Saldo a favor de {{ year() }}</dt><dd>{{ money(credit()) }}</dd></div> }
+      </dl>
+      @if (credit() > 0) { <p class="ui-ayuda">{{ money(credit()) }} quedará a favor de esta gestión. No se pasa a otro año ni amplía la fecha de servicio automáticamente.</p> }
+      @if (reviewing()) { <p class="receipt-confirmation">Se registrará un único comprobante de {{ money(received()) }} para {{ year() }}, con el reparto de arriba.</p> }
+    </section>
+  } @else if (!preview.isLoading() && !preview.error()) {
+    <p class="ui-error">Primero crea o recalcula el calendario de la gestión {{ year() }} con sus estudiantes. Cierra este formulario y selecciona esa gestión en el calendario.</p>
+  }
+  @if (error()) { <p class="ui-error" role="alert">{{ error() }}</p><button type="button" class="ui-btn ui-btn--secundario" (click)="refresh()">Actualizar reparto</button> }
+  <div pie class="receipt-footer">
+    @if (reviewing()) { <button type="button" class="ui-btn ui-btn--secundario" [disabled]="saving()" (click)="reviewing.set(false)">Volver a editar</button><button type="button" class="ui-btn" [disabled]="saving() || !canReview()" (click)="confirm()">{{ saving() ? 'Guardando…' : entry() ? 'Confirmar corrección' : 'Confirmar pago' }}</button> }
+    @else { <button type="submit" class="ui-btn" form="calendar-receipt-form" [disabled]="saving() || !canReview()">Revisar pago y reparto</button> }
+  </div>
+</app-drawer>

@@ -112,7 +112,7 @@ function docenteColegio(): NavModule[] {
 
 function docenteAcademia(): NavModule[] {
   return [
-    { id: 'inicio', label: 'Inicio', icon: faHome, sections: [{ items: [item('Resumen', faHome, 'docente/inicio')] }] },
+    { id: 'inicio', label: 'Inicio', icon: faHome, sections: [{ items: [item('Resumen', faHome, 'docente/inicio'), item('Pagos e historial', faFileSignature, 'docente/pagos')] }] },
     contenidoDocente('Cursos', faFolderOpen, [item('Links de invitación', faLink, 'docente/invitaciones')]),
     {
       id: 'estudiantes', label: 'Estudiantes', icon: faUsers, sections: [{
@@ -239,6 +239,7 @@ function direccion(): NavModule[] {
           item('Datos de la institución', faSchool, 'direccion/institucion', true),
           item('Jornada escolar', faCalendarDays, 'direccion/institucion/jornada'),
           item('Horario laboral', faClock, 'direccion/institucion/horario-laboral'),
+          item('Pagos e historial', faFileSignature, 'direccion/pagos'),
         ],
       }],
     },

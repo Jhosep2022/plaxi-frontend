@@ -1,0 +1,96 @@
+<app-page-header [miga]="canRecord() ? 'Plataforma · Espacios' : 'Administración'" titulo="Pagos e historial" [descripcion]="space()?.name ?? 'Consulta los pagos y el período que cubre cada uno.'">
+  <button class="ui-btn ui-btn--secundario" type="button" [disabled]="history.isLoading()" (click)="history.reload()">Actualizar</button>
+  @if (canRecord() && space()?.plan === 'pagado' && !history.error()) {
+    <button class="ui-btn" type="button" (click)="open()">Registrar pago</button>
+  }
+</app-page-header>
+
+@if (history.isLoading()) { <p role="status">Cargando historial…</p> }
+@if (history.error()) {
+  <div class="ui-card" role="alert"><app-empty-state kind="error" titulo="No pudimos cargar los pagos" texto="Reintenta para consultar el historial actualizado." /></div>
+} @else if (history.hasValue()) {
+  <app-payment-balance [history]="history.value()!" [editable]="canRecord()" (changed)="history.reload()" />
+  <app-payment-calendar [history]="history.value()!" [editable]="canRecord()" (yearChange)="selectedYear.set($event)" (changed)="history.reload()" />
+  <section class="ui-card coverage" aria-label="Cobertura del servicio">
+    <div><span class="ui-ayuda">{{ space()?.plan === 'gratis' ? 'Plan gratis' : coverageNeedsReview() ? 'Cobertura registrada · por revisar' : 'Pagado hasta' }}</span>
+      <strong>{{ space()?.plan === 'gratis' ? 'Sin vencimiento' : formatDate(space()?.paidUntil ?? null) }}</strong></div>
+    @if (coverageNeedsReview()) { <p>La fecha incluye registros anteriores por período y requiere conciliación con el acuerdo. El saldo disponible se consulta arriba; no significa un año adicional de servicio.</p> }
+    @else { <p>Los pagos son registrados por Alclick después de verificar el comprobante. En colegios, la cobertura de los pagos por gestión avanza con las cuotas completas y consecutivas; un pago parcial o saldo a favor no añade un año de servicio.</p> }
+  </section>
+  @if (history.value()!.uncoveredPeriods.length) {
+    <section class="ui-card gaps"><h2>Intervalos entre registros anteriores por período</h2>
+      <p>Revisa estos registros con Alclick. Las obligaciones y los pagos por gestión se consultan en el calendario; este listado solo compara los períodos escritos en comprobantes anteriores.</p>
+      @for (gap of history.value()!.uncoveredPeriods; track gap.periodFrom) {
+        <span class="ui-badge tono-crema">{{ formatDate(gap.periodFrom) }} — {{ formatDate(gap.periodTo) }}</span>
+      }
+    </section>
+  }
+  <section class="ui-card">
+    <div class="history-heading"><h2>Historial de movimientos</h2><span class="ui-ayuda">Los originales se conservan cuando hay correcciones.</span></div>
+    @if (!history.value()!.payments.length) {
+      <app-empty-state titulo="Todavía no hay pagos registrados" texto="Aquí verás cada pago, su comprobante y las fechas que cubre." />
+    } @else {
+      <div class="ui-tabla-contenedor"><table class="ui-tabla">
+        <thead><tr><th>Pago</th><th>{{ space()?.type === 'colegio' ? 'Gestión y aplicación' : 'Período del servicio' }}</th><th>Dinero recibido</th><th>Registro</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          @for (payment of history.value()!.payments; track payment.id) {
+            <tr [class.superseded]="!payment.isCurrent">
+              <td><strong>#{{ payment.id }} · {{ labels[payment.concept] || payment.concept }}</strong>@if (payment.reference) { <small>{{ payment.reference }}</small> }
+                <small>Pago del {{ formatDate(payment.paidAt) }}</small>
+                @if (payment.replacesPaymentId) { <small>Corrige el movimiento #{{ payment.replacesPaymentId }}: {{ payment.correctionReason }}</small> }
+              </td>
+              <td>@if (payment.calendarYear) {
+                <strong>Gestión {{ payment.calendarYear }}</strong>
+                <small>Reparto registrado:</small>
+                @for (allocation of payment.allocations ?? []; track $index) { <small>{{ allocationLabel(allocation.concept, allocation.periodFrom) }}: {{ formatAmount(allocation.amountBs) }}</small> }
+              } @else { {{ formatDate(payment.periodFrom) }}<small>hasta {{ formatDate(payment.periodTo) }}</small>@if (space()?.type === 'colegio') { <small>Registro anterior por período. Revisa la gestión y el reparto al corregirlo.</small> } }
+                @if (paymentBalances().get(payment.id); as amounts) { <small><strong>Aplicado: {{ formatAmount(amounts.appliedBs) }}</strong></small><small><strong>Disponible de este pago: {{ formatAmount(amounts.availableBs) }}</strong></small> }
+              </td>
+              <td class="amount">{{ formatAmount(payment.amountBs) }}</td>
+              <td>{{ payment.recordedByName }}<small>#{{ payment.id }} · {{ formatDate(payment.createdAt) }}</small></td>
+              <td><span class="ui-badge" [class.tono-lima]="payment.isCurrent">{{ payment.isCurrent ? 'Vigente' : 'Corregido' }}</span></td>
+              <td>@if (history.value()!.account) { <button class="ui-btn ui-btn--secundario" type="button" (click)="balancePanel()?.openPayment(payment.id)">Ver detalle</button> }
+                @if (canRecord() && payment.isCurrent) {
+                <button class="ui-btn ui-btn--secundario" type="button" (click)="open(payment)" [attr.aria-label]="'Corregir movimiento ' + payment.id">Corregir</button>
+              }</td>
+            </tr>
+          }
+        </tbody>
+      </table></div>
+    }
+  </section>
+}
+
+@if (history.hasValue() && canRecord() && space()?.type === 'colegio') {
+  <app-calendar-receipt [history]="history.value()!" [opened]="isOpen()" [entry]="correctingEntry()" (closed)="isOpen.set(false)" (saved)="receiptSaved($event)" />
+}
+<app-drawer [abierto]="isOpen() && space()?.type !== 'colegio'" [titulo]="correctingId() ? 'Corregir pago #' + correctingId() : 'Registrar pago'" subtitulo="Registra únicamente pagos cuyo comprobante ya verificaste." (cerrar)="!saving() && isOpen.set(false)">
+  <form class="ui-form" id="payment-form" (submit)="$event.preventDefault(); save()" novalidate>
+    <div class="ui-campo"><label for="payment-concept">Concepto</label><app-select inputId="payment-concept" [formField]="paymentForm.concept">
+      @for (concept of conceptOptions(); track concept) { <app-option [value]="concept" [label]="labels[concept]" /> }
+    </app-select></div>
+    <div class="ui-fila">
+      <div class="ui-campo"><label for="payment-from">Período desde</label><input id="payment-from" class="ui-input" type="date" [formField]="paymentForm.periodFrom" />
+        @if (paymentForm.periodFrom().touched() && paymentForm.periodFrom().invalid()) { <span class="ui-error">{{ paymentForm.periodFrom().errors()[0].message }}</span> }</div>
+      <div class="ui-campo"><label for="payment-to">Período hasta</label><input id="payment-to" class="ui-input" type="date" [formField]="paymentForm.periodTo" />
+        @if (paymentForm.periodTo().touched() && paymentForm.periodTo().invalid()) { <span class="ui-error">{{ paymentForm.periodTo().errors()[0].message }}</span> }</div>
+    </div>
+    <div class="ui-fila">
+      <div class="ui-campo"><label for="payment-amount">Monto recibido (Bs)</label><input id="payment-amount" class="ui-input" inputmode="decimal" [formField]="paymentForm.amountBs" />
+        @if (paymentForm.amountBs().touched() && paymentForm.amountBs().invalid()) { <span class="ui-error">{{ paymentForm.amountBs().errors()[0].message }}</span> }</div>
+      <div class="ui-campo"><label for="payment-seats">Cupos / estudiantes cobrados</label><input id="payment-seats" class="ui-input" type="number" step="1" [formField]="paymentForm.seats" />
+        @if (paymentForm.seats().touched() && paymentForm.seats().invalid()) { <span class="ui-error">{{ paymentForm.seats().errors()[0].message }}</span> }</div>
+    </div>
+    <div class="ui-campo"><label for="payment-date">Fecha de pago</label><input id="payment-date" class="ui-input" type="date" [formField]="paymentForm.paidAt" />
+      @if (paymentForm.paidAt().touched() && paymentForm.paidAt().invalid()) { <span class="ui-error">{{ paymentForm.paidAt().errors()[0].message }}</span> }</div>
+    <div class="ui-campo"><label for="payment-reference">Detalle del pago (opcional)</label><input id="payment-reference" class="ui-input" [formField]="paymentForm.reference" />
+      @if (paymentForm.reference().touched() && paymentForm.reference().invalid()) { <span class="ui-error">{{ paymentForm.reference().errors()[0].message }}</span> }</div>
+    @if (correctingId()) {
+      <div class="ui-campo"><label for="payment-reason">Motivo de la corrección</label><textarea id="payment-reason" class="ui-input" rows="3" [formField]="paymentForm.reason"></textarea>
+        @if (paymentForm.reason().touched() && paymentForm.reason().invalid()) { <span class="ui-error">{{ paymentForm.reason().errors()[0].message }}</span> }</div>
+      <p class="ui-ayuda">Se creará un movimiento nuevo. El original seguirá visible como corregido.</p>
+    }
+    @if (error()) { <p class="ui-error" role="alert">{{ error() }}</p> }
+  </form>
+  <div pie><button class="ui-btn" type="submit" form="payment-form" [disabled]="saving()">{{ saving() ? 'Guardando…' : correctingId() ? 'Registrar corrección' : 'Registrar pago' }}</button></div>
+</app-drawer>

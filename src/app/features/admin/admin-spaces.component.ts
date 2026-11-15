@@ -1,9 +1,10 @@
+import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, map } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBan, faChalkboardTeacher, faCircleCheck, faHourglassHalf, faMagnifyingGlass, faPen, faSchool } from '@fortawesome/free-solid-svg-icons';
+import { faBan, faChalkboardTeacher, faCircleCheck, faClockRotateLeft, faHourglassHalf, faMagnifyingGlass, faPen, faSchool } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip } from 'primeng/tooltip';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
@@ -19,7 +20,7 @@ type StatusFilter = AdminSpaceStatus | '';
 @Component({
   selector: 'app-admin-spaces',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, Tooltip, DrawerComponent, PageHeaderComponent],
+  imports: [EmptyStateComponent, ...SELECT, FaIconComponent, Tooltip, DrawerComponent, PageHeaderComponent, RouterLink],
   template: `
     <app-page-header [miga]="'Plataforma · Espacios'" [titulo]="title()" [descripcion]="description()" />
     @if (spaces.error()) { <p role="alert">No pudimos cargar los espacios. <button type="button" class="ui-btn ui-btn--secundario" (click)="spaces.reload()">Reintentar</button></p> }
@@ -85,12 +86,13 @@ type StatusFilter = AdminSpaceStatus | '';
                 </td>
                 <td>
                   <div class="acciones">
-                    <button type="button" class="ui-btn ui-btn--icono" (click)="openDetails(space.id)" [attr.aria-label]="'Administrar ' + space.name" pTooltip="Estado, prueba y límites" tooltipPosition="left"><fa-icon [icon]="faPen" /></button>
+                    <button type="button" class="ui-btn ui-btn--icono" (click)="openDetails(space.id)" [attr.aria-label]="'Administrar ' + space.name" pTooltip="Estado, plan y límites" tooltipPosition="left"><fa-icon [icon]="faPen" /></button>
+                    <a class="ui-btn ui-btn--icono" [routerLink]="['/admin/spaces', space.id, 'payments']" [attr.aria-label]="'Ver pagos e historial de ' + space.name" pTooltip="Pagos e historial" tooltipPosition="left"><fa-icon [icon]="faClockRotateLeft" /></a>
                   </div>
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="6" class="vacio">No hay {{ isSchool() ? 'colegios' : 'academias' }} que coincidan con la búsqueda.</td></tr>
+              <tr><td colspan="6" class="vacio"><app-empty-state [compact]="true" titulo="No encontramos espacios" texto="Prueba otro nombre o cambia el filtro de estado." /></td></tr>
             }
           </tbody>
         </table>
@@ -106,6 +108,7 @@ type StatusFilter = AdminSpaceStatus | '';
           <div class="ancho"><dt>Dirección en Aulix</dt><dd>aulix.alclick.dev/{{ space.slug }}</dd></div>
           <div class="ancho"><dt>Consumo de almacenamiento</dt><dd>No disponible todavía · cuota de {{ space.limits.storageGb }} GB</dd></div>
         </dl>
+        <div class="botones"><a class="ui-btn ui-btn--secundario" [routerLink]="['/admin/spaces', space.id, 'payments']">Pagos e historial</a></div>
 
         <section class="bloque">
           <h3>Motivo del cambio</h3>
@@ -161,6 +164,7 @@ export class AdminSpacesComponent {
   protected readonly faBan = faBan;
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
   protected readonly faPen = faPen;
+  protected readonly faClockRotateLeft = faClockRotateLeft;
 
   protected readonly tabs: { id: StatusFilter; label: string }[] = [
     { id: '', label: 'Todos' },
