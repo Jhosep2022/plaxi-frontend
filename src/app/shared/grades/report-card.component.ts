@@ -111,7 +111,7 @@ export class ReportCardComponent {
 
   // Logo, nombre, lema y autoridades de la institución
   private institucionService = inject(InstitutionService);
-  private readonly institucionRes = rxResource({ params: () => this.datos().paralelo.espacioId, stream: ({ params }) => this.institucionService.datos(params) });
+  private readonly institucionRes = rxResource({ params: () => this.datos().paralelo.espacioId, stream: ({ params }) => this.institucionService.getDetails(params) });
   readonly institucion = computed(() => this.institucionRes.value());
 
   readonly curso = computed(() => paraleloLabel(this.datos().paralelo));

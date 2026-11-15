@@ -1,4 +1,7 @@
 <app-page-header miga="Institución" titulo="Datos de la institución" descripcion="Información general de la unidad educativa. Aparece en los boletines, los reportes y el selector de espacios.">
+  @if (esDireccion) {
+    <a class="ui-btn ui-btn--secundario" [routerLink]="ruta('pagos')">Pagos e historial</a>
+  }
   @if (sinGuardar()) {
     <span class="ui-badge tono-crema">Cambios sin guardar</span>
     <button type="button" class="ui-btn ui-btn--secundario" (click)="descartar()">Descartar</button>
@@ -8,6 +11,10 @@
 
 @if (datos.isLoading() && !datos.value()) {
   <p class="cargando">Cargando datos…</p>
+} @else if (datos.error()) {
+  <div class="ui-card" role="alert"><app-empty-state kind="error" titulo="No pudimos cargar los datos del colegio" texto="Reintenta antes de hacer cambios para conservar la información guardada.">
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="datos.reload()">Reintentar</button>
+  </app-empty-state></div>
 } @else {
   <div class="distribucion">
     <form class="secciones" (submit)="$event.preventDefault(); guardar()" novalidate>

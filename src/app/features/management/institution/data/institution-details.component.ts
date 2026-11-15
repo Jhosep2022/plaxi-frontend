@@ -1,24 +1,24 @@
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { FormField, form, max, maxLength, min, pattern, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCalendarDays, faChalkboardTeacher, faImage, faLocationDot, faSchool, faSitemap, faTrash, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
 import { StorageCardComponent } from '../../../../shared/ui/storage-card.component';
 import { NIVELES, Nivel } from '../../../../core/models/academics.model';
-import { DEPARTAMENTOS, DEPENDENCIAS, Institucion } from '../../../../core/models/institution.model';
-import { AcademicsService } from '../../../../services/academics.service';
+import { DEPARTAMENTOS, DEPENDENCIAS, Institution } from '../../../../core/models/institution.model';
 import { InstitutionService, LOGO_MAX_KB } from '../../../../services/institution.service';
-import { PeopleService } from '../../../../services/people.service';
 import { NotificationService } from '../../../../shared/ui/notification.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../../academics/academics.ui';
 import { PATRON_EMAIL, PATRON_TELEFONO } from '../../people/people.ui';
 import { SELECT } from '../../../../shared/ui/select.component';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state.component';
+import { readApiError } from '../../../../core/api/api-error';
 
-type Modelo = Omit<Institucion, 'id'>;
+type Modelo = Omit<Institution, 'id'>;
 
 const VACIO: Modelo = {
   nombre: '', sigla: '', lema: '', codigoSie: '', dependencia: 'particular', niveles: [], fundacion: new Date().getFullYear(),
@@ -29,15 +29,13 @@ const VACIO: Modelo = {
 @Component({
   selector: 'app-institution-details',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent, StorageCardComponent],
+  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent, StorageCardComponent, EmptyStateComponent],
   templateUrl: './institution-details.component.html',
   styleUrls: ['./institution-details.component.css'],
 })
 export class InstitutionDetailsComponent {
   private session = inject(SessionService);
   private institucion = inject(InstitutionService);
-  private academico = inject(AcademicsService);
-  private personas = inject(PeopleService);
   private avisos = inject(NotificationService);
   private readonly espacioId = this.session.activeSpace()!.id;
   readonly esDireccion = this.session.activeRole() === 'direccion'; // the storage card is only for management
@@ -56,7 +54,7 @@ export class InstitutionDetailsComponent {
   readonly faTrash = faTrash;
   readonly faUserGraduate = faUserGraduate;
 
-  readonly datos = rxResource({ stream: () => this.institucion.datos(this.espacioId) });
+  readonly datos = rxResource({ stream: () => this.institucion.getDetails(this.espacioId) });
   private readonly original = computed<Modelo>(() => {
     const d = this.datos.value();
     if (!d) return { ...VACIO, nombre: this.session.activeSpace()!.nombre };
@@ -86,24 +84,14 @@ export class InstitutionDetailsComponent {
   readonly guardando = signal(false);
 
   // Resumen de la institución en la gestión activa
-  readonly resumen = rxResource({
-    stream: () =>
-      forkJoin({
-        gestion: this.academico.getActiveAcademicYear(this.espacioId),
-        paralelos: this.academico.getActiveClassGroups(this.espacioId),
-        docentes: this.personas.docentes(),
-      }),
-  });
-
-  readonly cifras = computed(() => {
-    const r = this.resumen.value();
-    return {
-      gestion: r?.gestion?.anio ?? '—',
-      paralelos: r?.paralelos.length ?? 0,
-      estudiantes: r?.paralelos.reduce((s, p) => s + p.estudiantes, 0) ?? 0,
-      docentes: r?.docentes.filter((d) => d.activo).length ?? 0,
-    };
-  });
+  readonly resumen = rxResource({ stream: () => this.institucion.getSummary(this.espacioId) });
+  readonly cifras = computed(() => ({
+    gestion: this.resumen.value()?.academicYear ?? '—',
+    paralelos: this.resumen.value()?.classGroups ?? 0,
+    estudiantes: this.resumen.value()?.students ?? 0,
+    docentes: this.resumen.value()?.teachers ?? 0,
+  }));
+  private readonly pendingLogo = signal<File | null | undefined>(undefined);
 
   ruta(...segmentos: string[]) {
     return this.session.roleRoute(...segmentos);
@@ -134,30 +122,35 @@ export class InstitutionDetailsComponent {
       this.avisos.error(`El logo debe pesar menos de ${LOGO_MAX_KB} KB.`);
       return;
     }
+    this.pendingLogo.set(archivo);
     const lector = new FileReader();
     lector.onload = () => this.modelo.update((m) => ({ ...m, logo: String(lector.result) }));
     lector.readAsDataURL(archivo);
   }
 
   quitarLogo(): void {
+    this.pendingLogo.set(null);
     this.modelo.update((m) => ({ ...m, logo: '' }));
   }
 
   descartar(): void {
+    this.pendingLogo.set(undefined);
     this.modelo.set(structuredClone(this.original()));
   }
 
   guardar(): void {
+    if (!this.modelo().niveles.length) { this.avisos.error('Elige al menos un nivel educativo.'); return; }
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
         const m = this.modelo();
-        const guardado = await firstValueFrom(this.institucion.guardar({ ...m, id: this.espacioId, fundacion: Number(m.fundacion) }));
+        const guardado = await firstValueFrom(this.institucion.save({ ...m, id: this.espacioId, fundacion: Number(m.fundacion) }, this.pendingLogo()));
+        this.pendingLogo.set(undefined);
         this.session.renameSpace(this.espacioId, guardado.nombre);
         this.avisos.success('Datos de la institución guardados.');
         this.datos.reload();
       } catch (error) {
-        this.avisos.error(getErrorMessage(error));
+        this.avisos.error(error instanceof Error && !('status' in error) ? error.message : readApiError(error).message);
       } finally {
         this.guardando.set(false);
       }

@@ -11,7 +11,7 @@ export const DEPENDENCIAS: { id: Dependencia; label: string }[] = [
 export const DEPARTAMENTOS = ['Beni', 'Chuquisaca', 'Cochabamba', 'La Paz', 'Oruro', 'Pando', 'Potosí', 'Santa Cruz', 'Tarija'];
 
 // Datos generales de la unidad educativa (aparecen en boletines, reportes y el selector de espacios)
-export interface Institucion {
+export interface Institution {
   id: number; // = espacioId
   nombre: string;
   sigla: string;
@@ -29,5 +29,12 @@ export interface Institucion {
   sitioWeb: string;
   director: string;
   subdirector: string;
-  logo: string; // imagen como data URL ('' = sin logo)
+  logo: string; // Signed image URL, or a local preview before saving; empty when absent.
+}
+
+export interface InstitutionSummary {
+  academicYear: number | null;
+  classGroups: number;
+  students: number;
+  teachers: number;
 }
