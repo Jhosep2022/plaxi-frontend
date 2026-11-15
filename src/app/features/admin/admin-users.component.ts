@@ -1,3 +1,4 @@
+import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faEnvelope, faEye, faHourglassHalf, faMagnifyingGlass, faShieldHalved, faUsers } from '@fortawesome/free-solid-svg-icons';
@@ -14,7 +15,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
 @Component({
   selector: 'app-admin-users',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, Tooltip, AvatarComponent, DrawerComponent, PageHeaderComponent],
+  imports: [EmptyStateComponent, FaIconComponent, Tooltip, AvatarComponent, DrawerComponent, PageHeaderComponent],
   template: `
     <app-page-header miga="Plataforma · Cuentas" titulo="Usuarios" descripcion="Todas las cuentas de Aulix. Desde aquí administras el acceso; no se ven datos académicos." />
 
@@ -97,7 +98,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="5" class="vacio">Ninguna cuenta coincide con la búsqueda.</td></tr>
+              <tr><td colspan="5" class="vacio"><app-empty-state [compact]="true" titulo="No encontramos cuentas" texto="Prueba otro nombre o cambia el filtro de estado." /></td></tr>
             }
           </tbody>
         </table>

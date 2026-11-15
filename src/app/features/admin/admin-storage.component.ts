@@ -1,3 +1,4 @@
+import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -21,7 +22,7 @@ const WARNING_RATIO = 0.8; // same threshold as the backend warning to managemen
 @Component({
   selector: 'app-admin-storage',
   host: { class: 'ui-pagina' },
-  imports: [PageHeaderComponent, RouterLink, FaIconComponent, Tooltip],
+  imports: [EmptyStateComponent, PageHeaderComponent, RouterLink, FaIconComponent, Tooltip],
   template: `
     <app-page-header miga="Plataforma · Operación" titulo="Almacenamiento" descripcion="Espacio ocupado por los archivos de cada colegio y academia. Al llegar al 80 % avisamos a su dirección o a su docente." />
 
@@ -77,7 +78,7 @@ const WARNING_RATIO = 0.8; // same threshold as the backend warning to managemen
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="4" class="vacio">Todavía no hay espacios.</td></tr>
+                <tr><td colspan="4" class="vacio"><app-empty-state [compact]="true" titulo="Todavía no hay espacios" texto="El consumo aparecerá cuando se cree el primer colegio o academia." /></td></tr>
               }
             </tbody>
           </table>

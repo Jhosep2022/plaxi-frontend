@@ -1,3 +1,4 @@
+import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClockRotateLeft, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
@@ -7,7 +8,7 @@ import { AdminService } from './admin.service';
 @Component({
   selector: 'app-admin-audit',
   host: { class: 'ui-pagina' },
-  imports: [PageHeaderComponent, FaIconComponent],
+  imports: [EmptyStateComponent, PageHeaderComponent, FaIconComponent],
   template: `
     <app-page-header miga="Plataforma · Operación" titulo="Registro de acciones" descripcion="Cada cambio hecho desde este panel, con su motivo. Sirve para saber quién cambió qué y por qué." />
 
@@ -36,7 +37,7 @@ import { AdminService } from './admin.service';
                 <td class="secundario">{{ entry.createdAt.slice(0, 16).replace('T', ' ') }}</td>
               </tr>
             } @empty {
-              <tr><td colspan="4" class="vacio">{{ search() ? 'Ningún cambio coincide con la búsqueda.' : 'Todavía no hay cambios registrados.' }}</td></tr>
+              <tr><td colspan="4" class="vacio"><app-empty-state [compact]="true" [titulo]="search() ? 'No encontramos cambios' : 'Todavía no hay cambios registrados'" texto="Las acciones administrativas aparecerán aquí con su fecha y motivo." /></td></tr>
             }
           </tbody>
         </table>
