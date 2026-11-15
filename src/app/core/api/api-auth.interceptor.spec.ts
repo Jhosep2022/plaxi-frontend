@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { apiAuthInterceptor } from './api-auth.interceptor';
-import { ApiSessionService } from './api-session.service';
+import { ApiSessionService, REFRESH_TAB_LOCK } from './api-session.service';
 import { SessionService } from '../auth/session.service';
 
 describe('apiAuthInterceptor', () => {
@@ -18,6 +18,7 @@ describe('apiAuthInterceptor', () => {
       providers: [
         provideHttpClient(withInterceptors([apiAuthInterceptor])),
         provideHttpClientTesting(),
+        { provide: REFRESH_TAB_LOCK, useValue: false },
         { provide: SessionService, useValue: { applyApiSession: jasmine.createSpy(), expireSession: jasmine.createSpy() } },
       ],
     });

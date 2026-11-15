@@ -1,13 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowRight, faChalkboardTeacher, faKey, faSchool, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { createSlug } from '../../core/models/auth.model';
 import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
-import { AuthService } from '../../services/auth.service';
-import { getErrorMessage } from '../../features/management/academics/academics.ui';
 
 // Choose a space after login, or join a course or create an academy.
 @Component({
@@ -55,14 +51,9 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
             </section>
             <section class="ui-card opcion">
               <span class="ui-icono tono-crema"><fa-icon [icon]="faChalkboardTeacher" /></span>
-              <h2>Crear mi academia</h2>
-              <p>¿Eres docente? Crea tu academia para subir tus cursos e invitar a tus estudiantes.</p>
-              <form (submit)="$event.preventDefault(); createAcademy()" novalidate>
-                <input id="esp-academia" class="ui-input" placeholder="Ej. Academia de Ana López" aria-label="Nombre de la academia" [value]="academyName()" (input)="academyName.set($any($event.target).value); academyError.set('')" />
-                <button type="submit" class="ui-btn" [disabled]="!academyName().trim() || isCreating()">{{ isCreating() ? 'Creando…' : 'Crear' }}</button>
-              </form>
-              @if (academyName().trim()) { <span class="ui-ayuda">Dirección web: aulix.alclick.dev/{{ slug() }}</span> }
-              @if (academyError()) { <span class="ui-error">{{ academyError() }}</span> }
+              <h2>¿Eres docente?</h2>
+              <p>Las academias las crean las cuentas de docente. Cierra sesión y crea tu cuenta de docente con tu academia desde «Crear cuenta».</p>
+              <button type="button" class="ui-btn ui-btn--secundario" (click)="session.signOut()">Cerrar sesión</button>
             </section>
           </div>
         }
@@ -98,7 +89,6 @@ import { getErrorMessage } from '../../features/management/academics/academics.u
 export class SelectSpaceComponent {
   protected readonly session = inject(SessionService);
   private router = inject(Router);
-  private auth = inject(AuthService);
 
   readonly roleLabel = SPACE_ROLE_LABEL;
   readonly spaceTypeLabel = SPACE_TYPE_LABEL;
@@ -112,24 +102,6 @@ export class SelectSpaceComponent {
   readonly error = signal('');
   readonly normalizedCode = computed(() => this.courseCode().trim().toUpperCase());
 
-  // Academy creation
-  readonly academyName = signal('');
-  readonly slug = computed(() => createSlug(this.academyName()));
-  readonly isCreating = signal(false);
-  readonly academyError = signal('');
-
-  async createAcademy(): Promise<void> {
-    this.isCreating.set(true);
-    try {
-      const userId = this.session.userId()!;
-      const { slug } = await firstValueFrom(this.auth.createAcademy(userId, this.academyName(), this.slug()));
-      await firstValueFrom(this.session.startSession(userId));
-      this.router.navigate(['/', slug, 'docente', 'inicio']);
-    } catch (e) {
-      this.academyError.set(getErrorMessage(e));
-      this.isCreating.set(false);
-    }
-  }
 
   joinCourse(): void {
     if (!/^[A-Z0-9]{3}-[A-Z0-9]{4}$/.test(this.normalizedCode())) return this.error.set('El código tiene el formato ABC-1234.');

@@ -65,17 +65,6 @@ export class AuthService {
     return from(this.createAccount(datos));
   }
 
-  // POST /academias: un usuario que ya tiene cuenta crea su academia (queda como su docente)
-  createAcademy(usuarioId: number, nombre: string, slug: string): Observable<{ slug: string }> {
-    if (!nombre.trim()) return throwError(() => new Error('Ponle un nombre a tu academia.'));
-    if (!SLUG_PATTERN.test(slug) || slug.length < 3) return throwError(() => new Error('La dirección web solo puede tener letras minúsculas, números y guiones.'));
-    if (RESERVADOS.includes(slug) || MOCK_ESPACIOS.some((e) => e.slug === slug)) return throwError(() => new Error('Ya existe una academia con esa dirección web. Prueba con otro nombre.'));
-    const espacioId = Math.max(0, ...MOCK_ESPACIOS.map((e) => e.id)) + 1;
-    MOCK_ESPACIOS.push({ id: espacioId, slug, nombre: nombre.trim(), tipo: 'academia', escala: DEFAULT_GRADING_SCALE });
-    MOCK_MEMBRESIAS.push({ usuarioId, espacioId, rol: 'docente' });
-    MOCK_MIEMBRO_DESDE[`${usuarioId}-${espacioId}`] = todayIso();
-    return of({ slug }).pipe(delay(MOCK_DELAY));
-  }
 
   // POST /auth/recuperar: siempre responde igual (no revela si el correo existe).
   // MOCK: devuelve el token para simular el enlace del correo.
