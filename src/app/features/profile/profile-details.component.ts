@@ -4,7 +4,7 @@ import { firstValueFrom, Observable } from 'rxjs';
 import { FormField, form, maxLength, pattern, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
-  faAddressCard, faBriefcase, faCameraRetro, faChalkboardTeacher, faCircleCheck, faEnvelope, faEye, faGlobe, faHeartPulse, faPen, faPlay, faUser, faUserShield,
+  faAddressCard, faBriefcase, faCameraRetro, faChalkboardTeacher, faCircleCheck, faEnvelope, faEye, faEyeSlash, faGlobe, faHeartPulse, faPen, faPlay, faUser, faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import type { Membership } from '../../core/models/space.model';
@@ -43,6 +43,7 @@ export class ProfileDetailsComponent {
   readonly faCircleCheck = faCircleCheck;
   readonly faEnvelope = faEnvelope;
   readonly faEye = faEye;
+  readonly faEyeSlash = faEyeSlash;
   readonly faGlobe = faGlobe;
   readonly faHeartPulse = faHeartPulse;
   readonly faPen = faPen;
@@ -50,7 +51,6 @@ export class ProfileDetailsComponent {
   readonly faUser = faUser;
   readonly faUserShield = faUserShield;
 
-  private readonly usuarioId = this.session.userId()!;
   readonly esDocente = computed(() => this.membresia().rol === 'docente');
   readonly esEstudiante = computed(() => this.membresia().rol === 'estudiante');
   readonly esAcademia = computed(() => this.membresia().espacio.tipo === 'academia');
@@ -66,13 +66,46 @@ export class ProfileDetailsComponent {
     pattern(s.ci, PATRON_CI, { message: 'Solo números (5 a 10), con complemento opcional.' });
   });
 
-  readonly mContacto = signal({ gmail: '', telefono: '', direccion: '' });
+  readonly mContacto = signal({ telefono: '', direccion: '' });
   readonly fContacto = form(this.mContacto, (s) => {
-    required(s.gmail, { message: 'Escribe tu correo.' });
-    pattern(s.gmail, PATRON_CORREO, { message: 'Escribe un correo válido.' });
     pattern(s.telefono, PATRON_CELULAR, { message: '8 dígitos, empieza con 6 o 7.' });
     maxLength(s.direccion, 120, { message: 'Máximo 120 caracteres.' });
   });
+
+  // Change of email: asks for the password; the new email only counts once its owner confirms it (audit finding 27)
+  readonly cambiandoCorreo = signal(false);
+  readonly correoPendiente = signal('');
+  readonly enviandoCorreo = signal(false);
+  readonly verClaveCorreo = signal(false);
+  readonly mCorreo = signal({ correo: '', clave: '' });
+  readonly fCorreo = form(this.mCorreo, (s) => {
+    required(s.correo, { message: 'Escribe tu correo nuevo.' });
+    pattern(s.correo, PATRON_CORREO, { message: 'Escribe un correo válido.' });
+    required(s.clave, { message: 'Escribe tu contraseña.' });
+  });
+
+  abrirCambioCorreo(): void {
+    this.mCorreo.set({ correo: '', clave: '' });
+    this.fCorreo().reset();
+    this.verClaveCorreo.set(false);
+    this.cambiandoCorreo.set(true);
+  }
+
+  pedirCambioCorreo(): void {
+    submit(this.fCorreo, async () => {
+      this.enviandoCorreo.set(true);
+      try {
+        const { correo, clave } = this.mCorreo();
+        this.correoPendiente.set(await firstValueFrom(this.servicio.requestEmailChange(correo, clave)));
+        this.cambiandoCorreo.set(false);
+        this.avisos.success('Te enviamos un enlace al correo nuevo. Ábrelo para confirmar el cambio.');
+      } catch (error) {
+        this.avisos.error(getErrorMessage(error));
+      } finally {
+        this.enviandoCorreo.set(false);
+      }
+    });
+  }
 
   readonly mCuenta = signal({ username: '' });
   readonly fCuenta = form(this.mCuenta, (s) => {
@@ -100,7 +133,7 @@ export class ProfileDetailsComponent {
         this.fPersonales().reset();
         break;
       case 'contacto':
-        this.mContacto.set({ gmail: p.gmail, telefono: p.telefono, direccion: p.direccion });
+        this.mContacto.set({ telefono: p.telefono, direccion: p.direccion });
         this.fContacto().reset();
         break;
       case 'cuenta':
@@ -120,20 +153,19 @@ export class ProfileDetailsComponent {
   }
 
   guardar(seccion: Seccion): void {
-    const id = this.usuarioId;
     switch (seccion) {
       case 'personales':
-        return void submit(this.fPersonales, () => this.ejecutar(() => this.servicio.savePersonalDetails(id, this.mPersonales()), 'Datos personales actualizados.'));
+        return void submit(this.fPersonales, () => this.ejecutar(() => this.servicio.savePersonalDetails(this.mPersonales()), 'Datos personales actualizados.'));
       case 'contacto':
-        return void submit(this.fContacto, () => this.ejecutar(() => this.servicio.saveContactDetails(id, this.mContacto()), 'Datos de contacto actualizados.'));
+        return void submit(this.fContacto, () => this.ejecutar(() => this.servicio.saveContactDetails(this.mContacto()), 'Datos de contacto actualizados.'));
       case 'cuenta':
-        return void submit(this.fCuenta, () => this.ejecutar(() => this.servicio.saveUsername(id, this.mCuenta().username), 'Nombre de usuario actualizado.'));
+        return void submit(this.fCuenta, () => this.ejecutar(() => this.servicio.saveUsername(this.mCuenta().username), 'Nombre de usuario actualizado.'));
       case 'docente': {
         const { especialidad, bio, ...enlaces } = this.mDocente();
-        return void submit(this.fDocente, () => this.ejecutar(() => this.servicio.saveTeacherProfile(id, { especialidad, bio, enlaces }), this.esAcademia() ? 'Perfil público actualizado.' : 'Perfil profesional actualizado.'));
+        return void submit(this.fDocente, () => this.ejecutar(() => this.servicio.saveTeacherProfile({ especialidad, bio, enlaces }), this.esAcademia() ? 'Perfil público actualizado.' : 'Perfil profesional actualizado.'));
       }
       case 'emergencia':
-        return void submit(this.fEmergencia, () => this.ejecutar(() => this.servicio.saveEmergencyContact(id, this.mEmergencia()), 'Contacto de emergencia actualizado.'));
+        return void submit(this.fEmergencia, () => this.ejecutar(() => this.servicio.saveEmergencyContact(this.mEmergencia()), 'Contacto de emergencia actualizado.'));
     }
   }
 

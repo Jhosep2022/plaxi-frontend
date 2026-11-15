@@ -77,7 +77,7 @@
     [saving]="guardandoAvatar()"
     (choose)="elegirAvatar($event)"
     (uploadPhoto)="elegirFoto($event)"
-    (removePhoto)="guardarFoto('', 'Volviste a tu avatar.')"
+    (removePhoto)="guardarFoto(null, 'Volviste a tu avatar.')"
     (close)="galeriaAbierta.set(false)" />
 } @else {
   <p class="cargando">No encontramos tu perfil.</p>

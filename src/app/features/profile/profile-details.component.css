@@ -128,3 +128,22 @@ h3 {
   background: var(--lime-green);
   color: var(--dark-blue);
 }
+
+/* Correo: el botón para cambiarlo va junto al dato */
+.correo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.correo .ui-btn {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+}
+
+.correo-pendiente,
+.cambio-correo {
+  margin-top: 14px;
+}

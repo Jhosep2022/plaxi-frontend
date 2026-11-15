@@ -1,9 +1,9 @@
 import { AvatarComponent } from '../../shared/ui/avatar.component';
-import { Component, ElementRef, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
+import { Component, ElementRef, Injector, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { Observable, from, of } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faAnglesLeft,
@@ -21,8 +21,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
-import { EnrollmentService } from '../../services/enrollment.service';
-import { ClassroomsService } from '../../services/classrooms.service';
 import { subjectIcon } from '../../shared/ui/academic-icons';
 import { AccountProfileService } from '../../services/account-profile.service';
 import type { UserProfile } from '../../core/models/profile.model';
@@ -45,8 +43,7 @@ export class SidebarComponent {
   private router = inject(Router);
   protected readonly session = inject(SessionService);
   private perfilService = inject(AccountProfileService);
-  private inscripcionService = inject(EnrollmentService);
-  private aulas = inject(ClassroomsService);
+  private injector = inject(Injector);
   private elementRef = inject(ElementRef<HTMLElement>);
 
   // Íconos usados directamente en la plantilla
@@ -190,13 +187,15 @@ export class SidebarComponent {
 
     const espacioId = this.session.activeSpace()?.id;
     if (!espacioId) return of([]);
+    // Loaded on demand: the classrooms service (and its quiz, grades and assignments) stays out of the initial bundle
+    const aulas = from(import('../../services/classrooms.service')).pipe(map(({ ClassroomsService }) => this.injector.get(ClassroomsService)));
     if (rol === 'docente') {
-      return this.aulas.aulasDocente(espacioId, usuarioId).pipe(
+      return aulas.pipe(switchMap((servicio) => servicio.aulasDocente(espacioId, usuarioId)),
         map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: subjectIcon(a.icono), route: `docente/clases/${a.id}` })))
       );
     }
     if (rol === 'estudiante') {
-      return this.aulas.aulasEstudiante(espacioId, usuarioId).pipe(
+      return aulas.pipe(switchMap((servicio) => servicio.aulasEstudiante(espacioId, usuarioId)),
         map((aulas) => aulas.map((a) => ({ label: a.nombre, icon: subjectIcon(a.icono), route: `estudiante/aulas/${a.id}` })))
       );
     }

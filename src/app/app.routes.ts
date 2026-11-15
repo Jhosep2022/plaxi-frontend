@@ -14,6 +14,13 @@ export const routes: Routes = [
 
   { path: 'cambiar-clave-temporal', canMatch: [temporaryPasswordGuard], title: 'Cambiar contraseña temporal', loadComponent: () => import('./features/auth/change-temporary-password.component').then((m) => m.ChangeTemporaryPasswordComponent) },
 
+  // Link of the email change: open with or without a session (it may be opened on another device)
+  {
+    path: 'confirmar-correo',
+    loadComponent: () => import('./features/auth/auth-layout.component').then((m) => m.AuthLayoutComponent),
+    children: [{ path: '', title: 'Confirmar correo', loadComponent: () => import('./features/auth/confirm-email.component').then((m) => m.ConfirmEmailComponent) }],
+  },
+
   {
     path: 'auth',
     canMatch: [guestGuard],

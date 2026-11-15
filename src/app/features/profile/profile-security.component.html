@@ -50,13 +50,18 @@
           <button type="button" class="ui-btn ui-btn--secundario" (click)="cerrarOtros()">Cerrar las demás</button>
         }
       </header>
+      @if (dispositivos.isLoading() && !dispositivos.value()) {
+        <p class="ui-ayuda">Cargando dispositivos…</p>
+      } @else if (dispositivos.error()) {
+        <p class="ui-ayuda" role="alert">No pudimos cargar tus dispositivos. <button type="button" class="ui-btn ui-btn--secundario" (click)="dispositivos.reload()">Reintentar</button></p>
+      }
       <ul class="dispositivos">
-        @for (d of p.dispositivos; track d.id) {
+        @for (d of dispositivos.value() ?? []; track d.id) {
           <li>
             <span class="ui-icono" [class]="d.actual ? 'tono-lima' : 'tono-azul'"><fa-icon [icon]="icono(d)" /></span>
             <div class="disp-texto">
               <strong>{{ d.nombre }} @if (d.actual) { <span class="ui-badge tono-lima">Este dispositivo</span> }</strong>
-              <small>{{ d.ubicacion }} · {{ d.actual ? 'Activo ahora' : 'Último uso: ' + cuando(d.ultimoUso) }}</small>
+              <small>@if (d.ip) { IP {{ d.ip }} · } {{ d.actual ? 'Activo ahora' : 'Último uso: ' + cuando(d.ultimoUso) }}</small>
             </div>
             @if (!d.actual) {
               <button type="button" class="ui-btn ui-btn--secundario" (click)="signOutDevice(d)" [attr.aria-label]="'Cerrar sesión en ' + d.nombre">Cerrar sesión</button>
@@ -83,6 +88,13 @@
     <div class="ui-campo">
       <label for="seg-confirmar">Para confirmar, escribe tu nombre de usuario: <strong>{{ p.username }}</strong></label>
       <input id="seg-confirmar" class="ui-input" autocomplete="off" [value]="confirmacion()" (input)="confirmacion.set($any($event.target).value)" />
+    </div>
+    <div class="ui-campo">
+      <label for="seg-clave-baja">Tu contraseña</label>
+      <div class="campo-clave">
+        <input id="seg-clave-baja" class="ui-input" [type]="verClaveBaja() ? 'text' : 'password'" autocomplete="current-password" [value]="claveBaja()" (input)="claveBaja.set($any($event.target).value)" />
+        <button type="button" class="ver-clave" (click)="verClaveBaja.set(!verClaveBaja())" [attr.aria-label]="verClaveBaja() ? 'Ocultar contraseña' : 'Mostrar contraseña'"><fa-icon [icon]="verClaveBaja() ? faEyeSlash : faEye" /></button>
+      </div>
     </div>
   </div>
   <ng-container pie>

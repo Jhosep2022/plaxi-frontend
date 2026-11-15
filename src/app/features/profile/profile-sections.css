@@ -154,3 +154,33 @@ textarea.ui-input {
   outline: 2px solid var(--dark-blue);
   outline-offset: 2px;
 }
+
+/* Contraseña con el ojito para verla (igual que en el inicio de sesión) */
+.campo-clave {
+  position: relative;
+}
+
+.campo-clave .ui-input {
+  width: 100%;
+  padding-right: 44px;
+  box-sizing: border-box;
+}
+
+.ver-clave {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ver-clave:hover {
+  background: var(--page-bg);
+  color: var(--dark-blue);
+}

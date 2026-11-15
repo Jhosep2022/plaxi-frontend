@@ -19,12 +19,12 @@ export type NotificationChannel = 'correo' | 'app';
 export type NotificationType = 'comunicados' | 'tareas' | 'calificaciones' | 'asistencia' | 'sesiones' | 'resumen';
 export type NotificationPreferences = Record<NotificationType, Record<NotificationChannel, boolean>>;
 
-// Dispositivo con la sesión abierta
+// Dispositivo con la sesión abierta (GET /api/perfil/dispositivos)
 export interface ProfileDevice {
-  id: number;
+  id: string; // id de la sesión
   nombre: string; // "Chrome en Windows"
   tipo: 'escritorio' | 'movil';
-  ubicacion: string;
+  ip: string;
   ultimoUso: string; // ISO
   actual: boolean;
 }
@@ -40,7 +40,6 @@ export interface ProfileDetails {
   ultimoAcceso: string; // ISO
   claveActualizada: string; // YYYY-MM-DD
   notificaciones: NotificationPreferences;
-  dispositivos: ProfileDevice[];
 }
 
 export interface UserProfile extends ProfileDto, ProfileDetails {}

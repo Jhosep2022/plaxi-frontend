@@ -65,7 +65,7 @@ export class ProfilePreferencesComponent {
   async guardar(): Promise<void> {
     this.guardando.set(true);
     try {
-      this.cambio.emit(await firstValueFrom(this.servicio.saveNotificationPreferences(this.session.userId()!, this.notificaciones())));
+      this.cambio.emit(await firstValueFrom(this.servicio.saveNotificationPreferences(this.notificaciones())));
       this.avisos.success('Preferencias de avisos guardadas.');
     } catch (error) {
       this.avisos.error(getErrorMessage(error));

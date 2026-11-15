@@ -13,6 +13,7 @@ import { SPACE_ROLE_LABEL } from '../../core/models/space.model';
 import { PHOTO_MAX_KB, UserProfile } from '../../core/models/profile.model';
 import { formatMonthYear } from '../../core/utils/attendance';
 import { AccountProfileService } from '../../services/account-profile.service';
+import { ProfileActivityService } from '../../services/profile-activity.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
 import { ProfileDetailsComponent } from './profile-details.component';
@@ -33,6 +34,7 @@ export type PestanaPerfil = 'datos' | 'espacios' | 'seguridad' | 'preferencias';
 export class ProfileComponent {
   private session = inject(SessionService);
   private servicio = inject(AccountProfileService);
+  private actividad = inject(ProfileActivityService);
   private avisos = inject(NotificationService);
 
   readonly faCamera = faCamera;
@@ -52,7 +54,7 @@ export class ProfileComponent {
   readonly datos = rxResource({ stream: () => this.servicio.perfil(this.usuarioId) });
   // Copia local que se actualiza al guardar cualquier sección sin volver a cargar la página
   readonly perfil = linkedSignal<UserProfile | null>(() => this.datos.value() ?? null);
-  readonly indicadores = rxResource({ stream: () => this.servicio.indicadores(this.membresia, this.usuarioId), defaultValue: [] });
+  readonly indicadores = rxResource({ stream: () => this.actividad.indicadores(this.membresia, this.usuarioId), defaultValue: [] });
 
   readonly nombreCompleto = computed(() => {
     const p = this.perfil();
@@ -75,7 +77,7 @@ export class ProfileComponent {
     if (this.guardandoAvatar()) return;
     this.guardandoAvatar.set(true);
     try {
-      this.perfil.set(await firstValueFrom(this.servicio.changeAvatar(this.usuarioId, avatar)));
+      this.perfil.set(await firstValueFrom(this.servicio.changeAvatar(avatar)));
       this.avisos.success(avatar ? 'Avatar actualizado.' : 'Volviste a tu avatar automático.');
     } catch (error) {
       this.avisos.error(getErrorMessage(error));
@@ -92,14 +94,13 @@ export class ProfileComponent {
     if (!archivo) return;
     if (!archivo.type.startsWith('image/')) return this.avisos.error('La foto debe ser una imagen.');
     if (archivo.size > PHOTO_MAX_KB * 1024) return this.avisos.error(`La foto debe pesar menos de ${PHOTO_MAX_KB} KB.`);
-    const lector = new FileReader();
-    lector.onload = () => this.guardarFoto(String(lector.result), 'Foto de perfil actualizada.');
-    lector.readAsDataURL(archivo);
+    void this.guardarFoto(archivo, 'Foto de perfil actualizada.');
   }
 
-  async guardarFoto(foto: string, mensaje: string): Promise<void> {
+  // A file uploads it; null removes it
+  async guardarFoto(foto: File | null, mensaje: string): Promise<void> {
     try {
-      this.perfil.set(await firstValueFrom(this.servicio.changePhoto(this.usuarioId, foto)));
+      this.perfil.set(await firstValueFrom(this.servicio.changePhoto(foto)));
       this.avisos.success(mensaje);
     } catch (error) {
       this.avisos.error(getErrorMessage(error));

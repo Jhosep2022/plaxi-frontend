@@ -9,6 +9,7 @@ import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.mode
 import type { ProfileSpace } from '../../core/models/profile.model';
 import { formatMonthYear } from '../../core/utils/attendance';
 import { AccountProfileService } from '../../services/account-profile.service';
+import { ProfileActivityService } from '../../services/profile-activity.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
 
@@ -22,6 +23,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
 export class ProfileSpacesComponent {
   readonly session = inject(SessionService);
   private servicio = inject(AccountProfileService);
+  private actividad = inject(ProfileActivityService);
   private avisos = inject(NotificationService);
   private router = inject(Router);
 
@@ -36,7 +38,7 @@ export class ProfileSpacesComponent {
   readonly faStar = faStar;
 
   private readonly usuarioId = this.session.userId()!;
-  readonly espacios = rxResource({ stream: () => this.servicio.espacios(this.usuarioId), defaultValue: [] });
+  readonly espacios = rxResource({ stream: () => this.actividad.espacios(this.usuarioId), defaultValue: [] });
   readonly predeterminado = signal(this.session.defaultSpace());
   readonly codigo = signal('');
 
@@ -58,7 +60,7 @@ export class ProfileSpacesComponent {
   async salir(e: ProfileSpace): Promise<void> {
     if (!confirm(`¿Salir de ${e.nombre}? Perderás el acceso a sus cursos y tu avance en ellos.`)) return;
     try {
-      await firstValueFrom(this.servicio.salirDeEspacio(this.usuarioId, e.espacioId));
+      await firstValueFrom(this.actividad.salirDeEspacio(this.usuarioId, e.espacioId));
       const eraActual = this.esActual(e);
       this.session.removeMembership(e.espacioId);
       this.avisos.success(`Saliste de ${e.nombre}.`);

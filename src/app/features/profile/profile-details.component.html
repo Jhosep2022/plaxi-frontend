@@ -68,17 +68,10 @@
       </header>
       @if (editando() === 'contacto') {
         <form class="ui-form" (submit)="$event.preventDefault(); guardar('contacto')" novalidate>
-          <div class="ui-fila">
-            <div class="ui-campo">
-              <label for="per-correo">Correo electrónico</label>
-              <input id="per-correo" type="email" class="ui-input" [formField]="fContacto.gmail" />
-              @if (fContacto.gmail().touched() && fContacto.gmail().invalid()) { <span class="ui-error">{{ fContacto.gmail().errors()[0].message }}</span> }
-            </div>
-            <div class="ui-campo">
-              <label for="per-cel">Celular</label>
-              <input id="per-cel" class="ui-input" inputmode="numeric" placeholder="Ej. 71234567" [formField]="fContacto.telefono" />
-              @if (fContacto.telefono().invalid()) { <span class="ui-error">{{ fContacto.telefono().errors()[0].message }}</span> }
-            </div>
+          <div class="ui-campo">
+            <label for="per-cel">Celular</label>
+            <input id="per-cel" class="ui-input" inputmode="numeric" placeholder="Ej. 71234567" [formField]="fContacto.telefono" />
+            @if (fContacto.telefono().invalid()) { <span class="ui-error">{{ fContacto.telefono().errors()[0].message }}</span> }
           </div>
           <div class="ui-campo">
             <label for="per-dir">Dirección <span class="ui-ayuda">(opcional)</span></label>
@@ -92,10 +85,47 @@
         </form>
       } @else {
         <dl class="datos">
-          <div><dt>Correo</dt><dd>{{ p.gmail }}</dd></div>
+          <div>
+            <dt>Correo</dt>
+            <dd class="correo">
+              {{ p.gmail }}
+              @if (!cambiandoCorreo()) {
+                <button type="button" class="ui-btn ui-btn--secundario" (click)="abrirCambioCorreo()">Cambiar correo</button>
+              }
+            </dd>
+          </div>
           <div><dt>Celular</dt><dd [class.vacio]="!p.telefono">{{ p.telefono || 'Sin completar' }}</dd></div>
           <div><dt>Dirección</dt><dd [class.vacio]="!p.direccion">{{ p.direccion || 'Sin completar' }}</dd></div>
         </dl>
+        @if (correoPendiente()) {
+          <p class="ui-aviso correo-pendiente" role="status">
+            Te enviamos un enlace a <strong>{{ correoPendiente() }}</strong>. Tu correo cambia cuando lo abras; hasta entonces sigue siendo {{ p.gmail }}.
+          </p>
+        }
+        @if (cambiandoCorreo()) {
+          <form class="ui-form cambio-correo" (submit)="$event.preventDefault(); pedirCambioCorreo()" novalidate>
+            <p class="ui-ayuda">Por seguridad te pedimos tu contraseña. Te enviaremos un enlace al correo nuevo y avisaremos al actual.</p>
+            <div class="ui-fila">
+              <div class="ui-campo">
+                <label for="per-correo-nuevo">Correo nuevo</label>
+                <input id="per-correo-nuevo" type="email" class="ui-input" autocomplete="email" [formField]="fCorreo.correo" />
+                @if (fCorreo.correo().touched() && fCorreo.correo().invalid()) { <span class="ui-error">{{ fCorreo.correo().errors()[0].message }}</span> }
+              </div>
+              <div class="ui-campo">
+                <label for="per-correo-clave">Tu contraseña</label>
+                <div class="campo-clave">
+                  <input id="per-correo-clave" class="ui-input" [type]="verClaveCorreo() ? 'text' : 'password'" autocomplete="current-password" [formField]="fCorreo.clave" />
+                  <button type="button" class="ver-clave" (click)="verClaveCorreo.set(!verClaveCorreo())" [attr.aria-label]="verClaveCorreo() ? 'Ocultar contraseña' : 'Mostrar contraseña'"><fa-icon [icon]="verClaveCorreo() ? faEyeSlash : faEye" /></button>
+                </div>
+                @if (fCorreo.clave().touched() && fCorreo.clave().invalid()) { <span class="ui-error">{{ fCorreo.clave().errors()[0].message }}</span> }
+              </div>
+            </div>
+            <div class="acciones-form">
+              <button type="button" class="ui-btn ui-btn--secundario" (click)="cambiandoCorreo.set(false)">Cancelar</button>
+              <button type="submit" class="ui-btn" [disabled]="enviandoCorreo()">{{ enviandoCorreo() ? 'Enviando…' : 'Enviar enlace' }}</button>
+            </div>
+          </form>
+        }
       }
     </section>
 
