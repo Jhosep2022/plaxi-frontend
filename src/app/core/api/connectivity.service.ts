@@ -43,7 +43,7 @@ export class ConnectivityService {
   async check(): Promise<boolean> {
     this.checking.set(true);
     try {
-      await firstValueFrom(this.http.get(`${environment.API_URL}/salud`));
+      await firstValueFrom(this.http.get(`${environment.API_URL}/salud/vivo`));
       this.unreachable.set(false);
       return true;
     } catch {
