@@ -1,13 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { paraleloLabel } from '../core/models/academics.model';
 import { Parentesco } from '../core/models/people.model';
 import { SessionService } from '../core/auth/session.service';
-import { MOCK_PARALELOS } from '../mocks/academics.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
-import { MOCK_DELAY } from '../mocks/mock-data';
-import { MOCK_VINCULOS } from '../mocks/people.mock';
+import { SchoolApiService } from '../core/api/school-api.service';
 
 export interface Hijo {
   id: number;
@@ -25,24 +22,31 @@ const CLAVE = 'hijoActivo';
 @Injectable({ providedIn: 'root' })
 export class SelectedChildService {
   private session = inject(SessionService);
+  private readonly api = inject(SchoolApiService);
 
   readonly elegidoId = signal<number>(leer());
 
   // Estudiantes a cargo del padre en sesión (MOCK: con backend, GET /padres/:id/hijos)
   hijos(): Observable<Hijo[]> {
-    const padreId = this.session.userId();
-    const hijos = MOCK_VINCULOS.filter((v) => v.padreId === padreId).flatMap((v) => {
-      const e = MOCK_ESTUDIANTES.find((x) => x.id === v.estudianteId);
-      if (!e) return [];
-      const paralelo = MOCK_PARALELOS.find((p) => p.id === e.paraleloId);
-      return [{ id: e.id, nombre: e.nombre, paraleloId: e.paraleloId, curso: paralelo ? paraleloLabel(paralelo) : 'Sin curso', fechaNacimiento: e.fechaNacimiento, parentesco: v.parentesco }];
-    });
-    return of(hijos).pipe(delay(MOCK_DELAY));
+    return this.api.member().pipe(
+      map((member) =>
+        member.hijos.map((child) => ({
+          id: child.id,
+          nombre: child.nombre,
+          paraleloId: child.paralelo?.id ?? 0,
+          curso: child.paralelo?.etiqueta ?? 'Sin curso',
+          fechaNacimiento: child.fechaNacimiento ?? '',
+          parentesco: child.parentesco,
+        })),
+      ),
+    );
   }
 
   // El hijo elegido, o el primero si no eligió (o ya no está a su cargo)
   activo(): Observable<Hijo | null> {
-    return this.hijos().pipe(map((hs) => hs.find((h) => h.id === this.elegidoId()) ?? hs[0] ?? null));
+    return this.hijos().pipe(
+      map((hs) => hs.find((h) => h.id === this.elegidoId()) ?? hs[0] ?? null),
+    );
   }
 
   elegir(id: number): void {

@@ -1,25 +1,20 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { Observable, map, of, switchMap } from 'rxjs';
 import {
   EstadoAsistencia,
   EstadoLicencia,
   Estudiante,
   Licencia,
   RegistroAsistencia,
-  TOLERANCIA_POR_DEFECTO,
 } from '../core/models/attendance.model';
-import { todayIso } from '../core/utils/attendance';
-import { MOCK_CONFIG_ASISTENCIA, MOCK_ESTUDIANTES, MOCK_LICENCIAS, MOCK_REGISTROS } from '../mocks/attendance.mock';
-import { MOCK_PERFILES } from '../mocks/mock-data';
-import { MockRepository } from './mock-repository';
+import { SchoolApiService } from '../core/api/school-api.service';
+import { PeopleService } from './people.service';
 
 export interface MarcaAsistencia {
   estudianteId: number;
   estado: EstadoAsistencia;
   minutosTarde: number;
 }
-
 export interface ClaseDelDia {
   espacioId: number;
   paraleloId: number;
@@ -28,96 +23,176 @@ export interface ClaseDelDia {
   fecha: string;
   docenteId: number;
 }
+interface ApiLeave extends Omit<Licencia, 'solicitadaPor'> {
+  solicitadaPor: number | null;
+  solicitante?: string;
+}
 
-// Asistencia de estudiantes por clase, licencias y tolerancia de atraso.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {
-  private estudiantesRepo = new MockRepository<Estudiante>(MOCK_ESTUDIANTES);
-  private registrosRepo = new MockRepository<RegistroAsistencia>(MOCK_REGISTROS);
-  private licenciasRepo = new MockRepository<Licencia>(MOCK_LICENCIAS);
-  private configRepo = new MockRepository(MOCK_CONFIG_ASISTENCIA);
-
-  // ---------- Estudiantes ----------
+  private readonly api = inject(SchoolApiService);
+  private readonly people = inject(PeopleService);
   getStudents(): Observable<Estudiante[]> {
-    return this.estudiantesRepo.list();
+    if (['estudiante', 'padre'].includes(this.api.session.activeRole() ?? ''))
+      return this.api.member().pipe(
+        map((member) => {
+          const own = member.fichas
+            .filter((person) => person.tipo === 'estudiante')
+            .map((person) => ({ ...person, paralelo: member.paralelo }));
+          return [...own, ...member.hijos].map((person) => ({
+            id: person.id,
+            nombre: person.nombre,
+            givenNames: person.nombres,
+            firstSurname: person.primerApellido,
+            secondSurname: person.segundoApellido,
+            ci: person.ci,
+            fechaNacimiento: person.fechaNacimiento ?? '',
+            paraleloId: person.paralelo?.id ?? 0,
+          }));
+        }),
+      );
+    return this.people.estudiantes();
   }
-
-  getStudentsByClassGroup(paraleloId: number): Observable<Estudiante[]> {
-    return this.estudiantesRepo.list((e) => e.paraleloId === paraleloId);
+  getClassRoster(entry: { paraleloId: number; bloque: number; fecha: string }) {
+    return this.api.http.get<{
+      editable: boolean;
+      motivoNoEditable: string;
+      estudiantes: { id: number; conLicencia: boolean }[];
+    }>(this.api.url('asistencia/clase'), { params: { ...entry } });
   }
-
-  // ---------- Registros ----------
-  getClassRecords(clase: Omit<ClaseDelDia, 'docenteId' | 'espacioId'>): Observable<RegistroAsistencia[]> {
-    return this.registrosRepo.list((r) =>
-      r.paraleloId === clase.paraleloId && r.materiaId === clase.materiaId && r.bloque === clase.bloque && r.fecha === clase.fecha);
+  getStudentsByClassGroup(classGroupId: number): Observable<Estudiante[]> {
+    return this.getStudents().pipe(
+      map((rows) => rows.filter((row) => row.paraleloId === classGroupId)),
+    );
   }
-
-  getStudentRecords(estudianteId: number): Observable<RegistroAsistencia[]> {
-    return this.registrosRepo.list((r) => r.estudianteId === estudianteId).pipe(map((rs) => rs.sort((a, b) => b.fecha.localeCompare(a.fecha) || a.bloque - b.bloque)));
+  getClassRecords(
+    entry: Omit<ClaseDelDia, 'docenteId' | 'espacioId'>,
+  ): Observable<RegistroAsistencia[]> {
+    return this.records({ desde: entry.fecha, hasta: entry.fecha }).pipe(
+      map((rows) =>
+        rows.filter(
+          (row) =>
+            row.paraleloId === entry.paraleloId &&
+            row.materiaId === entry.materiaId &&
+            row.bloque === entry.bloque,
+        ),
+      ),
+    );
   }
-
-  getRecordsBetween(espacioId: number, desde: string, hasta: string): Observable<RegistroAsistencia[]> {
-    return this.registrosRepo.list((r) => r.espacioId === espacioId && r.fecha >= desde && r.fecha <= hasta);
+  getStudentRecords(studentId: number): Observable<RegistroAsistencia[]> {
+    const actualId =
+      this.api.session.activeRole() === 'estudiante'
+        ? this.api
+            .member()
+            .pipe(
+              map(
+                (member) =>
+                  member.fichas.find((person) => person.tipo === 'estudiante')
+                    ?.id ?? 0,
+              ),
+            )
+        : of(studentId);
+    return actualId.pipe(
+      switchMap((id) => (id ? this.records({ estudianteId: id }) : of([]))),
+    );
   }
-
-  // Guarda la asistencia de una clase (reemplaza la que ya se haya tomado ese día)
-  saveAttendance(clase: ClaseDelDia, marcas: MarcaAsistencia[]): Observable<number> {
-    if (clase.fecha > todayIso()) return throwError(() => new Error('No se puede tomar asistencia de una fecha futura.'));
-    const existentes = this.registrosRepo.readNow((r) =>
-      r.paraleloId === clase.paraleloId && r.materiaId === clase.materiaId && r.bloque === clase.bloque && r.fecha === clase.fecha);
-    for (const marca of marcas) {
-      const previo = existentes.find((r) => r.estudianteId === marca.estudianteId);
-      this.registrosRepo.save({
-        ...clase,
-        id: previo?.id,
-        estudianteId: marca.estudianteId,
-        estado: marca.estado,
-        minutosTarde: marca.estado === 'atraso' ? marca.minutosTarde : 0,
-      }).subscribe();
-    }
-    return this.registrosRepo.list(() => false).pipe(map(() => marcas.length));
+  getRecordsBetween(
+    _spaceId: number,
+    from: string,
+    to: string,
+  ): Observable<RegistroAsistencia[]> {
+    return this.records({ desde: from, hasta: to });
   }
-
-  // ---------- Tolerancia de atraso ----------
-  getTolerance(docenteId: number): Observable<number> {
-    return this.configRepo.list((c) => c.id === docenteId).pipe(map(([c]) => c?.toleranciaMin ?? TOLERANCIA_POR_DEFECTO));
+  saveAttendance(
+    entry: ClaseDelDia,
+    marks: MarcaAsistencia[],
+  ): Observable<number> {
+    return this.api.http
+      .put<{ guardados: number }>(this.api.url('asistencia/clase'), {
+        paraleloId: entry.paraleloId,
+        bloque: entry.bloque,
+        fecha: entry.fecha,
+        marcas: marks,
+      })
+      .pipe(map((result) => result.guardados));
   }
-
-  saveTolerance(docenteId: number, toleranciaMin: number): Observable<number> {
-    if (toleranciaMin < 0 || toleranciaMin > 60) return throwError(() => new Error('La tolerancia debe estar entre 0 y 60 minutos.'));
-    return this.configRepo.save({ id: docenteId, toleranciaMin }).pipe(map((c) => c.toleranciaMin));
+  getTolerance(_teacherId: number): Observable<number> {
+    return this.api.http
+      .get<{ toleranciaMin: number }>(this.api.url('asistencia/tolerancia'))
+      .pipe(map((result) => result.toleranciaMin));
   }
-
-  // ---------- Licencias ----------
-  // Name of the parent who asked for each leave (MOCK: it goes away when attendance is connected to the API)
+  saveTolerance(_teacherId: number, minutes: number): Observable<number> {
+    return this.api.http
+      .put<{ toleranciaMin: number }>(this.api.url('asistencia/tolerancia'), {
+        toleranciaMin: minutes,
+      })
+      .pipe(map((result) => result.toleranciaMin));
+  }
   getLeaveRequesters(): Observable<Map<number, string>> {
-    return of(new Map(MOCK_PERFILES.map((p) => [p.idUsuario, `${p.nombre} ${p.primerApellido}`])));
+    return this.api.http
+      .get<ApiLeave[]>(this.api.url('licencias'))
+      .pipe(
+        map(
+          (rows) =>
+            new Map(
+              rows.map((row) => [
+                row.solicitadaPor ?? 0,
+                row.solicitante ?? 'Dirección',
+              ]),
+            ),
+        ),
+      );
   }
-
-  getLeaveRequests(espacioId: number): Observable<Licencia[]> {
-    return this.licenciasRepo.list((l) => l.espacioId === espacioId).pipe(map((ls) => ls.sort((a, b) => b.creada.localeCompare(a.creada) || b.id - a.id)));
+  getLeaveRequests(_spaceId: number): Observable<Licencia[]> {
+    return this.api.http.get<ApiLeave[]>(this.api.url('licencias')).pipe(
+      map((rows) =>
+        rows.map((row) => ({
+          ...row,
+          solicitadaPor: row.solicitadaPor ?? 0,
+        })),
+      ),
+    );
   }
-
-  getStudentLeaveRequests(estudianteId: number): Observable<Licencia[]> {
-    return this.licenciasRepo.list((l) => l.estudianteId === estudianteId).pipe(map((ls) => ls.sort((a, b) => b.desde.localeCompare(a.desde))));
+  getStudentLeaveRequests(studentId: number): Observable<Licencia[]> {
+    return this.getLeaveRequests(this.api.session.activeSpace()!.id).pipe(
+      map((rows) =>
+        this.api.session.activeRole() === 'estudiante'
+          ? rows
+          : rows.filter((row) => row.estudianteId === studentId),
+      ),
+    );
   }
-
-  requestLeave(licencia: Omit<Licencia, 'id' | 'estado' | 'respuesta' | 'creada'>): Observable<Licencia> {
-    if (licencia.hasta < licencia.desde) return throwError(() => new Error('La fecha de fin no puede ser anterior a la de inicio.'));
-    const cruzada = this.licenciasRepo.readNow((l) => l.estudianteId === licencia.estudianteId && l.estado !== 'rechazada' && l.desde <= licencia.hasta && licencia.desde <= l.hasta);
-    if (cruzada.length) return throwError(() => new Error('Ya hay una licencia solicitada o aprobada para esas fechas.'));
-    return this.licenciasRepo.save({ ...licencia, estado: 'pendiente', respuesta: '', creada: todayIso() });
+  requestLeave(
+    leave: Omit<Licencia, 'id' | 'estado' | 'respuesta' | 'creada'>,
+  ): Observable<Licencia> {
+    return this.api.http
+      .post<ApiLeave>(this.api.url('licencias'), {
+        estudianteId: leave.estudianteId,
+        desde: leave.desde,
+        hasta: leave.hasta,
+        motivo: leave.motivo,
+        archivo: leave.archivo,
+      })
+      .pipe(map((row) => ({ ...row, solicitadaPor: row.solicitadaPor ?? 0 })));
   }
-
-  // Aprueba o rechaza; al aprobar, la asistencia ya tomada en esas fechas pasa a "licencia"
-  respondToLeaveRequest(licencia: Licencia, estado: Exclude<EstadoLicencia, 'pendiente'>, respuesta: string): Observable<Licencia> {
-    if (estado === 'aprobada') {
-      for (const r of this.registrosRepo.readNow((r) => r.estudianteId === licencia.estudianteId && r.fecha >= licencia.desde && r.fecha <= licencia.hasta)) {
-        r.estado = 'licencia';
-        r.minutosTarde = 0;
-      }
-    }
-    return this.licenciasRepo.save({ ...licencia, estado, respuesta });
+  respondToLeaveRequest(
+    leave: Licencia,
+    status: Exclude<EstadoLicencia, 'pendiente'>,
+    message: string,
+  ): Observable<Licencia> {
+    return this.api.http
+      .post<ApiLeave>(this.api.url(`licencias/${leave.id}/respuesta`), {
+        estado: status,
+        respuesta: message,
+      })
+      .pipe(map((row) => ({ ...row, solicitadaPor: row.solicitadaPor ?? 0 })));
+  }
+  private records(
+    params: Record<string, string | number>,
+  ): Observable<RegistroAsistencia[]> {
+    return this.api.http.get<RegistroAsistencia[]>(
+      this.api.url('asistencia/registros'),
+      { params },
+    );
   }
 }

@@ -3,10 +3,26 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCalendarDays, faChalkboard, faClock, faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCalendarDays,
+  faChalkboard,
+  faClock,
+  faHourglassHalf,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { DIAS_SEMANA, TURNOS, Turno, paraleloLabel } from '../../core/models/academics.model';
-import { DatosHorario, clasesDeDocente, filasParaTurnos, itemsDeClases, turnosDeClases } from '../../core/utils/schedule';
+import {
+  DIAS_SEMANA,
+  TURNOS,
+  Turno,
+  paraleloLabel,
+} from '../../core/models/academics.model';
+import {
+  DatosHorario,
+  clasesDeDocente,
+  filasParaTurnos,
+  itemsDeClases,
+  turnosDeClases,
+} from '../../core/utils/schedule';
 import { formatDuration } from '../../core/utils/workday';
 import { AcademicsService } from '../../services/academics.service';
 import { SchedulesService } from '../../services/schedules.service';
@@ -30,30 +46,66 @@ interface VistaMiHorario {
 @Component({
   selector: 'app-my-schedule',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, WeeklyScheduleComponent, ChildSelectorComponent],
+  imports: [
+    FaIconComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    WeeklyScheduleComponent,
+    ChildSelectorComponent,
+  ],
   styles: `
-    .resumen { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-    .cargando { color: var(--muted); }
+    .resumen {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .cargando {
+      color: var(--muted);
+    }
   `,
   template: `
-    @if (esPadre) { <app-child-selector /> }
+    @if (esPadre) {
+      <app-child-selector />
+    }
     @if (vista.isLoading() && !vista.value()) {
       <p class="cargando">Cargando horario…</p>
     } @else if (vista.value(); as v) {
-      <app-page-header [miga]="miga()" [titulo]="v.titulo" [descripcion]="v.descripcion" />
+      <app-page-header
+        [miga]="miga()"
+        [titulo]="v.titulo"
+        [descripcion]="v.descripcion"
+      />
       @if (v.clases.length) {
         <div class="resumen">
-          <span class="ui-badge tono-lima"><fa-icon [icon]="faChalkboard" /> {{ v.clases.length }} clases por semana</span>
-          <span class="ui-badge tono-azul"><fa-icon [icon]="faClock" /> {{ horasSemana() }} h semanales</span>
-          <span class="ui-badge"><fa-icon [icon]="faHourglassHalf" /> Periodos de {{ duracion() }}</span>
+          <span class="ui-badge tono-lima"
+            ><fa-icon [icon]="faChalkboard" /> {{ v.clases.length }} clases por
+            semana</span
+          >
+          <span class="ui-badge tono-azul"
+            ><fa-icon [icon]="faClock" /> {{ horasSemana() }} h semanales</span
+          >
+          <span class="ui-badge"
+            ><fa-icon [icon]="faHourglassHalf" /> Periodos de
+            {{ duracion() }}</span
+          >
         </div>
       }
       <div class="ui-card">
-        <app-weekly-schedule [dias]="dias()" [filas]="filas()" [items]="items()" vacio="Todavía no hay clases en tu horario." />
+        <app-weekly-schedule
+          [dias]="dias()"
+          [filas]="filas()"
+          [items]="items()"
+          vacio="Todavía no hay clases en tu horario."
+        />
       </div>
     } @else {
       <div class="ui-card">
-        <app-empty-state [icono]="faCalendarDays" titulo="Sin horario por ahora" [texto]="mensajeVacio()" />
+        <app-empty-state
+          [icono]="faCalendarDays"
+          titulo="Sin horario por ahora"
+          [texto]="mensajeVacio()"
+        />
       </div>
     }
   `,
@@ -74,11 +126,13 @@ export class MyScheduleComponent {
   private readonly usuarioId = this.session.userId()!;
 
   readonly esPadre = this.rol === 'padre';
-  readonly miga = computed(() => (this.rol === 'padre' ? 'Seguimiento' : 'Horario'));
+  readonly miga = computed(() =>
+    this.rol === 'padre' ? 'Seguimiento' : 'Horario',
+  );
   readonly mensajeVacio = computed(() =>
     this.espacio.tipo === 'academia'
       ? 'Tu academia todavía no publicó sesiones en vivo.'
-      : 'Todavía no estás asignado a un paralelo con horario en la gestión activa.'
+      : 'Todavía no estás asignado a un paralelo con horario en la gestión activa.',
   );
 
   // Carga los datos del horario y elige qué clases mostrar según el rol
@@ -86,43 +140,69 @@ export class MyScheduleComponent {
     params: () => (this.rol === 'padre' ? this.hijoActivo.elegidoId() : 0),
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
-      const datos$ = this.horarios.datos(this.espacio.id);
+      const datos$ = this.horarios.getScheduleData(this.espacio.id);
 
       if (this.rol === 'docente') {
-        return datos$.pipe(map((datos) => ({
-          datos, modo: 'docente' as const, clases: clasesDeDocente(datos, this.usuarioId),
-          turnos: turnosDeClases(datos, clasesDeDocente(datos, this.usuarioId)),
-          titulo: 'Mi horario', descripcion: 'Tus clases de la semana en todos tus paralelos.',
-        })));
+        return datos$.pipe(
+          map((datos) => ({
+            datos,
+            modo: 'docente' as const,
+            clases: clasesDeDocente(datos, this.usuarioId),
+            turnos: turnosDeClases(
+              datos,
+              clasesDeDocente(datos, this.usuarioId),
+            ),
+            titulo: 'Mi horario',
+            descripcion: 'Tus clases de la semana en todos tus paralelos.',
+          })),
+        );
       }
 
       // Estudiante: su paralelo. Padre: el paralelo del hijo elegido.
-      const quien$ = this.rol === 'padre'
-        ? this.hijoActivo.activo().pipe(map((h) => ({ paraleloId: h?.paraleloId ?? 0, hijo: h })))
-        : this.academico.getStudentClassGroup(this.usuarioId).pipe(map((paraleloId) => ({ paraleloId, hijo: null })));
+      const quien$ =
+        this.rol === 'padre'
+          ? this.hijoActivo
+              .activo()
+              .pipe(map((h) => ({ paraleloId: h?.paraleloId ?? 0, hijo: h })))
+          : this.academico
+              .getStudentClassGroup(this.usuarioId)
+              .pipe(map((paraleloId) => ({ paraleloId, hijo: null })));
       return quien$.pipe(
-        switchMap(({ paraleloId, hijo }) => datos$.pipe(map((datos) => ({ datos, paraleloId, hijo })))),
+        switchMap(({ paraleloId, hijo }) =>
+          datos$.pipe(map((datos) => ({ datos, paraleloId, hijo }))),
+        ),
         map(({ datos, paraleloId, hijo }) => {
           const paralelo = datos.paralelos.find((p) => p.id === paraleloId);
           if (!paralelo) return null;
-          const turno = TURNOS.find((t) => t.id === paralelo.turno)?.label.toLowerCase();
+          const turno = TURNOS.find(
+            (t) => t.id === paralelo.turno,
+          )?.label.toLowerCase();
           return {
-            datos, modo: 'paralelo' as const, clases: datos.clases.filter((c) => c.paraleloId === paralelo.id),
+            datos,
+            modo: 'paralelo' as const,
+            clases: datos.clases.filter((c) => c.paraleloId === paralelo.id),
             turnos: [paralelo.turno],
             titulo: hijo ? `Horario de ${hijo.nombre}` : 'Mi horario',
             descripcion: `${paraleloLabel(paralelo)} · turno ${turno}.`,
           };
-        })
+        }),
       );
     },
   });
 
-  readonly dias = computed(() => DIAS_SEMANA.filter((d) => this.vista.value()?.datos.jornada.dias.includes(d.id)));
+  readonly dias = computed(() =>
+    DIAS_SEMANA.filter((d) =>
+      this.vista.value()?.datos.jornada.dias.includes(d.id),
+    ),
+  );
 
   readonly filas = computed(() => {
     const v = this.vista.value();
     if (!v) return [];
-    return filasParaTurnos(v.datos.jornada, v.turnos.length ? v.turnos : ['manana']);
+    return filasParaTurnos(
+      v.datos.jornada,
+      v.turnos.length ? v.turnos : ['manana'],
+    );
   });
 
   readonly items = computed(() => {
@@ -130,9 +210,15 @@ export class MyScheduleComponent {
     return v ? itemsDeClases(v.datos, v.clases, v.modo) : [];
   });
 
-  readonly duracion = computed(() => formatDuration(this.vista.value()?.datos.jornada.duracionPeriodoMin ?? 0));
+  readonly duracion = computed(() =>
+    formatDuration(this.vista.value()?.datos.jornada.duracionPeriodoMin ?? 0),
+  );
   readonly horasSemana = computed(() => {
     const v = this.vista.value();
-    return v ? Math.round(((v.clases.length * v.datos.jornada.duracionPeriodoMin) / 60) * 10) / 10 : 0;
+    return v
+      ? Math.round(
+          ((v.clases.length * v.datos.jornada.duracionPeriodoMin) / 60) * 10,
+        ) / 10
+      : 0;
   });
 }

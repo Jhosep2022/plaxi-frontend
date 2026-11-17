@@ -1,15 +1,42 @@
+import { ApiLoadStateComponent } from '../../shared/ui/api-load-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { FormField, form, minLength, required, submit, validate } from '@angular/forms/signals';
+import {
+  FormField,
+  form,
+  minLength,
+  required,
+  submit,
+  validate,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBell, faCalendarCheck, faClock, faFileMedical, faPaperclip, faPlus, faUserCheck, faUserXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBell,
+  faCalendarCheck,
+  faClock,
+  faFileMedical,
+  faPaperclip,
+  faPlus,
+  faUserCheck,
+  faUserXmark,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { ESTADO_DIA_LABEL, EstadoDia, EstadoLicencia } from '../../core/models/attendance.model';
-import { contar, getDailyStatus, formatShortDate, todayIso } from '../../core/utils/attendance';
+import {
+  ESTADO_DIA_LABEL,
+  EstadoDia,
+  EstadoLicencia,
+} from '../../core/models/attendance.model';
+import {
+  contar,
+  getDailyStatus,
+  formatShortDate,
+  todayIso,
+} from '../../core/utils/attendance';
 import { AcademicsService } from '../../services/academics.service';
 import { AttendanceService } from '../../services/attendance.service';
+import { SchedulesService } from '../../services/schedules.service';
 import { SelectedChildService } from '../../services/selected-child.service';
 import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
 import { AccountProfileService } from '../../services/account-profile.service';
@@ -28,13 +55,23 @@ const LICENCIA_VACIA = { desde: '', hasta: '', motivo: '' };
 @Component({
   selector: 'app-my-attendance',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, EmptyStateComponent, DrawerComponent, ChildSelectorComponent, AcademyStudentAttendanceComponent],
+  imports: [
+    FaIconComponent,
+    FormField,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    DrawerComponent,
+    ChildSelectorComponent,
+    AcademyStudentAttendanceComponent,
+  ],
   templateUrl: './my-attendance.component.html',
   styleUrls: ['./my-attendance.component.css'],
 })
 export class MyAttendanceComponent {
   private session = inject(SessionService);
   private asistencia = inject(AttendanceService);
+  private readonly schedules = inject(SchedulesService);
   private academico = inject(AcademicsService);
   private perfiles = inject(AccountProfileService);
   private avisos = inject(NotificationService);
@@ -61,8 +98,13 @@ export class MyAttendanceComponent {
     params: () => (this.esPadre ? this.hijoActivo.elegidoId() : 0),
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
-      if (this.esPadre) return this.hijoActivo.activo().pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)));
-      return this.perfiles.myProfile().pipe(map((p) => ({ id: this.usuarioId, nombre: p.nombre })));
+      if (this.esPadre)
+        return this.hijoActivo
+          .activo()
+          .pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)));
+      return this.perfiles
+        .myProfile()
+        .pipe(map((p) => ({ id: this.usuarioId, nombre: p.nombre })));
     },
   });
 
@@ -73,7 +115,9 @@ export class MyAttendanceComponent {
         ? forkJoin({
             registros: this.asistencia.getStudentRecords(params),
             licencias: this.asistencia.getStudentLeaveRequests(params),
-            materias: this.academico.getSubjects(this.espacio.id),
+            materias: this.schedules
+              .getScheduleData(this.espacio.id)
+              .pipe(map((data) => data.materias)),
           })
         : of(null),
   });
@@ -85,7 +129,10 @@ export class MyAttendanceComponent {
     const d = this.datos.value();
     if (!d) return [];
     return d.materias
-      .map((m) => ({ materia: m, conteo: contar(d.registros.filter((r) => r.materiaId === m.id)) }))
+      .map((m) => ({
+        materia: m,
+        conteo: contar(d.registros.filter((r) => r.materiaId === m.id)),
+      }))
       .filter((x) => x.conteo.total > 0)
       .sort((a, b) => a.conteo.porcentaje - b.conteo.porcentaje);
   });
@@ -95,7 +142,8 @@ export class MyAttendanceComponent {
     const d = this.datos.value();
     if (!d) return [];
     const porFecha = new Map<string, typeof d.registros>();
-    for (const r of d.registros) porFecha.set(r.fecha, [...(porFecha.get(r.fecha) ?? []), r]);
+    for (const r of d.registros)
+      porFecha.set(r.fecha, [...(porFecha.get(r.fecha) ?? []), r]);
     const nombreMateria = new Map(d.materias.map((m) => [m.id, m.nombre]));
     return [...porFecha.entries()]
       .sort(([a], [b]) => b.localeCompare(a))
@@ -105,12 +153,22 @@ export class MyAttendanceComponent {
         estado: getDailyStatus(registros) as EstadoDia,
         detalle: registros
           .filter((r) => r.estado !== 'presente')
-          .map((r) => `${nombreMateria.get(r.materiaId) ?? 'Clase'}: ${r.estado === 'atraso' ? `atraso de ${r.minutosTarde} min` : r.estado}`),
+          .map(
+            (r) =>
+              `${nombreMateria.get(r.materiaId) ?? 'Clase'}: ${r.estado === 'atraso' ? `atraso de ${r.minutosTarde} min` : r.estado}`,
+          ),
       }));
   });
 
   // Avisos para el padre: faltas y atrasos de las últimas dos semanas
-  readonly alertas = computed(() => this.dias().filter((d) => d.estado === 'ausente' || d.estado === 'parcial' || d.estado === 'atraso'));
+  readonly alertas = computed(() =>
+    this.dias().filter(
+      (d) =>
+        d.estado === 'ausente' ||
+        d.estado === 'parcial' ||
+        d.estado === 'atraso',
+    ),
+  );
 
   readonly licencias = computed(() => this.datos.value()?.licencias ?? []);
 
@@ -124,10 +182,17 @@ export class MyAttendanceComponent {
     required(s.desde, { message: 'Elige desde qué día.' });
     required(s.hasta, { message: 'Elige hasta qué día.' });
     validate(s.hasta, ({ value, valueOf }) =>
-      value() && valueOf(s.desde) && value() < valueOf(s.desde) ? { kind: 'orden', message: 'Debe ser igual o posterior a la fecha de inicio.' } : undefined
+      value() && valueOf(s.desde) && value() < valueOf(s.desde)
+        ? {
+            kind: 'orden',
+            message: 'Debe ser igual o posterior a la fecha de inicio.',
+          }
+        : undefined,
     );
     required(s.motivo, { message: 'Cuéntanos el motivo.' });
-    minLength(s.motivo, 10, { message: 'Describe el motivo con al menos 10 caracteres.' });
+    minLength(s.motivo, 10, {
+      message: 'Describe el motivo con al menos 10 caracteres.',
+    });
   });
 
   abrirSolicitud(): void {
@@ -147,14 +212,16 @@ export class MyAttendanceComponent {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.asistencia.requestLeave({
-          espacioId: this.espacio.id,
-          estudianteId: est.id,
-          solicitadaPor: this.usuarioId,
-          ...this.modelo(),
-          motivo: this.modelo().motivo.trim(),
-          archivo: this.archivo(),
-        }));
+        await firstValueFrom(
+          this.asistencia.requestLeave({
+            espacioId: this.espacio.id,
+            estudianteId: est.id,
+            solicitadaPor: this.usuarioId,
+            ...this.modelo(),
+            motivo: this.modelo().motivo.trim(),
+            archivo: this.archivo(),
+          }),
+        );
         this.avisos.success('Licencia solicitada. La dirección la revisará.');
         this.drawerAbierto.set(false);
         this.datos.reload();
@@ -167,10 +234,20 @@ export class MyAttendanceComponent {
   }
 
   estadoLicenciaLabel(estado: EstadoLicencia): string {
-    return { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada' }[estado];
+    return {
+      pendiente: 'Pendiente',
+      aprobada: 'Aprobada',
+      rechazada: 'Rechazada',
+    }[estado];
   }
 
   rango(desde: string, hasta: string): string {
-    return desde === hasta ? formatShortDate(desde) : `${formatShortDate(desde)} – ${formatShortDate(hasta)}`;
+    return desde === hasta
+      ? formatShortDate(desde)
+      : `${formatShortDate(desde)} – ${formatShortDate(hasta)}`;
   }
+  readonly loadResources = [this.estudiante, this.datos];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

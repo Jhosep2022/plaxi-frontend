@@ -1,27 +1,61 @@
+import { ApiLoadStateComponent } from '../../../shared/ui/api-load-state.component';
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCalendarDays, faChevronRight, faClock, faFileMedical, faUserCheck, faUsers, faUserXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCalendarDays,
+  faChevronRight,
+  faClock,
+  faFileMedical,
+  faUserCheck,
+  faUsers,
+  faUserXmark,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
-import { ESTADO_DIA_LABEL, EstadoDia, RegistroAsistencia } from '../../../core/models/attendance.model';
-import { getDailyStatus, formatLongDate, todayIso, addDays } from '../../../core/utils/attendance';
+import {
+  compararParalelos,
+  paraleloLabel,
+} from '../../../core/models/academics.model';
+import {
+  ESTADO_DIA_LABEL,
+  EstadoDia,
+  RegistroAsistencia,
+} from '../../../core/models/attendance.model';
+import {
+  getDailyStatus,
+  formatLongDate,
+  todayIso,
+  addDays,
+} from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { AttendanceService } from '../../../services/attendance.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 
-type ConteoDia = Record<EstadoDia, number> & { total: number; porcentaje: number };
+type ConteoDia = Record<EstadoDia, number> & {
+  total: number;
+  porcentaje: number;
+};
 
 function contarDias(estados: EstadoDia[]): ConteoDia {
-  const c: ConteoDia = { presente: 0, ausente: 0, atraso: 0, licencia: 0, parcial: 0, total: estados.length, porcentaje: 100 };
+  const c: ConteoDia = {
+    presente: 0,
+    ausente: 0,
+    atraso: 0,
+    licencia: 0,
+    parcial: 0,
+    total: estados.length,
+    porcentaje: 100,
+  };
   for (const e of estados) c[e]++;
   const computables = c.total - c.licencia;
   // Asistieron (aunque sea con atraso o faltando a alguna clase) sobre los que debían asistir
-  c.porcentaje = computables ? Math.round(((c.presente + c.atraso + c.parcial) / computables) * 100) : 100;
+  c.porcentaje = computables
+    ? Math.round(((c.presente + c.atraso + c.parcial) / computables) * 100)
+    : 100;
   return c;
 }
 
@@ -29,7 +63,14 @@ function contarDias(estados: EstadoDia[]): ConteoDia {
 @Component({
   selector: 'app-student-attendance',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormsModule, RouterLink, PageHeaderComponent, EmptyStateComponent],
+  imports: [
+    FaIconComponent,
+    FormsModule,
+    RouterLink,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './student-attendance.component.html',
   styleUrls: ['./student-attendance.component.css'],
 })
@@ -54,21 +95,33 @@ export class StudentAttendanceComponent {
 
   // Últimas dos semanas para elegir por defecto el día más reciente con asistencia
   readonly base = rxResource({
-    stream: () => forkJoin({
-      registros: this.asistencia.getRecordsBetween(this.espacioId, addDays(this.hoy, -21), this.hoy),
-      estudiantes: this.asistencia.getStudents(),
-      paralelos: this.academico.getActiveClassGroups(this.espacioId),
-      licencias: this.asistencia.getLeaveRequests(this.espacioId),
-      materias: this.academico.getSubjects(this.espacioId),
-    }),
+    stream: () =>
+      forkJoin({
+        registros: this.asistencia.getRecordsBetween(
+          this.espacioId,
+          addDays(this.hoy, -21),
+          this.hoy,
+        ),
+        estudiantes: this.asistencia.getStudents(),
+        paralelos: this.academico.getActiveClassGroups(this.espacioId),
+        licencias: this.asistencia.getLeaveRequests(this.espacioId),
+        materias: this.academico.getSubjects(this.espacioId),
+      }),
   });
 
   readonly fecha = linkedSignal(() => {
-    const fechas = (this.base.value()?.registros ?? []).map((r) => r.fecha).sort();
+    const fechas = (this.base.value()?.registros ?? [])
+      .map((r) => r.fecha)
+      .sort();
     return fechas.at(-1) ?? this.hoy;
   });
 
-  readonly pendientes = computed(() => (this.base.value()?.licencias ?? []).filter((l) => l.estado === 'pendiente').length);
+  readonly pendientes = computed(
+    () =>
+      (this.base.value()?.licencias ?? []).filter(
+        (l) => l.estado === 'pendiente',
+      ).length,
+  );
 
   // Estado del día de cada estudiante que tuvo clases en la fecha elegida
   readonly resumen = computed(() => {
@@ -76,7 +129,11 @@ export class StudentAttendanceComponent {
     if (!b) return null;
     const delDia = b.registros.filter((r) => r.fecha === this.fecha());
     const porEstudiante = new Map<number, RegistroAsistencia[]>();
-    for (const r of delDia) porEstudiante.set(r.estudianteId, [...(porEstudiante.get(r.estudianteId) ?? []), r]);
+    for (const r of delDia)
+      porEstudiante.set(r.estudianteId, [
+        ...(porEstudiante.get(r.estudianteId) ?? []),
+        r,
+      ]);
     const nombreMateria = new Map(b.materias.map((m) => [m.id, m.nombre]));
 
     const estudiantes = b.estudiantes
@@ -87,30 +144,62 @@ export class StudentAttendanceComponent {
           estudiante: e,
           estado: getDailyStatus(registros)!,
           clases: registros.length,
-          detalle: registros.filter((r) => r.estado !== 'presente').map((r) => `${nombreMateria.get(r.materiaId)}: ${r.estado === 'atraso' ? `${r.minutosTarde} min tarde` : r.estado}`),
+          detalle: registros
+            .filter((r) => r.estado !== 'presente')
+            .map(
+              (r) =>
+                `${nombreMateria.get(r.materiaId)}: ${r.estado === 'atraso' ? `${r.minutosTarde} min tarde` : r.estado}`,
+            ),
         };
       });
 
     const paralelos = [...b.paralelos].sort(compararParalelos).map((p) => {
-      const propios = estudiantes.filter((x) => x.estudiante.paraleloId === p.id);
-      return { paralelo: p, conteo: contarDias(propios.map((x) => x.estado)), estudiantes: propios };
+      const propios = estudiantes.filter(
+        (x) => x.estudiante.paraleloId === p.id,
+      );
+      return {
+        paralelo: p,
+        conteo: contarDias(propios.map((x) => x.estado)),
+        estudiantes: propios,
+      };
     });
 
     return { general: contarDias(estudiantes.map((x) => x.estado)), paralelos };
   });
 
-  readonly paraleloId = linkedSignal(() => this.resumen()?.paralelos.find((p) => p.conteo.total > 0)?.paralelo.id ?? 0);
-  readonly detalle = computed(() => this.resumen()?.paralelos.find((p) => p.paralelo.id === this.paraleloId()) ?? null);
+  readonly paraleloId = linkedSignal(
+    () =>
+      this.resumen()?.paralelos.find((p) => p.conteo.total > 0)?.paralelo.id ??
+      0,
+  );
+  readonly detalle = computed(
+    () =>
+      this.resumen()?.paralelos.find(
+        (p) => p.paralelo.id === this.paraleloId(),
+      ) ?? null,
+  );
 
   cambiarFecha(valor: string): void {
     if (valor && valor <= this.hoy) this.fecha.set(valor);
   }
 
   ordenEstado(estado: EstadoDia): number {
-    return ['ausente', 'parcial', 'atraso', 'licencia', 'presente'].indexOf(estado);
+    return ['ausente', 'parcial', 'atraso', 'licencia', 'presente'].indexOf(
+      estado,
+    );
   }
 
-  ordenados<T extends { estado: EstadoDia; estudiante: { nombre: string } }>(lista: T[]): T[] {
-    return [...lista].sort((a, b) => this.ordenEstado(a.estado) - this.ordenEstado(b.estado) || a.estudiante.nombre.localeCompare(b.estudiante.nombre));
+  ordenados<T extends { estado: EstadoDia; estudiante: { nombre: string } }>(
+    lista: T[],
+  ): T[] {
+    return [...lista].sort(
+      (a, b) =>
+        this.ordenEstado(a.estado) - this.ordenEstado(b.estado) ||
+        a.estudiante.nombre.localeCompare(b.estudiante.nombre),
+    );
   }
+  readonly loadResources = [this.base];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

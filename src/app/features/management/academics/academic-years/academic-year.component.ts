@@ -1,11 +1,34 @@
+import { ApiLoadStateComponent } from '../../../../shared/ui/api-load-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { FormField, applyEach, form, max, min, required, submit, validate } from '@angular/forms/signals';
+import {
+  FormField,
+  applyEach,
+  form,
+  max,
+  min,
+  required,
+  submit,
+  validate,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCalendarDays, faCheck, faPen, faPlus, faTrash, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCalendarDays,
+  faCheck,
+  faPen,
+  faPlus,
+  faTrash,
+  faWandMagicSparkles,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
-import { EstadoGestion, Gestion, Periodo, TIPOS_PERIODO, TipoPeriodo } from '../../../../core/models/academics.model';
+import {
+  EstadoGestion,
+  Gestion,
+  Periodo,
+  TIPOS_PERIODO,
+  TipoPeriodo,
+} from '../../../../core/models/academics.model';
 import { AcademicsService } from '../../../../services/academics.service';
 import { NotificationService } from '../../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../../shared/ui/drawer.component';
@@ -27,7 +50,9 @@ function generarPeriodos(anio: number, tipo: TipoPeriodo): Periodo[] {
   return Array.from({ length: config.cantidad }, (_, i) => ({
     nombre: config.nombre(i + 1),
     inicio: aTexto(new Date(inicio + tramo * i + (i ? DIA : 0))),
-    fin: aTexto(new Date(i === config.cantidad - 1 ? fin : inicio + tramo * (i + 1))),
+    fin: aTexto(
+      new Date(i === config.cantidad - 1 ? fin : inicio + tramo * (i + 1)),
+    ),
   }));
 }
 
@@ -36,7 +61,15 @@ type EstadoPeriodo = 'concluido' | 'en-curso' | 'proximo';
 @Component({
   selector: 'app-academic-year',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [
+    ...SELECT,
+    FaIconComponent,
+    FormField,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    DrawerComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './academic-year.component.html',
   styleUrls: ['./academic-year.component.css'],
 })
@@ -53,9 +86,16 @@ export class AcademicYearComponent {
   readonly faCalendarDays = faCalendarDays;
   readonly faWandMagicSparkles = faWandMagicSparkles;
 
-  readonly gestiones = rxResource({ stream: () => this.academico.getAcademicYears(this.espacioId), defaultValue: [] });
-  readonly activa = computed(() => this.gestiones.value().find((g) => g.estado === 'activa') ?? null);
-  readonly otras = computed(() => this.gestiones.value().filter((g) => g.estado !== 'activa'));
+  readonly gestiones = rxResource({
+    stream: () => this.academico.getAcademicYears(this.espacioId),
+    defaultValue: [],
+  });
+  readonly activa = computed(
+    () => this.gestiones.value().find((g) => g.estado === 'activa') ?? null,
+  );
+  readonly otras = computed(() =>
+    this.gestiones.value().filter((g) => g.estado !== 'activa'),
+  );
 
   // Periodos de la gestión activa con su estado según la fecha de hoy
   readonly lineaDeTiempo = computed(() => {
@@ -63,9 +103,20 @@ export class AcademicYearComponent {
     return (this.activa()?.periodos ?? []).map((p) => {
       const inicio = aFecha(p.inicio).getTime();
       const fin = aFecha(p.fin).getTime();
-      const estado: EstadoPeriodo = hoy > fin ? 'concluido' : hoy < inicio ? 'proximo' : 'en-curso';
-      const avance = estado === 'concluido' ? 100 : estado === 'proximo' ? 0 : Math.round(((hoy - inicio) / (fin - inicio)) * 100);
-      return { ...p, estado, avance, restantes: Math.max(0, Math.round((fin - hoy) / DIA)) };
+      const estado: EstadoPeriodo =
+        hoy > fin ? 'concluido' : hoy < inicio ? 'proximo' : 'en-curso';
+      const avance =
+        estado === 'concluido'
+          ? 100
+          : estado === 'proximo'
+            ? 0
+            : Math.round(((hoy - inicio) / (fin - inicio)) * 100);
+      return {
+        ...p,
+        estado,
+        avance,
+        restantes: Math.max(0, Math.round((fin - hoy) / DIA)),
+      };
     });
   });
 
@@ -73,7 +124,11 @@ export class AcademicYearComponent {
   readonly drawerAbierto = signal(false);
   readonly editando = signal<Gestion | null>(null);
   readonly guardando = signal(false);
-  readonly modelo = signal({ anio: new Date().getFullYear() + 1, tipoPeriodo: 'trimestre' as TipoPeriodo, periodos: [] as Periodo[] });
+  readonly modelo = signal({
+    anio: new Date().getFullYear() + 1,
+    tipoPeriodo: 'trimestre' as TipoPeriodo,
+    periodos: [] as Periodo[],
+  });
   readonly formulario = form(this.modelo, (s) => {
     min(s.anio, 2000, { message: 'Año no válido.' });
     max(s.anio, 2100, { message: 'Año no válido.' });
@@ -84,47 +139,71 @@ export class AcademicYearComponent {
       validate(p.fin, ({ value, valueOf }) =>
         value() && valueOf(p.inicio) && value() <= valueOf(p.inicio)
           ? { kind: 'orden', message: 'Debe terminar después de iniciar.' }
-          : undefined
+          : undefined,
       );
     });
   });
 
   nuevo(): void {
-    const anio = Math.max(new Date().getFullYear(), ...this.gestiones.value().map((g) => g.anio + 1));
-    this.abrir(null, { anio, tipoPeriodo: 'trimestre', periodos: generarPeriodos(anio, 'trimestre') });
+    const anio = Math.max(
+      new Date().getFullYear(),
+      ...this.gestiones.value().map((g) => g.anio + 1),
+    );
+    this.abrir(null, {
+      anio,
+      tipoPeriodo: 'trimestre',
+      periodos: generarPeriodos(anio, 'trimestre'),
+    });
   }
 
   editar(g: Gestion): void {
-    this.abrir(g, { anio: g.anio, tipoPeriodo: g.tipoPeriodo, periodos: structuredClone(g.periodos) });
+    this.abrir(g, {
+      anio: g.anio,
+      tipoPeriodo: g.tipoPeriodo,
+      periodos: structuredClone(g.periodos),
+    });
   }
 
   // Vuelve a repartir las fechas según el año y la modalidad elegidos
   // (recibe la modalidad desde el evento: el modelo puede no estar actualizado todavía)
   repartirFechas(tipo?: TipoPeriodo): void {
     const tipoPeriodo = tipo ?? this.modelo().tipoPeriodo;
-    this.modelo.update((m) => ({ ...m, tipoPeriodo, periodos: generarPeriodos(m.anio, tipoPeriodo) }));
+    this.modelo.update((m) => ({
+      ...m,
+      tipoPeriodo,
+      periodos: generarPeriodos(m.anio, tipoPeriodo),
+    }));
   }
 
   guardar(): void {
     submit(this.formulario, async () => {
       const { anio, tipoPeriodo, periodos } = this.modelo();
-      const solapado = periodos.findIndex((p, i) => i > 0 && p.inicio <= periodos[i - 1].fin);
+      const solapado = periodos.findIndex(
+        (p, i) => i > 0 && p.inicio <= periodos[i - 1].fin,
+      );
       if (solapado > 0) {
-        this.avisos.error(`${periodos[solapado].nombre} empieza antes de que termine ${periodos[solapado - 1].nombre}.`);
+        this.avisos.error(
+          `${periodos[solapado].nombre} empieza antes de que termine ${periodos[solapado - 1].nombre}.`,
+        );
         return;
       }
       this.guardando.set(true);
       const editando = this.editando();
       try {
-        await firstValueFrom(this.academico.saveAcademicYear({
-          id: editando?.id,
-          espacioId: this.espacioId,
-          anio,
-          tipoPeriodo,
-          periodos,
-          estado: editando?.estado ?? (this.activa() ? 'planificada' : 'activa'),
-        }));
-        this.avisos.success(editando ? `Gestión ${anio} actualizada.` : `Gestión ${anio} creada.`);
+        await firstValueFrom(
+          this.academico.saveAcademicYear({
+            id: editando?.id,
+            espacioId: this.espacioId,
+            anio,
+            tipoPeriodo,
+            periodos,
+            estado:
+              editando?.estado ?? (this.activa() ? 'planificada' : 'activa'),
+          }),
+        );
+        this.avisos.success(
+          editando ? `Gestión ${anio} actualizada.` : `Gestión ${anio} creada.`,
+        );
         this.drawerAbierto.set(false);
         this.gestiones.reload();
       } catch (error) {
@@ -164,17 +243,29 @@ export class AcademicYearComponent {
   }
 
   estadoLabel(estado: EstadoGestion): string {
-    return { planificada: 'Planificada', activa: 'Activa', cerrada: 'Cerrada' }[estado];
+    return { planificada: 'Planificada', activa: 'Activa', cerrada: 'Cerrada' }[
+      estado
+    ];
   }
 
   fecha(texto: string): string {
-    return aFecha(texto).toLocaleDateString('es', { day: 'numeric', month: 'short' });
+    return aFecha(texto).toLocaleDateString('es', {
+      day: 'numeric',
+      month: 'short',
+    });
   }
 
-  private abrir(gestion: Gestion | null, valores: { anio: number; tipoPeriodo: TipoPeriodo; periodos: Periodo[] }): void {
+  private abrir(
+    gestion: Gestion | null,
+    valores: { anio: number; tipoPeriodo: TipoPeriodo; periodos: Periodo[] },
+  ): void {
     this.editando.set(gestion);
     this.modelo.set(valores);
     this.formulario().reset();
     this.drawerAbierto.set(true);
   }
+  readonly loadResources = [this.gestiones];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

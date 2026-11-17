@@ -1,19 +1,51 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ApiLoadStateComponent } from '../../../../shared/ui/api-load-state.component';
+import {
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { FormField, applyEach, form, max, min, submit, validate } from '@angular/forms/signals';
+import {
+  FormField,
+  applyEach,
+  form,
+  max,
+  min,
+  submit,
+  validate,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faClock, faMugHot, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import {
+  faClock,
+  faMugHot,
+  faPlus,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
-import { ConfigJornada, DIAS_SEMANA, TURNOS, Turno } from '../../../../core/models/academics.model';
-import { toMinutes, formatDuration, generateTimeBlocks } from '../../../../core/utils/workday';
+import {
+  ConfigJornada,
+  DIAS_SEMANA,
+  TURNOS,
+  Turno,
+} from '../../../../core/models/academics.model';
+import {
+  toMinutes,
+  formatDuration,
+  generateTimeBlocks,
+} from '../../../../core/utils/workday';
 import { SchedulesService } from '../../../../services/schedules.service';
 import { NotificationService } from '../../../../shared/ui/notification.service';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../../academics/academics.ui';
 
 const DURACIONES_RAPIDAS = [40, 45, 60, 90];
-const TURNO_POR_DEFECTO: Record<Turno, { inicio: string; fin: string; recreo: string }> = {
+const TURNO_POR_DEFECTO: Record<
+  Turno,
+  { inicio: string; fin: string; recreo: string }
+> = {
   manana: { inicio: '07:30', fin: '14:00', recreo: '10:30' },
   tarde: { inicio: '14:30', fin: '21:00', recreo: '17:30' },
   noche: { inicio: '18:30', fin: '22:30', recreo: '20:00' },
@@ -32,7 +64,9 @@ function aModelo(j: ConfigJornada | undefined) {
         activo: t?.activo ?? id === 'manana',
         inicio: t?.inicio ?? def.inicio,
         fin: t?.fin ?? def.fin,
-        recreos: structuredClone(t?.recreos ?? [{ inicio: def.recreo, duracionMin: 20 }]),
+        recreos: structuredClone(
+          t?.recreos ?? [{ inicio: def.recreo, duracionMin: 20 }],
+        ),
       };
     }),
   };
@@ -41,7 +75,12 @@ function aModelo(j: ConfigJornada | undefined) {
 @Component({
   selector: 'app-workday',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent],
+  imports: [
+    FaIconComponent,
+    FormField,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: './workday.component.html',
   styleUrls: ['./workday.component.css'],
 })
@@ -58,20 +97,37 @@ export class WorkdayComponent {
   readonly faClock = faClock;
   readonly faMugHot = faMugHot;
 
-  readonly jornada = rxResource({ stream: () => this.horarios.jornada(this.espacioId) });
+  readonly jornada = rxResource({
+    stream: () => this.horarios.getWorkday(this.espacioId),
+  });
 
   // El formulario parte de la jornada guardada y se puede editar libremente
   readonly modelo = linkedSignal(() => aModelo(this.jornada.value()));
   readonly formulario = form(this.modelo, (s) => {
-    min(s.duracionPeriodoMin, 20, { message: 'El periodo debe durar al menos 20 minutos.' });
-    max(s.duracionPeriodoMin, 240, { message: 'El periodo puede durar como máximo 4 horas.' });
-    validate(s.dias, ({ value }) => (value().some(Boolean) ? undefined : { kind: 'dias', message: 'Elige al menos un día de clases.' }));
-    validate(s.turnos, ({ value }) => (value().some((t) => t.activo) ? undefined : { kind: 'turnos', message: 'Activa al menos un turno.' }));
+    min(s.duracionPeriodoMin, 20, {
+      message: 'El periodo debe durar al menos 20 minutos.',
+    });
+    max(s.duracionPeriodoMin, 240, {
+      message: 'El periodo puede durar como máximo 4 horas.',
+    });
+    validate(s.dias, ({ value }) =>
+      value().some(Boolean)
+        ? undefined
+        : { kind: 'dias', message: 'Elige al menos un día de clases.' },
+    );
+    validate(s.turnos, ({ value }) =>
+      value().some((t) => t.activo)
+        ? undefined
+        : { kind: 'turnos', message: 'Activa al menos un turno.' },
+    );
     applyEach(s.turnos, (t) => {
       validate(t.fin, ({ value, valueOf }) =>
         valueOf(t.activo) && toMinutes(value()) <= toMinutes(valueOf(t.inicio))
-          ? { kind: 'orden', message: 'La hora de fin debe ser posterior a la de inicio.' }
-          : undefined
+          ? {
+              kind: 'orden',
+              message: 'La hora de fin debe ser posterior a la de inicio.',
+            }
+          : undefined,
       );
       applyEach(t.recreos, (r) => {
         min(r.duracionMin, 5, { message: 'Mínimo 5 minutos.' });
@@ -89,11 +145,20 @@ export class WorkdayComponent {
     return turnos.map((t) => {
       const bloques = t.activo ? generateTimeBlocks(t, duracionPeriodoMin) : [];
       const periodos = bloques.filter((b) => b.tipo === 'clase').length;
-      return { bloques, periodos, porSemana: periodos * diasActivos, horasSemana: (periodos * diasActivos * duracionPeriodoMin) / 60 };
+      return {
+        bloques,
+        periodos,
+        porSemana: periodos * diasActivos,
+        horasSemana: (periodos * diasActivos * duracionPeriodoMin) / 60,
+      };
     });
   });
 
-  readonly sinCambios = computed(() => JSON.stringify(this.modelo()) === JSON.stringify(aModelo(this.jornada.value())));
+  readonly sinCambios = computed(
+    () =>
+      JSON.stringify(this.modelo()) ===
+      JSON.stringify(aModelo(this.jornada.value())),
+  );
 
   turnoLabel(turno: Turno): string {
     return TURNOS.find((t) => t.id === turno)?.label ?? turno;
@@ -107,7 +172,10 @@ export class WorkdayComponent {
     this.modelo.update((m) => {
       const turnos = structuredClone(m.turnos);
       const ultimo = turnos[indiceTurno].recreos.at(-1);
-      turnos[indiceTurno].recreos.push({ inicio: ultimo ? ultimo.inicio : turnos[indiceTurno].inicio, duracionMin: 15 });
+      turnos[indiceTurno].recreos.push({
+        inicio: ultimo ? ultimo.inicio : turnos[indiceTurno].inicio,
+        duracionMin: 15,
+      });
       return { ...m, turnos };
     });
   }
@@ -132,16 +200,33 @@ export class WorkdayComponent {
         espacioId: this.espacioId,
         duracionPeriodoMin: m.duracionPeriodoMin,
         dias: DIAS_SEMANA.filter((_, i) => m.dias[i]).map((d) => d.id),
-        turnos: m.turnos.map((t) => ({ ...t, recreos: [...t.recreos].sort((a, b) => toMinutes(a.inicio) - toMinutes(b.inicio)) })),
+        turnos: m.turnos.map((t) => ({
+          ...t,
+          recreos: [...t.recreos].sort(
+            (a, b) => toMinutes(a.inicio) - toMinutes(b.inicio),
+          ),
+        })),
       };
-      const afectadas = this.horarios.clasesAfectadas(config);
-      if (afectadas && !confirm(`Con esta jornada, ${afectadas} clase(s) del horario quedan fuera (día o periodo que ya no existe) y se quitarán. ¿Continuar?`)) {
-        return;
-      }
       this.guardando.set(true);
       try {
-        const { quitadas } = await firstValueFrom(this.horarios.guardarJornada(config));
-        this.avisos.success(quitadas ? `Jornada guardada. Se quitaron ${quitadas} clase(s) del horario.` : 'Jornada guardada.');
+        const affected = await firstValueFrom(
+          this.horarios.previewWorkdayChanges(config),
+        );
+        if (
+          affected &&
+          !confirm(
+            `Con esta jornada, ${affected} clase(s) del horario quedan fuera (día o periodo que ya no existe) y se quitarán. ¿Continuar?`,
+          )
+        )
+          return;
+        const { quitadas } = await firstValueFrom(
+          this.horarios.saveWorkday(config),
+        );
+        this.avisos.success(
+          quitadas
+            ? `Jornada guardada. Se quitaron ${quitadas} clase(s) del horario.`
+            : 'Jornada guardada.',
+        );
         this.jornada.reload();
       } catch (error) {
         this.avisos.error(getErrorMessage(error));
@@ -150,4 +235,8 @@ export class WorkdayComponent {
       }
     });
   }
+  readonly loadResources = [this.jornada];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

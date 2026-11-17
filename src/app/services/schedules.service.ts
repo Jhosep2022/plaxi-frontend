@@ -1,79 +1,233 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, of, throwError } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { ClaseHorario, ConfigJornada, paraleloLabel } from '../core/models/academics.model';
-import { ContextoHorario, DatosHorario, buscarChoques, clasesFueraDeJornada } from '../core/utils/schedule';
-import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_DOCENTES, MOCK_JORNADAS, MOCK_PARALELOS } from '../mocks/academics.mock';
-import { AcademicsService } from './academics.service';
-import { MockRepository } from './mock-repository';
+import { Observable, forkJoin, map, of } from 'rxjs';
+import {
+  ClaseHorario,
+  ConfigJornada,
+  IconoMateria,
+  Materia,
+  Paralelo,
+} from '../core/models/academics.model';
+import { DatosHorario } from '../core/utils/schedule';
+import { Tono } from '../shared/dashboard/dashboard.models';
+import { SchoolApiService, SchoolMember } from '../core/api/school-api.service';
+import { AcademicsService, toClassGroup } from './academics.service';
 
-// Jornada escolar (configuración de horarios) y horario semanal de cada paralelo.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
+interface ApiClass {
+  id: number;
+  dia: number;
+  bloque: number;
+  paralelo: { id: number; etiqueta: string };
+  materia: { id: number; nombre: string; icono: IconoMateria; tono: Tono };
+  docente: { id: number; nombre: string } | null;
+  aula: { id: number; nombre: string } | null;
+}
+interface ApiSchedule {
+  jornada: ConfigJornada;
+  clases: ApiClass[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class SchedulesService {
-  private academico = inject(AcademicsService);
-  private jornadasRepo = new MockRepository<ConfigJornada & { id: number }>(MOCK_JORNADAS);
-  private clasesRepo = new MockRepository<ClaseHorario>(MOCK_CLASES);
-
-  // ---------- Jornada ----------
-  jornada(espacioId: number): Observable<ConfigJornada> {
-    return this.jornadasRepo.list((j) => j.espacioId === espacioId).pipe(
-      map(([j]) => j ?? { espacioId, duracionPeriodoMin: 90, dias: [1, 2, 3, 4, 5], turnos: [] })
+  private readonly api = inject(SchoolApiService);
+  private readonly academics = inject(AcademicsService);
+  getWorkday(spaceId: number): Observable<ConfigJornada> {
+    return this.api.http
+      .get<ConfigJornada>(this.api.url('jornada', spaceId))
+      .pipe(map((workday) => ({ ...workday, espacioId: spaceId })));
+  }
+  previewWorkdayChanges(workday: ConfigJornada): Observable<number> {
+    return this.api.http
+      .post<{ quitadas: number }>(
+        this.api.url('jornada/previsualizar'),
+        workdayBody(workday),
+      )
+      .pipe(map((result) => result.quitadas));
+  }
+  saveWorkday(workday: ConfigJornada): Observable<{ quitadas: number }> {
+    return this.api.http.put<{ quitadas: number }>(
+      this.api.url('jornada'),
+      workdayBody(workday),
     );
   }
-
-  // Clases que quedarían fuera del horario con la nueva configuración
-  clasesAfectadas(jornada: ConfigJornada): number {
-    return clasesFueraDeJornada(this.contexto(jornada)).length;
-  }
-
-  // Guarda la jornada y quita las clases que ya no caben en ella
-  guardarJornada(jornada: ConfigJornada): Observable<{ quitadas: number }> {
-    const fuera = clasesFueraDeJornada(this.contexto(jornada));
-    for (const clase of fuera) this.clasesRepo.delete(clase.id).subscribe();
-    return this.jornadasRepo.save({ ...jornada, id: jornada.espacioId }).pipe(map(() => ({ quitadas: fuera.length })));
-  }
-
-  // ---------- Clases ----------
-  clasesActivas(espacioId: number): Observable<ClaseHorario[]> {
-    return this.academico.getActiveAcademicYear(espacioId).pipe(
-      switchMap((g) => (g ? this.clasesRepo.list((c) => c.espacioId === espacioId && c.gestionId === g.id) : of([])))
-    );
-  }
-
-  // Crea o reemplaza la clase de un paralelo en un día y periodo; rechaza choques de docente o aula
-  guardarClase(clase: Omit<ClaseHorario, 'id'>): Observable<ClaseHorario> {
-    const existente = this.clasesRepo.readNow((c) => c.paraleloId === clase.paraleloId && c.dia === clase.dia && c.bloque === clase.bloque)[0];
-    const jornada = MOCK_JORNADAS.find((j) => j.espacioId === clase.espacioId);
-    if (jornada) {
-      const [choque] = buscarChoques(this.contexto(jornada), { ...clase, id: existente?.id });
-      if (choque) {
-        const otro = MOCK_PARALELOS.find((p) => p.id === choque.conParaleloId);
-        const quien = choque.tipo === 'docente' ? MOCK_DOCENTES.find((d) => d.id === choque.docenteId)?.nombre ?? 'El docente' : 'El aula';
-        return throwError(() => new Error(`${quien} ya tiene clase con ${otro ? paraleloLabel(otro) : 'otro paralelo'} de ${choque.inicio} a ${choque.fin}.`));
-      }
-    }
-    return this.clasesRepo.save({ ...clase, id: existente?.id });
-  }
-
-  // Todo lo necesario para mostrar horarios con nombres (vistas de solo lectura y resúmenes)
-  datos(espacioId: number): Observable<DatosHorario> {
+  getActiveClasses(spaceId: number): Observable<ClaseHorario[]> {
     return forkJoin({
-      jornada: this.jornada(espacioId),
-      paralelos: this.academico.getActiveClassGroups(espacioId),
-      asignaciones: this.academico.getActiveAllocations(espacioId),
-      clases: this.clasesActivas(espacioId),
-      materias: this.academico.getSubjects(espacioId),
-      docentes: this.academico.getTeachers(espacioId),
-      aulas: this.academico.getClassrooms(espacioId),
+      schedule: this.api.http.get<ApiSchedule>(
+        this.api.url('horario', spaceId),
+      ),
+      year: this.academics.getActiveAcademicYear(spaceId),
+    }).pipe(
+      map(({ schedule, year }) =>
+        schedule.clases.map((entry) => toClass(entry, spaceId, year?.id ?? 0)),
+      ),
+    );
+  }
+  saveClass(entry: Omit<ClaseHorario, 'id'>): Observable<ClaseHorario> {
+    return this.api.http
+      .put<ApiClass>(this.api.url('horario/clases'), {
+        paraleloId: entry.paraleloId,
+        dia: entry.dia,
+        bloque: entry.bloque,
+        materiaId: entry.materiaId,
+        aulaId: entry.aulaId || null,
+      })
+      .pipe(map((saved) => toClass(saved, entry.espacioId, entry.gestionId)));
+  }
+  deleteClass(id: number): Observable<void> {
+    return this.api.http.delete<void>(this.api.url(`horario/clases/${id}`));
+  }
+  getScheduleData(spaceId: number): Observable<DatosHorario> {
+    if (this.api.session.activeRole() !== 'direccion')
+      return this.getPersonalSchedule(spaceId);
+    return forkJoin({
+      jornada: this.getWorkday(spaceId),
+      paralelos: this.academics.getActiveClassGroups(spaceId),
+      asignaciones: this.academics.getActiveAllocations(spaceId),
+      clases: this.getActiveClasses(spaceId),
+      materias: this.academics.getSubjects(spaceId),
+      docentes: this.academics.getTeachers(spaceId),
+      aulas: this.academics.getClassrooms(spaceId),
     });
   }
-
-  eliminarClase(id: number): Observable<void> {
-    return this.clasesRepo.delete(id);
+  private getPersonalSchedule(spaceId: number): Observable<DatosHorario> {
+    return forkJoin({
+      schedule: this.api.http.get<ApiSchedule>(
+        this.api.url('horario/mio', spaceId),
+      ),
+      member: this.api.member(),
+      groups:
+        this.api.session.activeRole() === 'docente'
+          ? this.academics.getActiveClassGroups(spaceId)
+          : this.api.member().pipe(map((member) => memberGroups(member))),
+      subjects:
+        this.api.session.activeRole() === 'docente'
+          ? this.academics.getSubjects(spaceId)
+          : of([]),
+      allocations:
+        this.api.session.activeRole() === 'docente'
+          ? this.academics.getActiveAllocations(spaceId)
+          : of(undefined),
+    }).pipe(
+      map(
+        ({
+          schedule,
+          member,
+          groups,
+          subjects: actualSubjects,
+          allocations,
+        }) => {
+          const yearId = member.gestion?.id ?? 0;
+          const classes = schedule.clases;
+          const unique = <T extends { id: number }>(entries: T[]) => [
+            ...new Map(entries.map((entry) => [entry.id, entry])).values(),
+          ];
+          const subjects: Materia[] = actualSubjects.length
+            ? actualSubjects
+            : unique(
+                classes.map((entry) => ({
+                  ...entry.materia,
+                  espacioId: spaceId,
+                  nivel:
+                    groups.find((group) => group.id === entry.paralelo.id)
+                      ?.nivel ?? 'primaria',
+                  horasSemanales: 0,
+                })),
+              );
+          const allocationClasses = [
+            ...new Map(
+              classes
+                .filter((entry) => entry.docente)
+                .map((entry) => [
+                  `${entry.paralelo.id}:${entry.materia.id}`,
+                  entry,
+                ]),
+            ).values(),
+          ];
+          return {
+            currentTeacherId: member.fichas.find(
+              (person) => person.tipo === 'docente',
+            )?.id,
+            jornada: { ...schedule.jornada, espacioId: spaceId },
+            paralelos: groups,
+            clases: classes.map((entry) => toClass(entry, spaceId, yearId)),
+            materias: subjects,
+            asignaciones:
+              allocations ??
+              allocationClasses.map((entry) => ({
+                id: entry.id,
+                espacioId: spaceId,
+                gestionId: yearId,
+                paraleloId: entry.paralelo.id,
+                materiaId: entry.materia.id,
+                docenteId: entry.docente!.id,
+              })),
+            docentes: unique(
+              classes.flatMap((entry) =>
+                entry.docente
+                  ? [
+                      {
+                        ...entry.docente,
+                        especialidad: '',
+                        ci: '',
+                        telefono: '',
+                        email: '',
+                        activo: true,
+                      },
+                    ]
+                  : [],
+              ),
+            ),
+            aulas: unique(
+              classes.flatMap((entry) =>
+                entry.aula
+                  ? [
+                      {
+                        ...entry.aula,
+                        espacioId: spaceId,
+                        tipo: 'otro' as const,
+                        capacidad: 0,
+                        ubicacion: '',
+                        activa: true,
+                      },
+                    ]
+                  : [],
+              ),
+            ),
+          };
+        },
+      ),
+    );
   }
+}
 
-  private contexto(jornada: ConfigJornada): ContextoHorario {
-    return { jornada, paralelos: MOCK_PARALELOS, asignaciones: MOCK_ASIGNACIONES, clases: this.clasesRepo.readNow() };
-  }
+function memberGroups(member: SchoolMember): Paralelo[] {
+  const groups = [
+    member.paralelo,
+    ...member.hijos.map((child) => child.paralelo),
+  ].filter((group) => group !== null);
+  return [
+    ...new Map(groups.map((group) => [group.id, toClassGroup(group)])).values(),
+  ];
+}
+function toClass(
+  entry: ApiClass,
+  spaceId: number,
+  yearId: number,
+): ClaseHorario {
+  return {
+    id: entry.id,
+    espacioId: spaceId,
+    gestionId: yearId,
+    paraleloId: entry.paralelo.id,
+    materiaId: entry.materia.id,
+    aulaId: entry.aula?.id ?? 0,
+    dia: entry.dia,
+    bloque: entry.bloque,
+  };
+}
+function workdayBody(workday: ConfigJornada) {
+  return {
+    duracionPeriodoMin: workday.duracionPeriodoMin,
+    dias: workday.dias,
+    turnos: workday.turnos,
+  };
 }

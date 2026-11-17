@@ -1,11 +1,30 @@
+import { ApiLoadStateComponent } from '../../../../shared/ui/api-load-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { FormField, form, max, maxLength, min, required, submit } from '@angular/forms/signals';
+import {
+  FormField,
+  form,
+  max,
+  maxLength,
+  min,
+  required,
+  submit,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBook, faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBook,
+  faPen,
+  faPlus,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
-import { IconoMateria, Materia, NIVELES, Nivel } from '../../../../core/models/academics.model';
+import {
+  IconoMateria,
+  Materia,
+  NIVELES,
+  Nivel,
+} from '../../../../core/models/academics.model';
 import { Tono } from '../../../../shared/dashboard/dashboard.models';
 import { AcademicsService } from '../../../../services/academics.service';
 import { NotificationService } from '../../../../shared/ui/notification.service';
@@ -21,12 +40,26 @@ const TONOS: { id: Tono; label: string }[] = [
   { id: 'crema', label: 'Crema' },
 ];
 
-const MATERIA_VACIA = { nombre: '', nivel: 'secundaria' as Nivel, horasSemanales: 4, icono: 'libro' as IconoMateria, tono: 'lima' as Tono };
+const MATERIA_VACIA = {
+  nombre: '',
+  nivel: 'secundaria' as Nivel,
+  horasSemanales: 4,
+  icono: 'libro' as IconoMateria,
+  tono: 'lima' as Tono,
+};
 
 @Component({
   selector: 'app-subjects',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [
+    ...SELECT,
+    FaIconComponent,
+    FormField,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    DrawerComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './subjects.component.html',
   styleUrls: ['./subjects.component.css'],
 })
@@ -44,29 +77,47 @@ export class SubjectsComponent {
   readonly faTrash = faTrash;
   readonly faBook = faBook;
 
-  readonly materias = rxResource({ stream: () => this.academico.getSubjects(this.espacioId), defaultValue: [] });
-  private readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
-  private readonly asignaciones = rxResource({ stream: () => this.academico.getActiveAllocations(this.espacioId), defaultValue: [] });
+  readonly materias = rxResource({
+    stream: () => this.academico.getSubjects(this.espacioId),
+    defaultValue: [],
+  });
+  private readonly paralelos = rxResource({
+    stream: () => this.academico.getActiveClassGroups(this.espacioId),
+    defaultValue: [],
+  });
+  private readonly asignaciones = rxResource({
+    stream: () => this.academico.getActiveAllocations(this.espacioId),
+    defaultValue: [],
+  });
 
   readonly nivel = signal<Nivel>('secundaria');
 
   readonly materiasDelNivel = computed(() =>
-    this.materias.value().filter((m) => m.nivel === this.nivel()).sort((a, b) => a.nombre.localeCompare(b.nombre))
+    this.materias
+      .value()
+      .filter((m) => m.nivel === this.nivel())
+      .sort((a, b) => a.nombre.localeCompare(b.nombre)),
   );
 
   readonly conteoPorNivel = computed(() => {
     const conteo: Partial<Record<Nivel, number>> = {};
-    for (const m of this.materias.value()) conteo[m.nivel] = (conteo[m.nivel] ?? 0) + 1;
+    for (const m of this.materias.value())
+      conteo[m.nivel] = (conteo[m.nivel] ?? 0) + 1;
     return conteo;
   });
 
-  readonly horasDelNivel = computed(() => this.materiasDelNivel().reduce((s, m) => s + m.horasSemanales, 0));
+  readonly horasDelNivel = computed(() =>
+    this.materiasDelNivel().reduce((s, m) => s + m.horasSemanales, 0),
+  );
 
   // Cuántos paralelos del nivel ya tienen docente para cada materia
   readonly cobertura = computed(() => {
-    const paralelos = this.paralelos.value().filter((p) => p.nivel === this.nivel());
+    const paralelos = this.paralelos
+      .value()
+      .filter((p) => p.nivel === this.nivel());
     const asignadas = new Map<number, number>();
-    for (const a of this.asignaciones.value()) asignadas.set(a.materiaId, (asignadas.get(a.materiaId) ?? 0) + 1);
+    for (const a of this.asignaciones.value())
+      asignadas.set(a.materiaId, (asignadas.get(a.materiaId) ?? 0) + 1);
     return { total: paralelos.length, porMateria: asignadas };
   });
 
@@ -78,7 +129,9 @@ export class SubjectsComponent {
   readonly formulario = form(this.modelo, (s) => {
     required(s.nombre, { message: 'Escribe el nombre de la materia.' });
     maxLength(s.nombre, 60, { message: 'Máximo 60 caracteres.' });
-    min(s.horasSemanales, 1, { message: 'Debe tener al menos 1 hora semanal.' });
+    min(s.horasSemanales, 1, {
+      message: 'Debe tener al menos 1 hora semanal.',
+    });
     max(s.horasSemanales, 20, { message: 'Máximo 20 horas semanales.' });
   });
 
@@ -96,9 +149,15 @@ export class SubjectsComponent {
       this.guardando.set(true);
       try {
         const guardada = await firstValueFrom(
-          this.academico.saveSubject({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId })
+          this.academico.saveSubject({
+            ...this.modelo(),
+            id: this.editandoId() || undefined,
+            espacioId: this.espacioId,
+          }),
         );
-        this.avisos.success(this.editandoId() ? 'Materia actualizada.' : 'Materia creada.');
+        this.avisos.success(
+          this.editandoId() ? 'Materia actualizada.' : 'Materia creada.',
+        );
         this.drawerAbierto.set(false);
         this.nivel.set(guardada.nivel);
         this.materias.reload();
@@ -127,4 +186,8 @@ export class SubjectsComponent {
     this.formulario().reset();
     this.drawerAbierto.set(true);
   }
+  readonly loadResources = [this.materias, this.paralelos, this.asignaciones];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

@@ -1,11 +1,33 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { Asignacion, DIAS_SEMANA, Materia, Paralelo, TURNOS, paraleloLabel } from '../core/models/academics.model';
-import { Estudiante, RegistroAsistencia } from '../core/models/attendance.model';
+import {
+  Asignacion,
+  DIAS_SEMANA,
+  Materia,
+  Paralelo,
+  TURNOS,
+  paraleloLabel,
+} from '../core/models/academics.model';
+import {
+  Estudiante,
+  RegistroAsistencia,
+} from '../core/models/attendance.model';
 import { Actividad, ConfigCalificacion } from '../core/models/grades.model';
-import { Conteo, contar, dayOfWeek, todayIso, addDays } from '../core/utils/attendance';
-import { ResultadoMateria, aprobado, calcularNota, indiceNotas, periodoDeFecha } from '../core/utils/grades';
+import {
+  Conteo,
+  contar,
+  dayOfWeek,
+  todayIso,
+  addDays,
+} from '../core/utils/attendance';
+import {
+  ResultadoMateria,
+  aprobado,
+  calcularNota,
+  indiceNotas,
+  periodoDeFecha,
+} from '../core/utils/grades';
 import { rangoDeBloque } from '../core/utils/schedule';
 import { AttendanceService } from './attendance.service';
 import { GradesService, DatosParalelo } from './grades.service';
@@ -56,49 +78,128 @@ export class TeacherClassesService {
 
   clasesDe(espacioId: number, docenteId: number): Observable<ClaseDocente[]> {
     const hoy = todayIso();
-    return this.horarios.datos(espacioId).pipe(
+    return this.horarios.getScheduleData(espacioId).pipe(
       switchMap((horario) => {
-        const asignaciones = horario.asignaciones.filter((a) => a.docenteId === docenteId);
+        const asignaciones = horario.asignaciones.filter(
+          (a) => a.docenteId === (horario.currentTeacherId ?? docenteId),
+        );
         const paralelos = [...new Set(asignaciones.map((a) => a.paraleloId))];
         if (!paralelos.length) return of([]);
         return forkJoin({
-          registros: this.asistencia.getRecordsBetween(espacioId, '2000-01-01', hoy),
-          datos: forkJoin(paralelos.map((id) => this.calificaciones.getClassGroupData(espacioId, id))),
+          registros: this.asistencia.getRecordsBetween(
+            espacioId,
+            '2000-01-01',
+            hoy,
+          ),
+          datos: forkJoin(
+            paralelos.map((id) =>
+              this.calificaciones.getClassGroupData(espacioId, id),
+            ),
+          ),
         }).pipe(
           map(({ registros, datos }) =>
             asignaciones.flatMap((asignacion): ClaseDocente[] => {
-              const d = datos.find((x) => x?.paralelo.id === asignacion.paraleloId);
-              const materia = horario.materias.find((m) => m.id === asignacion.materiaId);
+              const d = datos.find(
+                (x) => x?.paralelo.id === asignacion.paraleloId,
+              );
+              const materia = horario.materias.find(
+                (m) => m.id === asignacion.materiaId,
+              );
               if (!d || !materia) return [];
-              const nombreAula = (id: number) => horario.aulas.find((a) => a.id === id)?.nombre ?? 'Sin aula';
+              const nombreAula = (id: number) =>
+                horario.aulas.find((a) => a.id === id)?.nombre ?? 'Sin aula';
               const sesiones = horario.clases
-                .filter((c) => c.paraleloId === asignacion.paraleloId && c.materiaId === asignacion.materiaId)
+                .filter(
+                  (c) =>
+                    c.paraleloId === asignacion.paraleloId &&
+                    c.materiaId === asignacion.materiaId,
+                )
                 .flatMap((c) => {
                   const rango = rangoDeBloque(horario, c.paraleloId, c.bloque);
-                  return rango ? [{ dia: c.dia, diaLabel: DIAS_SEMANA.find((x) => x.id === c.dia)?.largo ?? '', ...rango, aula: nombreAula(c.aulaId) }] : [];
+                  return rango
+                    ? [
+                        {
+                          dia: c.dia,
+                          diaLabel:
+                            DIAS_SEMANA.find((x) => x.id === c.dia)?.largo ??
+                            '',
+                          ...rango,
+                          aula: nombreAula(c.aulaId),
+                        },
+                      ]
+                    : [];
                 })
-                .sort((a, b) => a.dia - b.dia || a.inicio.localeCompare(b.inicio));
-              const propios = registros.filter((r) => r.paraleloId === asignacion.paraleloId && r.materiaId === asignacion.materiaId);
-              return [this.armar(asignacion, materia, d, sesiones, propios, nombreAula(d.paralelo.aulaId), hoy)];
-            })
-          )
+                .sort(
+                  (a, b) => a.dia - b.dia || a.inicio.localeCompare(b.inicio),
+                );
+              const propios = registros.filter(
+                (r) =>
+                  r.paraleloId === asignacion.paraleloId &&
+                  r.materiaId === asignacion.materiaId,
+              );
+              return [
+                this.armar(
+                  asignacion,
+                  materia,
+                  d,
+                  sesiones,
+                  propios,
+                  nombreAula(d.paralelo.aulaId),
+                  hoy,
+                ),
+              ];
+            }),
+          ),
         );
       }),
-      map((clases) => clases.sort((a, b) => (a.proxima?.fecha ?? '9').localeCompare(b.proxima?.fecha ?? '9') || (a.proxima?.inicio ?? '').localeCompare(b.proxima?.inicio ?? '')))
+      map((clases) =>
+        clases.sort(
+          (a, b) =>
+            (a.proxima?.fecha ?? '9').localeCompare(b.proxima?.fecha ?? '9') ||
+            (a.proxima?.inicio ?? '').localeCompare(b.proxima?.inicio ?? ''),
+        ),
+      ),
     );
   }
 
-  private armar(asignacion: Asignacion, materia: Materia, d: DatosParalelo, sesiones: SesionSemanal[], registros: RegistroAsistencia[], aula: string, hoy: string): ClaseDocente {
+  private armar(
+    asignacion: Asignacion,
+    materia: Materia,
+    d: DatosParalelo,
+    sesiones: SesionSemanal[],
+    registros: RegistroAsistencia[],
+    aula: string,
+    hoy: string,
+  ): ClaseDocente {
     const indice = periodoDeFecha(d.gestion, hoy);
-    const actividades = d.actividades.filter((a) => a.materiaId === materia.id && a.periodo === indice);
+    const actividades = d.actividades.filter(
+      (a) => a.materiaId === materia.id && a.periodo === indice,
+    );
     const buscar = indiceNotas(d.notas);
     const estudiantes = d.estudiantes.map((estudiante) => {
-      const asistencia = contar(registros.filter((r) => r.estudianteId === estudiante.id));
-      const resultado = calcularNota(d.config.criterios, actividades, buscar, estudiante.id);
-      const reprobando = resultado.final !== null && !aprobado(d.config, resultado.final);
-      return { estudiante, asistencia, resultado, enRiesgo: reprobando || (asistencia.total > 0 && asistencia.porcentaje < ASISTENCIA_MINIMA) };
+      const asistencia = contar(
+        registros.filter((r) => r.estudianteId === estudiante.id),
+      );
+      const resultado = calcularNota(
+        d.config.criterios,
+        actividades,
+        buscar,
+        estudiante.id,
+      );
+      const reprobando =
+        resultado.final !== null && !aprobado(d.config, resultado.final);
+      return {
+        estudiante,
+        asistencia,
+        resultado,
+        enRiesgo:
+          reprobando ||
+          (asistencia.total > 0 && asistencia.porcentaje < ASISTENCIA_MINIMA),
+      };
     });
-    const finales = estudiantes.map((e) => e.resultado.final).filter((f): f is number => f !== null);
+    const finales = estudiantes
+      .map((e) => e.resultado.final)
+      .filter((f): f is number => f !== null);
     return {
       asignacion,
       materia,
@@ -109,28 +210,50 @@ export class TeacherClassesService {
       sesiones,
       proxima: proximaSesion(sesiones, hoy),
       config: d.config,
-      periodo: { indice, nombre: d.gestion.periodos[indice]?.nombre ?? '', cerrado: d.cierres.some((c) => c.periodo === indice) },
+      periodo: {
+        indice,
+        nombre: d.gestion.periodos[indice]?.nombre ?? '',
+        cerrado: d.cierres.some((c) => c.periodo === indice),
+      },
       estudiantes,
       asistencia: contar(registros),
-      promedio: finales.length ? Math.round(finales.reduce((s, f) => s + f, 0) / finales.length) : null,
+      promedio: finales.length
+        ? Math.round(finales.reduce((s, f) => s + f, 0) / finales.length)
+        : null,
       pendientes: actividades
-        .map((actividad) => ({ actividad, faltan: d.estudiantes.filter((e) => buscar(actividad.id, e.id) === undefined).length }))
+        .map((actividad) => ({
+          actividad,
+          faltan: d.estudiantes.filter(
+            (e) => buscar(actividad.id, e.id) === undefined,
+          ).length,
+        }))
         .filter((p) => p.faltan > 0),
       notasPeriodo: {
         esperadas: actividades.length * d.estudiantes.length,
-        cargadas: actividades.reduce((s, a) => s + d.estudiantes.filter((e) => buscar(a.id, e.id) !== undefined).length, 0),
+        cargadas: actividades.reduce(
+          (s, a) =>
+            s +
+            d.estudiantes.filter((e) => buscar(a.id, e.id) !== undefined)
+              .length,
+          0,
+        ),
       },
     };
   }
 }
 
 // Próxima sesión desde ahora (hoy si todavía no empezó, o en los próximos 7 días)
-function proximaSesion(sesiones: SesionSemanal[], hoy: string): ClaseDocente['proxima'] {
+function proximaSesion(
+  sesiones: SesionSemanal[],
+  hoy: string,
+): ClaseDocente['proxima'] {
   const ahora = new Date();
   const hora = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
   for (let i = 0; i < 7; i++) {
     const fecha = addDays(hoy, i);
-    const sesion = sesiones.find((s) => s.dia === dayOfWeek(fecha) && (i > 0 || s.fin > hora));
+    const sesion = sesiones.find(
+      (s) => s.dia === dayOfWeek(fecha) && (i > 0 || s.fin > hora),
+    );
     if (sesion) return { fecha, inicio: sesion.inicio, hoy: i === 0 };
   }
   return null;

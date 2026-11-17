@@ -1,10 +1,23 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ApiLoadStateComponent } from '../../../../shared/ui/api-load-state.component';
+import {
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { FormField, form, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCalendarDays, faGear, faMugHot, faPlus, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCalendarDays,
+  faGear,
+  faMugHot,
+  faPlus,
+  faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
 import {
   BloqueHorario,
@@ -30,7 +43,10 @@ import {
   turnosDeClases,
 } from '../../../../core/utils/schedule';
 import { WeeklyScheduleComponent } from '../../../../shared/schedule/weekly-schedule.component';
-import { requiredTimeBlocks, formatDuration } from '../../../../core/utils/workday';
+import {
+  requiredTimeBlocks,
+  formatDuration,
+} from '../../../../core/utils/workday';
 import { AcademicsService } from '../../../../services/academics.service';
 import { SchedulesService } from '../../../../services/schedules.service';
 import { NotificationService } from '../../../../shared/ui/notification.service';
@@ -49,7 +65,17 @@ interface CeldaEditada {
 @Component({
   selector: 'app-schedules',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, RouterLink, PageHeaderComponent, DrawerComponent, EmptyStateComponent, WeeklyScheduleComponent],
+  imports: [
+    ...SELECT,
+    FaIconComponent,
+    FormField,
+    RouterLink,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    DrawerComponent,
+    EmptyStateComponent,
+    WeeklyScheduleComponent,
+  ],
   templateUrl: './schedules.component.html',
   styleUrls: ['./schedules.component.css'],
 })
@@ -69,32 +95,76 @@ export class SchedulesComponent {
   readonly faCalendarDays = faCalendarDays;
   readonly faTriangleExclamation = faTriangleExclamation;
 
-  readonly gestion = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
-  readonly jornada = rxResource({ stream: () => this.horarios.jornada(this.espacioId) });
-  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
-  readonly materias = rxResource({ stream: () => this.academico.getSubjects(this.espacioId), defaultValue: [] });
-  readonly docentes = rxResource({ stream: () => this.academico.getTeachers(this.espacioId), defaultValue: [] });
-  readonly aulas = rxResource({ stream: () => this.academico.getClassrooms(this.espacioId), defaultValue: [] });
-  readonly asignaciones = rxResource({ stream: () => this.academico.getActiveAllocations(this.espacioId), defaultValue: [] });
-  readonly clases = rxResource({ stream: () => this.horarios.clasesActivas(this.espacioId), defaultValue: [] });
+  readonly gestion = rxResource({
+    stream: () => this.academico.getActiveAcademicYear(this.espacioId),
+  });
+  readonly jornada = rxResource({
+    stream: () => this.horarios.getWorkday(this.espacioId),
+  });
+  readonly paralelos = rxResource({
+    stream: () => this.academico.getActiveClassGroups(this.espacioId),
+    defaultValue: [],
+  });
+  readonly materias = rxResource({
+    stream: () => this.academico.getSubjects(this.espacioId),
+    defaultValue: [],
+  });
+  readonly docentes = rxResource({
+    stream: () => this.academico.getTeachers(this.espacioId),
+    defaultValue: [],
+  });
+  readonly aulas = rxResource({
+    stream: () => this.academico.getClassrooms(this.espacioId),
+    defaultValue: [],
+  });
+  readonly asignaciones = rxResource({
+    stream: () => this.academico.getActiveAllocations(this.espacioId),
+    defaultValue: [],
+  });
+  readonly clases = rxResource({
+    stream: () => this.horarios.getActiveClasses(this.espacioId),
+    defaultValue: [],
+  });
 
   readonly seleccionadoId = linkedSignal<Paralelo[], number>({
     source: () => this.paralelos.value(),
-    computation: (lista, previo) => (previo && lista.some((p) => p.id === previo.value) ? previo.value : [...lista].sort(compararParalelos)[0]?.id ?? 0),
+    computation: (lista, previo) =>
+      previo && lista.some((p) => p.id === previo.value)
+        ? previo.value
+        : ([...lista].sort(compararParalelos)[0]?.id ?? 0),
   });
-  readonly seleccionado = computed(() => this.paralelos.value().find((p) => p.id === this.seleccionadoId()) ?? null);
+  readonly seleccionado = computed(
+    () =>
+      this.paralelos.value().find((p) => p.id === this.seleccionadoId()) ??
+      null,
+  );
 
   // Datos para ubicar clases en el tiempo y detectar choques
   private readonly contexto = computed<ContextoHorario | null>(() => {
     const jornada = this.jornada.value();
-    return jornada ? { jornada, paralelos: this.paralelos.value(), asignaciones: this.asignaciones.value(), clases: this.clases.value() } : null;
+    return jornada
+      ? {
+          jornada,
+          paralelos: this.paralelos.value(),
+          asignaciones: this.asignaciones.value(),
+          clases: this.clases.value(),
+        }
+      : null;
   });
 
-  private readonly nombreDocente = computed(() => new Map(this.docentes.value().map((d) => [d.id, d.nombre])));
-  private readonly nombreAula = computed(() => new Map(this.aulas.value().map((a) => [a.id, a.nombre])));
-  private readonly materiaPorId = computed(() => new Map(this.materias.value().map((m) => [m.id, m])));
+  private readonly nombreDocente = computed(
+    () => new Map(this.docentes.value().map((d) => [d.id, d.nombre])),
+  );
+  private readonly nombreAula = computed(
+    () => new Map(this.aulas.value().map((a) => [a.id, a.nombre])),
+  );
+  private readonly materiaPorId = computed(
+    () => new Map(this.materias.value().map((m) => [m.id, m])),
+  );
 
-  readonly dias = computed(() => DIAS_SEMANA.filter((d) => this.jornada.value()?.dias.includes(d.id)));
+  readonly dias = computed(() =>
+    DIAS_SEMANA.filter((d) => this.jornada.value()?.dias.includes(d.id)),
+  );
 
   readonly bloques = computed(() => {
     const jornada = this.jornada.value();
@@ -102,23 +172,32 @@ export class SchedulesComponent {
     return jornada && p ? bloquesDelTurno(jornada, p.turno) : [];
   });
 
-  readonly periodosPorSemana = computed(() => this.bloques().filter((b) => b.tipo === 'clase').length * this.dias().length);
+  readonly periodosPorSemana = computed(
+    () =>
+      this.bloques().filter((b) => b.tipo === 'clase').length *
+      this.dias().length,
+  );
 
   // Clases del paralelo elegido indexadas por "día-periodo"
   readonly celdas = computed(() => {
     const p = this.seleccionado();
     const mapa = new Map<string, ClaseHorario>();
-    for (const c of this.clases.value()) if (c.paraleloId === p?.id) mapa.set(`${c.dia}-${c.bloque}`, c);
+    for (const c of this.clases.value())
+      if (c.paraleloId === p?.id) mapa.set(`${c.dia}-${c.bloque}`, c);
     return mapa;
   });
 
   // Paralelos agrupados por nivel con sus periodos ocupados
   readonly grupos = computed(() => {
     const ocupados = new Map<number, number>();
-    for (const c of this.clases.value()) ocupados.set(c.paraleloId, (ocupados.get(c.paraleloId) ?? 0) + 1);
+    for (const c of this.clases.value())
+      ocupados.set(c.paraleloId, (ocupados.get(c.paraleloId) ?? 0) + 1);
     return NIVELES.map((n) => ({
       nivel: n.label,
-      paralelos: this.paralelos.value().filter((p) => p.nivel === n.id).map((p) => ({ paralelo: p, ocupados: ocupados.get(p.id) ?? 0 })),
+      paralelos: this.paralelos
+        .value()
+        .filter((p) => p.nivel === n.id)
+        .map((p) => ({ paralelo: p, ocupados: ocupados.get(p.id) ?? 0 })),
     })).filter((g) => g.paralelos.length);
   });
 
@@ -128,41 +207,70 @@ export class SchedulesComponent {
     const jornada = this.jornada.value();
     if (!p || !jornada) return [];
     const usados = new Map<number, number>();
-    for (const c of this.celdas().values()) usados.set(c.materiaId, (usados.get(c.materiaId) ?? 0) + 1);
-    return this.materias.value()
+    for (const c of this.celdas().values())
+      usados.set(c.materiaId, (usados.get(c.materiaId) ?? 0) + 1);
+    return this.materias
+      .value()
       .filter((m) => m.nivel === p.nivel)
       .map((m) => ({
         materia: m,
-        docente: this.nombreDocente().get(docenteDe(this.asignaciones.value(), p.id, m.id)) ?? '',
+        docente:
+          this.nombreDocente().get(
+            docenteDe(this.asignaciones.value(), p.id, m.id),
+          ) ?? '',
         usados: usados.get(m.id) ?? 0,
-        necesarios: requiredTimeBlocks(m.horasSemanales, jornada.duracionPeriodoMin),
+        necesarios: requiredTimeBlocks(
+          m.horasSemanales,
+          jornada.duracionPeriodoMin,
+        ),
       }))
       .sort((a, b) => a.usados / a.necesarios - b.usados / b.necesarios);
   });
 
-  readonly necesariosTotal = computed(() => this.cobertura().reduce((s, c) => s + c.necesarios, 0));
+  readonly necesariosTotal = computed(() =>
+    this.cobertura().reduce((s, c) => s + c.necesarios, 0),
+  );
 
   // ---------- Vistas por docente y por aula (solo lectura) ----------
   readonly vista = signal<'paralelo' | 'docente' | 'aula'>('paralelo');
 
   private readonly datosHorario = computed<DatosHorario | null>(() => {
     const ctx = this.contexto();
-    return ctx ? { ...ctx, materias: this.materias.value(), docentes: this.docentes.value(), aulas: this.aulas.value() } : null;
+    return ctx
+      ? {
+          ...ctx,
+          materias: this.materias.value(),
+          docentes: this.docentes.value(),
+          aulas: this.aulas.value(),
+        }
+      : null;
   });
 
   // Docentes y aulas con la cantidad de clases que tienen en la semana
   readonly listaDocentes = computed(() => {
     const datos = this.datosHorario();
-    return this.docentes.value()
-      .map((d) => ({ id: d.id, nombre: d.nombre, detalle: d.especialidad, clases: datos ? clasesDeDocente(datos, d.id).length : 0 }))
+    return this.docentes
+      .value()
+      .map((d) => ({
+        id: d.id,
+        nombre: d.nombre,
+        detalle: d.especialidad,
+        clases: datos ? clasesDeDocente(datos, d.id).length : 0,
+      }))
       .sort((a, b) => b.clases - a.clases || a.nombre.localeCompare(b.nombre));
   });
 
   readonly listaAulas = computed(() => {
     const usadas = new Map<number, number>();
-    for (const c of this.clases.value()) usadas.set(c.aulaId, (usadas.get(c.aulaId) ?? 0) + 1);
+    for (const c of this.clases.value())
+      usadas.set(c.aulaId, (usadas.get(c.aulaId) ?? 0) + 1);
     return this.aulasActivas()
-      .map((a) => ({ id: a.id, nombre: a.nombre, detalle: `${a.capacidad} personas`, clases: usadas.get(a.id) ?? 0 }))
+      .map((a) => ({
+        id: a.id,
+        nombre: a.nombre,
+        detalle: `${a.capacidad} personas`,
+        clases: usadas.get(a.id) ?? 0,
+      }))
       .sort((a, b) => b.clases - a.clases || a.nombre.localeCompare(b.nombre));
   });
 
@@ -173,10 +281,20 @@ export class SchedulesComponent {
   readonly vistaLectura = computed(() => {
     const datos = this.datosHorario();
     const modo = this.vista();
-    if (!datos || modo === 'paralelo') return { filas: [], items: [] as ItemVista[] };
-    const clases = modo === 'docente' ? clasesDeDocente(datos, this.docenteId()) : datos.clases.filter((c) => c.aulaId === this.aulaId());
+    if (!datos || modo === 'paralelo')
+      return { filas: [], items: [] as ItemVista[] };
+    const clases =
+      modo === 'docente'
+        ? clasesDeDocente(datos, this.docenteId())
+        : datos.clases.filter((c) => c.aulaId === this.aulaId());
     const turnos = turnosDeClases(datos, clases);
-    return { filas: filasParaTurnos(datos.jornada, turnos.length ? turnos : ['manana']), items: itemsDeClases(datos, clases, modo) };
+    return {
+      filas: filasParaTurnos(
+        datos.jornada,
+        turnos.length ? turnos : ['manana'],
+      ),
+      items: itemsDeClases(datos, clases, modo),
+    };
   });
 
   // Desde una vista de lectura, abre el horario editable del paralelo de esa clase
@@ -193,13 +311,21 @@ export class SchedulesComponent {
     required(s.materiaId, { message: 'Elige la materia de este periodo.' });
   });
 
-  readonly materiasDelNivel = computed(() => this.materias.value().filter((m) => m.nivel === this.seleccionado()?.nivel));
-  readonly aulasActivas = computed(() => this.aulas.value().filter((a) => a.activa));
+  readonly materiasDelNivel = computed(() =>
+    this.materias.value().filter((m) => m.nivel === this.seleccionado()?.nivel),
+  );
+  readonly aulasActivas = computed(() =>
+    this.aulas.value().filter((a) => a.activa),
+  );
 
   readonly docenteElegido = computed(() => {
     const p = this.seleccionado();
     const materiaId = Number(this.modelo().materiaId);
-    return p && materiaId ? this.nombreDocente().get(docenteDe(this.asignaciones.value(), p.id, materiaId)) ?? null : null;
+    return p && materiaId
+      ? (this.nombreDocente().get(
+          docenteDe(this.asignaciones.value(), p.id, materiaId),
+        ) ?? null)
+      : null;
   });
 
   // Choques de la clase que se está editando, en vivo
@@ -210,7 +336,12 @@ export class SchedulesComponent {
     const { materiaId, aulaId } = this.modelo();
     if (!ctx || !celda || !p || !materiaId) return [];
     return buscarChoques(ctx, {
-      id: celda.clase?.id, paraleloId: p.id, dia: celda.dia, bloque: celda.bloque.indice, materiaId: Number(materiaId), aulaId: Number(aulaId),
+      id: celda.clase?.id,
+      paraleloId: p.id,
+      dia: celda.dia,
+      bloque: celda.bloque.indice,
+      materiaId: Number(materiaId),
+      aulaId: Number(aulaId),
     }).map((c) => {
       const otro = this.paralelos.value().find((x) => x.id === c.conParaleloId);
       const donde = otro ? paraleloLabel(otro) : 'otro paralelo';
@@ -225,7 +356,10 @@ export class SchedulesComponent {
     if (!p) return;
     const clase = this.celdas().get(`${dia}-${bloque.indice}`) ?? null;
     this.editando.set({ dia, bloque, clase });
-    this.modelo.set({ materiaId: clase ? String(clase.materiaId) : '', aulaId: String(clase ? clase.aulaId : p.aulaId) });
+    this.modelo.set({
+      materiaId: clase ? String(clase.materiaId) : '',
+      aulaId: String(clase ? clase.aulaId : p.aulaId),
+    });
     this.formulario().reset();
   }
 
@@ -237,15 +371,17 @@ export class SchedulesComponent {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.horarios.guardarClase({
-          espacioId: this.espacioId,
-          gestionId: gestion.id,
-          paraleloId: p.id,
-          dia: celda.dia,
-          bloque: celda.bloque.indice,
-          materiaId: Number(this.modelo().materiaId),
-          aulaId: Number(this.modelo().aulaId),
-        }));
+        await firstValueFrom(
+          this.horarios.saveClass({
+            espacioId: this.espacioId,
+            gestionId: gestion.id,
+            paraleloId: p.id,
+            dia: celda.dia,
+            bloque: celda.bloque.indice,
+            materiaId: Number(this.modelo().materiaId),
+            aulaId: Number(this.modelo().aulaId),
+          }),
+        );
         this.avisos.success('Clase guardada en el horario.');
         this.editando.set(null);
         this.clases.reload();
@@ -261,7 +397,7 @@ export class SchedulesComponent {
     const clase = this.editando()?.clase;
     if (!clase) return;
     try {
-      await firstValueFrom(this.horarios.eliminarClase(clase.id));
+      await firstValueFrom(this.horarios.deleteClass(clase.id));
       this.avisos.success('Clase quitada del horario.');
       this.editando.set(null);
       this.clases.reload();
@@ -276,13 +412,23 @@ export class SchedulesComponent {
   }
 
   docenteCorto(clase: ClaseHorario): string {
-    const nombre = this.nombreDocente().get(docenteDe(this.asignaciones.value(), clase.paraleloId, clase.materiaId));
-    return nombre ? nombre.split(' ').slice(0, 2).map((p, i) => (i ? `${p.charAt(0)}.` : p)).join(' ') : 'Sin docente';
+    const nombre = this.nombreDocente().get(
+      docenteDe(this.asignaciones.value(), clase.paraleloId, clase.materiaId),
+    );
+    return nombre
+      ? nombre
+          .split(' ')
+          .slice(0, 2)
+          .map((p, i) => (i ? `${p.charAt(0)}.` : p))
+          .join(' ')
+      : 'Sin docente';
   }
 
   aulaDistinta(clase: ClaseHorario): string | null {
     const p = this.seleccionado();
-    return p && clase.aulaId && clase.aulaId !== p.aulaId ? this.nombreAula().get(clase.aulaId) ?? null : null;
+    return p && clase.aulaId && clase.aulaId !== p.aulaId
+      ? (this.nombreAula().get(clase.aulaId) ?? null)
+      : null;
   }
 
   turnoLabel(turno: Turno): string {
@@ -294,6 +440,21 @@ export class SchedulesComponent {
   }
 
   aulaFija(p: Paralelo): string {
-    return p.aulaId ? this.nombreAula().get(p.aulaId) ?? 'Sin aula fija' : 'Sin aula fija';
+    return p.aulaId
+      ? (this.nombreAula().get(p.aulaId) ?? 'Sin aula fija')
+      : 'Sin aula fija';
   }
+  readonly loadResources = [
+    this.gestion,
+    this.jornada,
+    this.paralelos,
+    this.materias,
+    this.docentes,
+    this.aulas,
+    this.asignaciones,
+    this.clases,
+  ];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

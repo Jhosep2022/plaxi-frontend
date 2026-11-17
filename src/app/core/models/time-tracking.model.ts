@@ -9,7 +9,7 @@ export interface PuntoMarcacion {
   longitud: number;
   radioM: number; // metros alrededor del punto donde se acepta la marcación
   activo: boolean;
-  secreto: string; // semilla del código rotativo (en un backend real nunca sale del servidor)
+  pantallaHabilitada?: boolean;
 }
 
 export const RADIO_POR_DEFECTO = 100;
@@ -23,7 +23,8 @@ export interface HorarioLaboral {
 }
 
 export type TipoMarcacion = 'entrada' | 'salida';
-export type EstadoMarcacion = 'a-tiempo' | 'atraso' | 'salida-anticipada' | 'salida';
+export type EstadoMarcacion =
+  'a-tiempo' | 'atraso' | 'salida-anticipada' | 'salida';
 
 export interface Marcacion {
   id: number;

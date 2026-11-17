@@ -1,11 +1,31 @@
+import { ApiLoadStateComponent } from '../../../../shared/ui/api-load-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { FormField, form, max, maxLength, min, required, submit } from '@angular/forms/signals';
+import {
+  FormField,
+  form,
+  max,
+  maxLength,
+  min,
+  required,
+  submit,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faDoorOpen, faPen, faPlus, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
+import {
+  faDoorOpen,
+  faPen,
+  faPlus,
+  faTrash,
+  faUsers,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../../core/auth/session.service';
-import { Aula, TIPOS_AULA, TipoAula, paraleloLabel } from '../../../../core/models/academics.model';
+import {
+  Aula,
+  TIPOS_AULA,
+  TipoAula,
+  paraleloLabel,
+} from '../../../../core/models/academics.model';
 import { AcademicsService } from '../../../../services/academics.service';
 import { NotificationService } from '../../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../../shared/ui/drawer.component';
@@ -23,12 +43,26 @@ const TONO_AULA: Record<TipoAula, string> = {
   otro: 'tono-crema',
 };
 
-const AULA_VACIA = { nombre: '', tipo: 'aula' as TipoAula, capacidad: 30, ubicacion: '', activa: true };
+const AULA_VACIA = {
+  nombre: '',
+  tipo: 'aula' as TipoAula,
+  capacidad: 30,
+  ubicacion: '',
+  activa: true,
+};
 
 @Component({
   selector: 'app-classrooms',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [
+    ...SELECT,
+    FaIconComponent,
+    FormField,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    DrawerComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './classrooms.component.html',
   styleUrls: ['./classrooms.component.css'],
 })
@@ -46,19 +80,28 @@ export class ClassroomsComponent {
   readonly faUsers = faUsers;
   readonly faDoorOpen = faDoorOpen;
 
-  readonly aulas = rxResource({ stream: () => this.academico.getClassrooms(this.espacioId), defaultValue: [] });
-  private readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
+  readonly aulas = rxResource({
+    stream: () => this.academico.getClassrooms(this.espacioId),
+    defaultValue: [],
+  });
+  private readonly paralelos = rxResource({
+    stream: () => this.academico.getActiveClassGroups(this.espacioId),
+    defaultValue: [],
+  });
 
   readonly filtro = signal<TipoAula | 'todas'>('todas');
 
   readonly aulasFiltradas = computed(() => {
     const filtro = this.filtro();
-    return this.aulas.value().filter((a) => filtro === 'todas' || a.tipo === filtro);
+    return this.aulas
+      .value()
+      .filter((a) => filtro === 'todas' || a.tipo === filtro);
   });
 
   readonly conteoPorTipo = computed(() => {
     const conteo: Partial<Record<TipoAula, number>> = {};
-    for (const a of this.aulas.value()) conteo[a.tipo] = (conteo[a.tipo] ?? 0) + 1;
+    for (const a of this.aulas.value())
+      conteo[a.tipo] = (conteo[a.tipo] ?? 0) + 1;
     return conteo;
   });
 
@@ -66,7 +109,8 @@ export class ClassroomsComponent {
   readonly ocupacion = computed(() => {
     const mapa = new Map<number, string[]>();
     for (const p of this.paralelos.value()) {
-      if (p.aulaId) mapa.set(p.aulaId, [...(mapa.get(p.aulaId) ?? []), paraleloLabel(p)]);
+      if (p.aulaId)
+        mapa.set(p.aulaId, [...(mapa.get(p.aulaId) ?? []), paraleloLabel(p)]);
     }
     return mapa;
   });
@@ -76,7 +120,9 @@ export class ClassroomsComponent {
     return {
       total: activas.length,
       capacidad: activas.reduce((s, a) => s + a.capacidad, 0),
-      libres: activas.filter((a) => a.tipo === 'aula' && !this.ocupacion().has(a.id)).length,
+      libres: activas.filter(
+        (a) => a.tipo === 'aula' && !this.ocupacion().has(a.id),
+      ).length,
     };
   });
 
@@ -106,8 +152,16 @@ export class ClassroomsComponent {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.academico.saveClassroom({ ...this.modelo(), id: this.editandoId() || undefined, espacioId: this.espacioId }));
-        this.avisos.success(this.editandoId() ? 'Aula actualizada.' : 'Aula creada.');
+        await firstValueFrom(
+          this.academico.saveClassroom({
+            ...this.modelo(),
+            id: this.editandoId() || undefined,
+            espacioId: this.espacioId,
+          }),
+        );
+        this.avisos.success(
+          this.editandoId() ? 'Aula actualizada.' : 'Aula creada.',
+        );
         this.drawerAbierto.set(false);
         this.aulas.reload();
       } catch (error) {
@@ -139,4 +193,8 @@ export class ClassroomsComponent {
     this.formulario().reset();
     this.drawerAbierto.set(true);
   }
+  readonly loadResources = [this.aulas, this.paralelos];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

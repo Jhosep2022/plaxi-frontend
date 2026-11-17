@@ -1,157 +1,207 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { Asignacion, Aula, Docente, Gestion, Materia, Paralelo } from '../core/models/academics.model';
+import { Injectable, inject } from '@angular/core';
+import { Observable, of, map, switchMap } from 'rxjs';
 import {
-  MOCK_ASIGNACIONES,
-  MOCK_AULAS,
-  MOCK_DOCENTES,
-  MOCK_GESTIONES,
-  MOCK_MATERIAS,
-  MOCK_PARALELOS,
-} from '../mocks/academics.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
-import { MOCK_VINCULOS } from '../mocks/people.mock';
-import { MockRepository } from './mock-repository';
+  Asignacion,
+  Aula,
+  Docente,
+  Gestion,
+  Materia,
+  Paralelo,
+} from '../core/models/academics.model';
+import { SchoolApiService } from '../core/api/school-api.service';
 
-// Módulo Académico del colegio: gestiones, aulas, paralelos, materias y asignaciones.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
+type ApiClassGroup = Omit<Paralelo, 'aulaId' | 'estudiantes'> & {
+  aulaId: number | null;
+  estudiantes?: number;
+};
+export const toClassGroup = (group: ApiClassGroup): Paralelo => ({
+  ...group,
+  aulaId: group.aulaId ?? 0,
+  estudiantes: group.estudiantes ?? 0,
+});
+
 @Injectable({ providedIn: 'root' })
 export class AcademicsService {
-  private gestionesRepo = new MockRepository<Gestion>(MOCK_GESTIONES);
-  private aulasRepo = new MockRepository<Aula>(MOCK_AULAS);
-  private paralelosRepo = new MockRepository<Paralelo>(MOCK_PARALELOS);
-  private materiasRepo = new MockRepository<Materia>(MOCK_MATERIAS);
-  private asignacionesRepo = new MockRepository<Asignacion>(MOCK_ASIGNACIONES);
-  private docentesRepo = new MockRepository<Docente>(MOCK_DOCENTES);
-
-  // ---------- Gestiones ----------
-  getAcademicYears(espacioId: number): Observable<Gestion[]> {
-    return this.gestionesRepo.list((g) => g.espacioId === espacioId).pipe(map((gs) => gs.sort((a, b) => b.anio - a.anio)));
+  private readonly api = inject(SchoolApiService);
+  getAcademicYears(spaceId: number): Observable<Gestion[]> {
+    return this.api.http.get<Gestion[]>(this.api.url('gestiones', spaceId));
   }
-
-  getActiveAcademicYear(espacioId: number): Observable<Gestion | undefined> {
-    return this.getAcademicYears(espacioId).pipe(map((gs) => gs.find((g) => g.estado === 'activa')));
+  getActiveAcademicYear(spaceId: number): Observable<Gestion | undefined> {
+    if (['estudiante', 'padre'].includes(this.api.session.activeRole() ?? ''))
+      return this.api
+        .member()
+        .pipe(map((member) => member.gestion ?? undefined));
+    return this.getAcademicYears(spaceId).pipe(
+      map((years) => years.find((year) => year.estado === 'activa')),
+    );
   }
-
-  saveAcademicYear(gestion: Omit<Gestion, 'id'> & { id?: number }): Observable<Gestion> {
-    const repetida = this.gestionesRepo.readNow((g) => g.espacioId === gestion.espacioId && g.anio === gestion.anio && g.id !== gestion.id);
-    if (repetida.length) return throwError(() => new Error(`Ya existe la gestión ${gestion.anio}.`));
-    return this.gestionesRepo.save(gestion);
+  saveAcademicYear(
+    year: Omit<Gestion, 'id'> & { id?: number },
+  ): Observable<Gestion> {
+    return this.save('gestiones', year.id, {
+      anio: year.anio,
+      tipoPeriodo: year.tipoPeriodo,
+      periodos: year.periodos,
+    });
   }
-
-  // Activa una gestión y cierra la que estaba activa
-  activateAcademicYear(gestion: Gestion): Observable<Gestion> {
-    for (const g of this.gestionesRepo.readNow((g) => g.espacioId === gestion.espacioId && g.estado === 'activa')) {
-      g.estado = 'cerrada';
-    }
-    return this.gestionesRepo.save({ ...gestion, estado: 'activa' });
+  activateAcademicYear(year: Gestion): Observable<Gestion> {
+    return this.api.http.post<Gestion>(
+      this.api.url(`gestiones/${year.id}/activar`),
+      {},
+    );
   }
-
-  deleteAcademicYear(gestion: Gestion): Observable<void> {
-    if (gestion.estado === 'activa') return throwError(() => new Error('No puedes eliminar la gestión activa.'));
-    if (this.paralelosRepo.readNow((p) => p.gestionId === gestion.id).length) {
-      return throwError(() => new Error('La gestión tiene paralelos registrados.'));
-    }
-    return this.gestionesRepo.delete(gestion.id);
+  deleteAcademicYear(year: Gestion): Observable<void> {
+    return this.remove('gestiones', year.id);
   }
-
-  // ---------- Aulas ----------
-  getClassrooms(espacioId: number): Observable<Aula[]> {
-    return this.aulasRepo.list((a) => a.espacioId === espacioId);
+  getClassrooms(spaceId: number): Observable<Aula[]> {
+    return this.api.http.get<Aula[]>(this.api.url('aulas-fisicas', spaceId));
   }
-
-  saveClassroom(aula: Omit<Aula, 'id'> & { id?: number }): Observable<Aula> {
-    const repetida = this.aulasRepo.readNow((a) => a.espacioId === aula.espacioId && a.id !== aula.id && a.nombre.trim().toLowerCase() === aula.nombre.trim().toLowerCase());
-    if (repetida.length) return throwError(() => new Error(`Ya existe un espacio llamado "${aula.nombre}".`));
-    return this.aulasRepo.save(aula);
+  saveClassroom(room: Omit<Aula, 'id'> & { id?: number }): Observable<Aula> {
+    return this.save('aulas-fisicas', room.id, {
+      nombre: room.nombre,
+      tipo: room.tipo,
+      capacidad: room.capacidad,
+      ubicacion: room.ubicacion,
+      activa: room.activa,
+    });
   }
-
-  deleteClassroom(aula: Aula): Observable<void> {
-    const usada = this.paralelosRepo.readNow((p) => p.aulaId === aula.id);
-    if (usada.length) return throwError(() => new Error('El aula es el aula fija de uno o más paralelos.'));
-    return this.aulasRepo.delete(aula.id);
+  deleteClassroom(room: Aula): Observable<void> {
+    return this.remove('aulas-fisicas', room.id);
   }
-
-  // ---------- Paralelos ----------
-  getClassGroups(espacioId: number, gestionId: number): Observable<Paralelo[]> {
-    return this.paralelosRepo
-      .list((p) => p.espacioId === espacioId && p.gestionId === gestionId)
-      .pipe(map((ps) => ps.sort((a, b) => a.grado - b.grado || a.letra.localeCompare(b.letra))));
+  getClassGroups(spaceId: number, yearId: number): Observable<Paralelo[]> {
+    return this.api.http
+      .get<ApiClassGroup[]>(this.api.url('paralelos', spaceId), {
+        params: { gestion: yearId },
+      })
+      .pipe(map((groups) => groups.map(toClassGroup)));
   }
-
-  // Paralelos de la gestión activa (vacío si no hay gestión activa)
-  getActiveClassGroups(espacioId: number): Observable<Paralelo[]> {
-    return this.getActiveAcademicYear(espacioId).pipe(switchMap((g) => (g ? this.getClassGroups(espacioId, g.id) : of([]))));
+  getActiveClassGroups(spaceId: number): Observable<Paralelo[]> {
+    return this.getActiveAcademicYear(spaceId).pipe(
+      switchMap((year) =>
+        year ? this.getClassGroups(spaceId, year.id) : of([]),
+      ),
+    );
   }
-
-  saveClassGroup(paralelo: Omit<Paralelo, 'id'> & { id?: number }): Observable<Paralelo> {
-    const repetido = this.paralelosRepo.readNow((p) =>
-      p.gestionId === paralelo.gestionId && p.id !== paralelo.id && p.nivel === paralelo.nivel &&
-      p.grado === paralelo.grado && p.letra === paralelo.letra && p.turno === paralelo.turno);
-    if (repetido.length) return throwError(() => new Error('Ya existe ese paralelo en el mismo turno.'));
-    return this.paralelosRepo.save(paralelo);
+  saveClassGroup(
+    group: Omit<Paralelo, 'id'> & { id?: number },
+  ): Observable<Paralelo> {
+    return this.save<ApiClassGroup>('paralelos', group.id, {
+      gestionId: group.gestionId,
+      nivel: group.nivel,
+      grado: group.grado,
+      letra: group.letra,
+      turno: group.turno,
+      aulaId: group.aulaId || null,
+      capacidad: group.capacidad,
+    }).pipe(map(toClassGroup));
   }
-
-  deleteClassGroup(paralelo: Paralelo): Observable<void> {
-    for (const asignacion of this.asignacionesRepo.readNow((a) => a.paraleloId === paralelo.id)) {
-      this.asignacionesRepo.delete(asignacion.id).subscribe();
-    }
-    return this.paralelosRepo.delete(paralelo.id);
+  deleteClassGroup(group: Paralelo): Observable<void> {
+    return this.remove('paralelos', group.id);
   }
-
-  // ---------- Materias ----------
-  getSubjects(espacioId: number): Observable<Materia[]> {
-    return this.materiasRepo.list((m) => m.espacioId === espacioId);
+  getSubjects(spaceId: number): Observable<Materia[]> {
+    return this.api.http.get<Materia[]>(this.api.url('materias', spaceId));
   }
-
-  saveSubject(materia: Omit<Materia, 'id'> & { id?: number }): Observable<Materia> {
-    const repetida = this.materiasRepo.readNow((m) => m.espacioId === materia.espacioId && m.id !== materia.id &&
-      m.nivel === materia.nivel && m.nombre.trim().toLowerCase() === materia.nombre.trim().toLowerCase());
-    if (repetida.length) return throwError(() => new Error(`"${materia.nombre}" ya existe en ese nivel.`));
-    return this.materiasRepo.save(materia);
+  saveSubject(
+    subject: Omit<Materia, 'id'> & { id?: number },
+  ): Observable<Materia> {
+    return this.save('materias', subject.id, {
+      nombre: subject.nombre,
+      nivel: subject.nivel,
+      horasSemanales: subject.horasSemanales,
+      icono: subject.icono,
+      tono: subject.tono,
+    });
   }
-
-  deleteSubject(materia: Materia): Observable<void> {
-    if (this.asignacionesRepo.readNow((a) => a.materiaId === materia.id).length) {
-      return throwError(() => new Error('La materia tiene docentes asignados. Quita las asignaciones primero.'));
-    }
-    return this.materiasRepo.delete(materia.id);
+  deleteSubject(subject: Materia): Observable<void> {
+    return this.remove('materias', subject.id);
   }
-
-  // ---------- Estudiantes y tutores ----------
-  // Paralelo en el que está inscrito un estudiante (0 si no tiene)
-  getStudentClassGroup(usuarioId: number): Observable<number> {
-    return of(MOCK_ESTUDIANTES.find((e) => e.id === usuarioId)?.paraleloId ?? 0);
+  getStudentClassGroup(_userId: number): Observable<number> {
+    return this.api.member().pipe(map((member) => member.paralelo?.id ?? 0));
   }
-
-  // Estudiantes a cargo de un padre o tutor legal
-  getChildren(padreId: number): Observable<number[]> {
-    return of(MOCK_VINCULOS.filter((v) => v.padreId === padreId).map((v) => v.estudianteId));
+  getChildren(_parentId: number): Observable<number[]> {
+    return this.api
+      .member()
+      .pipe(map((member) => member.hijos.map((child) => child.id)));
   }
-
-  // ---------- Docentes y asignaciones ----------
-  getTeachers(_espacioId: number): Observable<Docente[]> {
-    return this.docentesRepo.list();
+  getTeachers(spaceId: number): Observable<Docente[]> {
+    if (this.api.session.activeRole() === 'docente')
+      return this.api.member().pipe(
+        map((member) =>
+          member.fichas
+            .filter((person) => person.tipo === 'docente')
+            .map((person) => ({
+              ...person,
+              especialidad: '',
+              telefono: '',
+              email: '',
+              activo: true,
+            })),
+        ),
+      );
+    return this.api.http
+      .get<(Docente & { correo: string; activa: boolean })[]>(
+        this.api.url('docentes', spaceId),
+      )
+      .pipe(
+        map((people) =>
+          people.map((person) => ({
+            ...person,
+            email: person.correo,
+            activo: person.activa,
+          })),
+        ),
+      );
   }
-
-  getAllocations(espacioId: number, gestionId: number): Observable<Asignacion[]> {
-    return this.asignacionesRepo.list((a) => a.espacioId === espacioId && a.gestionId === gestionId);
+  getAllocations(spaceId: number, yearId: number): Observable<Asignacion[]> {
+    return this.api.http.get<Asignacion[]>(
+      this.api.url('asignaciones', spaceId),
+      { params: { gestion: yearId } },
+    );
   }
-
-  // Asignaciones de la gestión activa (vacío si no hay gestión activa)
-  getActiveAllocations(espacioId: number): Observable<Asignacion[]> {
-    return this.getActiveAcademicYear(espacioId).pipe(switchMap((g) => (g ? this.getAllocations(espacioId, g.id) : of([]))));
+  getActiveAllocations(spaceId: number): Observable<Asignacion[]> {
+    return this.getActiveAcademicYear(spaceId).pipe(
+      switchMap((year) =>
+        year ? this.getAllocations(spaceId, year.id) : of([]),
+      ),
+    );
   }
-
-  // Asigna (o quita, con docenteId 0) el docente de una materia en un paralelo
-  assignTeacher(espacioId: number, gestionId: number, paraleloId: number, materiaId: number, docenteId: number): Observable<void> {
-    const actual = this.asignacionesRepo.readNow((a) => a.paraleloId === paraleloId && a.materiaId === materiaId)[0];
-    if (!docenteId) {
-      return actual ? this.asignacionesRepo.delete(actual.id) : of(undefined);
-    }
-    return this.asignacionesRepo
-      .save({ id: actual?.id, espacioId, gestionId, paraleloId, materiaId, docenteId })
-      .pipe(map(() => undefined));
+  assignTeacher(
+    spaceId: number,
+    yearId: number,
+    classGroupId: number,
+    subjectId: number,
+    teacherId: number,
+  ): Observable<void> {
+    if (teacherId)
+      return this.api.http
+        .put(this.api.url('asignaciones', spaceId), {
+          paraleloId: classGroupId,
+          materiaId: subjectId,
+          docenteId: teacherId,
+        })
+        .pipe(map(() => undefined));
+    return this.getAllocations(spaceId, yearId).pipe(
+      switchMap((rows) => {
+        const allocation = rows.find(
+          (row) =>
+            row.paraleloId === classGroupId && row.materiaId === subjectId,
+        );
+        return allocation
+          ? this.remove('asignaciones', allocation.id)
+          : of(undefined);
+      }),
+    );
+  }
+  private save<T>(
+    path: string,
+    id: number | undefined,
+    body: unknown,
+  ): Observable<T> {
+    return id
+      ? this.api.http.patch<T>(this.api.url(`${path}/${id}`), body)
+      : this.api.http.post<T>(this.api.url(path), body);
+  }
+  private remove(path: string, id: number): Observable<void> {
+    return this.api.http.delete<void>(this.api.url(`${path}/${id}`));
   }
 }

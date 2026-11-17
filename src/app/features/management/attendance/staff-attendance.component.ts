@@ -1,12 +1,23 @@
+import { ApiLoadStateComponent } from '../../../shared/ui/api-load-state.component';
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCalendarDays, faChalkboardTeacher, faCircleCheck, faClock, faUserXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCalendarDays,
+  faChalkboardTeacher,
+  faCircleCheck,
+  faClock,
+  faUserXmark,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_MARCACION_LABEL } from '../../../core/models/time-tracking.model';
-import { formatLongDate, todayIso, addDays } from '../../../core/utils/attendance';
+import {
+  formatLongDate,
+  todayIso,
+  addDays,
+} from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { TimeTrackingService } from '../../../services/time-tracking.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -16,24 +27,78 @@ import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 @Component({
   selector: 'app-staff-attendance',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormsModule, PageHeaderComponent, EmptyStateComponent],
+  imports: [
+    FaIconComponent,
+    FormsModule,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './staff-attendance.component.html',
   styles: `
-    .fecha { display: flex; align-items: center; gap: 8px; color: var(--muted); }
-    .fecha .ui-input { width: 170px; }
-    .dia { margin: 0 0 12px; font-size: 17px; }
-    .indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px; }
-    .indicador { display: flex; align-items: center; gap: 12px; }
-    .indicador div { display: flex; flex-direction: column; }
-    .indicador strong { font-size: 24px; }
-    .indicador small { font-size: 12px; color: var(--muted); }
-    .destacado { border-color: var(--lime-green); background: var(--lime-soft); }
-    .ui-icono.ausente { background: #fdf0ee; color: #c0392b; }
-    .ui-tabla small { color: var(--muted); }
-    .estado-a-tiempo, .estado-salida { background: var(--lime-soft); color: var(--lime-strong); }
-    .estado-atraso, .estado-salida-anticipada { background: var(--light-cream); color: var(--cream-strong); }
-    .falta { background: #fdf0ee; color: #c0392b; }
-    .pendiente { color: var(--muted); }
+    .fecha {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .fecha .ui-input {
+      width: 170px;
+    }
+    .dia {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+    .indicadores {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .indicador {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .indicador div {
+      display: flex;
+      flex-direction: column;
+    }
+    .indicador strong {
+      font-size: 24px;
+    }
+    .indicador small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .destacado {
+      border-color: var(--lime-green);
+      background: var(--lime-soft);
+    }
+    .ui-icono.ausente {
+      background: #fdf0ee;
+      color: #c0392b;
+    }
+    .ui-tabla small {
+      color: var(--muted);
+    }
+    .estado-a-tiempo,
+    .estado-salida {
+      background: var(--lime-soft);
+      color: var(--lime-strong);
+    }
+    .estado-atraso,
+    .estado-salida-anticipada {
+      background: var(--light-cream);
+      color: var(--cream-strong);
+    }
+    .falta {
+      background: #fdf0ee;
+      color: #c0392b;
+    }
+    .pendiente {
+      color: var(--muted);
+    }
   `,
 })
 export class StaffAttendanceComponent {
@@ -53,17 +118,28 @@ export class StaffAttendanceComponent {
   readonly hoy = todayIso();
 
   readonly datos = rxResource({
-    stream: () => forkJoin({
-      marcaciones: this.marcacion.getEntriesBetween(this.espacioId, addDays(this.hoy, -30), this.hoy),
-      docentes: this.academico.getTeachers(this.espacioId),
-      puntos: this.marcacion.getLocations(this.espacioId),
-    }),
+    stream: () =>
+      forkJoin({
+        marcaciones: this.marcacion.getEntriesBetween(
+          this.espacioId,
+          addDays(this.hoy, -30),
+          this.hoy,
+        ),
+        docentes: this.academico.getTeachers(this.espacioId),
+        puntos: this.marcacion.getLocations(this.espacioId),
+      }),
   });
 
   // Hoy si alguien debe marcar; si no, el último día con marcaciones
   readonly fecha = linkedSignal(() => {
-    if (this.marcacion.getExpectedTeachers(this.espacioId, this.hoy).length) return this.hoy;
-    return (this.datos.value()?.marcaciones ?? []).map((m) => m.fecha).sort().at(-1) ?? this.hoy;
+    if (this.marcacion.getExpectedTeachers(this.espacioId, this.hoy).length)
+      return this.hoy;
+    return (
+      (this.datos.value()?.marcaciones ?? [])
+        .map((m) => m.fecha)
+        .sort()
+        .at(-1) ?? this.hoy
+    );
   });
 
   readonly filas = computed(() => {
@@ -72,19 +148,30 @@ export class StaffAttendanceComponent {
     const fecha = this.fecha();
     const delDia = d.marcaciones.filter((m) => m.fecha === fecha);
     const punto = new Map(d.puntos.map((p) => [p.id, p.nombre]));
-    return this.marcacion.getExpectedTeachers(this.espacioId, fecha)
+    return this.marcacion
+      .getExpectedTeachers(this.espacioId, fecha)
       .map(({ docenteId, esperado }) => {
-        const entrada = delDia.find((m) => m.docenteId === docenteId && m.tipo === 'entrada');
-        const salida = delDia.find((m) => m.docenteId === docenteId && m.tipo === 'salida');
+        const entrada = delDia.find(
+          (m) => m.docenteId === docenteId && m.tipo === 'entrada',
+        );
+        const salida = delDia.find(
+          (m) => m.docenteId === docenteId && m.tipo === 'salida',
+        );
         return {
-          nombre: d.docentes.find((x) => x.id === docenteId)?.nombre ?? `Docente ${docenteId}`,
+          nombre:
+            d.docentes.find((x) => x.id === docenteId)?.nombre ??
+            `Docente ${docenteId}`,
           esperado,
           entrada,
           salida,
-          punto: entrada ? punto.get(entrada.puntoId) ?? '' : '',
+          punto: entrada ? (punto.get(entrada.puntoId) ?? '') : '',
         };
       })
-      .sort((a, b) => Number(!!a.entrada) - Number(!!b.entrada) || a.nombre.localeCompare(b.nombre));
+      .sort(
+        (a, b) =>
+          Number(!!a.entrada) - Number(!!b.entrada) ||
+          a.nombre.localeCompare(b.nombre),
+      );
   });
 
   readonly resumen = computed(() => {
@@ -100,4 +187,8 @@ export class StaffAttendanceComponent {
   cambiarFecha(valor: string): void {
     if (valor && valor <= this.hoy) this.fecha.set(valor);
   }
+  readonly loadResources = [this.datos];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

@@ -1,14 +1,41 @@
-import { Component, DestroyRef, ElementRef, computed, inject, isDevMode, signal, viewChild } from '@angular/core';
+import { ApiLoadStateComponent } from '../../../shared/ui/api-load-state.component';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCamera, faCheck, faCircleCheck, faClock, faListCheck, faLocationDot, faQrcode, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCamera,
+  faCheck,
+  faCircleCheck,
+  faClock,
+  faListCheck,
+  faLocationDot,
+  faQrcode,
+  faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { ESTADO_MARCACION_LABEL, Marcacion, PuntoMarcacion, TipoMarcacion } from '../../../core/models/time-tracking.model';
+import {
+  ESTADO_MARCACION_LABEL,
+  Marcacion,
+  PuntoMarcacion,
+  TipoMarcacion,
+} from '../../../core/models/time-tracking.model';
 import { todayIso } from '../../../core/utils/attendance';
-import { distanciaLabel, distanciaMetros, leerQr } from '../../../core/utils/time-tracking';
+import {
+  distanciaLabel,
+  distanciaMetros,
+  leerQr,
+} from '../../../core/utils/time-tracking';
 import { TimeTrackingService } from '../../../services/time-tracking.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -22,12 +49,24 @@ interface Ubicacion {
 }
 
 // API nativa de lectura de códigos (Chrome en Android y otros navegadores modernos)
-declare const BarcodeDetector: { new (opciones: { formats: string[] }): { detect(fuente: CanvasImageSource): Promise<{ rawValue: string }[]> } } | undefined;
+declare const BarcodeDetector:
+  | {
+      new (opciones: { formats: string[] }): {
+        detect(fuente: CanvasImageSource): Promise<{ rawValue: string }[]>;
+      };
+    }
+  | undefined;
 
 @Component({
   selector: 'app-time-tracking',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormsModule, RouterLink, PageHeaderComponent],
+  imports: [
+    FaIconComponent,
+    FormsModule,
+    RouterLink,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: './time-tracking.component.html',
   styleUrls: ['./time-tracking.component.css'],
 })
@@ -36,7 +75,7 @@ export class TimeTrackingComponent {
   private avisos = inject(NotificationService);
   protected readonly session = inject(SessionService);
 
-  readonly modoDemo = isDevMode();
+  readonly modoDemo = false;
   readonly estadoLabel = ESTADO_MARCACION_LABEL;
   readonly distanciaLabel = distanciaLabel;
   readonly faQrcode = faQrcode;
@@ -52,14 +91,34 @@ export class TimeTrackingComponent {
   private readonly docenteId = this.session.userId()!;
   readonly hoy = todayIso();
 
-  readonly esperado = this.marcacion.getExpectedAttendance(this.espacioId, this.docenteId, this.hoy);
-  readonly puntos = rxResource({ stream: () => this.marcacion.getLocations(this.espacioId), defaultValue: [] });
-  readonly marcaciones = rxResource({ stream: () => this.marcacion.getTeacherEntries(this.docenteId), defaultValue: [] });
+  readonly esperado = computed(() =>
+    this.marcacion.getExpectedAttendance(
+      this.espacioId,
+      this.docenteId,
+      this.hoy,
+    ),
+  );
+  readonly puntos = rxResource({
+    stream: () => this.marcacion.getLocations(this.espacioId),
+    defaultValue: [],
+  });
+  readonly marcaciones = rxResource({
+    stream: () => this.marcacion.getTeacherEntries(this.docenteId),
+    defaultValue: [],
+  });
 
-  readonly deHoy = computed(() => this.marcaciones.value().filter((m) => m.fecha === this.hoy));
-  readonly entrada = computed(() => this.deHoy().find((m) => m.tipo === 'entrada') ?? null);
-  readonly salida = computed(() => this.deHoy().find((m) => m.tipo === 'salida') ?? null);
-  readonly siguiente = computed<TipoMarcacion | null>(() => (!this.entrada() ? 'entrada' : !this.salida() ? 'salida' : null));
+  readonly deHoy = computed(() =>
+    this.marcaciones.value().filter((m) => m.fecha === this.hoy),
+  );
+  readonly entrada = computed(
+    () => this.deHoy().find((m) => m.tipo === 'entrada') ?? null,
+  );
+  readonly salida = computed(
+    () => this.deHoy().find((m) => m.tipo === 'salida') ?? null,
+  );
+  readonly siguiente = computed<TipoMarcacion | null>(() =>
+    !this.entrada() ? 'entrada' : !this.salida() ? 'salida' : null,
+  );
 
   // ---------- Paso 1: ubicación ----------
   readonly marcando = signal(false);
@@ -71,7 +130,10 @@ export class TimeTrackingComponent {
   readonly cercano = computed(() => {
     const u = this.ubicacion();
     if (!u) return null;
-    const lista = this.puntos.value().filter((p) => p.activo).map((p) => ({ punto: p, distancia: distanciaMetros(p, u) }));
+    const lista = this.puntos
+      .value()
+      .filter((p) => p.activo)
+      .map((p) => ({ punto: p, distancia: distanciaMetros(p, u) }));
     return lista.sort((a, b) => a.distancia - b.distancia)[0] ?? null;
   });
   readonly dentroDelRadio = computed(() => {
@@ -103,17 +165,21 @@ export class TimeTrackingComponent {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         this.buscandoUbicacion.set(false);
-        this.ubicacion.set({ latitud: pos.coords.latitude, longitud: pos.coords.longitude, precision: Math.round(pos.coords.accuracy) });
+        this.ubicacion.set({
+          latitud: pos.coords.latitude,
+          longitud: pos.coords.longitude,
+          precision: Math.round(pos.coords.accuracy),
+        });
       },
       (error) => {
         this.buscandoUbicacion.set(false);
         this.errorUbicacion.set(
           error.code === error.PERMISSION_DENIED
             ? 'No diste permiso para usar tu ubicación. Actívalo en el navegador para poder marcar.'
-            : 'No pudimos obtener tu ubicación. Verifica que el GPS esté encendido e inténtalo de nuevo.'
+            : 'No pudimos obtener tu ubicación. Verifica que el GPS esté encendido e inténtalo de nuevo.',
         );
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   }
 
@@ -122,7 +188,12 @@ export class TimeTrackingComponent {
     const p = this.puntos.value().find((x) => x.activo);
     if (!p) return;
     this.errorUbicacion.set('');
-    this.ubicacion.set({ latitud: p.latitud + 0.0002, longitud: p.longitud, precision: 10, demo: true });
+    this.ubicacion.set({
+      latitud: p.latitud + 0.0002,
+      longitud: p.longitud,
+      precision: 10,
+      demo: true,
+    });
   }
 
   // ---------- Paso 2: código (QR o manual) ----------
@@ -143,7 +214,9 @@ export class TimeTrackingComponent {
   async abrirCamara(): Promise<void> {
     if (!this.puedeEscanear) return;
     try {
-      this.flujo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      this.flujo = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
       this.camaraActiva.set(true);
       queueMicrotask(async () => {
         const video = this.video()?.nativeElement;
@@ -163,7 +236,9 @@ export class TimeTrackingComponent {
         }, 350);
       });
     } catch {
-      this.avisos.error('No pudimos abrir la cámara. Escribe el código que aparece en la pantalla.');
+      this.avisos.error(
+        'No pudimos abrir la cámara. Escribe el código que aparece en la pantalla.',
+      );
     }
   }
 
@@ -178,7 +253,9 @@ export class TimeTrackingComponent {
   async enviar(): Promise<void> {
     const tipo = this.siguiente();
     const u = this.ubicacion();
-    const punto: PuntoMarcacion | undefined = this.puntos.value().find((p) => p.id === this.puntoDelQr()) ?? this.cercano()?.punto;
+    const punto: PuntoMarcacion | undefined =
+      this.puntos.value().find((p) => p.id === this.puntoDelQr()) ??
+      this.cercano()?.punto;
     const codigo = this.codigo().replace(/\D/g, '');
     if (!tipo || !u || !punto) return;
     if (codigo.length !== 6) {
@@ -187,9 +264,17 @@ export class TimeTrackingComponent {
     }
     this.enviando.set(true);
     try {
-      const marcacion = await firstValueFrom(this.marcacion.recordEntry({
-        espacioId: this.espacioId, docenteId: this.docenteId, tipo, puntoId: punto.id, codigo, latitud: u.latitud, longitud: u.longitud,
-      }));
+      const marcacion = await firstValueFrom(
+        this.marcacion.recordEntry({
+          espacioId: this.espacioId,
+          docenteId: this.docenteId,
+          tipo,
+          puntoId: punto.id,
+          codigo,
+          latitud: u.latitud,
+          longitud: u.longitud,
+        }),
+      );
       this.resultado.set(marcacion);
       this.marcando.set(false);
       this.marcaciones.reload();
@@ -199,4 +284,8 @@ export class TimeTrackingComponent {
       this.enviando.set(false);
     }
   }
+  readonly loadResources = [this.puntos, this.marcaciones];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }

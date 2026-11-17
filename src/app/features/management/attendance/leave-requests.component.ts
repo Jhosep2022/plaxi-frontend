@@ -1,12 +1,21 @@
+import { ApiLoadStateComponent } from '../../../shared/ui/api-load-state.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom, forkJoin } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCheck, faFileMedical, faPaperclip, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCheck,
+  faFileMedical,
+  faPaperclip,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academics.model';
-import { EstadoLicencia, Licencia } from '../../../core/models/attendance.model';
+import {
+  EstadoLicencia,
+  Licencia,
+} from '../../../core/models/attendance.model';
 import { formatShortDate } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
 import { AttendanceService } from '../../../services/attendance.service';
@@ -20,7 +29,14 @@ import { getErrorMessage } from '../academics/academics.ui';
 @Component({
   selector: 'app-leave-requests',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormsModule, PageHeaderComponent, DrawerComponent, EmptyStateComponent],
+  imports: [
+    FaIconComponent,
+    FormsModule,
+    ApiLoadStateComponent,
+    PageHeaderComponent,
+    DrawerComponent,
+    EmptyStateComponent,
+  ],
   styleUrls: ['./leave-requests.component.css'],
   templateUrl: './leave-requests.component.html',
 })
@@ -37,18 +53,23 @@ export class LeaveRequestsComponent {
   private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly datos = rxResource({
-    stream: () => forkJoin({
-      licencias: this.asistencia.getLeaveRequests(this.espacioId),
-      estudiantes: this.asistencia.getStudents(),
-      paralelos: this.academico.getActiveClassGroups(this.espacioId),
-      solicitantes: this.asistencia.getLeaveRequesters(),
-    }),
+    stream: () =>
+      forkJoin({
+        licencias: this.asistencia.getLeaveRequests(this.espacioId),
+        estudiantes: this.asistencia.getStudents(),
+        paralelos: this.academico.getActiveClassGroups(this.espacioId),
+        solicitantes: this.asistencia.getLeaveRequesters(),
+      }),
   });
 
   readonly filtro = signal<EstadoLicencia>('pendiente');
 
   readonly conteo = computed(() => {
-    const c: Record<EstadoLicencia, number> = { pendiente: 0, aprobada: 0, rechazada: 0 };
+    const c: Record<EstadoLicencia, number> = {
+      pendiente: 0,
+      aprobada: 0,
+      rechazada: 0,
+    };
     for (const l of this.datos.value()?.licencias ?? []) c[l.estado]++;
     return c;
   });
@@ -66,13 +87,18 @@ export class LeaveRequestsComponent {
           licencia: l,
           estudiante: est?.nombre ?? 'Estudiante',
           paralelo: paralelo ? paraleloLabel(paralelo) : '',
-          solicitante: padre ? `Solicitada por ${padre} (tutor legal)` : 'Registrada por el colegio',
+          solicitante: padre
+            ? `Solicitada por ${padre} (tutor legal)`
+            : 'Registrada por el colegio',
         };
       });
   });
 
   // ---------- Responder ----------
-  readonly respondiendo = signal<{ licencia: Licencia; estado: 'aprobada' | 'rechazada' } | null>(null);
+  readonly respondiendo = signal<{
+    licencia: Licencia;
+    estado: 'aprobada' | 'rechazada';
+  } | null>(null);
   readonly comentario = signal('');
   readonly guardando = signal(false);
 
@@ -90,8 +116,18 @@ export class LeaveRequestsComponent {
     }
     this.guardando.set(true);
     try {
-      await firstValueFrom(this.asistencia.respondToLeaveRequest(r.licencia, r.estado, this.comentario().trim()));
-      this.avisos.success(r.estado === 'aprobada' ? 'Licencia aprobada. La asistencia de esos días quedó como licencia.' : 'Licencia rechazada.');
+      await firstValueFrom(
+        this.asistencia.respondToLeaveRequest(
+          r.licencia,
+          r.estado,
+          this.comentario().trim(),
+        ),
+      );
+      this.avisos.success(
+        r.estado === 'aprobada'
+          ? 'Licencia aprobada. La asistencia de esos días quedó como licencia.'
+          : 'Licencia rechazada.',
+      );
       this.respondiendo.set(null);
       this.datos.reload();
     } catch (error) {
@@ -102,10 +138,22 @@ export class LeaveRequestsComponent {
   }
 
   rango(l: Licencia): string {
-    return l.desde === l.hasta ? formatShortDate(l.desde) : `${formatShortDate(l.desde)} – ${formatShortDate(l.hasta)}`;
+    return l.desde === l.hasta
+      ? formatShortDate(l.desde)
+      : `${formatShortDate(l.desde)} – ${formatShortDate(l.hasta)}`;
   }
 
   dias(l: Licencia): number {
-    return Math.round((new Date(`${l.hasta}T12:00:00`).getTime() - new Date(`${l.desde}T12:00:00`).getTime()) / 86400000) + 1;
+    return (
+      Math.round(
+        (new Date(`${l.hasta}T12:00:00`).getTime() -
+          new Date(`${l.desde}T12:00:00`).getTime()) /
+          86400000,
+      ) + 1
+    );
   }
+  readonly loadResources = [this.datos];
+  readonly hasLoadError = computed(() =>
+    this.loadResources.some((resource) => !!resource.error()),
+  );
 }
