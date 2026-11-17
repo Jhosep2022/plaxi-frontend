@@ -35,11 +35,20 @@ describe('AuthApiService', () => {
   it('requires the invitation code when registering an academy student', () => {
     service.register({
       tipo: 'estudiante', nombre: 'Lucía', primerApellido: 'Rojas', segundoApellido: '',
-      correo: 'lucia@example.test', usuario: 'lucia', clave: 'Lucia2026', codigoCurso: 'ANG-7K2Q',
+      correo: 'lucia@example.test', usuario: 'lucia', clave: 'Lucia2026', codigoCurso: 'ANG-7K2Q', aceptaTerminos: true,
     }).subscribe();
     const request = requests.expectOne(`${environment.API_URL}/auth/registro`);
     expect(request.request.body.codigoCurso).toBe('ANG-7K2Q');
+    expect(request.request.body.aceptaTerminos).toBeTrue();
     expect(request.request.withCredentials).toBeTrue();
     request.flush({ accessToken: 'token', expiraEn: 900, usuario: { id: 2, usuario: 'lucia', nombre: 'Lucía', primerApellido: 'Rojas', imagenUrl: null, esAdmin: false }, membresias: [] });
+  });
+
+  it('records the accepted version of the terms', () => {
+    service.acceptTerms('2026-11-16').subscribe();
+    const request = requests.expectOne(`${environment.API_URL}/terminos/aceptacion`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ version: '2026-11-16' });
+    request.flush(null);
   });
 });

@@ -15,7 +15,7 @@ export interface ApiMembership {
 export interface ApiSessionResponse {
   accessToken: string;
   expiraEn: number;
-  usuario: { id: number; usuario: string; nombre: string; primerApellido: string; imagenUrl: string | null; esAdmin: boolean; passwordChangeRequired: boolean };
+  usuario: { id: number; usuario: string; nombre: string; primerApellido: string; imagenUrl: string | null; esAdmin: boolean; passwordChangeRequired: boolean; terminosPendientes?: boolean };
   membresias: ApiMembership[];
 }
 
@@ -75,6 +75,11 @@ export class AuthApiService {
     return this.http.get<{ docente: string; nombre: string }>(`${environment.API_URL}/cursos/codigo/${encodeURIComponent(code)}`).pipe(
       map((course) => ({ docente: course.docente, aula: { nombre: course.nombre } })),
     );
+  }
+
+  // Records that the signed-in account accepted the version of the terms it read (T07)
+  acceptTerms(version: string): Observable<void> {
+    return this.http.post<void>(`${environment.API_URL}/terminos/aceptacion`, { version });
   }
 
   changeTemporaryPassword(currentPassword: string, newPassword: string): Observable<void> {

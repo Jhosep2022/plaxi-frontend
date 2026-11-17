@@ -87,7 +87,7 @@
       <app-password-strength [password]="personalData().clave" />
       <label class="terminos">
         <input id="reg-terminos" type="checkbox" [formField]="personalDataForm.terminos" />
-        <span>Acepto los <a class="enlace" href="#" (click)="$event.preventDefault()">términos de uso</a> y la <a class="enlace" href="#" (click)="$event.preventDefault()">política de privacidad</a>.</span>
+        <span>Acepto los <a class="enlace" href="/terminos" target="_blank" rel="noopener">términos de uso</a> y la <a class="enlace" href="/privacidad" target="_blank" rel="noopener">política de privacidad</a>.</span>
       </label>
       @if (personalDataForm.terminos().touched() && personalDataForm.terminos().invalid()) { <span class="ui-error">{{ personalDataForm.terminos().errors()[0].message }}</span> }
 

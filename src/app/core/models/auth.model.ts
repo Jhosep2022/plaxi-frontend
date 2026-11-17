@@ -19,6 +19,7 @@ export interface RegistrationData {
   clave: string;
   academia?: { nombre: string; slug: string; primerCurso: { nombre: string; categoria: string } | null }; // solo docente
   codigoCurso?: string; // estudiante que llega con un código o link de invitación
+  aceptaTerminos: boolean; // terms of use and privacy policy of the current version (T07)
 }
 
 export interface RegistrationResult {

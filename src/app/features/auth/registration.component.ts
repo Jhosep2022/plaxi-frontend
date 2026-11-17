@@ -219,7 +219,7 @@ export class RegistrationComponent implements OnInit {
         const d = this.personalData();
         const m = this.accountDetails();
         const response = await firstValueFrom(this.auth.register({
-          tipo: this.accountType()!, nombre: d.nombre, primerApellido: d.primerApellido, segundoApellido: d.segundoApellido, correo: d.correo, usuario: d.usuario, clave: d.clave,
+          tipo: this.accountType()!, nombre: d.nombre, primerApellido: d.primerApellido, segundoApellido: d.segundoApellido, correo: d.correo, usuario: d.usuario, clave: d.clave, aceptaTerminos: d.terminos,
           academia: this.accountType() === 'docente' ? { nombre: m.academia, slug: m.slug, primerCurso: m.curso.trim() ? { nombre: m.curso, categoria: m.categoria } : null } : undefined,
           codigoCurso: this.accountType() === 'estudiante' ? m.codigo.trim() : undefined,
         }));

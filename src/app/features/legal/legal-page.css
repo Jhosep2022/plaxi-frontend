@@ -1,0 +1,8 @@
+:host { display: block; min-height: 100vh; background: var(--page-bg); color: var(--dark-blue); }
+
+.legal { width: min(760px, 100%); margin: 0 auto; padding: clamp(20px, 4vw, 48px) 16px 64px; box-sizing: border-box; }
+.legal h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); margin: 0 0 6px; }
+.legal .version { margin: 0 0 28px; opacity: .7; }
+.legal h2 { font-size: 1.1rem; margin: 28px 0 8px; }
+.legal p, .legal li { line-height: 1.6; }
+.legal ul { padding-left: 20px; margin: 8px 0; }

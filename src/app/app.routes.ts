@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { platformAdminGuard, authGuard, spaceGuard, guestGuard, spaceMemberGuard, redirectHomeGuard, roleGuard, temporaryPasswordGuard } from './core/guards/session.guards';
+import { platformAdminGuard, authGuard, spaceGuard, guestGuard, spaceMemberGuard, redirectHomeGuard, roleGuard, temporaryPasswordGuard, termsGuard } from './core/guards/session.guards';
 import { AppLayoutComponent } from './layouts/app-layout/app-layout.component';
 
 // Estructura general:
@@ -13,6 +13,12 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [redirectHomeGuard], children: [] },
 
   { path: 'cambiar-clave-temporal', canMatch: [temporaryPasswordGuard], title: 'Cambiar contraseña temporal', loadComponent: () => import('./features/auth/change-temporary-password.component').then((m) => m.ChangeTemporaryPasswordComponent) },
+
+  { path: 'aceptar-terminos', canMatch: [termsGuard], title: 'Términos y privacidad', loadComponent: () => import('./features/legal/accept-terms.component').then((m) => m.AcceptTermsComponent) },
+
+  // T07: the texts are public, so they can be read before creating an account
+  { path: 'terminos', title: 'Términos de uso', loadComponent: () => import('./features/legal/terms-page.component').then((m) => m.TermsPageComponent) },
+  { path: 'privacidad', title: 'Política de privacidad', loadComponent: () => import('./features/legal/privacy-page.component').then((m) => m.PrivacyPageComponent) },
 
   // Link of the email change: open with or without a session (it may be opened on another device)
   {

@@ -30,6 +30,8 @@ export class SessionService {
   readonly userId = signal<number | null>(null);
   readonly isPlatformAdmin = signal(false);
   readonly passwordChangeRequired = signal(false);
+  // The account has not accepted the current terms of use and privacy policy yet
+  readonly termsPending = signal(false);
   readonly memberships = signal<Membership[]>([]);
   readonly activeSpace = signal<Space | null>(null);
 
@@ -68,6 +70,7 @@ export class SessionService {
     this.userId.set(response.usuario.id);
     this.isPlatformAdmin.set(response.usuario.esAdmin);
     this.passwordChangeRequired.set(response.usuario.passwordChangeRequired);
+    this.termsPending.set(response.usuario.terminosPendientes ?? false);
     this.memberships.set(response.membresias.map((membership) => ({
       espacio: { ...membership.espacio, escala: DEFAULT_GRADING_SCALE },
       rol: membership.rol as SpaceRole,
@@ -108,11 +111,23 @@ export class SessionService {
     this.passwordChangeRequired.set(false);
   }
 
+  finishTermsAcceptance(): void {
+    this.termsPending.set(false);
+  }
+
+  // What the account must do before using the app: first change its temporary password, then accept the terms
+  pendingStep(): string | null {
+    if (this.passwordChangeRequired()) return '/cambiar-clave-temporal';
+    if (this.termsPending()) return '/aceptar-terminos';
+    return null;
+  }
+
   private clearLocalSession(): void {
     this.apiSession.clearAccessToken();
     this.userId.set(null);
     this.isPlatformAdmin.set(false);
     this.passwordChangeRequired.set(false);
+    this.termsPending.set(false);
     this.memberships.set([]);
     this.activeSpace.set(null);
     [USER_ID_STORAGE_KEY, MEMBERSHIPS_STORAGE_KEY, LEGACY_USER_ID_STORAGE_KEY, LEGACY_ROLE_STORAGE_KEY].forEach(removeStorage);
@@ -169,7 +184,8 @@ export class SessionService {
 
   // Choose a return URL, preferred space, or selector after sign-in.
   postLoginRoute(): string {
-    if (this.passwordChangeRequired()) return '/cambiar-clave-temporal';
+    const pending = this.pendingStep();
+    if (pending) return pending;
     // Return to the original link, such as a course invitation.
     const returnUrl = consumeReturnUrl();
     if (returnUrl) return returnUrl;
