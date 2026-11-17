@@ -1,11 +1,12 @@
-import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { HttpEvent, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiSessionService } from './api-session.service';
 import { SessionService } from '../auth/session.service';
 import { readApiError } from './api-error';
 import { isTemporaryFailure } from './session-errors';
+import { ConnectivityService } from './connectivity.service';
 
 const authPrefix = `${environment.API_URL}/auth/`;
 
@@ -14,11 +15,18 @@ export const apiAuthInterceptor: HttpInterceptorFn = (request, next) => {
 
   const session = inject(ApiSessionService);
   const sessionState = inject(SessionService);
-  if (request.url.startsWith(authPrefix)) return next(request);
+  const connectivity = inject(ConnectivityService);
+  // Any answer means Aulix is reachable; no answer at all (status 0) shows the "no connection" band
+  const watchConnection = tap<HttpEvent<unknown>>({
+    next: () => connectivity.requestAnswered(),
+    error: (error: unknown) => (isNoAnswer(error) ? connectivity.requestFailedWithoutAnswer() : connectivity.requestAnswered()),
+  });
+  if (request.url.startsWith(authPrefix)) return next(request).pipe(watchConnection);
   const token = session.accessToken();
   const authenticatedRequest = token ? withBearer(request, token) : request;
 
   return next(authenticatedRequest).pipe(
+    watchConnection,
     catchError((error: unknown) => {
       if (!isExpiredSession(error)) return throwError(() => error);
       return session.refreshSession().pipe(
@@ -50,4 +58,8 @@ function withBearer(request: HttpRequest<unknown>, token: string): HttpRequest<u
 
 function isExpiredSession(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'status' in error && error.status === 401;
+}
+
+function isNoAnswer(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'status' in error && error.status === 0;
 }

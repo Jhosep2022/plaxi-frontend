@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { apiAuthInterceptor } from './api-auth.interceptor';
 import { ApiSessionService, REFRESH_TAB_LOCK } from './api-session.service';
 import { SessionService } from '../auth/session.service';
+import { ConnectivityService } from './connectivity.service';
 
 describe('apiAuthInterceptor', () => {
   let http: HttpClient;
@@ -112,5 +113,16 @@ describe('apiAuthInterceptor', () => {
     controller.expectOne(refreshUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
     controller.expectNone(refreshUrl);
     expect(TestBed.inject(SessionService).expireSession).toHaveBeenCalled();
+  });
+
+  it('a request with no answer shows the connection band, and the next answer hides it', () => {
+    const connectivity = TestBed.inject(ConnectivityService);
+    session.setAccessToken('current-token');
+    http.get(profileUrl).subscribe({ error: () => undefined });
+    controller.expectOne(profileUrl).error(new ProgressEvent('error'), { status: 0 });
+    expect(connectivity.unreachable()).toBeTrue();
+    http.get(profileUrl).subscribe();
+    controller.expectOne(profileUrl).flush({});
+    expect(connectivity.unreachable()).toBeFalse();
   });
 });

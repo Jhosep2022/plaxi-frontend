@@ -1,6 +1,6 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { RouteReuseStrategy, TitleStrategy, provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { RouteReuseStrategy, TitleStrategy, provideRouter, withComponentInputBinding, withNavigationErrorHandler, withRouterConfig } from '@angular/router';
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideSignalFormsConfig } from '@angular/forms/signals';
@@ -13,6 +13,7 @@ import AuraTooltip from '@primeuix/themes/aura/tooltip';
 import { routes } from './app.routes';
 import { AulixTitleStrategy, RecrearConParametrosStrategy } from './core/routing/router-strategies';
 import { apiAuthInterceptor } from './core/api/api-auth.interceptor';
+import { handleNavigationError } from './core/routing/navigation-errors';
 import { SessionService } from './core/auth/session.service';
 
 // Configuración global de la app (reemplaza a app.module.ts y app-routing.module.ts)
@@ -34,7 +35,9 @@ export const appConfig: ApplicationConfig = {
       // Los parámetros de la ruta (:cursoId, :leccionId…) llegan como input() del componente
       withComponentInputBinding(),
       // Las rutas hijas también reciben los parámetros de sus padres
-      withRouterConfig({ paramsInheritanceStrategy: 'always' })
+      withRouterConfig({ paramsInheritanceStrategy: 'always' }),
+      // A page that cannot open shows the no-connection, too-many-requests or server-error page
+      withNavigationErrorHandler(handleNavigationError)
     ),
     { provide: TitleStrategy, useClass: AulixTitleStrategy },
     { provide: RouteReuseStrategy, useClass: RecrearConParametrosStrategy },

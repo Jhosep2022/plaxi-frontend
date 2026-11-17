@@ -36,6 +36,23 @@ export const routes: Routes = [
     loadComponent: () => import('./shared/pages/select-space.component').then((m) => m.SelectSpaceComponent),
   },
 
+  // HU-ERR-03 and HU-ERR-05: a page could not open (server, connection or too many requests)
+  {
+    path: 'error',
+    title: 'Algo falló',
+    loadComponent: () => import('./shared/pages/server-error.component').then((m) => m.ServerErrorComponent),
+  },
+  {
+    path: 'sin-conexion',
+    title: 'Sin conexión',
+    loadComponent: () => import('./shared/pages/offline.component').then((m) => m.OfflineComponent),
+  },
+  {
+    path: 'demasiados-intentos',
+    title: 'Demasiados intentos',
+    loadComponent: () => import('./shared/pages/too-many-requests.component').then((m) => m.TooManyRequestsComponent),
+  },
+
   {
     path: 'no-autorizado',
     title: 'Sin acceso',

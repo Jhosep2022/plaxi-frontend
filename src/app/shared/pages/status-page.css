@@ -42,6 +42,13 @@
 .button { display: inline-flex; align-items: center; min-height: 46px; padding: 0 22px; border-radius: 11px; background: var(--lime-green); color: var(--dark-blue); font-weight: 700; text-decoration: none; }
 .button:hover { background: var(--dark-blue); color: var(--lime-green); }
 .text-link { color: var(--dark-blue); font-weight: 700; text-underline-offset: 4px; }
+button.button { border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+button.button:disabled { opacity: .55; cursor: not-allowed; }
+button.button:disabled:hover { background: var(--lime-green); color: var(--dark-blue); }
+.status-ref { margin-top: 14px !important; font-size: 14px !important; }
+.status-ref strong { font-family: ui-monospace, monospace; letter-spacing: .08em; color: var(--dark-blue); }
+/* No number: the symbol alone, larger (no connection) */
+.status-symbol--solo { position: static; transform: none; width: 140px; height: 140px; border-radius: 36px; font-size: 62px; }
 .status-footer { color: var(--muted); font-size: 12px; }
 .status-footer span { padding: 0 5px; }
 
@@ -50,5 +57,6 @@
   .status-art { min-height: 230px; border-radius: 24px; }
   .status-number { font-size: clamp(120px, 28vw, 210px); }
   .status-symbol { width: 68px; height: 68px; font-size: 30px; }
+  .status-symbol--solo { width: 104px; height: 104px; font-size: 46px; }
   .status-copy h1 { font-size: clamp(30px, 8vw, 42px); }
 }
