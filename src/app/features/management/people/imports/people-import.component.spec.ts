@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { Workbook } from 'exceljs';
 import { SessionService } from '../../../../core/auth/session.service';
-import { PeopleImportApi } from './import-api.service';
+import {
+  PeopleImportApi,
+  type ImportPreview,
+  type ImportJob,
+} from './import-api.service';
 import { createImportTemplate } from './import-workbook';
 import { PeopleImportComponent } from './people-import.component';
 
@@ -46,6 +50,65 @@ describe('People import review', () => {
     localStorage.removeItem('aulix-import:9999:9999');
   });
   afterEach(() => localStorage.removeItem('aulix-import:9999:9999'));
+  it('keeps a visible loader through reading, server review and confirmation', async () => {
+    const pendingReview = new Subject<ImportPreview>();
+    api.preview.and.returnValue(pendingReview);
+    const fixture = TestBed.createComponent(PeopleImportComponent);
+    const component = fixture.componentInstance;
+    component.yearId.set(12);
+    fixture.detectChanges();
+    const uploading = component.upload(await fileWithFiveStudents());
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Leyendo tu archivo Excel',
+    );
+    for (
+      let attempt = 0;
+      attempt < 100 && api.preview.calls.count() === 0;
+      attempt++
+    )
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    fixture.detectChanges();
+    expect(component.busy()).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('Revisando 5 filas');
+    pendingReview.next(review);
+    pendingReview.complete();
+    await uploading;
+    expect(component.busy()).toBeFalse();
+    const pendingConfirmation = new Subject<ImportJob>();
+    api.confirm.and.returnValue(pendingConfirmation);
+    const completed: ImportJob = {
+      id: 'job-loader',
+      status: 'completed',
+      error: null,
+      accessAvailable: false,
+      result: { created: 5, existing: 0, links: 0, accessCount: 0 },
+    };
+    const worker = new BehaviorSubject<ImportJob>({
+      ...completed,
+      status: 'queued',
+      result: null,
+    });
+    api.job.and.returnValue(worker);
+    const confirming = component.confirm();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Enviando la carga');
+    pendingConfirmation.next(completed);
+    pendingConfirmation.complete();
+    await confirming;
+    fixture.detectChanges();
+    for (let attempt = 0; attempt < 100 && !component.job.hasValue(); attempt++)
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    fixture.detectChanges();
+    expect(component.busy()).toBeFalse();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Creando fichas, inscripciones y accesos en segundo plano',
+    );
+    worker.next(completed);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.import-progress')).toBeNull();
+    fixture.destroy();
+  });
   it('uploads for review without creating a job, then preserves the retry key after a server error', async () => {
     const fixture = TestBed.createComponent(PeopleImportComponent);
     const component = fixture.componentInstance;

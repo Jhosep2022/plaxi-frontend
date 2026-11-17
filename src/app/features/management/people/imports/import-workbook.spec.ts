@@ -18,6 +18,47 @@ describe('Aulix Excel template', () => {
       estudiantes: 5,
     },
   ];
+  it('offers only real school choices and dependent lists through row 501', async () => {
+    const actualGroups = [
+      ...groups,
+      { ...groups[0], letra: 'B', turno: 'tarde' },
+      { ...groups[0], nivel: 'secundaria', grado: 3, turno: 'noche' },
+    ];
+    const book = new Workbook();
+    await book.xlsx.load(await createImportTemplate(actualGroups, 2027));
+    const students = book.getWorksheet('Estudiantes')!;
+    const options = book.getWorksheet('Opciones_Aulix')!;
+    expect(options.state).toBe('hidden');
+    expect(students.getCell('H2').dataValidation.formulae).toEqual([
+      'aulix_niveles',
+    ]);
+    expect(students.getCell('I2').dataValidation.formulae![0]).toContain('$H2');
+    expect(students.getCell('J2').dataValidation.formulae![0]).toContain('$I2');
+    expect(students.getCell('K501').dataValidation.formulae![0]).toContain(
+      '$J501',
+    );
+    expect(students.getCell('K501').dataValidation.errorStyle).toBe('stop');
+    const values = (name: string) => {
+      const range = book.definedNames
+        .getRanges(name)
+        .ranges[0].split('!')[1]
+        .replace(/\$/g, '');
+      const [start, end] = range.split(':');
+      const first = options.getCell(start),
+        last = options.getCell(end ?? start);
+      return Array.from(
+        { length: Number(last.row) - Number(first.row) + 1 },
+        (_, index) =>
+          options.getCell(Number(first.row) + index, Number(first.col)).value,
+      );
+    };
+    expect(values('aulix_niveles')).toEqual(['primaria', 'secundaria']);
+    expect(values('aulix_grados_primaria')).toEqual(['1']);
+    expect(values('aulix_paralelos_primaria_1')).toEqual(['A', 'B']);
+    expect(values('aulix_turnos_primaria_1_A')).toEqual(['manana']);
+    expect(values('aulix_turnos_primaria_1_B')).toEqual(['tarde']);
+    expect(values('aulix_turnos_secundaria_3_A')).toEqual(['noche']);
+  });
   it('reads automatic email links and formatted text without following links', async () => {
     const book = new Workbook();
     await book.xlsx.load(await createImportTemplate(groups, 2027));

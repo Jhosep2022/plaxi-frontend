@@ -1,5 +1,6 @@
 import type { CellValue, Worksheet } from 'exceljs';
 import type { ImportClassGroup, ImportWorkbook } from './import-api.service';
+import { addClassGroupDropdowns } from './import-template-options';
 
 const common = [
   ['Nombres', 'nombres'],
@@ -71,7 +72,8 @@ export async function createImportTemplate(
     'Nombres, primer apellido y CI son obligatorios. El segundo apellido y contacto son opcionales.',
     'Escribe CI y teléfonos como texto, sin perder ceros. Cada persona debe usar su propio correo.',
     'Estudiantes: fecha DD/MM/AAAA o AAAA-MM-DD. Nivel: inicial, primaria o secundaria. Grado: número.',
-    'Copia nivel, grado, paralelo y turno desde la hoja Paralelos de esta gestión.',
+    'Elige en los desplegables: primero Nivel, luego Grado, Paralelo y Turno. Solo aparecen los cursos creados en Aulix para esta gestión.',
+    'Si cambias el nivel o grado, vuelve a elegir las opciones siguientes. No escribas cursos que no aparecen en las listas.',
     'Padres: una fila por hijo. Repite exactamente los mismos datos del padre para vincular hermanos.',
     'CI del hijo debe coincidir con un estudiante de esta carga o ya registrado en el colegio.',
     'Parentesco: madre, padre o tutor. No se reemplazan datos ni se mueve de curso a personas existentes.',
@@ -99,18 +101,6 @@ export async function createImportTemplate(
     };
     sheet.columns.forEach((column) => (column.numFmt = '@'));
     for (let row = 2; row <= 501; row++) {
-      if (definition.key === 'students') {
-        sheet.getCell(row, 8).dataValidation = {
-          type: 'list',
-          allowBlank: false,
-          formulae: ['"inicial,primaria,secundaria"'],
-        };
-        sheet.getCell(row, 11).dataValidation = {
-          type: 'list',
-          allowBlank: false,
-          formulae: ['"manana,tarde,noche"'],
-        };
-      }
       if (definition.key === 'parents')
         sheet.getCell(row, 9).dataValidation = {
           type: 'list',
@@ -138,6 +128,7 @@ export async function createImportTemplate(
       group.estudiantes,
     ]),
   );
+  addClassGroupDropdowns(book, groups);
   const bytes = await book.xlsx.writeBuffer();
   return Uint8Array.from(new Uint8Array(bytes)).buffer;
 }

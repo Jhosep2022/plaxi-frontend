@@ -6,12 +6,29 @@
   <button
     class="ui-btn ui-btn--secundario"
     type="button"
-    [disabled]="busy() || !selectedYear() || groups.isLoading()"
+    [disabled]="
+      busy() || !selectedYear() || groups.isLoading() || !!groups.error()
+    "
     (click)="template()"
   >
     Descargar plantilla
   </button>
 </app-page-header>
+@if (progressMessage()) {
+  <section class="import-progress" role="status" aria-live="polite">
+    <span class="import-spinner" aria-hidden="true"></span>
+    <div>
+      <strong>{{ progressMessage() }}</strong>
+      <p>
+        {{
+          busy()
+            ? "Conserva esta página abierta. Con archivos grandes, esta operación puede tardar."
+            : "La carga sigue en el servidor. Puedes recargar la página y consultar su estado sin volver a enviarla."
+        }}
+      </p>
+    </div>
+  </section>
+}
 @if (years.error() || groups.error()) {
   <p class="ui-error" role="alert">
     No pudimos consultar la gestión o sus paralelos.
@@ -88,7 +105,8 @@
       </li>
       <li>
         Los estudiantes deben tener CI, fecha de nacimiento y un paralelo
-        existente. La hoja «Paralelos» te muestra las opciones reales.
+        existente. En Excel elige Nivel, Grado, Paralelo y Turno en ese orden:
+        cada desplegable depende del anterior y usa cursos de esta gestión.
       </li>
       <li>
         Las personas existentes se reconocen por su CI y tipo; no se
@@ -131,9 +149,10 @@
       esa fila aquí.
     </p>
   </div>
-  @if (busy()) {
-    <p role="status">
-      Procesando… Conserva esta página abierta hasta que termine la revisión.
+  @if (!groups.isLoading() && !groups.error() && selectedYear()) {
+    <p class="ui-ayuda">
+      {{ groups.value().length }} cursos disponibles para
+      {{ selectedYear()?.anio }}. La plantilla usa estas opciones del colegio.
     </p>
   }
 </section>
@@ -178,14 +197,23 @@
       <p class="ui-error" role="alert">{{ message }}</p>
     }
     <div class="preview-actions">
-      @if (hasEdits()) {
+      @if (workbook()) {
         <button
           class="ui-btn ui-btn--secundario"
           type="button"
-          [disabled]="busy() || cellIssues().length > 0"
+          [disabled]="
+            busy() ||
+            cellIssues().length > 0 ||
+            groups.isLoading() ||
+            !!groups.error()
+          "
           (click)="downloadReviewed()"
         >
-          Descargar Excel con ajustes
+          {{
+            hasEdits()
+              ? "Descargar Excel con ajustes y listas"
+              : "Descargar mi Excel con listas del colegio"
+          }}
         </button>
       }
       <label
@@ -206,6 +234,10 @@
         </button>
       }
     </div>
+    <p class="ui-ayuda">
+      La copia incluye las personas que ya cargaste y los desplegables del
+      colegio. No necesitas volver a escribir sus datos.
+    </p>
     @if (hasEdits()) {
       <p class="ui-ayuda">
         Los ajustes se conservan mientras esta página esté abierta. Descarga una

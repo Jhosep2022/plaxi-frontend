@@ -4,6 +4,41 @@
   display: grid;
   gap: 18px;
 }
+.import-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--lime-green);
+  border-radius: 12px;
+  background: var(--lime-soft);
+  color: var(--dark-blue);
+}
+.import-progress p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.import-spinner {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: 3px solid var(--lime-green);
+  border-top-color: var(--dark-blue);
+  border-radius: 50%;
+  animation: import-spin 0.85s linear infinite;
+}
+@keyframes import-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .import-spinner {
+    animation: none;
+  }
+}
 .import-setup h2,
 .preview h2,
 .result h2 {

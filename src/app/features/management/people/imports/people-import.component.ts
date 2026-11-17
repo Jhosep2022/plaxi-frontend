@@ -65,6 +65,7 @@ export class PeopleImportComponent {
   readonly workbook = signal<ImportWorkbook | null>(null);
   readonly filename = signal('');
   readonly busy = signal(false);
+  readonly phase = signal<'reading' | 'reviewing' | 'confirming' | null>(null);
   readonly error = signal('');
   readonly cellIssues = signal<ImportCellIssue[]>([]);
   readonly reviewPending = signal(false);
@@ -105,6 +106,25 @@ export class PeopleImportComponent {
       (!this.job.hasValue() || this.job.value()?.status === 'queued'),
   );
   readonly accessDownloaded = signal(false);
+  readonly progressMessage = computed(() => {
+    if (!this.busy())
+      return this.queued()
+        ? 'Creando fichas, inscripciones y accesos en segundo plano…'
+        : '';
+    if (this.phase() === 'reading') return 'Leyendo tu archivo Excel…';
+    if (this.phase() === 'reviewing') {
+      const workbook = this.workbook();
+      const count = workbook
+        ? workbook.students.length +
+          workbook.teachers.length +
+          workbook.parents.length
+        : 0;
+      return `Revisando ${count} filas y comprobando cursos, datos y cupos…`;
+    }
+    if (this.phase() === 'confirming')
+      return 'Enviando la carga para registrar las personas…';
+    return 'Preparando el archivo para descargar…';
+  });
   private requestId = crypto.randomUUID();
   readonly labels = {
     student: 'Estudiantes',
@@ -148,7 +168,13 @@ export class PeopleImportComponent {
     this.hasEdits.set(false);
   }
   async template(): Promise<void> {
-    if (!this.selectedYear() || this.busy()) return;
+    if (
+      !this.selectedYear() ||
+      this.busy() ||
+      this.groups.isLoading() ||
+      this.groups.error()
+    )
+      return;
     this.busy.set(true);
     this.error.set('');
     try {
@@ -167,14 +193,17 @@ export class PeopleImportComponent {
           : 'No se pudo crear la plantilla.',
       );
     } finally {
+      this.phase.set(null);
       this.busy.set(false);
     }
   }
   async upload(file: File | undefined): Promise<void> {
     if (!file || !this.yearId() || this.busy() || this.queued()) return;
     this.busy.set(true);
+    this.phase.set('reading');
     this.error.set('');
     try {
+      await yieldForPaint();
       if (
         !file.name.toLowerCase().endsWith('.xlsx') ||
         file.size > 3 * 1024 * 1024
@@ -204,6 +233,7 @@ export class PeopleImportComponent {
           : readApiError(error).message,
       );
     } finally {
+      this.phase.set(null);
       this.busy.set(false);
     }
   }
@@ -216,6 +246,7 @@ export class PeopleImportComponent {
     } catch (error) {
       this.error.set(readApiError(error).message);
     } finally {
+      this.phase.set(null);
       this.busy.set(false);
     }
   }
@@ -286,7 +317,15 @@ export class PeopleImportComponent {
   async downloadReviewed(): Promise<void> {
     const workbook = this.workbook(),
       year = this.selectedYear();
-    if (!workbook || !year || this.busy() || this.cellIssues().length) return;
+    if (
+      !workbook ||
+      !year ||
+      this.busy() ||
+      this.cellIssues().length ||
+      this.groups.isLoading() ||
+      this.groups.error()
+    )
+      return;
     this.busy.set(true);
     this.error.set('');
     try {
@@ -304,12 +343,15 @@ export class PeopleImportComponent {
         'No se pudo descargar la copia. Tus ajustes siguen en esta página; puedes reintentar.',
       );
     } finally {
+      this.phase.set(null);
       this.busy.set(false);
     }
   }
   private async reviewWorkbook(): Promise<void> {
     const workbook = this.workbook();
     if (!workbook) return;
+    this.phase.set('reviewing');
+    await yieldForPaint();
     const preview = await firstValueFrom(this.api.preview(workbook));
     const issues = this.cellIssues();
     this.preview.set({
@@ -340,6 +382,7 @@ export class PeopleImportComponent {
     )
       return;
     this.busy.set(true);
+    this.phase.set('confirming');
     this.error.set('');
     try {
       const job = await firstValueFrom(
@@ -352,6 +395,7 @@ export class PeopleImportComponent {
     } catch (error) {
       this.error.set(readApiError(error).message);
     } finally {
+      this.phase.set(null);
       this.busy.set(false);
     }
   }
@@ -426,4 +470,10 @@ export class PeopleImportComponent {
       /* The running import remains available until this page closes. */
     }
   }
+}
+
+function yieldForPaint(): Promise<void> {
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
 }
