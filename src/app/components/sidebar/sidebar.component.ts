@@ -70,7 +70,7 @@ export class SidebarComponent {
   // Se vuelve a cargar cuando el usuario cambia su nombre o su foto en "Mi perfil"
   private readonly perfilRecurso = rxResource({
     params: () => ({ id: this.session.userId(), version: this.perfilService.version() }),
-    stream: ({ params }) => (params.id ? this.perfilService.perfil(params.id) : of(null)),
+    stream: ({ params }) => (params.id ? this.perfilService.myProfile() : of(null)),
   });
   readonly profile = computed<UserProfile | null>(() => this.perfilRecurso.value() ?? null);
 

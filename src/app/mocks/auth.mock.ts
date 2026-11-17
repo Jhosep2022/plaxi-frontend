@@ -1,15 +1,8 @@
 // ============================================================================
-// DATOS MOCKEADOS de autenticación: contraseñas, tokens de recuperación y solicitudes de colegios
+// DATOS MOCKEADOS del superadmin: solicitudes de colegios y la cuenta de plataforma (hasta conectar Usuarios)
 // ============================================================================
 import type { SchoolRequest } from '../core/models/auth.model';
 import type { ProfileDto } from '../models/profile.dto';
-
-// Contraseña por usuario. Los usuarios de ejemplo (sin entrada aquí) aceptan cualquier contraseña;
-// los que se registran o cambian su contraseña quedan con la suya.
-export const MOCK_CLAVES: Record<number, string> = {};
-
-// Token de "olvidé mi contraseña" -> usuario (se usa una sola vez)
-export const MOCK_TOKENS_RECUPERACION: Record<string, number> = {};
 
 export const MOCK_SOLICITUDES_COLEGIO: SchoolRequest[] = [
   {

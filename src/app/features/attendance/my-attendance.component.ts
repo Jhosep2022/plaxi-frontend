@@ -62,7 +62,7 @@ export class MyAttendanceComponent {
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
       if (this.esPadre) return this.hijoActivo.activo().pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)));
-      return this.perfiles.perfil(this.usuarioId).pipe(map((p) => ({ id: this.usuarioId, nombre: p?.nombre ?? '' })));
+      return this.perfiles.myProfile().pipe(map((p) => ({ id: this.usuarioId, nombre: p.nombre })));
     },
   });
 

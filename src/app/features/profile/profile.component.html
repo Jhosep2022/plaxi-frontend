@@ -40,7 +40,7 @@
     @if (indicadores.value().length) {
       <div class="indicadores">
         @for (i of indicadores.value(); track i.label) {
-          <div class="indicador" [class]="'tono-' + i.tono">
+          <div class="indicador" [class]="'tono-' + i.tono" [pTooltip]="i.ayuda" tooltipPosition="top">
             <strong>{{ i.valor }}</strong>
             <span>{{ i.label }}</span>
             <small>{{ i.detalle }}</small>

@@ -47,10 +47,10 @@ export class SchoolSummaryService {
   private marcacion = inject(TimeTrackingService);
   private hijoActivo = inject(SelectedChildService);
 
-  // Nombre y foto del usuario, desde el perfil real (API) cuando es quien inició sesión
-  private perfil(usuarioId: number): Observable<{ nombre: string; primerApellido: string; imagenUrl?: string }> {
-    return this.cuenta.perfil(usuarioId).pipe(
-      map((p) => ({ nombre: p?.nombre ?? '', primerApellido: p?.primerApellido ?? '', imagenUrl: p?.imagenUrl }))
+  // Nombre y foto del usuario, desde el perfil real de quien inició sesión (API)
+  private perfil(): Observable<{ nombre: string; primerApellido: string; imagenUrl?: string }> {
+    return this.cuenta.myProfile().pipe(
+      map((p) => ({ nombre: p.nombre, primerApellido: p.primerApellido, imagenUrl: p.imagenUrl }))
     );
   }
 
@@ -67,7 +67,7 @@ export class SchoolSummaryService {
   private docente({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/docente`;
     return forkJoin({
-      perfil: this.perfil(usuarioId),
+      perfil: this.perfil(),
       datos: this.horarios.datos(espacio.id),
       marcaciones: this.marcacion.getTeacherEntries(usuarioId),
       clases: this.clasesDocente.clasesDe(espacio.id, usuarioId),
@@ -131,7 +131,7 @@ export class SchoolSummaryService {
     const base = `/${espacio.slug}/estudiante`;
     return this.academico.getStudentClassGroup(usuarioId).pipe(
       switchMap((paraleloId) => forkJoin({
-        perfil: this.perfil(usuarioId),
+        perfil: this.perfil(),
         seguimiento: this.seguimiento(espacio.id, usuarioId, paraleloId),
         recibidos: this.comunicados.recibidos(espacio.id, usuarioId),
       })),
@@ -175,7 +175,7 @@ export class SchoolSummaryService {
       switchMap((hijo) => {
         if (!hijo) return throwError(() => new Error('No hay estudiantes a cargo de este usuario.'));
         return forkJoin({
-          perfil: this.perfil(usuarioId),
+          perfil: this.perfil(),
           seguimiento: this.seguimiento(espacio.id, hijo.id, hijo.paraleloId),
           recibidos: this.comunicados.recibidos(espacio.id, usuarioId),
         }).pipe(map((d) => ({ ...d, hijo })));
@@ -241,7 +241,7 @@ export class SchoolSummaryService {
     const base = `/${espacio.slug}/direccion`;
     const hoy = todayIso();
     return forkJoin({
-      perfil: this.perfil(usuarioId),
+      perfil: this.perfil(),
       datos: this.horarios.datos(espacio.id),
       marcaciones: this.marcacion.getEntriesBetween(espacio.id, addDays(hoy, -14), hoy),
       registros: this.asistencia.getRecordsBetween(espacio.id, addDays(hoy, -21), hoy),

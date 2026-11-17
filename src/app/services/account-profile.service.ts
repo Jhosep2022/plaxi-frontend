@@ -1,14 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpBackend, HttpClient } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, map, switchMap, tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 import type { EmergencyContact, ProfileDevice, ProfileLinks, UserProfile, NotificationPreferences } from '../core/models/profile.model';
 import { PHOTO_MAX_KB } from '../core/models/profile.model';
-import { MOCK_DELAY, MOCK_PERFILES } from '../mocks/mock-data';
-import { MOCK_PERFIL_EXTRA, perfilExtraVacio } from '../mocks/profile.mock';
 import { SessionService } from '../core/auth/session.service';
 import { environment } from '../../environments/environment';
-import { defaultAvatar } from '../core/avatars';
 
 interface ApiProfile {
   id: number; usuario: string; correo: string; nombre: string; primerApellido: string;
@@ -59,14 +56,9 @@ export class AccountProfileService {
   // Goes up every time the name or the photo change (the sidebar reloads)
   readonly version = signal(0);
 
-  perfil(usuarioId: number): Observable<UserProfile | null> {
-    if (this.currentSession.isAuthenticated() && this.currentSession.userId() === usuarioId) {
-      return this.http.get<ApiProfile>(this.url).pipe(map((profile) => this.toUserProfile(profile)));
-    }
-    // MOCK: other people's profiles are still simulated until their screens are connected
-    const dto = MOCK_PERFILES.find((p) => p.idUsuario === usuarioId);
-    const extra = MOCK_PERFIL_EXTRA[usuarioId] ?? perfilExtraVacio();
-    return of(dto ? structuredClone({ avatar: defaultAvatar(usuarioId), ...dto, ...extra }) : null).pipe(delay(MOCK_DELAY));
+  // Only the signed-in account: other people's data is shown by each module (students, teachers, children)
+  myProfile(): Observable<UserProfile> {
+    return this.http.get<ApiProfile>(this.url).pipe(map((profile) => this.toUserProfile(profile)));
   }
 
   // Saves the chosen gallery avatar; null goes back to the automatic one (HU-AV-02)
@@ -162,7 +154,6 @@ export class AccountProfileService {
   }
 
   private toUserProfile(profile: ApiProfile): UserProfile {
-    const empty = perfilExtraVacio();
     return {
       idUsuario: profile.id, username: profile.usuario, gmail: profile.correo,
       status: true, nombre: profile.nombre, primerApellido: profile.primerApellido,
@@ -172,11 +163,23 @@ export class AccountProfileService {
       id_rol: String(this.currentSession.activeRole() ?? ''), isAdmin: profile.esAdmin,
       pending: false, fechaNacimiento: profile.fechaNacimiento ?? '',
       direccion: profile.direccion ?? '', especialidad: profile.especialidad ?? '',
-      bio: profile.bio ?? '', enlaces: { ...empty.enlaces, ...profile.enlaces },
-      contactoEmergencia: { ...empty.contactoEmergencia, ...profile.contactoEmergencia },
+      bio: profile.bio ?? '', enlaces: { ...NO_LINKS, ...profile.enlaces },
+      contactoEmergencia: { ...NO_EMERGENCY_CONTACT, ...profile.contactoEmergencia },
       miembroDesde: profile.miembroDesde, ultimoAcceso: profile.ultimoAcceso ?? '',
       claveActualizada: profile.claveActualizada?.slice(0, 10) ?? '',
-      notificaciones: profile.notificaciones ?? empty.notificaciones,
+      notificaciones: profile.notificaciones ?? DEFAULT_NOTIFICATIONS,
     } satisfies UserProfile;
   }
 }
+
+const NO_LINKS: ProfileLinks = { sitio: '', linkedin: '', instagram: '', youtube: '' };
+const NO_EMERGENCY_CONTACT: EmergencyContact = { nombre: '', parentesco: '', telefono: '' };
+// What the app shows before the person saves their own preferences
+const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
+  comunicados: { correo: false, app: true },
+  tareas: { correo: false, app: true },
+  calificaciones: { correo: false, app: true },
+  asistencia: { correo: false, app: true },
+  sesiones: { correo: false, app: true },
+  resumen: { correo: false, app: false },
+};

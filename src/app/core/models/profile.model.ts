@@ -50,6 +50,7 @@ export interface ProfileIndicator {
   valor: string;
   detalle: string;
   tono: 'lima' | 'azul' | 'crema';
+  ayuda: string; // how it is calculated (tooltip)
 }
 
 // Espacio al que pertenece el usuario, para la pestaña "Mis espacios"

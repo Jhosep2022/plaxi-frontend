@@ -55,14 +55,16 @@ export class MyGradesComponent {
     params: () => (this.esPadre ? this.hijoActivo.elegidoId() : 0),
     stream: () => {
       if (this.espacio.tipo !== 'colegio') return of(null);
-      const id$ = this.esPadre ? this.hijoActivo.activo().pipe(map((h) => h?.id ?? 0)) : of(this.usuarioId);
-      return id$.pipe(
-        switchMap((id) =>
-          !id
+      const alumno$ = this.esPadre
+        ? this.hijoActivo.activo().pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)))
+        : this.perfiles.myProfile().pipe(map((p) => ({ id: this.usuarioId, nombre: p.nombre })));
+      return alumno$.pipe(
+        switchMap((alumno) =>
+          !alumno
             ? of(null)
-            : forkJoin({ perfil: this.perfiles.perfil(id), paraleloId: this.academico.getStudentClassGroup(id) }).pipe(
-                switchMap(({ perfil, paraleloId }) =>
-                  this.calificaciones.getClassGroupData(this.espacio.id, paraleloId).pipe(map((datos) => (datos ? { estudiante: { id, nombre: datos.estudiantes.find((e) => e.id === id)?.nombre ?? perfil?.nombre ?? '' }, datos } : null)))
+            : this.academico.getStudentClassGroup(alumno.id).pipe(
+                switchMap((paraleloId) =>
+                  this.calificaciones.getClassGroupData(this.espacio.id, paraleloId).pipe(map((datos) => (datos ? { estudiante: { id: alumno.id, nombre: datos.estudiantes.find((e) => e.id === alumno.id)?.nombre ?? alumno.nombre }, datos } : null)))
                 )
               )
         )

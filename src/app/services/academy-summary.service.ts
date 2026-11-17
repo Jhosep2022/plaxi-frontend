@@ -24,10 +24,10 @@ export class AcademySummaryService {
   private academia = inject(AcademyService);
   private quiz = inject(QuizService);
 
-  // Nombre y foto del usuario, desde el perfil real (API) cuando es quien inició sesión
-  private perfil(usuarioId: number): Observable<{ nombre: string; primerApellido: string; imagenUrl?: string }> {
-    return this.cuenta.perfil(usuarioId).pipe(
-      map((p) => ({ nombre: p?.nombre ?? '', primerApellido: p?.primerApellido ?? '', imagenUrl: p?.imagenUrl }))
+  // Nombre y foto del usuario, desde el perfil real de quien inició sesión (API)
+  private perfil(): Observable<{ nombre: string; primerApellido: string; imagenUrl?: string }> {
+    return this.cuenta.myProfile().pipe(
+      map((p) => ({ nombre: p.nombre, primerApellido: p.primerApellido, imagenUrl: p.imagenUrl }))
     );
   }
 
@@ -38,7 +38,7 @@ export class AcademySummaryService {
   private docente({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/docente`;
     return forkJoin({
-      perfil: this.perfil(usuarioId),
+      perfil: this.perfil(),
       aulas: this.aulas.aulasDocente(espacio.id, usuarioId),
       sesiones: this.sesiones.sesionesDocente(espacio.id, usuarioId),
       solicitudes: this.academia.getRequests(espacio.id, usuarioId),
@@ -92,7 +92,7 @@ export class AcademySummaryService {
   private estudiante({ espacio }: Membership, usuarioId: number): Observable<ResumenData> {
     const base = `/${espacio.slug}/estudiante`;
     return forkJoin({
-      perfil: this.perfil(usuarioId),
+      perfil: this.perfil(),
       aulas: this.aulas.aulasEstudiante(espacio.id, usuarioId),
       sesiones: this.sesiones.sesionesEstudiante(espacio.id, usuarioId),
     }).pipe(

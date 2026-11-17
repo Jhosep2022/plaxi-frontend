@@ -162,7 +162,7 @@ export class SentComponent {
   readonly hoy = todayIso();
 
   private async nombreAutor(): Promise<string> {
-    const p = await firstValueFrom(this.perfiles.perfil(this.usuarioId));
+    const p = await firstValueFrom(this.perfiles.myProfile());
     return `${p?.nombre ?? ''} ${p?.primerApellido ?? ''}`.trim();
   }
 }

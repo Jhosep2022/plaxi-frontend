@@ -51,10 +51,10 @@ export class ProfileComponent {
   readonly galeriaAbierta = signal(false);
   readonly guardandoAvatar = signal(false);
 
-  readonly datos = rxResource({ stream: () => this.servicio.perfil(this.usuarioId) });
+  readonly datos = rxResource({ stream: () => this.servicio.myProfile() });
   // Copia local que se actualiza al guardar cualquier sección sin volver a cargar la página
   readonly perfil = linkedSignal<UserProfile | null>(() => this.datos.value() ?? null);
-  readonly indicadores = rxResource({ stream: () => this.actividad.indicadores(this.membresia, this.usuarioId), defaultValue: [] });
+  readonly indicadores = rxResource({ stream: () => this.actividad.indicadores(this.membresia), defaultValue: [] });
 
   readonly nombreCompleto = computed(() => {
     const p = this.perfil();

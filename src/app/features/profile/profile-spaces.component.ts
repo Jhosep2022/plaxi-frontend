@@ -37,8 +37,7 @@ export class ProfileSpacesComponent {
   readonly faSchool = faSchool;
   readonly faStar = faStar;
 
-  private readonly usuarioId = this.session.userId()!;
-  readonly espacios = rxResource({ stream: () => this.actividad.espacios(this.usuarioId), defaultValue: [] });
+  readonly espacios = rxResource({ stream: () => this.actividad.espacios(), defaultValue: [] });
   readonly predeterminado = signal(this.session.defaultSpace());
   readonly codigo = signal('');
 
@@ -60,7 +59,7 @@ export class ProfileSpacesComponent {
   async salir(e: ProfileSpace): Promise<void> {
     if (!confirm(`¿Salir de ${e.nombre}? Perderás el acceso a sus cursos y tu avance en ellos.`)) return;
     try {
-      await firstValueFrom(this.actividad.salirDeEspacio(this.usuarioId, e.espacioId));
+      await firstValueFrom(this.actividad.salirDeEspacio(e.slug));
       const eraActual = this.esActual(e);
       this.session.removeMembership(e.espacioId);
       this.avisos.success(`Saliste de ${e.nombre}.`);
