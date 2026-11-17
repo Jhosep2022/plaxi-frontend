@@ -14,7 +14,13 @@ export const routes: Routes = [
 
   { path: 'cambiar-clave-temporal', canMatch: [temporaryPasswordGuard], title: 'Cambiar contraseña temporal', loadComponent: () => import('./features/auth/change-temporary-password.component').then((m) => m.ChangeTemporaryPasswordComponent) },
 
-  { path: 'aceptar-terminos', canMatch: [termsGuard], title: 'Términos y privacidad', loadComponent: () => import('./features/legal/accept-terms.component').then((m) => m.AcceptTermsComponent) },
+  // Inside the sign-in layout, like the other access screens
+  {
+    path: 'aceptar-terminos',
+    canMatch: [termsGuard],
+    loadComponent: () => import('./features/auth/auth-layout.component').then((m) => m.AuthLayoutComponent),
+    children: [{ path: '', title: 'Términos y privacidad', loadComponent: () => import('./features/legal/accept-terms.component').then((m) => m.AcceptTermsComponent) }],
+  },
 
   // T07: the texts are public, so they can be read before creating an account
   { path: 'terminos', title: 'Términos de uso', loadComponent: () => import('./features/legal/terms-page.component').then((m) => m.TermsPageComponent) },
