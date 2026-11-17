@@ -25,14 +25,31 @@
   </p>
 }
 @if (error()) {
-  <p class="ui-card ui-error" role="alert">{{ error() }}</p>
+  <div class="ui-card import-error" role="alert">
+    <strong>No se completó la operación</strong>
+    <p class="ui-error">{{ error() }}</p>
+    @if (workbook() && reviewPending()) {
+      <p>
+        Conservamos los datos de {{ filename() }} en esta página. No necesitas
+        volver a llenar el Excel.
+      </p>
+      <button
+        class="ui-btn ui-btn--secundario"
+        type="button"
+        [disabled]="busy()"
+        (click)="retryReview()"
+      >
+        Reintentar revisión
+      </button>
+    }
+  </div>
 }
 <section class="ui-card import-setup">
   <div>
     <h2>1. Prepara la planilla</h2>
     <p>
-      Descarga la plantilla de esta gestión. Completa solo las hojas que
-      necesitas; deja vacías las demás.
+      Descarga la plantilla y completa las hojas que necesites. Si ya la
+      llenaste, puedes subirla directamente.
     </p>
   </div>
   <label class="ui-campo"
@@ -58,40 +75,62 @@
       }
     </select>
   </label>
-  <ul>
-    <li>
-      Una hoja para estudiantes, otra para docentes y otra para padres/tutores.
-    </li>
-    <li>
-      Para hermanos, repite los mismos datos del tutor en una fila por hijo e
-      indica el CI de cada estudiante.
-    </li>
-    <li>
-      Los estudiantes deben tener CI, fecha de nacimiento y un paralelo
-      existente. La hoja «Paralelos» te muestra las opciones reales.
-    </li>
-    <li>
-      Las personas existentes se reconocen por su CI y tipo; no se sobrescriben
-      sus datos ni se cambian de curso.
-    </li>
-  </ul>
+  <details>
+    <summary>Cómo llenar la plantilla</summary>
+    <ul>
+      <li>
+        Una hoja para estudiantes, otra para docentes y otra para
+        padres/tutores.
+      </li>
+      <li>
+        Para hermanos, repite los mismos datos del tutor en una fila por hijo e
+        indica el CI de cada estudiante.
+      </li>
+      <li>
+        Los estudiantes deben tener CI, fecha de nacimiento y un paralelo
+        existente. La hoja «Paralelos» te muestra las opciones reales.
+      </li>
+      <li>
+        Las personas existentes se reconocen por su CI y tipo; no se
+        sobrescriben sus datos ni se cambian de curso.
+      </li>
+      <li>
+        Excel puede convertir los correos en enlaces: los leemos como texto. Las
+        fechas admiten DD/MM/AAAA o AAAA-MM-DD.
+      </li>
+    </ul>
+  </details>
   @if (!years.isLoading() && !years.value().length) {
     <p class="ui-error">
       Primero crea una gestión y sus paralelos en Académico.
     </p>
   }
-  <label class="upload"
-    ><strong>2. Sube el Excel para revisarlo</strong
+  <div class="upload">
+    <strong>2. Sube el Excel para revisarlo</strong
     ><span>.xlsx · hasta 3 MB · hasta 500 filas por hoja</span>
-    <input
-      type="file"
-      accept=".xlsx"
-      [disabled]="busy() || queued() || !yearId()"
-      (change)="
-        upload($any($event.target).files?.[0]); $any($event.target).value = ''
-      "
-    />
-  </label>
+    <label class="file-picker"
+      ><span>{{
+        filename() ? "Elegir otro Excel" : "Elegir archivo Excel"
+      }}</span>
+      <input
+        type="file"
+        accept=".xlsx"
+        [disabled]="busy() || queued() || !yearId()"
+        (change)="
+          upload($any($event.target).files?.[0]); $any($event.target).value = ''
+        "
+      />
+    </label>
+    @if (filename()) {
+      <span class="filename"
+        >Archivo cargado: <strong>{{ filename() }}</strong></span
+      >
+    }
+    <p>
+      Primero revisaremos los datos. Si algo necesita un ajuste, podrás corregir
+      esa fila aquí.
+    </p>
+  </div>
   @if (busy()) {
     <p role="status">
       Procesando… Conserva esta página abierta hasta que termine la revisión.
@@ -102,6 +141,25 @@
   <section class="ui-card preview">
     <h2>3. Revisa antes de guardar</h2>
     <p>{{ filename() }} · Ninguna persona se ha guardado todavía.</p>
+    @if (errorCount()) {
+      <p class="review-notice" role="status">
+        <strong
+          >{{ errorCount() }}
+          {{
+            errorCount() === 1
+              ? "fila necesita un ajuste"
+              : "filas necesitan ajustes"
+          }}.</strong
+        >
+        Usa «Corregir fila». Las demás personas se conservan.
+      </p>
+    }
+    @if (reviewPending()) {
+      <p class="ui-error" role="status">
+        Hay cambios pendientes de revisar. Conservamos los datos; reintenta la
+        revisión antes de confirmar.
+      </p>
+    }
     <div class="counts">
       <div>
         <strong>{{ review.summary.newPeople }}</strong
@@ -120,6 +178,16 @@
       <p class="ui-error" role="alert">{{ message }}</p>
     }
     <div class="preview-actions">
+      @if (hasEdits()) {
+        <button
+          class="ui-btn ui-btn--secundario"
+          type="button"
+          [disabled]="busy() || cellIssues().length > 0"
+          (click)="downloadReviewed()"
+        >
+          Descargar Excel con ajustes
+        </button>
+      }
       <label
         ><input
           type="checkbox"
@@ -138,6 +206,12 @@
         </button>
       }
     </div>
+    @if (hasEdits()) {
+      <p class="ui-ayuda">
+        Los ajustes se conservan mientras esta página esté abierta. Descarga una
+        copia si quieres continuar después; tu archivo original no se modifica.
+      </p>
+    }
     <div class="ui-tabla-contenedor">
       <table class="ui-tabla">
         <thead>
@@ -146,6 +220,7 @@
             <th>Persona</th>
             <th>CI</th>
             <th>Revisión</th>
+            <th><span class="sr-only">Acciones</span></th>
           </tr>
         </thead>
         <tbody>
@@ -171,6 +246,19 @@
                   >
                 }
               </td>
+              <td>
+                <button
+                  type="button"
+                  class="ui-btn ui-btn--secundario"
+                  [disabled]="busy() || queued()"
+                  (click)="editRow(row)"
+                  [attr.aria-label]="
+                    'Corregir ' + labels[row.kind] + ', fila ' + row.row
+                  "
+                >
+                  {{ row.errors.length ? "Corregir fila" : "Editar fila" }}
+                </button>
+              </td>
             </tr>
           }
         </tbody>
@@ -178,20 +266,127 @@
     </div>
     @if (!review.valid) {
       <p>
-        Corrige las filas señaladas en Excel y vuelve a subir el archivo. Se
-        guardará el lote completo o ninguna persona.
+        Corrige solo las filas señaladas desde esta pantalla. También puedes
+        ajustar tu Excel y volver a subirlo. Se guardará el lote completo al
+        confirmar.
       </p>
     }
     <button
       class="ui-btn"
       type="button"
-      [disabled]="busy() || !review.valid || queued()"
+      [disabled]="
+        busy() ||
+        !review.valid ||
+        queued() ||
+        reviewPending() ||
+        editing() !== null
+      "
       (click)="confirm()"
     >
       Confirmar carga de {{ selectedYear()?.anio }}
     </button>
   </section>
 }
+<app-drawer
+  [abierto]="editing() !== null"
+  [titulo]="
+    'Corregir ' +
+    (editing() ? labels[editing()!.kind] : '') +
+    ' · fila ' +
+    (editing()?.row ?? '')
+  "
+  subtitulo="Ajusta solo lo necesario. Las otras filas se conservan; nada se registra hasta confirmar la carga."
+  (cerrar)="editing.set(null)"
+>
+  @if (editing(); as row) {
+    <div class="row-editor">
+      @for (message of row.errors; track $index) {
+        <p class="ui-error">{{ message }}</p>
+      }
+      @for (field of editorValues(); track field.key; let index = $index) {
+        @if (row.kind !== "student" || !courseFields.includes(field.key)) {
+          <label class="ui-campo"
+            ><span class="ui-etiqueta">{{ field.label }}</span>
+            @if (field.key === "parentesco") {
+              <select class="ui-input" [formField]="editorForm[index].text">
+                <option value="">Elige parentesco</option>
+                <option value="madre">Madre</option>
+                <option value="padre">Padre</option>
+                <option value="tutor">Tutor</option>
+              </select>
+            } @else {
+              <input
+                class="ui-input"
+                type="text"
+                [formField]="editorForm[index].text"
+                [attr.list]="
+                  field.key === 'hijoCi' ? 'import-child-options' : null
+                "
+                [placeholder]="
+                  field.key === 'fechaNacimiento'
+                    ? 'DD/MM/AAAA o AAAA-MM-DD'
+                    : ''
+                "
+              />
+            }
+            @if (field.key === "telefono") {
+              <span class="ui-ayuda"
+                >Celular de 8 dígitos que empieza con 6 o 7. Puedes dejarlo
+                vacío si no lo tienes.</span
+              >
+            }
+            @if (field.key === "hijoCi") {
+              <span class="ui-ayuda"
+                >Elige el CI de un estudiante de la planilla o escribe el de uno
+                ya registrado en el colegio.</span
+              ><datalist id="import-child-options">
+                @for (child of workbook()?.students ?? []; track $index) {
+                  <option [value]="child['ci']">
+                    {{ child["nombres"] }} {{ child["primerApellido"] }}
+                  </option>
+                }
+              </datalist>
+            }
+          </label>
+        }
+      }
+      @if (row.kind === "student") {
+        <label class="ui-campo"
+          ><span class="ui-etiqueta">Curso de destino</span
+          ><select
+            class="ui-input"
+            [value]="selectedCourse()"
+            (change)="selectCourse($any($event.target).value)"
+          >
+            <option value="" disabled>Elige un curso de esta gestión</option>
+            @for (group of groups.value(); track $index) {
+              <option [value]="'' + $index">
+                {{ group.nivel }} · {{ group.grado }}° {{ group.letra }} ·
+                {{ group.turno === "manana" ? "mañana" : group.turno }}
+              </option>
+            }
+          </select></label
+        >
+      }
+    </div>
+  }
+  <ng-container pie
+    ><button
+      type="button"
+      class="ui-btn ui-btn--secundario"
+      (click)="editing.set(null)"
+    >
+      Cancelar</button
+    ><button
+      type="button"
+      class="ui-btn"
+      [disabled]="busy()"
+      (click)="reviewEdits()"
+    >
+      Aplicar y revisar
+    </button></ng-container
+  >
+</app-drawer>
 @if (job.error()) {
   <div class="ui-card" role="alert">
     <p>

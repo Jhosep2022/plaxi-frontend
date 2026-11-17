@@ -39,12 +39,28 @@ const sheets = [
   },
 ] as const;
 
+export type ImportKind = 'student' | 'teacher' | 'parent';
+const sheetKeys = {
+  student: 'students',
+  teacher: 'teachers',
+  parent: 'parents',
+} as const;
+export const importSheetKey = (kind: ImportKind) => sheetKeys[kind];
+export const importColumns = (kind: ImportKind) =>
+  sheets.find((sheet) => sheet.key === sheetKeys[kind])!.columns;
+export interface ImportCellIssue {
+  kind: ImportKind;
+  row: number;
+  key: string;
+  message: string;
+}
+
 export async function createImportTemplate(
   groups: ImportClassGroup[],
   year: number,
 ): Promise<ArrayBuffer> {
   const Excel = await import('exceljs');
-  const book = new Excel.Workbook();
+  const book = new (Excel.Workbook ?? Excel.default.Workbook)();
   book.creator = 'Aulix';
   const instructions = book.addWorksheet('Instrucciones');
   instructions.getColumn(1).width = 110;
@@ -54,12 +70,12 @@ export async function createImportTemplate(
     'No cambies los encabezados. Máximo 500 filas por hoja. Guarda como .xlsx (sin macros).',
     'Nombres, primer apellido y CI son obligatorios. El segundo apellido y contacto son opcionales.',
     'Escribe CI y teléfonos como texto, sin perder ceros. Cada persona debe usar su propio correo.',
-    'Estudiantes: fecha real AAAA-MM-DD. Nivel: inicial, primaria o secundaria. Grado: número.',
+    'Estudiantes: fecha DD/MM/AAAA o AAAA-MM-DD. Nivel: inicial, primaria o secundaria. Grado: número.',
     'Copia nivel, grado, paralelo y turno desde la hoja Paralelos de esta gestión.',
     'Padres: una fila por hijo. Repite exactamente los mismos datos del padre para vincular hermanos.',
     'CI del hijo debe coincidir con un estudiante de esta carga o ya registrado en el colegio.',
     'Parentesco: madre, padre o tutor. No se reemplazan datos ni se mueve de curso a personas existentes.',
-    'La vista previa no guarda. Corrige los errores en Excel y vuelve a subirlo antes de confirmar.',
+    'La vista previa no guarda. Puedes corregir una fila desde Aulix sin volver a llenar la planilla.',
     'Después de confirmar, descarga una sola vez los accesos nuevos de estudiantes y entrégalos de forma privada.',
   ].forEach((line) => instructions.addRow([line]));
   for (const definition of sheets) {
@@ -130,10 +146,40 @@ export async function readImportWorkbook(
   input: ArrayBuffer,
   yearId: number,
 ): Promise<ImportWorkbook> {
+  const draft = await readImportDraft(input, yearId);
+  if (draft.issues.length) throw new Error(draft.issues[0].message);
+  return draft.workbook;
+}
+
+export async function createReviewedWorkbook(input: {
+  groups: ImportClassGroup[];
+  year: number;
+  workbook: ImportWorkbook;
+}): Promise<ArrayBuffer> {
+  const Excel = await import('exceljs');
+  const book = new (Excel.Workbook ?? Excel.default.Workbook)();
+  await book.xlsx.load(await createImportTemplate(input.groups, input.year));
+  for (const definition of sheets) {
+    const sheet = book.getWorksheet(definition.name)!;
+    for (const [index, person] of input.workbook[definition.key].entries()) {
+      const row = Number(person['_row'] ?? index + 2);
+      definition.columns.forEach(([, key], column) => {
+        sheet.getCell(row, column + 1).value = String(person[key] ?? '');
+      });
+    }
+  }
+  const bytes = await book.xlsx.writeBuffer();
+  return Uint8Array.from(new Uint8Array(bytes)).buffer;
+}
+
+export async function readImportDraft(
+  input: ArrayBuffer,
+  yearId: number,
+): Promise<{ workbook: ImportWorkbook; issues: ImportCellIssue[] }> {
   const bytes = Uint8Array.from(new Uint8Array(input)).buffer;
   assertZipSize(bytes);
   const Excel = await import('exceljs');
-  const book = new Excel.Workbook();
+  const book = new (Excel.Workbook ?? Excel.default.Workbook)();
   await book.xlsx.load(bytes);
   const result: ImportWorkbook = {
     yearId,
@@ -141,6 +187,7 @@ export async function readImportWorkbook(
     teachers: [],
     parents: [],
   };
+  const issues: ImportCellIssue[] = [];
   for (const definition of sheets) {
     const sheet = book.getWorksheet(definition.name);
     if (!sheet)
@@ -160,10 +207,27 @@ export async function readImportWorkbook(
       );
     sheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return;
-      const values = definition.columns.map(
-        ([, key], index) =>
-          [key, readCell(sheet, rowNumber, index + 1)] as const,
-      );
+      const values = definition.columns.map(([header, key], index) => {
+        try {
+          return [
+            key,
+            normalizeImportValue(key, readCell(sheet, rowNumber, index + 1)),
+          ] as const;
+        } catch (error) {
+          const kind = (Object.keys(sheetKeys) as ImportKind[]).find(
+            (kind) => sheetKeys[kind] === definition.key,
+          )!;
+          const cell = sheet.getCell(rowNumber, index + 1);
+          const formula = cell.formula;
+          issues.push({
+            kind,
+            row: rowNumber,
+            key,
+            message: `${sheet.name}, fila ${rowNumber} · ${header} (${cell.address}): ${error instanceof Error ? error.message : 'Revisa esta celda.'}`,
+          });
+          return [key, formula ? '=' + formula : cell.text] as const;
+        }
+      });
       if (!values.some(([, value]) => value !== '')) return;
       if (rows.length >= 500)
         throw new Error(`La hoja ${definition.name} supera las 500 filas.`);
@@ -171,16 +235,42 @@ export async function readImportWorkbook(
     });
     result[definition.key] = rows;
   }
-  return result;
+  return { workbook: result, issues };
+}
+export function normalizeImportValue(key: string, value: string): string {
+  if (key === 'telefono')
+    return value
+      .trim()
+      .replace(/[\s().-]/g, '')
+      .replace(/^(?:\+591|00591)(?=\d{8}$)/, '');
+  if (key === 'fechaNacimiento') {
+    const parts = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(value.trim());
+    if (parts)
+      return `${parts[3]}-${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+  }
+  if (['nivel', 'turno', 'parentesco'].includes(key))
+    return value
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  return value.trim();
 }
 function readCell(sheet: Worksheet, row: number, column: number): string {
   const cell = sheet.getCell(row, column);
   const value: CellValue = cell.value;
   if (value === null || value === undefined) return '';
   if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value === 'object' && 'hyperlink' in value)
+    return value.text.trim();
+  if (typeof value === 'object' && 'richText' in value)
+    return value.richText
+      .map((part) => part.text)
+      .join('')
+      .trim();
   if (typeof value === 'object')
     throw new Error(
-      `${sheet.name}, fila ${row}: usa valores simples, sin fórmulas ni enlaces.`,
+      'Escribe el dato en lugar de la fórmula o del error de Excel. Puedes corregirlo aquí sin rehacer las otras filas.',
     );
   return String(value).trim();
 }
