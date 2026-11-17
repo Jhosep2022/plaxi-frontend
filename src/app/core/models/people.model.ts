@@ -8,6 +8,9 @@ export const PARENTESCOS: { id: Parentesco; label: string }[] = [
 ];
 
 export interface Tutor {
+  givenNames?: string;
+  firstSurname?: string;
+  secondSurname?: string;
   id: number;
   nombre: string;
   ci: string;

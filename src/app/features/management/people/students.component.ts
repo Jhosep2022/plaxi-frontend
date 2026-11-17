@@ -1,16 +1,43 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { FormField, form, maxLength, pattern, required, submit, validate } from '@angular/forms/signals';
+import {
+  FormField,
+  form,
+  maxLength,
+  pattern,
+  required,
+  submit,
+  validate,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faChild, faMagnifyingGlass, faPen, faPlus, faUserClock, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
+import {
+  faChild,
+  faMagnifyingGlass,
+  faPen,
+  faPlus,
+  faUserClock,
+  faUserGraduate,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
+import {
+  compararParalelos,
+  paraleloLabel,
+} from '../../../core/models/academics.model';
 import { Estudiante } from '../../../core/models/attendance.model';
-import { PARENTESCOS, edad, iniciales } from '../../../core/models/people.model';
+import {
+  PARENTESCOS,
+  edad,
+  iniciales,
+} from '../../../core/models/people.model';
 import { todayIso } from '../../../core/utils/attendance';
-import { AcademicsService } from '../../../services/academics.service';
-import { PeopleService } from '../../../services/people.service';
+
+import {
+  PeopleService,
+  personNameFields,
+  personFullName,
+} from '../../../services/people.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -18,20 +45,35 @@ import { getErrorMessage } from '../academics/academics.ui';
 import { PATRON_CI } from './people.ui';
 import { SELECT } from '../../../shared/ui/select.component';
 
-const ESTUDIANTE_VACIO = { nombre: '', ci: '', fechaNacimiento: '', paraleloId: '0' };
+const ESTUDIANTE_VACIO = {
+  nombre: '',
+  givenNames: '',
+  firstSurname: '',
+  secondSurname: '',
+  ci: '',
+  fechaNacimiento: '',
+  paraleloId: '0',
+};
 const SIN_CURSO = 'sin-curso';
 
 // Estudiantes del colegio: datos personales, curso y padres / tutores registrados
 @Component({
   selector: 'app-students',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent],
+  imports: [
+    ...SELECT,
+    FaIconComponent,
+    FormField,
+    PageHeaderComponent,
+    DrawerComponent,
+    RouterLink,
+  ],
   templateUrl: './students.component.html',
   styleUrls: ['./people.css'],
 })
 export class StudentsComponent {
   private personas = inject(PeopleService);
-  private academico = inject(AcademicsService);
+
   private avisos = inject(NotificationService);
   private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
@@ -45,15 +87,41 @@ export class StudentsComponent {
   readonly faUserClock = faUserClock;
   readonly faUserGraduate = faUserGraduate;
   readonly hoy = todayIso();
+  readonly importRoute = inject(SessionService).roleRoute(
+    'personas',
+    'carga-excel',
+  );
+  readonly newAccess = signal<{ username: string; password: string } | null>(
+    null,
+  );
 
-  readonly estudiantes = rxResource({ stream: () => this.personas.estudiantes(), defaultValue: [] });
-  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
-  readonly padres = rxResource({ stream: () => this.personas.padres(), defaultValue: [] });
-  readonly vinculos = rxResource({ stream: () => this.personas.vinculos(), defaultValue: [] });
-  readonly cuentas = rxResource({ stream: () => this.personas.cuentas(this.espacioId), defaultValue: new Set<number>() });
+  readonly estudiantes = rxResource({
+    stream: () => this.personas.estudiantes(),
+    defaultValue: [],
+  });
+  readonly paralelos = rxResource({
+    stream: () => this.personas.classGroups(),
+    defaultValue: [],
+  });
+  readonly padres = rxResource({
+    stream: () => this.personas.padres(),
+    defaultValue: [],
+  });
+  readonly vinculos = rxResource({
+    stream: () => this.personas.vinculos(),
+    defaultValue: [],
+  });
+  readonly cuentas = rxResource({
+    stream: () => this.personas.cuentas(this.espacioId),
+    defaultValue: new Set<number>(),
+  });
 
-  readonly cursos = computed(() => [...this.paralelos.value()].sort(compararParalelos));
-  private readonly cursoPorId = computed(() => new Map(this.paralelos.value().map((p) => [p.id, paraleloLabel(p)])));
+  readonly cursos = computed(() =>
+    [...this.paralelos.value()].sort(compararParalelos),
+  );
+  private readonly cursoPorId = computed(
+    () => new Map(this.paralelos.value().map((p) => [p.id, paraleloLabel(p)])),
+  );
 
   // Padres / tutores de cada estudiante: "Rosa Quispe (Madre)"
   readonly tutoresDe = computed(() => {
@@ -82,9 +150,21 @@ export class StudentsComponent {
   readonly visibles = computed(() => {
     const texto = this.busqueda().trim().toLowerCase();
     const curso = this.curso();
-    return this.estudiantes.value()
-      .filter((e) => curso === 'todos' || (curso === SIN_CURSO ? !e.paraleloId : e.paraleloId === Number(curso)))
-      .filter((e) => !texto || e.nombre.toLowerCase().includes(texto) || e.ci.includes(texto));
+    return this.estudiantes
+      .value()
+      .filter(
+        (e) =>
+          curso === 'todos' ||
+          (curso === SIN_CURSO
+            ? !e.paraleloId
+            : e.paraleloId === Number(curso)),
+      )
+      .filter(
+        (e) =>
+          !texto ||
+          e.nombre.toLowerCase().includes(texto) ||
+          e.ci.includes(texto),
+      );
   });
 
   cursoDe(e: Estudiante): string {
@@ -101,32 +181,54 @@ export class StudentsComponent {
   readonly guardando = signal(false);
   readonly modelo = signal({ ...ESTUDIANTE_VACIO });
   readonly formulario = form(this.modelo, (s) => {
-    required(s.nombre, { message: 'Escribe el nombre completo.' });
-    maxLength(s.nombre, 80, { message: 'Máximo 80 caracteres.' });
+    required(s.givenNames, { message: 'Escribe los nombres.' });
+    maxLength(s.givenNames, 60);
+    required(s.firstSurname, { message: 'Escribe el primer apellido.' });
+    maxLength(s.firstSurname, 40);
+    maxLength(s.secondSurname, 40);
     required(s.ci, { message: 'El CI es obligatorio.' });
-    pattern(s.ci, PATRON_CI, { message: 'Solo números (con complemento opcional, ej. 9123456-1A).' });
+    pattern(s.ci, PATRON_CI, {
+      message: 'Solo números (con complemento opcional, ej. 9123456-1A).',
+    });
     required(s.fechaNacimiento, { message: 'Indica la fecha de nacimiento.' });
     validate(s.fechaNacimiento, ({ value }) => {
       if (!value()) return undefined;
       const anios = edad(value(), this.hoy);
-      return anios < 3 || anios > 25 ? { kind: 'edad', message: 'La edad debe estar entre 3 y 25 años.' } : undefined;
+      return anios < 3 || anios > 25
+        ? { kind: 'edad', message: 'La edad debe estar entre 3 y 25 años.' }
+        : undefined;
     });
   });
 
   // Un paralelo lleno solo se ofrece si es el curso actual del estudiante
-  disponible(paraleloId: number, estudiantes: number, capacidad: number): boolean {
-    return estudiantes < capacidad || this.editando()?.paraleloId === paraleloId;
+  disponible(
+    paraleloId: number,
+    estudiantes: number,
+    capacidad: number,
+  ): boolean {
+    return (
+      estudiantes < capacidad || this.editando()?.paraleloId === paraleloId
+    );
   }
 
   nuevo(): void {
     this.editando.set(null);
     const curso = this.curso();
-    this.abrir({ ...ESTUDIANTE_VACIO, paraleloId: curso !== 'todos' && curso !== SIN_CURSO ? curso : '0' });
+    this.abrir({
+      ...ESTUDIANTE_VACIO,
+      paraleloId: curso !== 'todos' && curso !== SIN_CURSO ? curso : '0',
+    });
   }
 
   editar(e: Estudiante): void {
     this.editando.set(e);
-    this.abrir({ nombre: e.nombre, ci: e.ci, fechaNacimiento: e.fechaNacimiento, paraleloId: String(e.paraleloId) });
+    this.abrir({
+      nombre: e.nombre,
+      ...personNameFields(e),
+      ci: e.ci,
+      fechaNacimiento: e.fechaNacimiento,
+      paraleloId: String(e.paraleloId),
+    });
   }
 
   guardar(): void {
@@ -134,8 +236,24 @@ export class StudentsComponent {
       this.guardando.set(true);
       try {
         const m = this.modelo();
-        await firstValueFrom(this.personas.guardarEstudiante({ ...m, paraleloId: Number(m.paraleloId), id: this.editando()?.id }));
-        this.avisos.success(this.editando() ? 'Estudiante actualizado.' : `${m.nombre.trim()} fue registrado.`);
+        const saved = await firstValueFrom(
+          this.personas.guardarEstudiante({
+            ...m,
+            nombre: personFullName(m),
+            paraleloId: Number(m.paraleloId),
+            id: this.editando()?.id,
+          }),
+        );
+        if (saved.temporaryPassword && saved.usuario)
+          this.newAccess.set({
+            username: saved.usuario,
+            password: saved.temporaryPassword,
+          });
+        this.avisos.success(
+          this.editando()
+            ? 'Estudiante actualizado.'
+            : `${personFullName(m)} fue registrado.`,
+        );
         this.drawerAbierto.set(false);
         this.estudiantes.reload();
         this.paralelos.reload();

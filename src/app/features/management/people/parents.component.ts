@@ -1,14 +1,44 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { FormField, form, maxLength, pattern, required, submit } from '@angular/forms/signals';
+import {
+  FormField,
+  form,
+  maxLength,
+  pattern,
+  required,
+  submit,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faChild, faEnvelope, faMagnifyingGlass, faMobileScreen, faPen, faPhone, faPlus, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
+import {
+  faChild,
+  faEnvelope,
+  faMagnifyingGlass,
+  faMobileScreen,
+  faPen,
+  faPhone,
+  faPlus,
+  faTrash,
+  faUsers,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
-import { PARENTESCOS, Parentesco, Tutor, iniciales } from '../../../core/models/people.model';
-import { AcademicsService } from '../../../services/academics.service';
-import { PeopleService } from '../../../services/people.service';
+import {
+  compararParalelos,
+  paraleloLabel,
+} from '../../../core/models/academics.model';
+import {
+  PARENTESCOS,
+  Parentesco,
+  Tutor,
+  iniciales,
+} from '../../../core/models/people.model';
+
+import {
+  PeopleService,
+  personNameFields,
+  personFullName,
+} from '../../../services/people.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -16,7 +46,16 @@ import { getErrorMessage } from '../academics/academics.ui';
 import { PATRON_CI, PATRON_EMAIL, PATRON_TELEFONO } from './people.ui';
 import { SELECT } from '../../../shared/ui/select.component';
 
-const PADRE_VACIO = { nombre: '', ci: '', telefono: '', email: '', ocupacion: '' };
+const PADRE_VACIO = {
+  nombre: '',
+  givenNames: '',
+  firstSurname: '',
+  secondSurname: '',
+  ci: '',
+  telefono: '',
+  email: '',
+  ocupacion: '',
+};
 
 interface HijoEditable {
   estudianteId: string; // '' = sin elegir
@@ -27,18 +66,42 @@ interface HijoEditable {
 @Component({
   selector: 'app-parents',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, FormField, PageHeaderComponent, DrawerComponent],
+  imports: [
+    ...SELECT,
+    FaIconComponent,
+    FormField,
+    PageHeaderComponent,
+    DrawerComponent,
+    RouterLink,
+  ],
   templateUrl: './parents.component.html',
   styleUrls: ['./people.css'],
   styles: `
-    .hijos { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
-    .hijo { display: grid; grid-template-columns: 1fr 120px 38px; gap: 8px; align-items: center; }
-    .seccion { margin: 8px 0 0; font-size: 14px; }
+    .hijos {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .hijo {
+      display: grid;
+      grid-template-columns: 1fr 120px 38px;
+      gap: 8px;
+      align-items: center;
+    }
+    .seccion {
+      margin: 8px 0 0;
+      font-size: 14px;
+    }
   `,
 })
 export class ParentsComponent {
+  readonly importRoute = inject(SessionService).roleRoute(
+    'personas',
+    'carga-excel',
+  );
   private personas = inject(PeopleService);
-  private academico = inject(AcademicsService);
+
   private avisos = inject(NotificationService);
   private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
@@ -55,23 +118,50 @@ export class ParentsComponent {
   readonly faTrash = faTrash;
   readonly faUsers = faUsers;
 
-  readonly padres = rxResource({ stream: () => this.personas.padres(), defaultValue: [] });
-  readonly vinculos = rxResource({ stream: () => this.personas.vinculos(), defaultValue: [] });
-  readonly estudiantes = rxResource({ stream: () => this.personas.estudiantes(), defaultValue: [] });
-  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
-  readonly cuentas = rxResource({ stream: () => this.personas.cuentas(this.espacioId), defaultValue: new Set<number>() });
+  readonly padres = rxResource({
+    stream: () => this.personas.padres(),
+    defaultValue: [],
+  });
+  readonly vinculos = rxResource({
+    stream: () => this.personas.vinculos(),
+    defaultValue: [],
+  });
+  readonly estudiantes = rxResource({
+    stream: () => this.personas.estudiantes(),
+    defaultValue: [],
+  });
+  readonly paralelos = rxResource({
+    stream: () => this.personas.classGroups(),
+    defaultValue: [],
+  });
+  readonly cuentas = rxResource({
+    stream: () => this.personas.cuentas(this.espacioId),
+    defaultValue: new Set<number>(),
+  });
 
-  private readonly cursoPorId = computed(() => new Map(this.paralelos.value().map((p) => [p.id, paraleloLabel(p)])));
-  readonly cursos = computed(() => [...this.paralelos.value()].sort(compararParalelos));
+  private readonly cursoPorId = computed(
+    () => new Map(this.paralelos.value().map((p) => [p.id, paraleloLabel(p)])),
+  );
+  readonly cursos = computed(() =>
+    [...this.paralelos.value()].sort(compararParalelos),
+  );
 
   // Estudiantes a cargo de cada padre, con su curso y parentesco
   readonly hijosDe = computed(() => {
     const estudiantes = new Map(this.estudiantes.value().map((e) => [e.id, e]));
-    const mapa = new Map<number, { id: number; nombre: string; curso: string; parentesco: string }[]>();
+    const mapa = new Map<
+      number,
+      { id: number; nombre: string; curso: string; parentesco: string }[]
+    >();
     for (const v of this.vinculos.value()) {
       const e = estudiantes.get(v.estudianteId);
       if (!e) continue;
-      const hijo = { id: e.id, nombre: e.nombre, curso: this.cursoPorId().get(e.paraleloId) ?? 'Sin inscribir', parentesco: this.parentescoLabel(v.parentesco) };
+      const hijo = {
+        id: e.id,
+        nombre: e.nombre,
+        curso: this.cursoPorId().get(e.paraleloId) ?? 'Sin inscribir',
+        parentesco: this.parentescoLabel(v.parentesco),
+      };
       mapa.set(v.padreId, [...(mapa.get(v.padreId) ?? []), hijo]);
     }
     return mapa;
@@ -84,8 +174,12 @@ export class ParentsComponent {
     const conTutor = new Set(this.vinculos.value().map((v) => v.estudianteId));
     return {
       total: this.padres.value().length,
-      conCuenta: this.padres.value().filter((p) => this.cuentas.value().has(p.id)).length,
-      estudiantesSinTutor: this.estudiantes.value().filter((e) => !conTutor.has(e.id)).length,
+      conCuenta: this.padres
+        .value()
+        .filter((p) => this.cuentas.value().has(p.id)).length,
+      estudiantesSinTutor: this.estudiantes
+        .value()
+        .filter((e) => !conTutor.has(e.id)).length,
     };
   });
 
@@ -94,9 +188,22 @@ export class ParentsComponent {
     const curso = this.curso();
     const estudiantes = new Map(this.estudiantes.value().map((e) => [e.id, e]));
     return this.padres.value().filter((p) => {
-      const hijos = this.vinculos.value().filter((v) => v.padreId === p.id).map((v) => estudiantes.get(v.estudianteId)).filter((e) => !!e);
-      if (curso !== 'todos' && !hijos.some((h) => String(h.paraleloId) === curso)) return false;
-      return !texto || p.nombre.toLowerCase().includes(texto) || p.ci.includes(texto) || hijos.some((h) => h.nombre.toLowerCase().includes(texto));
+      const hijos = this.vinculos
+        .value()
+        .filter((v) => v.padreId === p.id)
+        .map((v) => estudiantes.get(v.estudianteId))
+        .filter((e) => !!e);
+      if (
+        curso !== 'todos' &&
+        !hijos.some((h) => String(h.paraleloId) === curso)
+      )
+        return false;
+      return (
+        !texto ||
+        p.nombre.toLowerCase().includes(texto) ||
+        p.ci.includes(texto) ||
+        hijos.some((h) => h.nombre.toLowerCase().includes(texto))
+      );
     });
   });
 
@@ -111,20 +218,36 @@ export class ParentsComponent {
   readonly modelo = signal({ ...PADRE_VACIO });
   readonly hijos = signal<HijoEditable[]>([]);
   readonly formulario = form(this.modelo, (s) => {
-    required(s.nombre, { message: 'Escribe el nombre completo.' });
-    maxLength(s.nombre, 80, { message: 'Máximo 80 caracteres.' });
+    required(s.givenNames, { message: 'Escribe los nombres.' });
+    maxLength(s.givenNames, 60);
+    required(s.firstSurname, { message: 'Escribe el primer apellido.' });
+    maxLength(s.firstSurname, 40);
+    maxLength(s.secondSurname, 40);
     required(s.ci, { message: 'El CI es obligatorio.' });
-    pattern(s.ci, PATRON_CI, { message: 'Solo números (con complemento opcional).' });
-    required(s.telefono, { message: 'El teléfono es necesario para avisos del colegio.' });
-    pattern(s.telefono, PATRON_TELEFONO, { message: 'Debe tener 7 u 8 dígitos.' });
+    pattern(s.ci, PATRON_CI, {
+      message: 'Solo números (con complemento opcional).',
+    });
+    required(s.telefono, {
+      message: 'El teléfono es necesario para avisos del colegio.',
+    });
+    pattern(s.telefono, PATRON_TELEFONO, {
+      message: 'Debe tener 7 u 8 dígitos.',
+    });
     pattern(s.email, PATRON_EMAIL, { message: 'Correo no válido.' });
   });
 
   // Opciones de estudiante agrupadas por curso
   readonly opcionesEstudiante = computed(() => {
-    const grupos = this.cursos().map((p) => ({ label: paraleloLabel(p), estudiantes: this.estudiantes.value().filter((e) => e.paraleloId === p.id) }));
+    const grupos = this.cursos().map((p) => ({
+      label: paraleloLabel(p),
+      estudiantes: this.estudiantes
+        .value()
+        .filter((e) => e.paraleloId === p.id),
+    }));
     const sinCurso = this.estudiantes.value().filter((e) => !e.paraleloId);
-    return sinCurso.length ? [{ label: 'Sin inscribir', estudiantes: sinCurso }, ...grupos] : grupos;
+    return sinCurso.length
+      ? [{ label: 'Sin inscribir', estudiantes: sinCurso }, ...grupos]
+      : grupos;
   });
 
   startNewParent(): void {
@@ -137,8 +260,23 @@ export class ParentsComponent {
   editParent(p: Tutor): void {
     this.editando.set(p);
     const { nombre, ci, telefono, email, ocupacion } = p;
-    this.modelo.set({ nombre, ci, telefono, email, ocupacion });
-    this.hijos.set(this.vinculos.value().filter((v) => v.padreId === p.id).map((v) => ({ estudianteId: String(v.estudianteId), parentesco: v.parentesco })));
+    this.modelo.set({
+      nombre,
+      ...personNameFields(p),
+      ci,
+      telefono,
+      email,
+      ocupacion,
+    });
+    this.hijos.set(
+      this.vinculos
+        .value()
+        .filter((v) => v.padreId === p.id)
+        .map((v) => ({
+          estudianteId: String(v.estudianteId),
+          parentesco: v.parentesco,
+        })),
+    );
     this.openEditor();
   }
 
@@ -151,16 +289,32 @@ export class ParentsComponent {
   }
 
   updateDependentStudent(indice: number, cambio: Partial<HijoEditable>): void {
-    this.hijos.update((h) => h.map((x, i) => (i === indice ? { ...x, ...cambio } : x)));
+    this.hijos.update((h) =>
+      h.map((x, i) => (i === indice ? { ...x, ...cambio } : x)),
+    );
   }
 
   saveParent(): void {
     submit(this.formulario, async () => {
-      const hijos = this.hijos().filter((h) => h.estudianteId).map((h) => ({ estudianteId: Number(h.estudianteId), parentesco: h.parentesco }));
+      const hijos = this.hijos()
+        .filter((h) => h.estudianteId)
+        .map((h) => ({
+          estudianteId: Number(h.estudianteId),
+          parentesco: h.parentesco,
+        }));
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.personas.guardarPadre({ ...this.modelo(), id: this.editando()?.id }, hijos));
-        this.avisos.success(this.editando() ? 'Datos actualizados.' : `${this.modelo().nombre.trim()} fue registrado.`);
+        await firstValueFrom(
+          this.personas.guardarPadre(
+            { ...this.modelo(), id: this.editando()?.id },
+            hijos,
+          ),
+        );
+        this.avisos.success(
+          this.editando()
+            ? 'Datos actualizados.'
+            : `${personFullName(this.modelo())} fue registrado.`,
+        );
         this.drawerAbierto.set(false);
         this.padres.reload();
         this.vinculos.reload();
@@ -173,7 +327,12 @@ export class ParentsComponent {
   }
 
   async deleteParent(p: Tutor): Promise<void> {
-    if (!confirm(`¿Eliminar a ${p.nombre}? Se quitará su vínculo con los estudiantes a su cargo.`)) return;
+    if (
+      !confirm(
+        `¿Eliminar a ${p.nombre}? Se quitará su vínculo con los estudiantes a su cargo.`,
+      )
+    )
+      return;
     try {
       await firstValueFrom(this.personas.eliminarPadre(p));
       this.avisos.success(`${p.nombre} fue eliminado.`);

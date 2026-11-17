@@ -12,6 +12,9 @@ export const TOLERANCIA_POR_DEFECTO = 10; // minutos
 
 // Estudiante del colegio y su paralelo en la gestión activa (0 = todavía sin inscribir)
 export interface Estudiante {
+  givenNames?: string;
+  firstSurname?: string;
+  secondSurname?: string;
   id: number;
   nombre: string;
   paraleloId: number;

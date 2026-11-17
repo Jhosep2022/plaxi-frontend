@@ -1,14 +1,32 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowRightToBracket, faChartPie, faDoorClosed, faUserClock, faUserMinus } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowRightToBracket,
+  faChartPie,
+  faDoorClosed,
+  faUserClock,
+  faUserMinus,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { NIVELES, Paralelo, TURNOS, compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
+import {
+  NIVELES,
+  Paralelo,
+  TURNOS,
+  compararParalelos,
+  paraleloLabel,
+} from '../../../core/models/academics.model';
 import { Estudiante } from '../../../core/models/attendance.model';
 import { edad, iniciales } from '../../../core/models/people.model';
 import { todayIso } from '../../../core/utils/attendance';
-import { AcademicsService } from '../../../services/academics.service';
+
 import { PeopleService } from '../../../services/people.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -20,13 +38,18 @@ import { SELECT } from '../../../shared/ui/select.component';
 @Component({
   selector: 'app-enrollments',
   host: { class: 'ui-pagina' },
-  imports: [...SELECT, FaIconComponent, PageHeaderComponent, EmptyStateComponent],
+  imports: [
+    ...SELECT,
+    FaIconComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './enrollments.component.html',
   styleUrls: ['./people.css', './enrollments.component.css'],
 })
 export class EnrollmentsComponent {
   private personas = inject(PeopleService);
-  private academico = inject(AcademicsService);
+
   private avisos = inject(NotificationService);
   private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
@@ -39,24 +62,46 @@ export class EnrollmentsComponent {
   readonly faUserMinus = faUserMinus;
   private readonly hoy = todayIso();
 
-  readonly gestion = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
-  readonly paralelos = rxResource({ stream: () => this.academico.getActiveClassGroups(this.espacioId), defaultValue: [] });
-  readonly estudiantes = rxResource({ stream: () => this.personas.estudiantes(), defaultValue: [] });
+  readonly gestion = rxResource({ stream: () => this.personas.activeYear() });
+  readonly paralelos = rxResource({
+    stream: () => this.personas.classGroups(),
+    defaultValue: [],
+  });
+  readonly estudiantes = rxResource({
+    stream: () => this.personas.estudiantes(),
+    defaultValue: [],
+  });
 
   // Paralelos agrupados por nivel
   readonly grupos = computed(() => {
     const ordenados = [...this.paralelos.value()].sort(compararParalelos);
-    return NIVELES.map((n) => ({ nivel: n.label, paralelos: ordenados.filter((p) => p.nivel === n.id) })).filter((g) => g.paralelos.length);
+    return NIVELES.map((n) => ({
+      nivel: n.label,
+      paralelos: ordenados.filter((p) => p.nivel === n.id),
+    })).filter((g) => g.paralelos.length);
   });
 
   readonly seleccionadoId = linkedSignal<Paralelo[], number>({
     source: () => this.paralelos.value(),
-    computation: (lista, previo) => (previo && lista.some((p) => p.id === previo.value) ? previo.value : [...lista].sort(compararParalelos)[0]?.id ?? 0),
+    computation: (lista, previo) =>
+      previo && lista.some((p) => p.id === previo.value)
+        ? previo.value
+        : ([...lista].sort(compararParalelos)[0]?.id ?? 0),
   });
-  readonly seleccionado = computed(() => this.paralelos.value().find((p) => p.id === this.seleccionadoId()) ?? null);
+  readonly seleccionado = computed(
+    () =>
+      this.paralelos.value().find((p) => p.id === this.seleccionadoId()) ??
+      null,
+  );
 
-  readonly inscritos = computed(() => this.estudiantes.value().filter((e) => e.paraleloId === this.seleccionadoId()));
-  readonly sinCurso = computed(() => this.estudiantes.value().filter((e) => !e.paraleloId));
+  readonly inscritos = computed(() =>
+    this.estudiantes
+      .value()
+      .filter((e) => e.paraleloId === this.seleccionadoId()),
+  );
+  readonly sinCurso = computed(() =>
+    this.estudiantes.value().filter((e) => !e.paraleloId),
+  );
 
   readonly resumen = computed(() => {
     const ps = this.paralelos.value();
@@ -77,7 +122,9 @@ export class EnrollmentsComponent {
   }
 
   ocupacion(p: Paralelo): number {
-    return p.capacidad ? Math.min(100, Math.round((p.estudiantes / p.capacidad) * 100)) : 0;
+    return p.capacidad
+      ? Math.min(100, Math.round((p.estudiantes / p.capacidad) * 100))
+      : 0;
   }
 
   turnoLabel(p: Paralelo): string {
@@ -91,22 +138,46 @@ export class EnrollmentsComponent {
   async inscribir(e: Estudiante): Promise<void> {
     const destino = this.seleccionado();
     if (!destino) return;
-    await this.mover(e, destino.id, `${e.nombre} fue inscrito en ${paraleloLabel(destino)}.`);
+    await this.mover(
+      e,
+      destino.id,
+      `${e.nombre} fue inscrito en ${paraleloLabel(destino)}.`,
+    );
   }
 
   async cambiar(e: Estudiante, paraleloId: string): Promise<void> {
-    const destino = this.paralelos.value().find((p) => p.id === Number(paraleloId));
+    const destino = this.paralelos
+      .value()
+      .find((p) => p.id === Number(paraleloId));
     if (!destino) return;
-    if (!confirm(`¿Cambiar a ${e.nombre} de ${paraleloLabel(this.seleccionado()!)} a ${paraleloLabel(destino)}?\n\nSu asistencia y notas ya registradas quedan en el historial del paralelo anterior.`)) return;
-    await this.mover(e, destino.id, `${e.nombre} ahora está en ${paraleloLabel(destino)}.`);
+    if (
+      !confirm(
+        `¿Cambiar a ${e.nombre} de ${paraleloLabel(this.seleccionado()!)} a ${paraleloLabel(destino)}?\n\nSu asistencia y notas ya registradas quedan en el historial del paralelo anterior.`,
+      )
+    )
+      return;
+    await this.mover(
+      e,
+      destino.id,
+      `${e.nombre} ahora está en ${paraleloLabel(destino)}.`,
+    );
   }
 
   async retirar(e: Estudiante): Promise<void> {
-    if (!confirm(`¿Retirar a ${e.nombre} de ${paraleloLabel(this.seleccionado()!)}? Quedará como "sin inscribir".`)) return;
+    if (
+      !confirm(
+        `¿Retirar a ${e.nombre} de ${paraleloLabel(this.seleccionado()!)}? Quedará como "sin inscribir".`,
+      )
+    )
+      return;
     await this.mover(e, 0, `${e.nombre} fue retirado del curso.`);
   }
 
-  private async mover(e: Estudiante, paraleloId: number, mensaje: string): Promise<void> {
+  private async mover(
+    e: Estudiante,
+    paraleloId: number,
+    mensaje: string,
+  ): Promise<void> {
     this.trabajando.set(e.id);
     try {
       await firstValueFrom(this.personas.inscribir(e.id, paraleloId));

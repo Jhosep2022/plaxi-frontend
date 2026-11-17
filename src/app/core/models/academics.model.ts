@@ -107,6 +107,9 @@ export interface Materia {
 
 // ---------- Docentes y asignaciones ----------
 export interface Docente {
+  givenNames?: string;
+  firstSurname?: string;
+  secondSurname?: string;
   id: number;
   nombre: string;
   especialidad: string;

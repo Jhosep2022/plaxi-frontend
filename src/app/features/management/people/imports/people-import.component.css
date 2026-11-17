@@ -1,0 +1,92 @@
+.import-setup,
+.preview,
+.result {
+  display: grid;
+  gap: 18px;
+}
+.import-setup h2,
+.preview h2,
+.result h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.import-setup p,
+.preview p,
+.result p {
+  margin: 0;
+  line-height: 1.6;
+}
+.import-setup > .ui-campo {
+  max-width: 280px;
+}
+.import-setup ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.upload {
+  display: grid;
+  gap: 10px;
+  padding: 22px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--cream-soft);
+}
+.upload span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.upload input {
+  max-width: 100%;
+}
+.counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.counts > div {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--light-cream);
+}
+.counts strong {
+  font-size: 24px;
+  color: var(--dark-blue);
+}
+.counts span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.preview-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.preview td .ui-error {
+  font-size: 13px;
+}
+.preview .ui-tabla-contenedor {
+  max-height: 500px;
+  overflow: auto;
+}
+.preview > .ui-btn,
+.result > .ui-btn {
+  justify-self: start;
+}
+.result {
+  border-left: 4px solid var(--lime-green);
+}
+@media (max-width: 600px) {
+  .counts {
+    grid-template-columns: 1fr;
+  }
+  .preview-actions {
+    align-items: start;
+    flex-direction: column;
+  }
+}

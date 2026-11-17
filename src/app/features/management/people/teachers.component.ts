@@ -1,27 +1,64 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { FormField, form, maxLength, pattern, required, submit } from '@angular/forms/signals';
+import {
+  FormField,
+  form,
+  maxLength,
+  pattern,
+  required,
+  submit,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faChalkboardTeacher, faEnvelope, faMagnifyingGlass, faPen, faPhone, faPlus, faUserSlash, faUserTie } from '@fortawesome/free-solid-svg-icons';
+import {
+  faChalkboardTeacher,
+  faEnvelope,
+  faMagnifyingGlass,
+  faPen,
+  faPhone,
+  faPlus,
+  faUserSlash,
+  faUserTie,
+} from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { Docente } from '../../../core/models/academics.model';
 import { iniciales } from '../../../core/models/people.model';
-import { PeopleService } from '../../../services/people.service';
+import {
+  PeopleService,
+  personNameFields,
+  personFullName,
+} from '../../../services/people.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics/academics.ui';
 import { PATRON_CI, PATRON_EMAIL, PATRON_TELEFONO } from './people.ui';
 
-const DOCENTE_VACIO = { nombre: '', ci: '', especialidad: '', telefono: '', email: '', activo: true };
+const DOCENTE_VACIO = {
+  nombre: '',
+  givenNames: '',
+  firstSurname: '',
+  secondSurname: '',
+  ci: '',
+  especialidad: '',
+  telefono: '',
+  email: '',
+  activo: true,
+};
 type Filtro = 'activos' | 'baja' | 'todos';
 
 // Docentes del colegio: datos personales, materias que dictan y estado (activo / de baja)
 @Component({
   selector: 'app-teachers',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, FormField, PageHeaderComponent, DrawerComponent],
+  imports: [
+    FaIconComponent,
+    FormField,
+    PageHeaderComponent,
+    DrawerComponent,
+    RouterLink,
+  ],
   templateUrl: './teachers.component.html',
   styleUrls: ['./people.css'],
 })
@@ -31,6 +68,10 @@ export class TeachersComponent {
   private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
   readonly iniciales = iniciales;
+  readonly importRoute = inject(SessionService).roleRoute(
+    'personas',
+    'carga-excel',
+  );
   readonly faChalkboardTeacher = faChalkboardTeacher;
   readonly faEnvelope = faEnvelope;
   readonly faMagnifyingGlass = faMagnifyingGlass;
@@ -40,9 +81,18 @@ export class TeachersComponent {
   readonly faUserSlash = faUserSlash;
   readonly faUserTie = faUserTie;
 
-  readonly docentes = rxResource({ stream: () => this.personas.docentes(), defaultValue: [] });
-  readonly carga = rxResource({ stream: () => this.personas.cargaDocentes(), defaultValue: new Map() });
-  readonly cuentas = rxResource({ stream: () => this.personas.cuentas(this.espacioId), defaultValue: new Set<number>() });
+  readonly docentes = rxResource({
+    stream: () => this.personas.docentes(),
+    defaultValue: [],
+  });
+  readonly carga = rxResource({
+    stream: () => this.personas.cargaDocentes(),
+    defaultValue: new Map(),
+  });
+  readonly cuentas = rxResource({
+    stream: () => this.personas.cuentas(this.espacioId),
+    defaultValue: new Set<number>(),
+  });
 
   readonly busqueda = signal('');
   readonly filtro = signal<Filtro>('activos');
@@ -59,9 +109,20 @@ export class TeachersComponent {
 
   readonly visibles = computed(() => {
     const texto = this.busqueda().trim().toLowerCase();
-    return this.docentes.value()
-      .filter((d) => this.filtro() === 'todos' || (this.filtro() === 'activos') === d.activo)
-      .filter((d) => !texto || [d.nombre, d.ci, d.especialidad, d.email].some((v) => v.toLowerCase().includes(texto)));
+    return this.docentes
+      .value()
+      .filter(
+        (d) =>
+          this.filtro() === 'todos' ||
+          (this.filtro() === 'activos') === d.activo,
+      )
+      .filter(
+        (d) =>
+          !texto ||
+          [d.nombre, d.ci, d.especialidad, d.email].some((v) =>
+            v.toLowerCase().includes(texto),
+          ),
+      );
   });
 
   // ---------- Formulario ----------
@@ -70,12 +131,19 @@ export class TeachersComponent {
   readonly guardando = signal(false);
   readonly modelo = signal({ ...DOCENTE_VACIO });
   readonly formulario = form(this.modelo, (s) => {
-    required(s.nombre, { message: 'Escribe el nombre completo.' });
-    maxLength(s.nombre, 80, { message: 'Máximo 80 caracteres.' });
+    required(s.givenNames, { message: 'Escribe los nombres.' });
+    maxLength(s.givenNames, 60);
+    required(s.firstSurname, { message: 'Escribe el primer apellido.' });
+    maxLength(s.firstSurname, 40);
+    maxLength(s.secondSurname, 40);
     required(s.ci, { message: 'El CI es obligatorio.' });
-    pattern(s.ci, PATRON_CI, { message: 'Solo números (con complemento opcional, ej. 4876512-1B).' });
+    pattern(s.ci, PATRON_CI, {
+      message: 'Solo números (con complemento opcional, ej. 4876512-1B).',
+    });
     required(s.especialidad, { message: 'Indica su especialidad.' });
-    pattern(s.telefono, PATRON_TELEFONO, { message: 'Debe tener 7 u 8 dígitos.' });
+    pattern(s.telefono, PATRON_TELEFONO, {
+      message: 'Debe tener 7 u 8 dígitos.',
+    });
     pattern(s.email, PATRON_EMAIL, { message: 'Correo no válido.' });
   });
 
@@ -85,15 +153,32 @@ export class TeachersComponent {
 
   editar(d: Docente): void {
     const { nombre, ci, especialidad, telefono, email, activo } = d;
-    this.abrir(d.id, { nombre, ci, especialidad, telefono, email, activo });
+    this.abrir(d.id, {
+      nombre,
+      ...personNameFields(d),
+      ci,
+      especialidad,
+      telefono,
+      email,
+      activo,
+    });
   }
 
   guardar(): void {
     submit(this.formulario, async () => {
       this.guardando.set(true);
       try {
-        await firstValueFrom(this.personas.guardarDocente({ ...this.modelo(), id: this.editandoId() || undefined }));
-        this.avisos.success(this.editandoId() ? 'Docente actualizado.' : `${this.modelo().nombre.trim()} fue registrado.`);
+        await firstValueFrom(
+          this.personas.guardarDocente({
+            ...this.modelo(),
+            id: this.editandoId() || undefined,
+          }),
+        );
+        this.avisos.success(
+          this.editandoId()
+            ? 'Docente actualizado.'
+            : `${personFullName(this.modelo())} fue registrado.`,
+        );
         this.drawerAbierto.set(false);
         this.docentes.reload();
       } catch (error) {

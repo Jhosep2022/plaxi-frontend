@@ -1,156 +1,250 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { Docente, paraleloLabel } from '../core/models/academics.model';
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { forkJoin, map, Observable, switchMap, throwError } from 'rxjs';
+import { SessionService } from '../core/auth/session.service';
+import { Docente, Gestion, Paralelo } from '../core/models/academics.model';
 import { Estudiante } from '../core/models/attendance.model';
 import { Parentesco, Tutor, Vinculo } from '../core/models/people.model';
-import { MOCK_ASIGNACIONES, MOCK_CLASES, MOCK_DOCENTES, MOCK_MATERIAS, MOCK_PARALELOS } from '../mocks/academics.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
-import { MOCK_MEMBRESIAS } from '../mocks/mock-data';
-import { MOCK_PADRES, MOCK_VINCULOS } from '../mocks/people.mock';
-import { MockRepository } from './mock-repository';
+import { environment } from '../../environments/environment';
 
 export interface CargaDocente {
-  materias: string[]; // "Física · 3ro A"
+  materias: string[];
   clasesSemana: number;
 }
-
 export interface HijoDeTutor {
   estudianteId: number;
   parentesco: Parentesco;
 }
+export interface PersonNameFields {
+  givenNames?: string;
+  firstSurname?: string;
+  secondSurname?: string;
+}
+interface ApiPerson {
+  id: number;
+  nombre: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  ci: string;
+  correo: string;
+  telefono: string;
+  activa: boolean;
+  usuario: string | null;
+  cuentaActivada: boolean;
+  especialidad?: string;
+  ocupacion?: string;
+  fechaNacimiento?: string | null;
+  paraleloId?: number | null;
+  hijos?: HijoDeTutor[];
+  carga?: CargaDocente;
+  temporaryPassword?: string;
+}
+export const personNameFields = (person: PersonNameFields) => ({
+  givenNames: person.givenNames ?? '',
+  firstSurname: person.firstSurname ?? '',
+  secondSurname: person.secondSurname ?? '',
+});
+export const personFullName = (person: PersonNameFields) =>
+  [person.givenNames, person.firstSurname, person.secondSurname]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+const namesOf = (person: ApiPerson) => ({
+  givenNames: person.nombres,
+  firstSurname: person.primerApellido,
+  secondSurname: person.segundoApellido,
+});
+const toTeacher = (person: ApiPerson): Docente => ({
+  id: person.id,
+  nombre: person.nombre,
+  ...namesOf(person),
+  ci: person.ci,
+  telefono: person.telefono,
+  email: person.correo,
+  especialidad: person.especialidad ?? '',
+  activo: person.activa,
+});
+const toStudent = (person: ApiPerson): Estudiante => ({
+  id: person.id,
+  nombre: person.nombre,
+  ...namesOf(person),
+  ci: person.ci,
+  fechaNacimiento: person.fechaNacimiento ?? '',
+  paraleloId: person.paraleloId ?? 0,
+});
+const toParent = (person: ApiPerson): Tutor => ({
+  id: person.id,
+  nombre: person.nombre,
+  ...namesOf(person),
+  ci: person.ci,
+  telefono: person.telefono,
+  email: person.correo,
+  ocupacion: person.ocupacion ?? '',
+});
 
-const normalizar = (texto: string) => texto.trim().toLowerCase();
-
-// Personas del colegio: docentes, estudiantes, padres / tutores legales e inscripciones.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
 @Injectable({ providedIn: 'root' })
 export class PeopleService {
-  private docentesRepo = new MockRepository<Docente>(MOCK_DOCENTES);
-  private estudiantesRepo = new MockRepository<Estudiante>(MOCK_ESTUDIANTES);
-  private padresRepo = new MockRepository<Tutor>(MOCK_PADRES);
-  private vinculosRepo = new MockRepository<Vinculo>(MOCK_VINCULOS);
-
-  // ---------- Docentes ----------
+  private readonly http = inject(HttpClient);
+  private readonly session = inject(SessionService);
+  private get base() {
+    return `${environment.API_URL}/espacios/${encodeURIComponent(this.session.activeSpace()!.slug)}`;
+  }
   docentes(): Observable<Docente[]> {
-    return this.docentesRepo.list().pipe(map((ds) => ds.sort((a, b) => a.nombre.localeCompare(b.nombre))));
+    return this.http
+      .get<ApiPerson[]>(`${this.base}/docentes`)
+      .pipe(map((rows) => rows.map(toTeacher)));
   }
-
-  // Materias que dicta cada docente en la gestión activa y cuántas clases tiene por semana
   cargaDocentes(): Observable<Map<number, CargaDocente>> {
-    const carga = new Map<number, CargaDocente>();
-    for (const a of MOCK_ASIGNACIONES) {
-      const paralelo = MOCK_PARALELOS.find((p) => p.id === a.paraleloId);
-      const materia = MOCK_MATERIAS.find((m) => m.id === a.materiaId);
-      if (!paralelo || !materia) continue;
-      const actual = carga.get(a.docenteId) ?? { materias: [], clasesSemana: 0 };
-      actual.materias.push(`${materia.nombre} · ${paraleloLabel(paralelo)}`);
-      actual.clasesSemana += MOCK_CLASES.filter((c) => c.paraleloId === a.paraleloId && c.materiaId === a.materiaId).length;
-      carga.set(a.docenteId, actual);
-    }
-    return of(carga);
+    return this.http
+      .get<ApiPerson[]>(`${this.base}/docentes`)
+      .pipe(
+        map(
+          (rows) =>
+            new Map(
+              rows.map((row) => [
+                row.id,
+                row.carga ?? { materias: [], clasesSemana: 0 },
+              ]),
+            ),
+        ),
+      );
   }
-
-  guardarDocente(docente: Omit<Docente, 'id'> & { id?: number }): Observable<Docente> {
-    const error = this.ciRepetido(docente.ci, docente.id, 'docente');
-    if (error) return throwError(() => new Error(error));
-    if (!docente.activo && docente.id) {
-      const asignadas = MOCK_ASIGNACIONES.filter((a) => a.docenteId === docente.id).length;
-      if (asignadas) return throwError(() => new Error(`Tiene ${asignadas} ${asignadas === 1 ? 'materia asignada' : 'materias asignadas'}. Reasígnalas en Académico → Asignación docente antes de darlo de baja.`));
-    }
-    return this.docentesRepo.save({ ...docente, nombre: docente.nombre.trim(), email: docente.email.trim() });
-  }
-
-  // ---------- Estudiantes ----------
   estudiantes(): Observable<Estudiante[]> {
-    return this.estudiantesRepo.list().pipe(map((es) => es.sort((a, b) => a.nombre.localeCompare(b.nombre))));
+    return this.http
+      .get<ApiPerson[]>(`${this.base}/estudiantes`)
+      .pipe(map((rows) => rows.map(toStudent)));
   }
-
-  guardarEstudiante(estudiante: Omit<Estudiante, 'id'> & { id?: number }): Observable<Estudiante> {
-    const error = this.ciRepetido(estudiante.ci, estudiante.id, 'estudiante');
-    if (error) return throwError(() => new Error(error));
-    const anterior = estudiante.id ? this.estudiantesRepo.readNow((e) => e.id === estudiante.id)[0]?.paraleloId ?? 0 : 0;
-    if (estudiante.paraleloId !== anterior) {
-      const cupo = this.sinCupo(estudiante.paraleloId);
-      if (cupo) return throwError(() => new Error(cupo));
-      this.moverConteo(anterior, estudiante.paraleloId);
-    }
-    return this.estudiantesRepo.save({ ...estudiante, nombre: estudiante.nombre.trim() });
-  }
-
-  // ---------- Inscripciones ----------
-  // Inscribe (o cambia de paralelo) a un estudiante; paraleloId 0 lo retira de su paralelo
-  inscribir(estudianteId: number, paraleloId: number): Observable<Estudiante> {
-    const estudiante = this.estudiantesRepo.readNow((e) => e.id === estudianteId)[0];
-    if (!estudiante) return throwError(() => new Error('El estudiante ya no existe.'));
-    if (estudiante.paraleloId === paraleloId) return of(structuredClone(estudiante));
-    const cupo = this.sinCupo(paraleloId);
-    if (cupo) return throwError(() => new Error(cupo));
-    this.moverConteo(estudiante.paraleloId, paraleloId);
-    return this.estudiantesRepo.save({ ...estudiante, paraleloId });
-  }
-
-  // ---------- Padres y tutores legales ----------
   padres(): Observable<Tutor[]> {
-    return this.padresRepo.list().pipe(map((ps) => ps.sort((a, b) => a.nombre.localeCompare(b.nombre))));
+    return this.http
+      .get<ApiPerson[]>(`${this.base}/padres`)
+      .pipe(map((rows) => rows.map(toParent)));
   }
-
   vinculos(): Observable<Vinculo[]> {
-    return this.vinculosRepo.list();
+    return this.http
+      .get<ApiPerson[]>(`${this.base}/padres`)
+      .pipe(
+        map((rows) =>
+          rows.flatMap((row) =>
+            (row.hijos ?? []).map((child, index) => ({
+              id: row.id * 100 + index,
+              padreId: row.id,
+              ...child,
+            })),
+          ),
+        ),
+      );
   }
-
-  // Guarda los datos del padre / tutor y reemplaza la lista de estudiantes a su cargo
-  guardarPadre(padre: Omit<Tutor, 'id'> & { id?: number }, hijos: HijoDeTutor[]): Observable<Tutor> {
-    const error = this.ciRepetido(padre.ci, padre.id, 'padre');
-    if (error) return throwError(() => new Error(error));
-    if (!hijos.length) return throwError(() => new Error('Vincula al menos un estudiante a su cargo.'));
-    if (new Set(hijos.map((h) => h.estudianteId)).size !== hijos.length) return throwError(() => new Error('Hay un estudiante repetido.'));
-
-    return this.padresRepo.save({ ...padre, nombre: padre.nombre.trim(), email: padre.email.trim() }).pipe(
-      map((guardado) => {
-        for (const v of this.vinculosRepo.readNow((v) => v.padreId === guardado.id)) this.vinculosRepo.delete(v.id).subscribe();
-        for (const h of hijos) this.vinculosRepo.save({ padreId: guardado.id, ...h }).subscribe();
-        return guardado;
-      })
+  cuentas(_spaceId: number): Observable<Set<number>> {
+    return forkJoin([
+      this.http.get<ApiPerson[]>(`${this.base}/estudiantes`),
+      this.http.get<ApiPerson[]>(`${this.base}/docentes`),
+      this.http.get<ApiPerson[]>(`${this.base}/padres`),
+    ]).pipe(
+      map(
+        (groups) =>
+          new Set(
+            groups
+              .flat()
+              .filter((row) => row.cuentaActivada)
+              .map((row) => row.id),
+          ),
+      ),
     );
   }
-
-  eliminarPadre(padre: Tutor): Observable<void> {
-    if (MOCK_MEMBRESIAS.some((m) => m.usuarioId === padre.id)) {
-      return throwError(() => new Error(`${padre.nombre} tiene una cuenta activa en la app; no se puede eliminar.`));
-    }
-    for (const v of this.vinculosRepo.readNow((v) => v.padreId === padre.id)) this.vinculosRepo.delete(v.id).subscribe();
-    return this.padresRepo.delete(padre.id);
+  activeYear(): Observable<Gestion | undefined> {
+    return this.http
+      .get<Gestion[]>(`${this.base}/gestiones`)
+      .pipe(map((rows) => rows.find((row) => row.estado === 'activa')));
   }
-
-  // ---------- Cuentas ----------
-  // Personas que ya tienen usuario para entrar a la app en este espacio
-  cuentas(espacioId: number): Observable<Set<number>> {
-    return of(new Set(MOCK_MEMBRESIAS.filter((m) => m.espacioId === espacioId).map((m) => m.usuarioId)));
+  classGroups(): Observable<Paralelo[]> {
+    return this.http
+      .get<(Omit<Paralelo, 'aulaId'> & { aulaId: number | null })[]>(
+        `${this.base}/paralelos`,
+      )
+      .pipe(
+        map((rows) => rows.map((row) => ({ ...row, aulaId: row.aulaId ?? 0 }))),
+      );
   }
-
-  // ---------- Reglas internas ----------
-  private ciRepetido(ci: string, id: number | undefined, tipo: 'docente' | 'estudiante' | 'padre'): string | null {
-    const valor = normalizar(ci);
-    if (!valor) return null;
-    const lista: { id: number; ci: string; nombre: string }[] =
-      tipo === 'docente' ? this.docentesRepo.readNow() : tipo === 'estudiante' ? this.estudiantesRepo.readNow() : this.padresRepo.readNow();
-    const otro = lista.find((p) => p.id !== id && normalizar(p.ci) === valor);
-    return otro ? `El CI ${ci.trim()} ya está registrado a nombre de ${otro.nombre}.` : null;
+  guardarDocente(
+    person: Omit<Docente, 'id'> & { id?: number },
+  ): Observable<Docente> {
+    return this.save('docentes', person.id, {
+      ...this.fields(person),
+      especialidad: person.especialidad,
+      activa: person.activo,
+    }).pipe(map(toTeacher));
   }
-
-  private sinCupo(paraleloId: number): string | null {
-    if (!paraleloId) return null;
-    const p = MOCK_PARALELOS.find((x) => x.id === paraleloId);
-    if (!p) return 'El paralelo ya no existe.';
-    return p.estudiantes >= p.capacidad ? `${paraleloLabel(p)} está lleno (${p.capacidad} de ${p.capacidad}).` : null;
+  guardarEstudiante(
+    person: Omit<Estudiante, 'id'> & { id?: number },
+  ): Observable<Estudiante & { temporaryPassword?: string; usuario?: string }> {
+    return this.save('estudiantes', person.id, {
+      ...this.fields(person),
+      fechaNacimiento: person.fechaNacimiento,
+      paraleloId: person.paraleloId || null,
+    }).pipe(
+      map((saved) => ({
+        ...toStudent({ ...saved, paraleloId: person.paraleloId }),
+        ...(saved.temporaryPassword
+          ? {
+              temporaryPassword: saved.temporaryPassword,
+              usuario: saved.usuario ?? undefined,
+            }
+          : {}),
+      })),
+    );
   }
-
-  // Mantiene al día la cantidad de inscritos de cada paralelo
-  private moverConteo(desde: number, hacia: number): void {
-    const origen = MOCK_PARALELOS.find((p) => p.id === desde);
-    const destino = MOCK_PARALELOS.find((p) => p.id === hacia);
-    if (origen) origen.estudiantes = Math.max(0, origen.estudiantes - 1);
-    if (destino) destino.estudiantes++;
+  inscribir(studentId: number, classGroupId: number): Observable<Estudiante> {
+    return this.http
+      .put(`${this.base}/estudiantes/${studentId}/inscripcion`, {
+        paraleloId: classGroupId || null,
+      })
+      .pipe(
+        switchMap(() => this.estudiantes()),
+        map((rows) => rows.find((row) => row.id === studentId)!),
+      );
+  }
+  guardarPadre(
+    person: Omit<Tutor, 'id'> & { id?: number },
+    children: HijoDeTutor[],
+  ): Observable<Tutor> {
+    return this.save('padres', person.id, {
+      ...this.fields(person),
+      ocupacion: person.ocupacion,
+      hijos: children,
+    }).pipe(map(toParent));
+  }
+  eliminarPadre(person: Tutor): Observable<void> {
+    return this.http.delete<void>(`${this.base}/padres/${person.id}`);
+  }
+  private save(
+    path: string,
+    id: number | undefined,
+    body: Record<string, unknown>,
+  ): Observable<ApiPerson> {
+    if (!body['nombres'] || !body['primerApellido'])
+      return throwError(
+        () =>
+          new Error('Escribe los nombres y el primer apellido por separado.'),
+      );
+    return id
+      ? this.http.patch<ApiPerson>(`${this.base}/${path}/${id}`, body)
+      : this.http.post<ApiPerson>(`${this.base}/${path}`, body);
+  }
+  private fields(
+    person: PersonNameFields & {
+      ci: string;
+      telefono?: string;
+      email?: string;
+    },
+  ) {
+    return {
+      nombres: person.givenNames?.trim(),
+      primerApellido: person.firstSurname?.trim(),
+      segundoApellido: person.secondSurname?.trim() ?? '',
+      ci: person.ci,
+      telefono: person.telefono ?? '',
+      correo: person.email ?? '',
+    };
   }
 }

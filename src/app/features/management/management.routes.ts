@@ -14,6 +14,7 @@ export default [
   { path: 'academico/horarios', title: 'Horarios', loadComponent: () => import('./academics/schedules/schedules.component').then((m) => m.SchedulesComponent) },
 
   // Personas
+  { path: 'personas/carga-excel', title: 'Carga desde Excel', loadComponent: () => import('./people/imports/people-import.component').then((m) => m.PeopleImportComponent) },
   { path: 'personas/docentes', title: 'Docentes', loadComponent: () => import('./people/teachers.component').then((m) => m.TeachersComponent) },
   { path: 'personas/estudiantes', title: 'Estudiantes', loadComponent: () => import('./people/students.component').then((m) => m.StudentsComponent) },
   { path: 'personas/padres', title: 'Padres y tutores legales', loadComponent: () => import('./people/parents.component').then((m) => m.ParentsComponent) },

@@ -1,0 +1,269 @@
+<app-page-header
+  miga="Personas"
+  titulo="Carga desde Excel"
+  descripcion="Registra estudiantes, docentes y padres de tu colegio con una sola planilla."
+>
+  <button
+    class="ui-btn ui-btn--secundario"
+    type="button"
+    [disabled]="busy() || !selectedYear() || groups.isLoading()"
+    (click)="template()"
+  >
+    Descargar plantilla
+  </button>
+</app-page-header>
+@if (years.error() || groups.error()) {
+  <p class="ui-error" role="alert">
+    No pudimos consultar la gestión o sus paralelos.
+    <button
+      type="button"
+      class="ui-btn ui-btn--secundario"
+      (click)="years.reload(); groups.reload()"
+    >
+      Reintentar
+    </button>
+  </p>
+}
+@if (error()) {
+  <p class="ui-card ui-error" role="alert">{{ error() }}</p>
+}
+<section class="ui-card import-setup">
+  <div>
+    <h2>1. Prepara la planilla</h2>
+    <p>
+      Descarga la plantilla de esta gestión. Completa solo las hojas que
+      necesitas; deja vacías las demás.
+    </p>
+  </div>
+  <label class="ui-campo"
+    >Gestión de destino
+    <select
+      class="ui-input"
+      [value]="yearId() ?? ''"
+      [disabled]="busy() || queued()"
+      (change)="selectYear($any($event.target).value)"
+    >
+      <option value="" disabled>Selecciona una gestión</option>
+      @for (year of years.value(); track year.id) {
+        <option [value]="year.id" [disabled]="year.estado === 'cerrada'">
+          {{ year.anio
+          }}{{
+            year.estado === "activa"
+              ? " · activa"
+              : year.estado === "cerrada"
+                ? " · cerrada"
+                : ""
+          }}
+        </option>
+      }
+    </select>
+  </label>
+  <ul>
+    <li>
+      Una hoja para estudiantes, otra para docentes y otra para padres/tutores.
+    </li>
+    <li>
+      Para hermanos, repite los mismos datos del tutor en una fila por hijo e
+      indica el CI de cada estudiante.
+    </li>
+    <li>
+      Los estudiantes deben tener CI, fecha de nacimiento y un paralelo
+      existente. La hoja «Paralelos» te muestra las opciones reales.
+    </li>
+    <li>
+      Las personas existentes se reconocen por su CI y tipo; no se sobrescriben
+      sus datos ni se cambian de curso.
+    </li>
+  </ul>
+  @if (!years.isLoading() && !years.value().length) {
+    <p class="ui-error">
+      Primero crea una gestión y sus paralelos en Académico.
+    </p>
+  }
+  <label class="upload"
+    ><strong>2. Sube el Excel para revisarlo</strong
+    ><span>.xlsx · hasta 3 MB · hasta 500 filas por hoja</span>
+    <input
+      type="file"
+      accept=".xlsx"
+      [disabled]="busy() || queued() || !yearId()"
+      (change)="
+        upload($any($event.target).files?.[0]); $any($event.target).value = ''
+      "
+    />
+  </label>
+  @if (busy()) {
+    <p role="status">
+      Procesando… Conserva esta página abierta hasta que termine la revisión.
+    </p>
+  }
+</section>
+@if (preview(); as review) {
+  <section class="ui-card preview">
+    <h2>3. Revisa antes de guardar</h2>
+    <p>{{ filename() }} · Ninguna persona se ha guardado todavía.</p>
+    <div class="counts">
+      <div>
+        <strong>{{ review.summary.newPeople }}</strong
+        ><span>personas nuevas</span>
+      </div>
+      <div>
+        <strong>{{ review.summary.existingPeople }}</strong
+        ><span>ya registradas</span>
+      </div>
+      <div>
+        <strong>{{ review.summary.rows }}</strong
+        ><span>filas revisadas</span>
+      </div>
+    </div>
+    @for (message of review.globalErrors; track $index) {
+      <p class="ui-error" role="alert">{{ message }}</p>
+    }
+    <div class="preview-actions">
+      <label
+        ><input
+          type="checkbox"
+          [checked]="showErrorsOnly()"
+          (change)="showErrorsOnly.set($any($event.target).checked)"
+        />
+        Mostrar solo filas con errores</label
+      >
+      @if (!review.valid) {
+        <button
+          type="button"
+          class="ui-btn ui-btn--secundario"
+          (click)="downloadErrors()"
+        >
+          Descargar errores
+        </button>
+      }
+    </div>
+    <div class="ui-tabla-contenedor">
+      <table class="ui-tabla">
+        <thead>
+          <tr>
+            <th>Hoja y fila</th>
+            <th>Persona</th>
+            <th>CI</th>
+            <th>Revisión</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of visibleRows(); track $index) {
+            <tr>
+              <td>{{ labels[row.kind] }} · {{ row.row }}</td>
+              <td>{{ row.person.nombres }} {{ row.person.primerApellido }}</td>
+              <td>{{ row.person.ci }}</td>
+              <td>
+                @if (row.errors.length) {
+                  @for (message of row.errors; track $index) {
+                    <p class="ui-error">{{ message }}</p>
+                  }
+                } @else {
+                  <span
+                    class="ui-badge"
+                    [class.tono-lima]="row.action === 'create'"
+                    >{{
+                      row.action === "create"
+                        ? "Lista para crear"
+                        : "Ya existe · conservar datos"
+                    }}</span
+                  >
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (!review.valid) {
+      <p>
+        Corrige las filas señaladas en Excel y vuelve a subir el archivo. Se
+        guardará el lote completo o ninguna persona.
+      </p>
+    }
+    <button
+      class="ui-btn"
+      type="button"
+      [disabled]="busy() || !review.valid || queued()"
+      (click)="confirm()"
+    >
+      Confirmar carga de {{ selectedYear()?.anio }}
+    </button>
+  </section>
+}
+@if (job.error()) {
+  <div class="ui-card" role="alert">
+    <p>
+      No pudimos consultar el estado. La carga puede seguir en curso; no
+      necesitas enviarla de nuevo.
+    </p>
+    <button
+      type="button"
+      class="ui-btn ui-btn--secundario"
+      (click)="job.reload()"
+    >
+      Consultar estado
+    </button>
+  </div>
+}
+@if (job.hasValue()) {
+  @if (job.value(); as batch) {
+    <section class="ui-card result" aria-live="polite">
+      @if (batch.status === "queued") {
+        <h2>Carga en curso</h2>
+        <p>
+          Estamos preparando las fichas, las inscripciones y las cuentas. Puede
+          tardar unos minutos con 500 estudiantes. Puedes recargar: el lote
+          seguirá en el servidor.
+        </p>
+      } @else if (batch.status === "failed") {
+        <h2>No se guardó la carga</h2>
+        <p class="ui-error">{{ batch.error }}</p>
+        <p>
+          Las fichas, cuentas y vínculos de este lote se cancelaron juntos.
+          Revisa la planilla y vuelve a subirla.
+        </p>
+      } @else {
+        <h2>Carga completada</h2>
+        <p>
+          {{ batch.result?.created }} personas creadas ·
+          {{ batch.result?.existing }} conservadas ·
+          {{ batch.result?.links }} vínculos nuevos.
+        </p>
+        <p>
+          Las invitaciones de docentes y padres con correo se envían después del
+          guardado. Si no llegan, pueden reenviarse desde su ficha.
+        </p>
+        @if (batch.accessAvailable && !accessDownloaded()) {
+          <p>
+            <strong
+              >Descarga ahora los accesos de
+              {{ batch.result?.accessCount }} estudiantes nuevos.</strong
+            >
+            Están disponibles una sola vez durante 15 minutos. Guarda el archivo
+            en un lugar privado; deberán cambiar su contraseña al entrar.
+          </p>
+          <button
+            class="ui-btn"
+            type="button"
+            [disabled]="busy()"
+            (click)="access()"
+          >
+            Descargar accesos nuevos
+          </button>
+        } @else if (batch.result?.accessCount) {
+          <p>
+            Los accesos ya se descargaron o venció su disponibilidad. Puedes
+            reiniciar el acceso desde la ficha si necesitas uno nuevo.
+          </p>
+        }
+        <a
+          class="ui-btn ui-btn--secundario"
+          [routerLink]="session.roleRoute('personas', 'estudiantes')"
+          >Ver estudiantes</a
+        >
+      }
+    </section>
+  }
+}
