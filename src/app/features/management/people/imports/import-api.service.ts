@@ -12,26 +12,30 @@ export interface ImportWorkbook {
 export interface ImportPreviewRow {
   kind: 'student' | 'teacher' | 'parent';
   row: number;
+  fromStudentRow?: boolean; // a tutor written in the student's row
   person: { nombres: string; primerApellido: string; ci: string };
   action: 'create' | 'existing';
-  errors: string[];
+  errors: string[]; // left out until fixed
+  warnings: string[]; // saved without the wrong optional data
 }
 export interface ImportPreview {
-  valid: boolean;
+  valid: boolean; // there is something to save
   version: string;
   globalErrors: string[];
   rows: ImportPreviewRow[];
-  summary: { rows: number; newPeople: number; existingPeople: number };
+  summary: { rows: number; ready: number; withErrors: number; withWarnings: number; newPeople: number; existingPeople: number };
 }
 export interface ImportJob {
   id: string;
   status: 'queued' | 'completed' | 'failed';
   error: string | null;
   accessAvailable: boolean;
+  createdAt?: string;
   result: {
     created: number;
     existing: number;
     links: number;
+    skipped: number;
     accessCount: number;
   } | null;
 }
@@ -51,9 +55,7 @@ export class PeopleImportApi {
     return `${environment.API_URL}/espacios/${encodeURIComponent(this.session.activeSpace()!.slug)}`;
   }
   years() {
-    return this.http.get<{ id: number; anio: number; estado: string }[]>(
-      `${this.base}/gestiones`,
-    );
+    return this.http.get<{ id: number; anio: number; estado: string }[]>(`${this.base}/gestiones`);
   }
   groups(yearId: number) {
     return this.http.get<ImportClassGroup[]>(`${this.base}/paralelos`, {
@@ -61,10 +63,7 @@ export class PeopleImportApi {
     });
   }
   preview(input: ImportWorkbook) {
-    return this.http.post<ImportPreview>(
-      `${this.base}/people-imports/preview`,
-      input,
-    );
+    return this.http.post<ImportPreview>(`${this.base}/people-imports/preview`, input);
   }
   confirm(input: ImportWorkbook, version: string, requestId: string) {
     return this.http.post<ImportJob>(`${this.base}/people-imports`, {
@@ -77,8 +76,9 @@ export class PeopleImportApi {
     return this.http.get<ImportJob>(`${this.base}/people-imports/${id}`);
   }
   access(id: string) {
-    return this.http.post<
-      { name: string; username: string; temporaryPassword: string }[]
-    >(`${this.base}/people-imports/${id}/access`, {});
+    return this.http.post<{ name: string; username: string; temporaryPassword: string }[]>(
+      `${this.base}/people-imports/${id}/access`,
+      {},
+    );
   }
 }

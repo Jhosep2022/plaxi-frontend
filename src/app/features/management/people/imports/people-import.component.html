@@ -1,44 +1,57 @@
 <app-page-header
   miga="Personas"
   titulo="Carga desde Excel"
-  descripcion="Registra estudiantes, docentes y padres de tu colegio con una sola planilla."
+  descripcion="Registra a los estudiantes, docentes y padres de tu colegio con una sola planilla."
 >
   <button
     class="ui-btn ui-btn--secundario"
     type="button"
-    [disabled]="
-      busy() || !selectedYear() || groups.isLoading() || !!groups.error()
-    "
+    [disabled]="busy() || !selectedYear() || groups.isLoading() || !!groups.error()"
     (click)="template()"
   >
     Descargar plantilla
   </button>
 </app-page-header>
-@if (progressMessage()) {
-  <section class="import-progress" role="status" aria-live="polite">
-    <span class="import-spinner" aria-hidden="true"></span>
-    <div>
-      <strong>{{ progressMessage() }}</strong>
-      <p>
-        {{
-          busy()
-            ? "Conserva esta página abierta. Con archivos grandes, esta operación puede tardar."
-            : "La carga sigue en el servidor. Puedes recargar la página y consultar su estado sin volver a enviarla."
-        }}
-      </p>
+
+<ol class="pasos" aria-label="Pasos de la carga">
+  @for (entry of steps; track entry.id; let index = $index) {
+    <li [class.hecho]="index < stepIndex()" [class.actual]="index === stepIndex()" [attr.aria-current]="index === stepIndex() ? 'step' : null">
+      <span class="numero">{{ index < stepIndex() ? '✓' : index + 1 }}</span>
+      <span>{{ entry.label }}</span>
+    </li>
+  }
+</ol>
+
+@if (phase() === 'reading' || phase() === 'reviewing' || phase() === 'confirming') {
+  <section class="avance" role="status" aria-live="polite">
+    <div class="avance-texto">
+      <strong>
+        @switch (phase()) {
+          @case ('reading') { Leyendo tu Excel… }
+          @case ('reviewing') { Revisando {{ totalRows() }} filas: cursos, CI repetidos y cupos… }
+          @default { Enviando la carga… }
+        }
+      </strong>
+      <span>No cierres esta página.</span>
     </div>
+    <div class="barra indeterminada" aria-hidden="true"><span></span></div>
   </section>
 }
+
+@if (queued()) {
+  <section class="avance" role="status" aria-live="polite">
+    <div class="avance-texto">
+      <strong>Guardando personas, cursos y cuentas… {{ saveProgress() }} %</strong>
+      <span>{{ elapsed() }} s · Sigue en el servidor aunque recargues la página.</span>
+    </div>
+    <div class="barra" aria-hidden="true"><span [style.width.%]="saveProgress()"></span></div>
+  </section>
+}
+
 @if (years.error() || groups.error()) {
   <p class="ui-error" role="alert">
-    No pudimos consultar la gestión o sus paralelos.
-    <button
-      type="button"
-      class="ui-btn ui-btn--secundario"
-      (click)="years.reload(); groups.reload()"
-    >
-      Reintentar
-    </button>
+    No pudimos consultar la gestión o sus cursos.
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="years.reload(); groups.reload()">Reintentar</button>
   </p>
 }
 @if (error()) {
@@ -46,209 +59,121 @@
     <strong>No se completó la operación</strong>
     <p class="ui-error">{{ error() }}</p>
     @if (workbook() && reviewPending()) {
-      <p>
-        Conservamos los datos de {{ filename() }} en esta página. No necesitas
-        volver a llenar el Excel.
-      </p>
-      <button
-        class="ui-btn ui-btn--secundario"
-        type="button"
-        [disabled]="busy()"
-        (click)="retryReview()"
-      >
-        Reintentar revisión
-      </button>
+      <p>Conservamos los datos de {{ filename() }} en esta página. No necesitas volver a llenar el Excel.</p>
+      <button class="ui-btn ui-btn--secundario" type="button" [disabled]="busy()" (click)="retryReview()">Reintentar revisión</button>
     }
   </div>
 }
-<section class="ui-card import-setup">
-  <div>
-    <h2>1. Prepara la planilla</h2>
-    <p>
-      Descarga la plantilla y completa las hojas que necesites. Si ya la
-      llenaste, puedes subirla directamente.
-    </p>
-  </div>
-  <label class="ui-campo"
-    >Gestión de destino
-    <select
-      class="ui-input"
-      [value]="yearId() ?? ''"
-      [disabled]="busy() || queued()"
-      (change)="selectYear($any($event.target).value)"
-    >
-      <option value="" disabled>Selecciona una gestión</option>
-      @for (year of years.value(); track year.id) {
-        <option [value]="year.id" [disabled]="year.estado === 'cerrada'">
-          {{ year.anio
-          }}{{
-            year.estado === "activa"
-              ? " · activa"
-              : year.estado === "cerrada"
-                ? " · cerrada"
-                : ""
-          }}
-        </option>
-      }
-    </select>
-  </label>
-  <details>
-    <summary>Cómo llenar la plantilla</summary>
-    <ul>
-      <li>
-        Una hoja para estudiantes, otra para docentes y otra para
-        padres/tutores.
-      </li>
-      <li>
-        Para hermanos, repite los mismos datos del tutor en una fila por hijo e
-        indica el CI de cada estudiante.
-      </li>
-      <li>
-        Los estudiantes deben tener CI, fecha de nacimiento y un paralelo
-        existente. En Excel elige Nivel, Grado, Paralelo y Turno en ese orden:
-        cada desplegable depende del anterior y usa cursos de esta gestión.
-      </li>
-      <li>
-        Las personas existentes se reconocen por su CI y tipo; no se
-        sobrescriben sus datos ni se cambian de curso.
-      </li>
-      <li>
-        Excel puede convertir los correos en enlaces: los leemos como texto. Las
-        fechas admiten DD/MM/AAAA o AAAA-MM-DD.
-      </li>
+
+@if (!preview() && !queued()) {
+  <section class="ui-card import-setup">
+    <div class="setup-fila">
+      <div>
+        <h2>Prepara la planilla</h2>
+        <p>Descarga la plantilla con los cursos de tu colegio. Solo cuatro datos son obligatorios.</p>
+      </div>
+      <label class="ui-campo"
+        >Gestión de destino
+        <select class="ui-input" [value]="yearId() ?? ''" [disabled]="busy() || queued()" (change)="selectYear($any($event.target).value)">
+          <option value="" disabled>Selecciona una gestión</option>
+          @for (year of years.value(); track year.id) {
+            <option [value]="year.id" [disabled]="year.estado === 'cerrada'">
+              {{ year.anio }}{{ year.estado === 'activa' ? ' · activa' : year.estado === 'cerrada' ? ' · cerrada' : '' }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <ul class="requisitos">
+      <li><strong>Obligatorio:</strong> nombres, primer apellido, CI y curso.</li>
+      <li><strong>Opcional:</strong> fecha de nacimiento, celular, correo y el tutor en la misma fila del estudiante.</li>
+      <li><strong>Si algo opcional está mal</strong>, la persona igual se guarda sin ese dato. Las filas con un dato obligatorio mal esperan a que las corrijas; las demás se guardan.</li>
     </ul>
-  </details>
-  @if (!years.isLoading() && !years.value().length) {
-    <p class="ui-error">
-      Primero crea una gestión y sus paralelos en Académico.
-    </p>
-  }
-  <div class="upload">
-    <strong>2. Sube el Excel para revisarlo</strong
-    ><span>.xlsx · hasta 3 MB · hasta 500 filas por hoja</span>
-    <label class="file-picker"
-      ><span>{{
-        filename() ? "Elegir otro Excel" : "Elegir archivo Excel"
-      }}</span>
+
+    @if (!years.isLoading() && !years.value().length) {
+      <p class="ui-error">Primero crea una gestión y sus cursos en Académico.</p>
+    }
+
+    <label class="subir" [class.deshabilitado]="busy() || !yearId()">
       <input
         type="file"
         accept=".xlsx"
         [disabled]="busy() || queued() || !yearId()"
-        (change)="
-          upload($any($event.target).files?.[0]); $any($event.target).value = ''
-        "
+        (change)="upload($any($event.target).files?.[0]); $any($event.target).value = ''"
       />
+      <span class="subir-icono" aria-hidden="true">⬆</span>
+      <strong>{{ filename() ? 'Elegir otro Excel' : 'Sube tu Excel' }}</strong>
+      <span>.xlsx · hasta 3 MB · hasta {{ maxRows }} filas por hoja</span>
+      @if (filename()) {
+        <span class="archivo">{{ filename() }}</span>
+      }
     </label>
-    @if (filename()) {
-      <span class="filename"
-        >Archivo cargado: <strong>{{ filename() }}</strong></span
-      >
+
+    @if (!groups.isLoading() && !groups.error() && selectedYear()) {
+      <p class="ui-ayuda">{{ groups.value().length }} cursos en {{ selectedYear()?.anio }}. La plantilla los trae en una lista.</p>
     }
-    <p>
-      Primero revisaremos los datos. Si algo necesita un ajuste, podrás corregir
-      esa fila aquí.
-    </p>
-  </div>
-  @if (!groups.isLoading() && !groups.error() && selectedYear()) {
-    <p class="ui-ayuda">
-      {{ groups.value().length }} cursos disponibles para
-      {{ selectedYear()?.anio }}. La plantilla usa estas opciones del colegio.
-    </p>
-  }
-</section>
+  </section>
+}
+
 @if (preview(); as review) {
   <section class="ui-card preview">
-    <h2>3. Revisa antes de guardar</h2>
-    <p>{{ filename() }} · Ninguna persona se ha guardado todavía.</p>
-    @if (errorCount()) {
-      <p class="review-notice" role="status">
-        <strong
-          >{{ errorCount() }}
-          {{
-            errorCount() === 1
-              ? "fila necesita un ajuste"
-              : "filas necesitan ajustes"
-          }}.</strong
-        >
-        Usa «Corregir fila». Las demás personas se conservan.
-      </p>
-    }
-    @if (reviewPending()) {
-      <p class="ui-error" role="status">
-        Hay cambios pendientes de revisar. Conservamos los datos; reintenta la
-        revisión antes de confirmar.
-      </p>
-    }
-    <div class="counts">
+    <div class="preview-cabecera">
       <div>
-        <strong>{{ review.summary.newPeople }}</strong
-        ><span>personas nuevas</span>
+        <h2>Revisa antes de guardar</h2>
+        <p>{{ filename() }} · Todavía no se guardó nadie.</p>
       </div>
-      <div>
-        <strong>{{ review.summary.existingPeople }}</strong
-        ><span>ya registradas</span>
-      </div>
-      <div>
-        <strong>{{ review.summary.rows }}</strong
-        ><span>filas revisadas</span>
-      </div>
+      <label class="otro-archivo ui-btn ui-btn--secundario" [class.deshabilitado]="busy()">
+        <input type="file" accept=".xlsx" [disabled]="busy()" (change)="upload($any($event.target).files?.[0]); $any($event.target).value = ''" />
+        Subir otro Excel
+      </label>
     </div>
+
+    <div class="contadores">
+      <button
+        type="button"
+        class="contador listo"
+        [class.activo]="filter() === 'all'"
+        (click)="filter.set('all')"
+        pTooltip="Personas que se guardan al confirmar, incluidas las que tienen avisos."
+        tooltipPosition="top"
+      >
+        <strong>{{ readyCount() }}</strong><span>listas para guardar</span>
+      </button>
+      <button
+        type="button"
+        class="contador aviso"
+        [class.activo]="filter() === 'warnings'"
+        (click)="filter.set('warnings')"
+        pTooltip="Se guardan igual, sin el dato que estaba mal (celular, correo o fecha). Puedes completarlo después."
+        tooltipPosition="top"
+      >
+        <strong>{{ warningCount() }}</strong><span>se guardan con un aviso</span>
+      </button>
+      <button
+        type="button"
+        class="contador error"
+        [class.activo]="filter() === 'errors'"
+        (click)="filter.set('errors')"
+        pTooltip="Les falta un dato obligatorio o el curso no existe. No se guardan hasta que las corrijas; no frenan a las demás."
+        tooltipPosition="top"
+      >
+        <strong>{{ errorCount() }}</strong><span>por corregir</span>
+      </button>
+    </div>
+
     @for (message of review.globalErrors; track $index) {
       <p class="ui-error" role="alert">{{ message }}</p>
     }
-    <div class="preview-actions">
-      @if (workbook()) {
-        <button
-          class="ui-btn ui-btn--secundario"
-          type="button"
-          [disabled]="
-            busy() ||
-            cellIssues().length > 0 ||
-            groups.isLoading() ||
-            !!groups.error()
-          "
-          (click)="downloadReviewed()"
-        >
-          {{
-            hasEdits()
-              ? "Descargar Excel con ajustes y listas"
-              : "Descargar mi Excel con listas del colegio"
-          }}
-        </button>
-      }
-      <label
-        ><input
-          type="checkbox"
-          [checked]="showErrorsOnly()"
-          (change)="showErrorsOnly.set($any($event.target).checked)"
-        />
-        Mostrar solo filas con errores</label
-      >
-      @if (!review.valid) {
-        <button
-          type="button"
-          class="ui-btn ui-btn--secundario"
-          (click)="downloadErrors()"
-        >
-          Descargar errores
-        </button>
-      }
-    </div>
-    <p class="ui-ayuda">
-      La copia incluye las personas que ya cargaste y los desplegables del
-      colegio. No necesitas volver a escribir sus datos.
-    </p>
-    @if (hasEdits()) {
-      <p class="ui-ayuda">
-        Los ajustes se conservan mientras esta página esté abierta. Descarga una
-        copia si quieres continuar después; tu archivo original no se modifica.
-      </p>
+    @if (reviewPending()) {
+      <p class="ui-error" role="status">Hay cambios sin revisar. Reintenta la revisión antes de guardar.</p>
     }
+
     <div class="ui-tabla-contenedor">
       <table class="ui-tabla">
         <thead>
           <tr>
-            <th>Hoja y fila</th>
+            <th>Fila</th>
             <th>Persona</th>
             <th>CI</th>
             <th>Revisión</th>
@@ -256,241 +181,186 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of visibleRows(); track $index) {
-            <tr>
-              <td>{{ labels[row.kind] }} · {{ row.row }}</td>
+          @for (row of visibleRows(); track row.kind + row.row + row.person.ci) {
+            <tr [class.fila-error]="row.errors.length">
+              <td class="hoja">{{ rowSheet(row) }} · {{ row.row }}</td>
               <td>{{ row.person.nombres }} {{ row.person.primerApellido }}</td>
               <td>{{ row.person.ci }}</td>
               <td>
-                @if (row.errors.length) {
-                  @for (message of row.errors; track $index) {
-                    <p class="ui-error">{{ message }}</p>
-                  }
-                } @else {
-                  <span
-                    class="ui-badge"
-                    [class.tono-lima]="row.action === 'create'"
-                    >{{
-                      row.action === "create"
-                        ? "Lista para crear"
-                        : "Ya existe · conservar datos"
-                    }}</span
-                  >
+                @for (message of row.errors; track $index) {
+                  <p class="mensaje error">{{ message }}</p>
+                }
+                @for (message of row.warnings; track $index) {
+                  <p class="mensaje aviso">{{ message }}</p>
+                }
+                @if (!row.errors.length && !row.warnings.length) {
+                  <span class="ui-badge" [class.tono-lima]="row.action === 'create'">{{
+                    row.action === 'create' ? 'Lista' : 'Ya registrada · no se cambia'
+                  }}</span>
                 }
               </td>
               <td>
-                <button
-                  type="button"
-                  class="ui-btn ui-btn--secundario"
-                  [disabled]="busy() || queued()"
-                  (click)="editRow(row)"
-                  [attr.aria-label]="
-                    'Corregir ' + labels[row.kind] + ', fila ' + row.row
-                  "
-                >
-                  {{ row.errors.length ? "Corregir fila" : "Editar fila" }}
-                </button>
+                @if (row.errors.length || row.warnings.length) {
+                  <button
+                    type="button"
+                    class="ui-btn ui-btn--secundario"
+                    [disabled]="busy() || queued()"
+                    (click)="editRow(row)"
+                    [attr.aria-label]="'Corregir ' + rowSheet(row) + ', fila ' + row.row"
+                  >
+                    Corregir
+                  </button>
+                }
               </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="vacio">No hay filas en este filtro.</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
-    @if (!review.valid) {
-      <p>
-        Corrige solo las filas señaladas desde esta pantalla. También puedes
-        ajustar tu Excel y volver a subirlo. Se guardará el lote completo al
-        confirmar.
-      </p>
-    }
-    <button
-      class="ui-btn"
-      type="button"
-      [disabled]="
-        busy() ||
-        !review.valid ||
-        queued() ||
-        reviewPending() ||
-        editing() !== null
-      "
-      (click)="confirm()"
-    >
-      Confirmar carga de {{ selectedYear()?.anio }}
-    </button>
+
+    <div class="guardar">
+      <div class="guardar-texto">
+        @if (errorCount()) {
+          <p>
+            Las <strong>{{ errorCount() }}</strong> {{ errorCount() === 1 ? 'fila por corregir queda' : 'filas por corregir quedan' }} aquí. Puedes
+            corregirlas ahora o después de guardar a los demás.
+          </p>
+        } @else {
+          <p>Todo está listo.</p>
+        }
+        <div class="enlaces">
+          @if (errorCount()) {
+            <button type="button" class="enlace" (click)="downloadErrors()">Descargar filas por corregir</button>
+          }
+          <button type="button" class="enlace" [disabled]="busy() || groups.isLoading()" (click)="downloadReviewed()">
+            Descargar mi Excel con correcciones
+          </button>
+        </div>
+      </div>
+      <button
+        class="ui-btn boton-guardar"
+        type="button"
+        [disabled]="busy() || !review.valid || queued() || reviewPending() || editing() !== null"
+        (click)="confirm()"
+      >
+        Guardar {{ readyCount() }} {{ readyCount() === 1 ? 'persona' : 'personas' }}
+      </button>
+    </div>
   </section>
 }
+
 <app-drawer
   [abierto]="editing() !== null"
-  [titulo]="
-    'Corregir ' +
-    (editing() ? labels[editing()!.kind] : '') +
-    ' · fila ' +
-    (editing()?.row ?? '')
-  "
-  subtitulo="Ajusta solo lo necesario. Las otras filas se conservan; nada se registra hasta confirmar la carga."
+  [titulo]="'Corregir ' + (editing() ? labels[editing()!.kind] : '') + ' · fila ' + (editing()?.row ?? '')"
+  subtitulo="Ajusta solo lo necesario. Nada se guarda hasta que confirmes la carga."
   (cerrar)="editing.set(null)"
 >
   @if (editing(); as row) {
     <div class="row-editor">
       @for (message of row.errors; track $index) {
-        <p class="ui-error">{{ message }}</p>
+        <p class="mensaje error">{{ message }}</p>
+      }
+      @for (message of row.warnings; track $index) {
+        <p class="mensaje aviso">{{ message }}</p>
       }
       @for (field of editorValues(); track field.key; let index = $index) {
-        @if (row.kind !== "student" || !courseFields.includes(field.key)) {
-          <label class="ui-campo"
-            ><span class="ui-etiqueta">{{ field.label }}</span>
-            @if (field.key === "parentesco") {
-              <select class="ui-input" [formField]="editorForm[index].text">
-                <option value="">Elige parentesco</option>
-                <option value="madre">Madre</option>
-                <option value="padre">Padre</option>
-                <option value="tutor">Tutor</option>
-              </select>
-            } @else {
-              <input
-                class="ui-input"
-                type="text"
-                [formField]="editorForm[index].text"
-                [attr.list]="
-                  field.key === 'hijoCi' ? 'import-child-options' : null
-                "
-                [placeholder]="
-                  field.key === 'fechaNacimiento'
-                    ? 'DD/MM/AAAA o AAAA-MM-DD'
-                    : ''
-                "
-              />
-            }
-            @if (field.key === "telefono") {
-              <span class="ui-ayuda"
-                >Celular de 8 dígitos que empieza con 6 o 7. Puedes dejarlo
-                vacío si no lo tienes.</span
-              >
-            }
-            @if (field.key === "hijoCi") {
-              <span class="ui-ayuda"
-                >Elige el CI de un estudiante de la planilla o escribe el de uno
-                ya registrado en el colegio.</span
-              ><datalist id="import-child-options">
-                @for (child of workbook()?.students ?? []; track $index) {
-                  <option [value]="child['ci']">
-                    {{ child["nombres"] }} {{ child["primerApellido"] }}
-                  </option>
-                }
-              </datalist>
-            }
-          </label>
-        }
-      }
-      @if (row.kind === "student") {
         <label class="ui-campo"
-          ><span class="ui-etiqueta">Curso de destino</span
-          ><select
-            class="ui-input"
-            [value]="selectedCourse()"
-            (change)="selectCourse($any($event.target).value)"
-          >
-            <option value="" disabled>Elige un curso de esta gestión</option>
-            @for (group of groups.value(); track $index) {
-              <option [value]="'' + $index">
-                {{ group.nivel }} · {{ group.grado }}° {{ group.letra }} ·
-                {{ group.turno === "manana" ? "mañana" : group.turno }}
-              </option>
-            }
-          </select></label
-        >
+          ><span class="ui-etiqueta">{{ field.label }}</span>
+          @if (field.key === 'curso') {
+            <select class="ui-input" [formField]="editorForm[index].text">
+              <option value="">Elige un curso de esta gestión</option>
+              @for (option of courseOptions(); track option) {
+                <option [value]="option">{{ option }}</option>
+              }
+            </select>
+          } @else if (field.key === 'parentesco' || field.key === 'tutorParentesco') {
+            <select class="ui-input" [formField]="editorForm[index].text">
+              <option value="">Elige parentesco</option>
+              <option value="madre">Madre</option>
+              <option value="padre">Padre</option>
+              <option value="tutor">Tutor</option>
+            </select>
+          } @else {
+            <input
+              class="ui-input"
+              type="text"
+              [formField]="editorForm[index].text"
+              [attr.list]="field.key === 'hijoCi' ? 'import-child-options' : null"
+              [placeholder]="field.key === 'fechaNacimiento' ? 'DD/MM/AAAA' : ''"
+            />
+          }
+          @if (field.key === 'telefono' || field.key === 'tutorTelefono') {
+            <span class="ui-ayuda">8 dígitos, empieza con 6 o 7. Puede quedar vacío.</span>
+          }
+          @if (field.key === 'hijoCi') {
+            <datalist id="import-child-options">
+              @for (child of workbook()?.students ?? []; track $index) {
+                <option [value]="child['ci']">{{ child['nombres'] }} {{ child['primerApellido'] }}</option>
+              }
+            </datalist>
+          }
+        </label>
       }
     </div>
   }
   <ng-container pie
-    ><button
-      type="button"
-      class="ui-btn ui-btn--secundario"
-      (click)="editing.set(null)"
-    >
-      Cancelar</button
-    ><button
-      type="button"
-      class="ui-btn"
-      [disabled]="busy()"
-      (click)="reviewEdits()"
-    >
-      Aplicar y revisar
-    </button></ng-container
+    ><button type="button" class="ui-btn ui-btn--secundario" (click)="editing.set(null)">Cancelar</button
+    ><button type="button" class="ui-btn" [disabled]="busy()" (click)="reviewEdits()">Aplicar y revisar</button></ng-container
   >
 </app-drawer>
+
 @if (job.error()) {
   <div class="ui-card" role="alert">
-    <p>
-      No pudimos consultar el estado. La carga puede seguir en curso; no
-      necesitas enviarla de nuevo.
-    </p>
-    <button
-      type="button"
-      class="ui-btn ui-btn--secundario"
-      (click)="job.reload()"
-    >
-      Consultar estado
-    </button>
+    <p>No pudimos consultar el estado. La carga puede seguir en curso; no necesitas enviarla de nuevo.</p>
+    <button type="button" class="ui-btn ui-btn--secundario" (click)="job.reload()">Consultar estado</button>
   </div>
 }
-@if (job.hasValue()) {
+@if (job.hasValue() && !preview()) {
   @if (job.value(); as batch) {
-    <section class="ui-card result" aria-live="polite">
-      @if (batch.status === "queued") {
-        <h2>Carga en curso</h2>
-        <p>
-          Estamos preparando las fichas, las inscripciones y las cuentas. Puede
-          tardar unos minutos con 500 estudiantes. Puedes recargar: el lote
-          seguirá en el servidor.
-        </p>
-      } @else if (batch.status === "failed") {
+    @if (batch.status === 'failed') {
+      <section class="ui-card result" aria-live="polite">
         <h2>No se guardó la carga</h2>
         <p class="ui-error">{{ batch.error }}</p>
-        <p>
-          Las fichas, cuentas y vínculos de este lote se cancelaron juntos.
-          Revisa la planilla y vuelve a subirla.
-        </p>
-      } @else {
-        <h2>Carga completada</h2>
-        <p>
-          {{ batch.result?.created }} personas creadas ·
-          {{ batch.result?.existing }} conservadas ·
-          {{ batch.result?.links }} vínculos nuevos.
-        </p>
-        <p>
-          Las invitaciones de docentes y padres con correo se envían después del
-          guardado. Si no llegan, pueden reenviarse desde su ficha.
-        </p>
-        @if (batch.accessAvailable && !accessDownloaded()) {
-          <p>
-            <strong
-              >Descarga ahora los accesos de
-              {{ batch.result?.accessCount }} estudiantes nuevos.</strong
-            >
-            Están disponibles una sola vez durante 15 minutos. Guarda el archivo
-            en un lugar privado; deberán cambiar su contraseña al entrar.
-          </p>
-          <button
-            class="ui-btn"
-            type="button"
-            [disabled]="busy()"
-            (click)="access()"
-          >
-            Descargar accesos nuevos
-          </button>
-        } @else if (batch.result?.accessCount) {
-          <p>
-            Los accesos ya se descargaron o venció su disponibilidad. Puedes
-            reiniciar el acceso desde la ficha si necesitas uno nuevo.
-          </p>
+        <p>No se guardó a nadie de este lote. Vuelve a subir la planilla para revisarla.</p>
+      </section>
+    } @else if (batch.status === 'completed') {
+      <section class="ui-card result exito" aria-live="polite">
+        <span class="exito-icono" aria-hidden="true">✓</span>
+        <h2>Carga guardada</h2>
+        <div class="resultado-numeros">
+          <div><strong>{{ batch.result?.created }}</strong><span>personas nuevas</span></div>
+          <div><strong>{{ batch.result?.existing }}</strong><span>ya registradas</span></div>
+          <div><strong>{{ batch.result?.links }}</strong><span>padres vinculados</span></div>
+        </div>
+        @if (pending(); as rest) {
+          <div class="pendientes">
+            <p>
+              <strong>Quedan {{ rest.students.length + rest.teachers.length + rest.parents.length }} filas por corregir.</strong>
+              Las guardamos aparte para que no tengas que buscarlas.
+            </p>
+            <button type="button" class="ui-btn" [disabled]="busy()" (click)="fixPending()">Corregir las filas pendientes</button>
+          </div>
+        } @else if (batch.result?.skipped) {
+          <p>{{ batch.result?.skipped }} filas no se guardaron. Súbelas de nuevo después de corregirlas.</p>
         }
-        <a
-          class="ui-btn ui-btn--secundario"
-          [routerLink]="session.roleRoute('personas', 'estudiantes')"
-          >Ver estudiantes</a
-        >
-      }
-    </section>
+        @if (batch.accessAvailable && !accessDownloaded()) {
+          <div class="accesos">
+            <p>
+              <strong>Descarga ahora los accesos de {{ batch.result?.accessCount }} estudiantes.</strong>
+              Están disponibles una sola vez durante 15 minutos. Guárdalos en un lugar privado; al entrar, cada uno cambia su contraseña.
+            </p>
+            <button class="ui-btn" type="button" [disabled]="busy()" (click)="access()">Descargar accesos</button>
+          </div>
+        } @else if (batch.result?.accessCount) {
+          <p class="ui-ayuda">Los accesos ya se descargaron o venció el plazo. Puedes reiniciar el acceso desde la ficha del estudiante.</p>
+        }
+        <p class="ui-ayuda">Las invitaciones de docentes y padres con correo se envían ahora. Si no llegan, pueden reenviarse desde su ficha.</p>
+        <a class="ui-btn ui-btn--secundario" [routerLink]="session.roleRoute('personas', 'estudiantes')">Ver estudiantes</a>
+      </section>
+    }
   }
 }
