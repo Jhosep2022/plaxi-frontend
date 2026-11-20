@@ -8,7 +8,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { TIPOS_TEMA } from '../../../core/models/classrooms.model';
 import type { Tema, TipoTema, Unidad } from '../../../core/models/classrooms.model';
-import { AulaResumen, ClassroomsService, UnidadConTemas } from '../../../services/classrooms.service';
+import { AulaResumen, ClassroomsService, PDF_TEMA_MAX_MB, UnidadConTemas } from '../../../services/classrooms.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -137,6 +137,7 @@ export class TeacherContentComponent {
       return;
     }
     this.editandoTema.set(null);
+    this.pdf.set(null);
     this.modeloTema.set({ ...TEMA_VACIO, unidadId: String(destino.id) });
     this.formTema().reset();
     this.drawerTema.set(true);
@@ -144,22 +145,52 @@ export class TeacherContentComponent {
 
   editarTema(t: Tema): void {
     this.editandoTema.set(t);
-    this.modeloTema.set({ unidadId: String(t.unidadId), titulo: t.titulo, tipo: t.tipo, contenido: t.contenido, url: t.url, duracionMin: t.duracionMin, publicado: t.publicado });
+    this.pdf.set(null);
+    // Un PDF sin archivo quedó en borrador; se edita como "publicado" para que se publique al subirlo
+    const publicado = t.publicado || (t.tipo === 'pdf' && !t.archivoId);
+    this.modeloTema.set({ unidadId: String(t.unidadId), titulo: t.titulo, tipo: t.tipo, contenido: t.contenido, url: t.url, duracionMin: t.duracionMin, publicado });
     this.formTema().reset();
     this.drawerTema.set(true);
   }
 
+  // ---------- PDF del tema (se sube al guardar) ----------
+  readonly pdf = signal<File | null>(null);
+  readonly pdfMaxMb = PDF_TEMA_MAX_MB;
+
   elegirPdf(event: Event): void {
-    const nombre = (event.target as HTMLInputElement).files?.[0]?.name;
-    if (nombre) this.modeloTema.update((m) => ({ ...m, url: nombre }));
+    const entrada = event.target as HTMLInputElement;
+    const archivo = entrada.files?.[0] ?? null;
+    entrada.value = '';
+    if (!archivo) return;
+    if (archivo.type !== 'application/pdf') return this.avisos.error('El documento debe ser un PDF.');
+    if (archivo.size > PDF_TEMA_MAX_MB * 1024 * 1024) return this.avisos.error(`El PDF debe pesar menos de ${PDF_TEMA_MAX_MB} MB.`);
+    this.pdf.set(archivo);
+  }
+
+  faltaPdf(t: Tema): boolean {
+    return t.tipo === 'pdf' && !t.archivoId;
+  }
+
+  async verPdf(archivoId: number | null | undefined): Promise<void> {
+    if (!archivoId) return;
+    try {
+      window.open(await firstValueFrom(this.servicio.enlacePdf(archivoId)), '_blank', 'noopener');
+    } catch (error) {
+      this.avisos.error(getErrorMessage(error));
+    }
   }
 
   guardarTema(): void {
     submit(this.formTema, async () => {
       const m = this.modeloTema();
       const ok = await this.ejecutar(
-        firstValueFrom(this.servicio.guardarTema({ ...m, unidadId: Number(m.unidadId), duracionMin: Number(m.duracionMin), url: m.tipo === 'texto' ? '' : m.url.trim(), id: this.editandoTema()?.id })),
-        this.editandoTema() ? 'Tema actualizado.' : 'Tema agregado.'
+        firstValueFrom(
+          this.servicio.guardarTema(
+            { ...m, unidadId: Number(m.unidadId), duracionMin: Number(m.duracionMin), url: m.tipo === 'texto' || m.tipo === 'pdf' ? '' : m.url.trim(), id: this.editandoTema()?.id, archivoId: this.editandoTema()?.archivoId ?? null },
+            m.tipo === 'pdf' ? this.pdf() : null,
+          ),
+        ),
+        this.pdf() ? 'PDF subido y tema guardado.' : this.editandoTema() ? 'Tema actualizado.' : 'Tema agregado.'
       );
       if (ok) this.drawerTema.set(false);
     });

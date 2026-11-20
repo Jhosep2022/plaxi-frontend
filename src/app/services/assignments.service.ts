@@ -1,8 +1,9 @@
-import { HttpBackend, HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { FileUploadService } from '../core/api/file-upload.service';
 import { SessionService } from '../core/auth/session.service';
 import type { IconoMateria } from '../core/models/academics.model';
 import type { Entrega, EstadoEntrega, Tarea } from '../core/models/assignments.model';
@@ -74,7 +75,7 @@ export interface NuevaTarea {
 @Injectable({ providedIn: 'root' })
 export class AssignmentsService {
   private readonly http = inject(HttpClient);
-  private readonly storageHttp = new HttpClient(inject(HttpBackend)); // la subida va directo al almacenamiento, sin el token de la API
+  private readonly archivos = inject(FileUploadService);
   private readonly session = inject(SessionService);
 
   private get base(): string {
@@ -135,7 +136,7 @@ export class AssignmentsService {
     if (!texto.trim() && !nuevos.length && !conservados.length) return throwError(() => new Error('Escribe un comentario o adjunta un archivo.'));
     const grande = nuevos.find((f) => f.size > ENTREGA_MAX_MB * 1024 * 1024);
     if (grande) return throwError(() => new Error(`${grande.name} pesa más de ${ENTREGA_MAX_MB} MB.`));
-    const subidas$ = nuevos.length ? forkJoin(nuevos.map((f) => this.subir(f, tareaId))) : of([] as number[]);
+    const subidas$ = nuevos.length ? forkJoin(nuevos.map((f) => this.archivos.upload('entrega', f, tareaId))) : of([] as number[]);
     return subidas$.pipe(
       switchMap((ids) =>
         this.http.put<Entrega>(`${this.base}/tareas/${tareaId}/entrega`, {
@@ -148,20 +149,6 @@ export class AssignmentsService {
 
   // Enlace temporal para descargar un archivo de una entrega
   enlaceArchivo(archivoId: number): Observable<string> {
-    return this.http.get<{ url: string }>(`${this.base}/archivos/${archivoId}/enlace`).pipe(map((r) => r.url));
-  }
-
-  private subir(archivo: File, tareaId: number): Observable<number> {
-    const url = `${this.base}/archivos`;
-    return this.http
-      .post<{ id: number; urlSubida: string }>(`${url}/subida`, { uso: 'entrega', nombre: archivo.name, tipoMime: archivo.type || 'application/octet-stream', bytes: archivo.size, recursoId: tareaId })
-      .pipe(
-        switchMap((subida) =>
-          this.storageHttp.put(subida.urlSubida, archivo, { headers: { 'Content-Type': archivo.type || 'application/octet-stream' }, responseType: 'text' }).pipe(
-            switchMap(() => this.http.post(`${url}/${subida.id}/confirmar`, {})),
-            map(() => subida.id),
-          ),
-        ),
-      );
+    return this.archivos.downloadUrl(archivoId);
   }
 }

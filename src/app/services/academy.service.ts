@@ -1,15 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import type { Aula } from '../core/models/classrooms.model';
-import { Space } from '../core/models/space.model';
-import { todayIso } from '../core/utils/attendance';
-import { currentDateTimeIso } from '../core/utils/assignments';
-import { MOCK_DOCENTES } from '../mocks/academics.mock';
-import { MOCK_AULAS_VIRTUALES, MOCK_TEMAS_AULA, MOCK_UNIDADES } from '../mocks/classrooms.mock';
-import { MOCK_DELAY, MOCK_ESPACIOS, MOCK_INSCRIPCIONES, MOCK_MEMBRESIAS, MOCK_PERFILES } from '../mocks/mock-data';
-import { MockRepository } from './mock-repository';
 import { SessionService } from '../core/auth/session.service';
 import { environment } from '../../environments/environment';
 
@@ -42,84 +35,48 @@ export interface EstudianteAcademia {
   cursos: { aulaId: number; nombre: string; progreso: number }[];
 }
 
-const TONOS = ['lima', 'azul', 'crema'] as const;
+interface CursoPublicoApi extends Pick<Aula, 'id' | 'nombre' | 'descripcion' | 'portada' | 'icono' | 'tono' | 'categoria' | 'nivel' | 'visibilidad' | 'aprobacionManual'> {
+  docente: string;
+  unidades: number;
+  temas: number;
+  estudiantes: number;
+  estado: 'ninguna' | 'pendiente' | 'activa' | 'rechazada';
+  esMio: boolean;
+}
 
-// En la academia, el id del curso de las inscripciones es el id del aula menos 1000
-const cursoIdDe = (aulaId: number) => aulaId - 1000;
+const ESTADO: Record<CursoPublicoApi['estado'], EstadoInscripcion> = { ninguna: 'ninguna', pendiente: 'PENDIENTE', activa: 'ACTIVA', rechazada: 'RECHAZADA' };
 
-// Cursos de academia: creación, invitaciones, catálogo, inscripciones y solicitudes.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
+// Cursos de academia: catálogo, inscripciones, solicitudes y estudiantes (la creación y el código van por AcademyCourseApiService)
 @Injectable({ providedIn: 'root' })
 export class AcademyService {
   private http = inject(HttpClient);
   private session = inject(SessionService);
-  private aulasRepo = new MockRepository<Aula>(MOCK_AULAS_VIRTUALES);
 
-  // ---------- Cursos ----------
-  createCourse(espacioId: number, docenteId: number, datos: DatosCurso): Observable<Aula> {
-    const error = this.validateCourse(datos);
-    if (error) return throwError(() => new Error(error));
-    const propios = this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso').length;
-    return this.aulasRepo.save({
-      ...datos, nombre: datos.nombre.trim(), descripcion: datos.descripcion.trim(),
-      espacioId, tipo: 'curso', docenteId, paraleloId: 0, materiaId: 0,
-      icono: /dise|ui|ux|figma|arte/i.test(`${datos.categoria} ${datos.nombre}`) ? 'arte' : /idiom|ingl/i.test(datos.categoria) ? 'idioma' : /matem/i.test(datos.categoria) ? 'calculadora' : 'computo',
-      tono: TONOS[propios % 3], actualizado: currentDateTimeIso(), codigo: this.generateCode(datos.nombre),
-    });
+  // ---------- Catálogo ----------
+  // Cursos públicos de la academia, con el estado de inscripción de quien mira
+  getCatalog(_espacioId?: number, _usuarioId?: number): Observable<CursoPublico[]> {
+    const espacioId = this.session.activeSpace()?.id ?? 0;
+    return this.http.get<CursoPublicoApi[]>(`${this.academyUrl()}/catalogo`).pipe(
+      map((cursos) =>
+        cursos
+          .map(({ docente, unidades, temas, estudiantes, estado, esMio: _esMio, ...curso }) => ({
+            aula: { ...curso, espacioId, tipo: 'curso' as const, docenteId: 0, paraleloId: 0, materiaId: 0, actualizado: '', codigo: '' },
+            docente,
+            unidades,
+            temas,
+            estudiantes,
+            estado: ESTADO[estado],
+          }))
+          .sort((a, b) => a.aula.nombre.localeCompare(b.aula.nombre)),
+      ),
+    );
   }
 
-  updateCourse(aulaId: number, datos: DatosCurso): Observable<Aula> {
-    const aula = this.aulasRepo.readNow((a) => a.id === aulaId)[0];
-    if (!aula) return throwError(() => new Error('El curso ya no existe.'));
-    const error = this.validateCourse(datos);
-    if (error) return throwError(() => new Error(error));
-    return this.aulasRepo.save({ ...aula, ...datos, nombre: datos.nombre.trim(), descripcion: datos.descripcion.trim() });
-  }
-
-  regenerateCode(aulaId: number): Observable<string> {
-    const aula = this.aulasRepo.readNow((a) => a.id === aulaId)[0];
-    if (!aula) return throwError(() => new Error('El curso ya no existe.'));
-    aula.codigo = this.generateCode(aula.nombre);
-    return of(aula.codigo).pipe(delay(MOCK_DELAY));
-  }
-
-  // ---------- Invitación y catálogo ----------
-  getCourseByCode(codigo: string, usuarioId: number | null): Observable<(CursoPublico & { espacio: Space }) | null> {
-    const aula = this.aulasRepo.readNow((a) => a.tipo === 'curso' && a.codigo.toLowerCase() === codigo.trim().toLowerCase())[0];
-    const espacio = aula ? MOCK_ESPACIOS.find((e) => e.id === aula.espacioId) : undefined;
-    return of(aula && espacio ? { ...this.toPublicCourse(aula, usuarioId), espacio } : null).pipe(delay(MOCK_DELAY));
-  }
-
-  // Cursos públicos del espacio, con el estado de inscripción de quien mira
-  getCatalog(espacioId: number, usuarioId: number): Observable<CursoPublico[]> {
-    const lista = this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.visibilidad === 'publico').map((a) => this.toPublicCourse(a, usuarioId));
-    return of(lista.sort((a, b) => a.aula.nombre.localeCompare(b.aula.nombre))).pipe(delay(MOCK_DELAY));
-  }
-
-  // Inscribe al usuario (o deja la solicitud pendiente si el curso pide aprobación) y lo suma al espacio
-  enroll(aulaId: number, usuarioId: number): Observable<'ACTIVA' | 'PENDIENTE'> {
-    const aula = this.aulasRepo.readNow((a) => a.id === aulaId && a.tipo === 'curso')[0];
-    if (!aula) return throwError(() => new Error('El curso ya no existe.'));
-    if (aula.docenteId === usuarioId) return throwError(() => new Error('Eres el docente de este curso.'));
-    const previa = MOCK_INSCRIPCIONES.find((i) => i.cursoId === cursoIdDe(aulaId) && i.usuarioId === usuarioId && i.estadoInscripcion !== 'BAJA');
-    if (previa?.estadoInscripcion === 'ACTIVA') return throwError(() => new Error('Ya estás inscrito en este curso.'));
-    if (previa?.estadoInscripcion === 'PENDIENTE') return throwError(() => new Error('Tu solicitud ya está pendiente de aprobación.'));
-    const estado = aula.aprobacionManual ? 'PENDIENTE' : 'ACTIVA';
-    const perfil = MOCK_PERFILES.find((p) => p.idUsuario === usuarioId);
-    if (previa) {
-      previa.estadoInscripcion = estado;
-      previa.fechaInscripcion = todayIso();
-    } else {
-      MOCK_INSCRIPCIONES.push({
-        idInscripcion: Math.max(0, ...MOCK_INSCRIPCIONES.map((i) => i.idInscripcion)) + 1, fechaInscripcion: todayIso(), estadoInscripcion: estado,
-        usuarioId, usuarioNombre: perfil ? `${perfil.nombre} ${perfil.primerApellido}` : `Usuario ${usuarioId}`, usuarioGmail: perfil?.gmail ?? '',
-        cursoId: cursoIdDe(aulaId), cursoNombre: aula.nombre, usuarioCreadorId: aula.docenteId, cursoDescripcion: aula.descripcion, cursoPortadaUrl: aula.portada || null,
-      });
-    }
-    if (!MOCK_MEMBRESIAS.some((m) => m.usuarioId === usuarioId && m.espacioId === aula.espacioId)) {
-      MOCK_MEMBRESIAS.push({ usuarioId, espacioId: aula.espacioId, rol: 'estudiante' });
-    }
-    return of(estado as 'ACTIVA' | 'PENDIENTE').pipe(delay(MOCK_DELAY));
+  // Inscribe a quien mira (o deja la solicitud pendiente si el curso pide aprobación)
+  enroll(aulaId: number, _usuarioId?: number): Observable<'ACTIVA' | 'PENDIENTE'> {
+    return this.http
+      .post<{ estado: 'activa' | 'pendiente' }>(`${this.academyUrl()}/cursos/${aulaId}/inscripcion`, {})
+      .pipe(map((r) => (r.estado === 'activa' ? 'ACTIVA' : 'PENDIENTE')));
   }
 
   // ---------- Solicitudes y estudiantes (docente) ----------
@@ -150,42 +107,5 @@ export class AcademyService {
     const slug = this.session.activeSpace()?.slug;
     if (!slug) throw new Error('Selecciona una academia.');
     return `${environment.API_URL}/espacios/${encodeURIComponent(slug)}`;
-  }
-
-  private getTeacherCourses(espacioId: number, docenteId: number): Aula[] {
-    return this.aulasRepo.readNow((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.docenteId === docenteId);
-  }
-
-  private toPublicCourse(aula: Aula, usuarioId: number | null): CursoPublico {
-    const unidades = MOCK_UNIDADES.filter((u) => u.aulaId === aula.id && u.publicada);
-    const ids = new Set(unidades.map((u) => u.id));
-    const inscripciones = MOCK_INSCRIPCIONES.filter((i) => i.cursoId === cursoIdDe(aula.id));
-    const mia = usuarioId ? inscripciones.find((i) => i.usuarioId === usuarioId && i.estadoInscripcion !== 'BAJA') : undefined;
-    return {
-      aula: structuredClone(aula),
-      docente: MOCK_DOCENTES.find((d) => d.id === aula.docenteId)?.nombre ?? 'Docente',
-      unidades: unidades.length,
-      temas: MOCK_TEMAS_AULA.filter((t) => ids.has(t.unidadId) && t.publicado).length,
-      estudiantes: inscripciones.filter((i) => i.estadoInscripcion === 'ACTIVA').length,
-      estado: (mia?.estadoInscripcion as EstadoInscripcion | undefined) ?? 'ninguna',
-    };
-  }
-
-  private validateCourse(d: DatosCurso): string | null {
-    if (!d.nombre.trim()) return 'Ponle un nombre al curso.';
-    if (d.nombre.trim().length > 80) return 'El nombre puede tener hasta 80 caracteres.';
-    if (!d.categoria) return 'Elige una categoría.';
-    if (d.portada.length > 800 * 1024 * 1.37) return 'La portada debe pesar menos de 800 KB.';
-    return null;
-  }
-
-  private generateCode(nombre: string): string {
-    const prefijo = (nombre.normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3) || 'CUR').toUpperCase();
-    const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let codigo = '';
-    do {
-      codigo = `${prefijo}-${Array.from({ length: 4 }, () => letras[Math.floor(Math.random() * letras.length)]).join('')}`;
-    } while (this.aulasRepo.readNow((a) => a.codigo === codigo).length);
-    return codigo;
   }
 }

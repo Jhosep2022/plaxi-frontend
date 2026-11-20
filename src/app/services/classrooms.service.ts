@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { FileUploadService } from '../core/api/file-upload.service';
 import { AcademyCourseApiService } from '../core/api/academy-course-api.service';
 import { environment } from '../../environments/environment';
 import { SessionService } from '../core/auth/session.service';
@@ -46,6 +47,7 @@ export interface ProgresoEstudiante {
 }
 
 export const PORTADA_MAX_KB = 800;
+export const PDF_TEMA_MAX_MB = 20;
 
 // Aulas virtuales (clases del colegio y cursos de academia) y su contenido: unidades, temas y progreso.
 // El servidor decide qué ve cada rol: el docente todo (con borradores); el estudiante y el padre, lo publicado.
@@ -54,6 +56,7 @@ export class ClassroomsService {
   private http = inject(HttpClient);
   private api = inject(AcademyCourseApiService);
   private session = inject(SessionService);
+  private archivos = inject(FileUploadService);
 
   private get base(): string {
     return `${environment.API_URL}/espacios/${encodeURIComponent(this.session.activeSpace()!.slug)}`;
@@ -98,7 +101,7 @@ export class ClassroomsService {
       map((unidades) =>
         unidades.map((u) => ({
           ...u,
-          temas: u.temas.map((t) => ({ ...t, contenido: t.contenido ?? '', url: t.url ?? '', publicado: t.publicado ?? true })),
+          temas: u.temas.map((t) => ({ ...t, contenido: t.contenido ?? '', url: t.url ?? '', archivoId: t.archivoId ?? null, publicado: t.publicado ?? true })),
         })),
       ),
     );
@@ -142,13 +145,35 @@ export class ClassroomsService {
     return this.http.post(`${this.base}/unidades/${unidad.id}/mover`, { direccion }).pipe(map(() => undefined));
   }
 
-  guardarTema(tema: Omit<Tema, 'id' | 'orden'> & { id?: number }): Observable<Tema> {
+  // Guarda el tema. Un PDF se sube después de crear el tema (el archivo va unido a él) y, si el docente
+  // lo quería publicado, se publica recién cuando el PDF ya está: el estudiante nunca ve un PDF vacío.
+  guardarTema(tema: Omit<Tema, 'id' | 'orden' | 'archivoId'> & { id?: number; archivoId?: number | null }, pdf?: File | null): Observable<Tema> {
     if (!tema.titulo.trim()) return throwError(() => new Error('Ponle un título al tema.'));
-    if (tema.tipo !== 'texto' && !tema.url.trim()) return throwError(() => new Error(tema.tipo === 'pdf' ? 'Adjunta el documento.' : 'Indica el enlace del recurso.'));
-    const cuerpo = { titulo: tema.titulo.trim(), tipo: tema.tipo, contenido: tema.contenido, url: tema.url.trim(), duracionMin: tema.duracionMin, publicado: tema.publicado };
-    return tema.id
-      ? this.http.put<Tema>(`${this.base}/temas/${tema.id}`, { ...cuerpo, unidadId: tema.unidadId })
-      : this.http.post<Tema>(`${this.base}/unidades/${tema.unidadId}/temas`, cuerpo);
+    const esPdf = tema.tipo === 'pdf';
+    if (!esPdf && tema.tipo !== 'texto' && !tema.url.trim()) return throwError(() => new Error('Indica el enlace del recurso.'));
+    if (esPdf && !pdf && !tema.archivoId) return throwError(() => new Error('Sube el documento PDF.'));
+    if (pdf && pdf.type !== 'application/pdf') return throwError(() => new Error('El documento debe ser un PDF.'));
+    if (pdf && pdf.size > PDF_TEMA_MAX_MB * 1024 * 1024) return throwError(() => new Error(`El PDF debe pesar menos de ${PDF_TEMA_MAX_MB} MB.`));
+    const cuerpo = (publicado: boolean) => ({
+      titulo: tema.titulo.trim(), tipo: tema.tipo, contenido: tema.contenido, url: esPdf ? '' : tema.url.trim(), duracionMin: tema.duracionMin, publicado, unidadId: tema.unidadId,
+    });
+    const guardado$ = tema.id
+      ? this.http.put<Tema>(`${this.base}/temas/${tema.id}`, cuerpo(tema.publicado))
+      : this.http.post<Tema>(`${this.base}/unidades/${tema.unidadId}/temas`, cuerpo(tema.publicado));
+    if (!esPdf || !pdf) return guardado$;
+    return guardado$.pipe(
+      switchMap((guardado) =>
+        this.archivos.upload('tema', pdf, guardado.id).pipe(
+          switchMap((archivoId) => this.archivos.link(archivoId)),
+          switchMap(() => (tema.publicado ? this.http.put<Tema>(`${this.base}/temas/${guardado.id}`, cuerpo(true)) : of(guardado))),
+        ),
+      ),
+    );
+  }
+
+  // Enlace temporal para ver el PDF de un tema
+  enlacePdf(archivoId: number): Observable<string> {
+    return this.archivos.downloadUrl(archivoId);
   }
 
   eliminarTema(tema: Pick<Tema, 'id'>): Observable<void> {

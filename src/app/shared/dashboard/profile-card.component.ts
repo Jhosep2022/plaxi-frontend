@@ -1,4 +1,6 @@
 import { Component, computed, input } from '@angular/core';
+import { Tooltip } from 'primeng/tooltip';
+import { porcentajeAvance } from '../../core/utils/weekly-progress';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faClock, faStar, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { EstadoDia, ResumenPerfil } from './dashboard.models';
@@ -14,13 +16,13 @@ const ESTADO_LABEL: Record<EstadoDia, string> = {
 // Perfil del usuario con su semana (marcaciones, racha de estudio…)
 @Component({
   selector: 'app-profile-card',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, Tooltip],
   styles: `
     :host { display: flex; flex-direction: column; gap: 14px; }
     .persona { display: flex; align-items: center; gap: 12px; }
     .anillo {
       width: 54px; height: 54px; display: grid; place-items: center; flex-shrink: 0; border-radius: 50%;
-      background: conic-gradient(var(--lime-green) 0 75%, var(--line) 75% 100%);
+      background: conic-gradient(var(--lime-green) 0 var(--avance), var(--line) var(--avance) 100%);
     }
     .foto {
       width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; overflow: hidden;
@@ -52,7 +54,7 @@ const ESTADO_LABEL: Record<EstadoDia, string> = {
   `,
   template: `
     <div class="persona">
-      <span class="anillo">
+      <span class="anillo" [style.--avance]="porcentaje() + '%'" [pTooltip]="tooltip()" tooltipPosition="bottom" tabindex="0" [attr.aria-label]="tooltip()">
         <span class="foto">
           @if (data().imagenUrl; as url) {
             <img [src]="url" alt="" />
@@ -94,6 +96,13 @@ export class ProfileCardComponent {
   readonly iniciales = computed(() =>
     this.data().nombre.split(' ').map((p) => p.charAt(0)).join('').slice(0, 2).toUpperCase()
   );
+
+  // Qué parte de los pendientes de la semana ya hizo la persona
+  readonly porcentaje = computed(() => porcentajeAvance(this.data().avance));
+  readonly tooltip = computed(() => {
+    const a = this.data().avance;
+    return a ? `${a.texto}. Llevas ${this.porcentaje()} % de tus pendientes de esta semana.` : 'No tienes pendientes esta semana.';
+  });
 
   readonly estadoLabel = ESTADO_LABEL;
   readonly faStar = faStar;

@@ -54,7 +54,8 @@ export interface Tema {
   titulo: string;
   tipo: TipoTema;
   contenido: string; // texto de la lectura o descripción del recurso
-  url: string; // video, PDF (nombre del archivo) o enlace
+  url: string; // enlace del video o del recurso ('' en lecturas y PDF)
+  archivoId: number | null; // PDF subido (el PDF solo se sube; sin archivo queda en borrador)
   duracionMin: number;
   orden: number;
   publicado: boolean;

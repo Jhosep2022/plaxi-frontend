@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, signal, untracked } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
@@ -48,6 +49,7 @@ export class StudentClassroomComponent {
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
   private quizService = inject(QuizService);
+  private sanitizer = inject(DomSanitizer);
 
   readonly aulaId = input.required<string>();
 
@@ -111,6 +113,20 @@ export class StudentClassroomComponent {
   readonly unidadDelTema = computed(() => this.unidades().find((u) => u.temas.some((t) => t.id === this.temaId())) ?? null);
 
   readonly pestana = signal<Pestana>('contenido');
+
+  // PDF del tema abierto: la API da un enlace temporal y se muestra dentro de la página
+  readonly pdf = rxResource({
+    params: () => {
+      const t = this.tema();
+      return t?.tipo === 'pdf' && t.archivoId ? t.archivoId : undefined;
+    },
+    stream: ({ params }) => this.aulas.enlacePdf(params).pipe(map((url) => ({ url, seguro: this.sanitizer.bypassSecurityTrustResourceUrl(url) as SafeResourceUrl }))),
+  });
+
+  abrirPdf(): void {
+    const url = this.pdf.value()?.url;
+    if (url) window.open(url, '_blank', 'noopener');
+  }
 
   // ---------- Quiz ----------
   readonly fechaCortaQuiz = formatShortDate;

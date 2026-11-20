@@ -1,15 +1,13 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+import { SessionService } from '../core/auth/session.service';
 import { MINUTOS_ANTES } from '../core/models/sessions.model';
-import type { AsistenciaSesion, EstadoSesion, Sesion } from '../core/models/sessions.model';
+import type { EstadoSesion, Sesion } from '../core/models/sessions.model';
 import { toTime, toMinutes } from '../core/utils/workday';
-import { calculatePercentage } from '../core/utils/reports';
 import { currentDateTimeIso } from '../core/utils/assignments';
-import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
-import { MOCK_DELAY, MOCK_INSCRIPCIONES } from '../mocks/mock-data';
-import { MOCK_ASISTENCIA_SESIONES, MOCK_SESIONES } from '../mocks/sessions.mock';
-import { MockRepository } from './mock-repository';
 
 export interface SesionVista extends Sesion {
   curso: string;
@@ -20,7 +18,7 @@ export interface SesionVista extends Sesion {
 }
 
 export interface AsistenteSesion {
-  estudianteId: number;
+  estudianteId: number; // cuenta del estudiante
   nombre: string;
   presente: boolean;
   unidoEl: string;
@@ -43,112 +41,76 @@ export function estadoSesion(s: Pick<Sesion, 'fecha' | 'inicio' | 'fin'>): Estad
   return ahora >= apertura ? 'en-curso' : 'proxima';
 }
 
-const nombreDe = (id: number) => MOCK_INSCRIPCIONES.find((i) => i.usuarioId === id)?.usuarioNombre ?? `Estudiante ${id}`;
+type SesionApi = Omit<SesionVista, 'descripcion' | 'grabacion'> & { descripcion: string | null; grabacion: string | null };
 
-// Sesiones en vivo de los cursos de academia y su asistencia.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
+const vista = (s: SesionApi): SesionVista => ({ ...s, descripcion: s.descripcion ?? '', grabacion: s.grabacion ?? '' });
+
+// Sesiones en vivo de los cursos de academia y su asistencia. El servidor guarda la asistencia al unirse
+// y al estudiante le da el enlace de la reunión solo en ese momento.
 @Injectable({ providedIn: 'root' })
 export class SessionsService {
-  private sesionesRepo = new MockRepository<Sesion>(MOCK_SESIONES);
-  private asistenciaRepo = new MockRepository<AsistenciaSesion>(MOCK_ASISTENCIA_SESIONES);
+  private readonly http = inject(HttpClient);
+  private readonly session = inject(SessionService);
 
-  sesionesDocente(espacioId: number, docenteId: number): Observable<SesionVista[]> {
-    const cursos = MOCK_AULAS_VIRTUALES.filter((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.docenteId === docenteId).map((a) => a.id);
-    return this.responder(this.sesionesRepo.readNow((s) => cursos.includes(s.aulaId)).map((s) => this.vista(s, null)));
+  private get base(): string {
+    return `${environment.API_URL}/espacios/${encodeURIComponent(this.session.activeSpace()!.slug)}`;
   }
 
-  sesionesEstudiante(espacioId: number, estudianteId: number): Observable<SesionVista[]> {
-    const cursos = MOCK_AULAS_VIRTUALES.filter((a) => a.espacioId === espacioId && a.tipo === 'curso' && estudiantesDeAula(a).includes(estudianteId)).map((a) => a.id);
-    return this.responder(this.sesionesRepo.readNow((s) => cursos.includes(s.aulaId)).map((s) => this.vista(s, estudianteId)));
+  sesionesDocente(_espacioId?: number, _docenteId?: number): Observable<SesionVista[]> {
+    return this.http.get<SesionApi[]>(`${this.base}/sesiones`, { params: { rol: 'docente' } }).pipe(map((l) => l.map(vista)));
+  }
+
+  sesionesEstudiante(_espacioId?: number, _estudianteId?: number): Observable<SesionVista[]> {
+    return this.http.get<SesionApi[]>(`${this.base}/sesiones`, { params: { rol: 'estudiante' } }).pipe(map((l) => l.map(vista)));
   }
 
   guardar(borrador: BorradorSesion): Observable<Sesion> {
     if (!borrador.titulo.trim()) return throwError(() => new Error('Ponle un título a la sesión.'));
-    if (!/^https?:\/\/\S+\.\S+/.test(borrador.enlace.trim())) return throwError(() => new Error('Pega el enlace de la reunión (empieza con https://).'));
     if (toMinutes(borrador.fin) <= toMinutes(borrador.inicio)) return throwError(() => new Error('La hora de fin debe ser posterior a la de inicio.'));
-    if (!borrador.id && `${borrador.fecha}T${borrador.fin}` < currentDateTimeIso().slice(0, 16)) return throwError(() => new Error('No se puede programar una sesión en el pasado.'));
-    const previa = borrador.id ? this.sesionesRepo.readNow((s) => s.id === borrador.id)[0] : undefined;
-    return this.sesionesRepo.save({ ...borrador, titulo: borrador.titulo.trim(), enlace: borrador.enlace.trim(), grabacion: previa?.grabacion ?? '' });
+    const { id, aulaId, ...datos } = borrador;
+    const cuerpo = { ...datos, titulo: datos.titulo.trim(), enlace: datos.enlace.trim(), descripcion: datos.descripcion ?? '' };
+    return id ? this.http.put<Sesion>(`${this.base}/sesiones/${id}`, cuerpo) : this.http.post<Sesion>(`${this.base}/cursos/${aulaId}/sesiones`, cuerpo);
   }
 
   eliminar(sesionId: number): Observable<void> {
-    for (const a of this.asistenciaRepo.readNow((x) => x.sesionId === sesionId)) this.asistenciaRepo.delete(a.id);
-    return this.sesionesRepo.delete(sesionId);
+    return this.http.delete(`${this.base}/sesiones/${sesionId}`).pipe(map(() => undefined));
   }
 
   guardarGrabacion(sesionId: number, enlace: string): Observable<Sesion> {
-    const s = this.sesionesRepo.readNow((x) => x.id === sesionId)[0];
-    if (!s) return throwError(() => new Error('La sesión ya no existe.'));
-    if (enlace && !/^https?:\/\/\S+/.test(enlace.trim())) return throwError(() => new Error('El enlace de la grabación debe empezar con https://.'));
-    return this.sesionesRepo.save({ ...s, grabacion: enlace.trim() });
+    return this.http.put<Sesion>(`${this.base}/sesiones/${sesionId}/grabacion`, { grabacion: enlace.trim() });
   }
 
   // El estudiante entra a la sesión: queda registrada su asistencia y recibe el enlace
-  unirse(sesionId: number, estudianteId: number): Observable<string> {
-    const s = this.sesionesRepo.readNow((x) => x.id === sesionId)[0];
-    if (!s) return throwError(() => new Error('La sesión ya no existe.'));
-    const estado = estadoSesion(s);
-    if (estado === 'proxima') return throwError(() => new Error(`La sesión abre ${MINUTOS_ANTES} minutos antes de empezar.`));
-    if (estado === 'finalizada') return throwError(() => new Error('La sesión ya terminó.'));
-    if (!this.asistenciaRepo.readNow((a) => a.sesionId === sesionId && a.estudianteId === estudianteId).length) {
-      this.asistenciaRepo.save({ sesionId, estudianteId, unidoEl: currentDateTimeIso() });
-    }
-    return of(s.enlace).pipe(delay(MOCK_DELAY));
+  unirse(sesionId: number, _estudianteId?: number): Observable<string> {
+    return this.http.post<{ enlace: string }>(`${this.base}/sesiones/${sesionId}/unirme`, {}).pipe(map((r) => r.enlace));
   }
 
   asistentes(sesionId: number): Observable<AsistenteSesion[]> {
-    const s = this.sesionesRepo.readNow((x) => x.id === sesionId)[0];
-    const aula = s ? MOCK_AULAS_VIRTUALES.find((a) => a.id === s.aulaId) : undefined;
-    const registros = this.asistenciaRepo.readNow((a) => a.sesionId === sesionId);
-    const lista = (aula ? estudiantesDeAula(aula) : []).map((id) => {
-      const r = registros.find((x) => x.estudianteId === id);
-      return { estudianteId: id, nombre: nombreDe(id), presente: !!r, unidoEl: r?.unidoEl ?? '' };
-    });
-    return this.responder(lista.sort((a, b) => a.nombre.localeCompare(b.nombre)));
+    return this.http
+      .get<{ usuarioId: number; nombre: string; presente: boolean; unidoEl: string | null }[]>(`${this.base}/sesiones/${sesionId}/asistentes`)
+      .pipe(map((l) => l.map((a) => ({ estudianteId: a.usuarioId, nombre: a.nombre, presente: a.presente, unidoEl: a.unidoEl ?? '' }))));
   }
 
   // El docente corrige la asistencia a mano
   marcar(sesionId: number, estudianteId: number, presente: boolean): Observable<void> {
-    const previo = this.asistenciaRepo.readNow((a) => a.sesionId === sesionId && a.estudianteId === estudianteId)[0];
-    if (presente && !previo) this.asistenciaRepo.save({ sesionId, estudianteId, unidoEl: currentDateTimeIso() });
-    if (!presente && previo) this.asistenciaRepo.delete(previo.id);
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.put(`${this.base}/sesiones/${sesionId}/asistentes/${estudianteId}`, { presente }).pipe(map(() => undefined));
   }
 
   // Asistencia de cada curso: sesiones finalizadas × estudiantes
-  resumenAsistencia(espacioId: number, docenteId: number): Observable<ResumenAsistenciaCurso[]> {
-    const cursos = MOCK_AULAS_VIRTUALES.filter((a) => a.espacioId === espacioId && a.tipo === 'curso' && a.docenteId === docenteId);
-    const resumen = cursos.map((aula) => {
-      const sesiones = this.sesionesRepo.readNow((s) => s.aulaId === aula.id).map((s) => this.vista(s, null)).filter((s) => s.estado === 'finalizada')
-        .sort((a, b) => `${a.fecha}${a.inicio}`.localeCompare(`${b.fecha}${b.inicio}`));
-      const ids = new Set(sesiones.map((s) => s.id));
-      return {
-        aulaId: aula.id,
-        curso: aula.nombre,
-        sesiones,
-        estudiantes: estudiantesDeAula(aula).map((id) => {
-          const presentes = new Set(this.asistenciaRepo.readNow((a) => a.estudianteId === id && ids.has(a.sesionId)).map((a) => a.sesionId));
-          return { estudianteId: id, nombre: nombreDe(id), presentes, porcentaje: calculatePercentage(presentes.size, sesiones.length) };
-        }).sort((a, b) => a.nombre.localeCompare(b.nombre)),
-      };
-    });
-    return this.responder(resumen);
-  }
-
-  private vista(s: Sesion, estudianteId: number | null): SesionVista {
-    const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === s.aulaId);
-    const registros = this.asistenciaRepo.readNow((a) => a.sesionId === s.id);
-    return {
-      ...structuredClone(s),
-      curso: aula?.nombre ?? '',
-      estado: estadoSesion(s),
-      asistentes: registros.length,
-      estudiantes: aula ? estudiantesDeAula(aula).length : 0,
-      asisti: estudianteId !== null && registros.some((r) => r.estudianteId === estudianteId),
-    };
-  }
-
-  private responder<T>(valor: T): Observable<T> {
-    return of(valor).pipe(delay(MOCK_DELAY));
+  resumenAsistencia(_espacioId?: number, _docenteId?: number): Observable<ResumenAsistenciaCurso[]> {
+    return this.http
+      .get<{ aulaId: number; curso: string; sesiones: SesionApi[]; estudiantes: { usuarioId: number; nombre: string; presentes: number[]; porcentaje: number }[] }[]>(
+        `${this.base}/asistencia-sesiones`,
+      )
+      .pipe(
+        map((cursos) =>
+          cursos.map((c) => ({
+            aulaId: c.aulaId,
+            curso: c.curso,
+            sesiones: c.sesiones.map(vista),
+            estudiantes: c.estudiantes.map((e) => ({ estudianteId: e.usuarioId, nombre: e.nombre, presentes: new Set(e.presentes), porcentaje: e.porcentaje })),
+          })),
+        ),
+      );
   }
 }

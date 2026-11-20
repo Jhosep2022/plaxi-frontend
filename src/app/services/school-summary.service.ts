@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { avanceDe, semanaDe } from '../core/utils/weekly-progress';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import {
   faBullhorn,
@@ -236,6 +237,18 @@ export class SchoolSummaryService {
               nombre: `${perfil.nombre} ${perfil.primerApellido}`,
               organizacion: espacio.nombre,
               insignia: 'Docente',
+              avance: avanceDe([
+                {
+                  hechos: tareas.reduce((n, t) => n + t.revisadas, 0),
+                  total: tareas.reduce((n, t) => n + t.revisadas + t.porRevisar, 0),
+                  texto: (h, t) => `Revisaste ${h} de ${t} entregas`,
+                },
+                {
+                  hechos: clases.reduce((n, c) => n + c.notasPeriodo.cargadas, 0),
+                  total: clases.reduce((n, c) => n + c.notasPeriodo.esperadas, 0),
+                  texto: (h, t) => `cargaste ${h} de ${t} notas del periodo`,
+                },
+              ]),
               imagenUrl: perfil.imagenUrl,
               semana: semanaDeMarcaciones(
                 marcaciones,
@@ -327,6 +340,7 @@ export class SchoolSummaryService {
             organizacion: s.curso,
             insignia:
               s.promedio !== null ? `Promedio ${s.promedio}` : 'Estudiante',
+            avance: avanceTareas(s.tareas, (h, t) => `Entregaste ${h} de ${t} tareas de esta semana`),
             imagenUrl: perfil.imagenUrl,
             semana: semanaDeAsistencia(
               s.registros,
@@ -441,6 +455,7 @@ export class SchoolSummaryService {
             organizacion: s.curso,
             insignia:
               s.promedio !== null ? `Promedio ${s.promedio}` : 'A mi cargo',
+            avance: avanceTareas(s.tareas, (h, t) => `${nombre} entregó ${h} de ${t} tareas de esta semana`),
             semana: semanaDeAsistencia(
               s.registros,
               `días que asistió ${nombre} esta semana`,
@@ -511,9 +526,9 @@ export class SchoolSummaryService {
     }).pipe(
       switchMap((d) =>
         (d.gestion
-          ? this.notasApi.getClosures()
-          : of([])
-        ).pipe(map((cierres) => ({ ...d, cierres }))),
+          ? forkJoin({ cierres: this.notasApi.getClosures(), carga: this.notasApi.progress().pipe(catchError(() => of([]))) })
+          : of({ cierres: [], carga: [] })
+        ).pipe(map((extra) => ({ ...d, ...extra }))),
       ),
       map(
         ({
@@ -526,7 +541,10 @@ export class SchoolSummaryService {
           gestion,
           enviados,
           cierres,
+          carga,
         }): ResumenData => {
+          const periodoActual = gestion ? periodoDeFecha(gestion, hoy) : 0;
+          const delPeriodo = carga.map((a) => a.periodos.find((p) => p.periodo === periodoActual));
           // Docentes que marcaron: hoy, o el último día con clases
           let fechaMarc = hoy;
           for (
@@ -746,6 +764,13 @@ export class SchoolSummaryService {
               nombre: `${perfil.nombre} ${perfil.primerApellido}`,
               organizacion: espacio.nombre,
               insignia: 'Dirección',
+              avance: avanceDe([
+                {
+                  hechos: delPeriodo.reduce((n, p) => n + (p?.notas ?? 0), 0),
+                  total: delPeriodo.reduce((n, p) => n + (p?.esperadas ?? 0), 0),
+                  texto: (h, t) => `El colegio lleva ${h} de ${t} notas del periodo cargadas`,
+                },
+              ]),
               imagenUrl: perfil.imagenUrl,
               semana,
             },
@@ -1161,4 +1186,13 @@ function conAccionEnLaPrimera(
   accion: NonNullable<ItemProximo['accion']>,
 ): ItemProximo[] {
   return items.map((item, i) => (i === 0 ? { ...item, accion } : item));
+}
+
+// Tareas que vencen esta semana: cuántas ya se entregaron (o el docente ya revisó)
+function avanceTareas(tareas: TareaDeEstudiante[], texto: (hechos: number, total: number) => string) {
+  const { desde, hasta } = semanaDe(todayIso());
+  const semana = tareas.filter((t) => t.tarea.entrega >= desde && t.tarea.entrega <= hasta);
+  return avanceDe([
+    { hechos: semana.filter((t) => t.estado === 'entregada' || t.estado === 'tarde' || t.estado === 'revisada').length, total: semana.length, texto },
+  ]);
 }

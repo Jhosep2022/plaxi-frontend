@@ -39,7 +39,8 @@
               <span class="ui-icono chico" [class]="t.tipo === 'video' ? 'tono-azul' : t.tipo === 'pdf' ? 'tono-crema' : 'tono-lima'"><fa-icon [icon]="iconoTema[t.tipo]" /></span>
               <span class="tema-texto">
                 <strong>{{ t.titulo }}</strong>
-                <small>{{ tipoLabel(t.tipo) }} · {{ t.duracionMin }} min@if (!t.publicado) { · borrador }</small>
+                <small>{{ tipoLabel(t.tipo) }} · {{ t.duracionMin }} min@if (!t.publicado && !faltaPdf(t)) { · borrador }</small>
+                @if (faltaPdf(t)) { <span class="ui-badge tono-crema falta-pdf" (click)="editarTema(t)">Falta subir el PDF: los estudiantes no lo ven</span> }
               </span>
               <span class="tema-acciones">
                 <button type="button" class="mini" [disabled]="tp" (click)="moverTema(t, -1)" aria-label="Subir tema"><fa-icon [icon]="faArrowUp" /></button>
@@ -123,9 +124,15 @@
       }
       @case ('pdf') {
         <div class="ui-campo">
-          <label for="tema-pdf">Documento</label>
-          <input id="tema-pdf" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx" class="ui-input archivo" (change)="elegirPdf($event)" />
-          @if (modeloTema().url) { <span class="ui-ayuda">Archivo: {{ modeloTema().url }}</span> }
+          <label for="tema-pdf">Documento PDF <span class="ui-ayuda">(hasta {{ pdfMaxMb }} MB)</span></label>
+          <input id="tema-pdf" type="file" accept="application/pdf,.pdf" class="ui-input archivo" (change)="elegirPdf($event)" />
+          @if (pdf(); as f) {
+            <span class="ui-ayuda">Se subirá al guardar: {{ f.name }}</span>
+          } @else if (editandoTema()?.archivoId) {
+            <span class="ui-ayuda">Ya tiene su PDF. <button type="button" class="enlace" (click)="verPdf(editandoTema()?.archivoId)">Verlo</button> · elige otro para reemplazarlo.</span>
+          } @else {
+            <span class="ui-ayuda">Sube el documento: sin él, el tema queda en borrador.</span>
+          }
         </div>
       }
     }

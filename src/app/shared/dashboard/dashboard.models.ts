@@ -1,3 +1,4 @@
+import type { AvancePendientes } from '../../core/utils/weekly-progress';
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 // Modelos genéricos del Resumen (dashboard). Los widgets solo conocen estos tipos;
@@ -60,6 +61,7 @@ export interface ResumenPerfil {
   organizacion: string;
   insignia: string;
   imagenUrl?: string;
+  avance?: AvancePendientes; // anillo del avatar: pendientes de la semana ya hechos (sin dato = completo)
   semana: {
     valor: number; // número grande: "4"
     texto: string; // "días puntual esta semana"

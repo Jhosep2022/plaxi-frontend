@@ -2,7 +2,6 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, catchError, map, of, tap } from 'rxjs';
-import { SpaceService } from '../../services/space.service';
 import { DEFAULT_GRADING_SCALE, Space, Membership, SpaceRole } from '../models/space.model';
 import { ApiSessionService } from '../api/api-session.service';
 import { AuthApiService, type ApiSessionResponse } from '../api/auth-api.service';
@@ -23,7 +22,6 @@ const LEGACY_ROLE: Record<SpaceRole, string> = { direccion: '1', estudiante: '2'
 export class SessionService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private spaceService = inject(SpaceService);
   private authApi = inject(AuthApiService);
   private apiSession = inject(ApiSessionService);
 
@@ -78,19 +76,6 @@ export class SessionService {
     writeStorage(USER_ID_STORAGE_KEY, String(response.usuario.id));
     writeStorage(LEGACY_USER_ID_STORAGE_KEY, String(response.usuario.id));
     writeStorage(MEMBERSHIPS_STORAGE_KEY, JSON.stringify(this.memberships()));
-  }
-
-  // Store the session after sign-in and load the user's memberships.
-  startSession(userId: number): Observable<Membership[]> {
-    return this.spaceService.getMemberships(userId).pipe(
-      tap((memberships) => {
-        this.userId.set(userId);
-        this.memberships.set(memberships);
-        writeStorage(USER_ID_STORAGE_KEY, String(userId));
-        writeStorage(LEGACY_USER_ID_STORAGE_KEY, String(userId));
-        writeStorage(MEMBERSHIPS_STORAGE_KEY, JSON.stringify(memberships));
-      })
-    );
   }
 
   signOut(): void {

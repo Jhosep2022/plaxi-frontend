@@ -1,5 +1,8 @@
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { firstValueFrom, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faEnvelope, faEye, faHourglassHalf, faMagnifyingGlass, faShieldHalved, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip } from 'primeng/tooltip';
@@ -8,9 +11,9 @@ import { AvatarComponent } from '../../shared/ui/avatar.component';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { NotificationService } from '../../shared/ui/notification.service';
-import { AdminService, spaceRoleLabel, type AdminUser } from './admin.service';
-
-type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
+import { spaceRoleLabel, type AdminUser } from './admin.service';
+import { AdminUsersApiService, type AdminUserFilter as UserFilter } from './admin-users-api.service';
+import { getErrorMessage } from '../management/academics/academics.ui';
 
 @Component({
   selector: 'app-admin-users',
@@ -57,6 +60,9 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
         <table class="ui-tabla">
           <thead><tr><th>Persona</th><th>Correo</th><th>Espacios y roles</th><th>Estado</th><th></th></tr></thead>
           <tbody>
+            @if (users.isLoading() && !users.value().length) {
+              <tr><td colspan="5" class="secundario">Cargando cuentas…</td></tr>
+            }
             @for (user of visible(); track user.id) {
               <tr [class.inactivo]="!user.active">
                 <td>
@@ -74,7 +80,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
                   @if (user.isAdmin) {
                     <span class="ui-badge tono-azul">Equipo de plataforma</span>
                   } @else {
-                    @let memberships = admin.spacesForUser(user.id);
+                    @let memberships = user.spaces;
                     <div class="chips">
                       @for (membership of memberships.slice(0, 2); track membership.name + membership.role) {
                         <span class="ui-badge" [pTooltip]="membership.name" tooltipPosition="top">{{ roleLabel(membership.role) }}</span>
@@ -103,6 +109,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
           </tbody>
         </table>
       </div>
+      <div class="paginas"><button type="button" class="ui-btn ui-btn--secundario" [disabled]="page() === 1" (click)="changePage(-1)">Anterior</button><span>Página {{ page() }}</span><button type="button" class="ui-btn ui-btn--secundario" [disabled]="users.value().length < 50" (click)="changePage(1)">Siguiente</button></div>
     </div>
 
     <app-drawer [abierto]="!!details()" [titulo]="details() ? details()!.firstName + ' ' + details()!.lastName : ''" [subtitulo]="details() ? '@' + details()!.username : ''" (cerrar)="selectedId.set(null)">
@@ -117,7 +124,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
           <section class="bloque">
             <h3>Espacios y roles</h3>
             <ul class="lista-roles">
-              @for (membership of admin.spacesForUser(user.id); track membership.name + membership.role) {
+              @for (membership of user.spaces; track membership.id + membership.role) {
                 <li><span>{{ membership.name }}</span><span class="ui-badge">{{ roleLabel(membership.role) }}</span></li>
               } @empty {
                 <li class="secundario">No pertenece a ningún espacio.</li>
@@ -129,7 +136,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
             <section class="bloque">
               <h3>Invitación</h3>
               <p>La persona todavía no eligió su contraseña. Puedes reenviarle el enlace.</p>
-              <button class="ui-btn ui-btn--secundario" type="button" (click)="sendInvitation()">Reenviar invitación</button>
+              <button class="ui-btn ui-btn--secundario" type="button" [disabled]="saving()" (click)="sendInvitation()">Reenviar invitación</button>
             </section>
           }
 
@@ -138,7 +145,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
             <p>{{ user.active ? 'Al desactivarla, la persona ya no puede iniciar sesión.' : 'Al reactivarla, la persona puede volver a iniciar sesión.' }} El motivo queda en el registro de acciones.</p>
             <input id="motivo-usuario" class="ui-input" [value]="reason()" (input)="reason.set($any($event.target).value)" placeholder="Motivo del cambio" aria-label="Motivo del cambio" />
             <div class="botones">
-              <button class="ui-btn" [class.ui-btn--peligro]="user.active" type="button" (click)="toggleActive(!user.active)">{{ user.active ? 'Desactivar cuenta' : 'Reactivar cuenta' }}</button>
+              <button class="ui-btn" [class.ui-btn--peligro]="user.active" type="button" [disabled]="saving()" (click)="toggleActive(!user.active)">{{ user.active ? 'Desactivar cuenta' : 'Reactivar cuenta' }}</button>
             </div>
           </section>
         } @else {
@@ -150,7 +157,7 @@ type UserFilter = 'all' | 'active' | 'pending' | 'inactive';
   styleUrl: './admin-pages.css',
 })
 export class AdminUsersComponent {
-  protected readonly admin = inject(AdminService);
+  private readonly api = inject(AdminUsersApiService);
   protected readonly roleLabel = spaceRoleLabel;
   private readonly notifications = inject(NotificationService);
 
@@ -170,35 +177,44 @@ export class AdminUsersComponent {
   ];
   protected readonly search = signal('');
   protected readonly filter = signal<UserFilter>('all');
+  // Al cambiar la búsqueda o la pestaña se vuelve a la primera página
+  protected readonly page = linkedSignal({ source: () => [this.search(), this.filter()], computation: () => 1 });
   protected readonly selectedId = signal<number | null>(null);
   protected readonly reason = signal('');
+  protected readonly saving = signal(false);
+
+  // Búsqueda, pestaña y páginas van al servidor (hay miles de cuentas); se espera un momento al escribir
+  protected readonly users = rxResource({
+    params: () => ({ search: this.search(), filter: this.filter(), page: this.page() }),
+    stream: ({ params }) => timer(params.search ? 300 : 0).pipe(switchMap(() => this.api.list(params.search, params.filter, params.page))),
+    defaultValue: [],
+  });
+  protected readonly counts = rxResource({
+    params: () => this.search(),
+    stream: ({ params }) => timer(params ? 300 : 0).pipe(switchMap(() => this.api.counts(params))),
+  });
+  protected readonly detail = rxResource({
+    params: () => this.selectedId() ?? undefined,
+    stream: ({ params }) => this.api.get(params),
+  });
 
   protected readonly count = computed(() => {
-    const users = this.admin.users();
-    return {
-      all: users.length,
-      active: users.filter((user) => user.active && !user.pending).length,
-      pending: users.filter((user) => user.pending).length,
-      team: users.filter((user) => user.isAdmin).length,
-    };
+    const c = this.counts.value();
+    return { all: c?.all ?? 0, active: c?.active ?? 0, pending: c?.pending ?? 0, team: c?.team ?? 0 };
   });
-  protected readonly visible = computed(() => {
-    const term = this.search().trim().toLowerCase();
-    return this.admin.users()
-      .filter((user) => this.matches(user, this.filter()))
-      .filter((user) => !term || [user.firstName, user.lastName, user.username, user.email].some((value) => value.toLowerCase().includes(term)));
-  });
-  protected readonly details = computed(() => this.admin.users().find((user) => user.id === this.selectedId()) ?? null);
+  protected readonly visible = computed(() => this.users.value());
+  protected readonly details = computed(() => (this.selectedId() ? this.detail.value() ?? this.users.value().find((u) => u.id === this.selectedId()) ?? null : null));
 
   countFor(filter: UserFilter): number {
-    return this.admin.users().filter((user) => this.matches(user, filter)).length;
+    const c = this.counts.value();
+    return c ? { all: c.all, active: c.active, pending: c.pending, inactive: c.inactive }[filter] : 0;
   }
 
   avatarOf(user: AdminUser): string {
     return defaultAvatar(user.id);
   }
 
-  restOf(memberships: { name: string; role: string }[]): string {
+  restOf(memberships: AdminUser['spaces']): string {
     return memberships.slice(2).map((membership) => `${membership.name} · ${spaceRoleLabel(membership.role)}`).join(', ');
   }
 
@@ -207,28 +223,45 @@ export class AdminUsersComponent {
     this.reason.set('');
   }
 
-  sendInvitation(): void {
-    const id = this.selectedId();
-    if (id && this.admin.resendInvitation(id)) this.notifications.success('Invitación simulada en esta demostración.');
+  changePage(delta: number): void {
+    this.page.update((page) => Math.max(1, page + delta));
+    this.selectedId.set(null);
   }
 
-  toggleActive(active: boolean): void {
+  async sendInvitation(): Promise<void> {
+    const id = this.selectedId();
+    if (!id) return;
+    this.saving.set(true);
+    try {
+      const { sent } = await firstValueFrom(this.api.sendInvitation(id));
+      if (sent) this.notifications.success('Invitación reenviada por correo.');
+      else this.notifications.error('No se pudo enviar el correo. Revisa la dirección e inténtalo de nuevo.');
+    } catch (error) {
+      this.notifications.error(getErrorMessage(error));
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  async toggleActive(active: boolean): Promise<void> {
     const id = this.selectedId();
     if (!id) return;
     if (!this.reason().trim()) {
       this.notifications.error('Escribe el motivo del cambio.');
       return;
     }
-    this.admin.changeUserActive(id, active, this.reason());
-    this.notifications.success('Cuenta actualizada.');
-  }
-
-  private matches(user: AdminUser, filter: UserFilter): boolean {
-    switch (filter) {
-      case 'active': return user.active && !user.pending;
-      case 'pending': return user.pending;
-      case 'inactive': return !user.active;
-      default: return true;
+    this.saving.set(true);
+    try {
+      await firstValueFrom(this.api.changeActive(id, active, this.reason()));
+      this.notifications.success(active ? 'Cuenta reactivada.' : 'Cuenta desactivada: se cerraron sus sesiones abiertas.');
+      this.reason.set('');
+      this.detail.reload();
+      this.users.reload();
+      this.counts.reload();
+    } catch (error) {
+      this.notifications.error(getErrorMessage(error));
+    } finally {
+      this.saving.set(false);
     }
   }
 }

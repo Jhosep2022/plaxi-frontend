@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
+import { avanceDe } from '../core/utils/weekly-progress';
 import { faCircleQuestion, faCompass, faFilm, faPlus, faStar, faUserCheck, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { Membership } from '../core/models/space.model';
 import { dayOfWeek, formatShortDate, todayIso, addDays } from '../core/utils/attendance';
@@ -80,6 +81,14 @@ export class AcademySummaryService {
             organizacion: espacio.nombre,
             insignia: 'Docente',
             imagenUrl: perfil.imagenUrl,
+            // Pendientes del docente: grabaciones de las sesiones que ya terminaron
+            avance: avanceDe([
+              {
+                hechos: sesiones.filter((s) => s.estado === 'finalizada' && s.grabacion).length,
+                total: sesiones.filter((s) => s.estado === 'finalizada').length,
+                texto: (h, t) => `Subiste ${h} de ${t} grabaciones de sesiones`,
+              },
+            ]),
             semana: semanaDeSesiones(sesiones, () => 'ok', 'sesiones dictadas esta semana'),
           },
           actividad: { titulo: 'Para hacer', verTodo: `${base}/estudiantes/solicitudes`, items: paraHacer.slice(0, 4) },
@@ -134,6 +143,14 @@ export class AcademySummaryService {
             organizacion: espacio.nombre,
             insignia: `${cursos.length} ${cursos.length === 1 ? 'curso' : 'cursos'}`,
             imagenUrl: perfil.imagenUrl,
+            // Pendientes del estudiante: los quiz publicados que ya respondió
+            avance: avanceDe([
+              {
+                hechos: quizzes.filter((q) => q.intentosHechos > 0).length,
+                total: quizzes.filter((q) => q.intentosHechos > 0 || !q.cerrado).length,
+                texto: (h, t) => `Respondiste ${h} de ${t} quiz`,
+              },
+            ]),
             semana: semanaDeSesiones(sesiones, (s) => (s.asisti ? 'ok' : 'falta'), 'sesiones a las que asististe esta semana'),
           },
           actividad: { titulo: 'Novedades', verTodo: `${base}/calificaciones`, items: novedades.slice(0, 4) },

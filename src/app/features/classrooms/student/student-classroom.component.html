@@ -81,7 +81,14 @@
                   }
                 }
                 @case ('pdf') {
-                  <div class="archivo"><fa-icon [icon]="iconoTema.pdf" /> <span>{{ t.url }}</span> <button type="button" class="ui-btn ui-btn--secundario" (click)="marcarVisto(t)"><fa-icon [icon]="faDownload" /> Descargar</button></div>
+                  @if (pdf.value(); as p) {
+                    <iframe class="pdf" [src]="p.seguro" [title]="t.titulo"></iframe>
+                    <div class="archivo"><fa-icon [icon]="iconoTema.pdf" /> <span>{{ t.titulo }}.pdf</span> <button type="button" class="ui-btn ui-btn--secundario" (click)="abrirPdf()"><fa-icon [icon]="faDownload" /> Abrir o descargar</button></div>
+                  } @else if (pdf.isLoading()) {
+                    <p class="ui-ayuda">Cargando el documento…</p>
+                  } @else {
+                    <p class="ui-aviso">No se pudo abrir el documento. Vuelve a intentarlo en un momento.</p>
+                  }
                 }
                 @case ('enlace') {
                   <a class="ui-btn recurso" [href]="t.url" target="_blank" rel="noopener"><fa-icon [icon]="faLink" /> Abrir el recurso</a>
