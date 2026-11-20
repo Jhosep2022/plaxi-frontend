@@ -42,6 +42,47 @@ export class PaymentsComponent {
   readonly space = computed(() => this.history.value()?.space);
   readonly coverageNeedsReview = computed(() => this.history.value()?.account?.payments.some(payment => payment.historical) ?? false);
   readonly labels = PAYMENT_LABELS;
+
+  // ---------- History: search, filters and pages ----------
+  // A school records tens of payments a year: they come whole from the API and are filtered here
+  readonly search = signal('');
+  readonly dateFrom = signal('');
+  readonly dateTo = signal('');
+  readonly amountMin = signal('');
+  readonly amountMax = signal('');
+  readonly onlyCurrent = signal(false);
+  readonly page = signal(1);
+  readonly pageSize = 20;
+  readonly filteredPayments = computed(() => {
+    const text = this.search().trim().toLowerCase().replace(/^#/, '');
+    const min = Number(this.amountMin()) || 0;
+    const max = Number(this.amountMax()) || Infinity;
+    return (this.history.value()?.payments ?? [])
+      .filter((p) => !this.onlyCurrent() || p.isCurrent)
+      .filter((p) => !this.dateFrom() || p.paidAt >= this.dateFrom())
+      .filter((p) => !this.dateTo() || p.paidAt <= this.dateTo())
+      .filter((p) => Number(p.amountBs) >= min && Number(p.amountBs) <= max)
+      .filter((p) => !text || String(p.id) === text || (p.reference ?? '').toLowerCase().includes(text) || (this.labels[p.concept] ?? p.concept).toLowerCase().includes(text))
+      .sort((a, b) => b.paidAt.localeCompare(a.paidAt) || b.id - a.id);
+  });
+  readonly pages = computed(() => Math.max(1, Math.ceil(this.filteredPayments().length / this.pageSize)));
+  readonly pagedPayments = computed(() => {
+    const page = Math.min(this.page(), this.pages());
+    return this.filteredPayments().slice((page - 1) * this.pageSize, page * this.pageSize);
+  });
+  readonly hasFilters = computed(() => !!(this.search() || this.dateFrom() || this.dateTo() || this.amountMin() || this.amountMax() || this.onlyCurrent()));
+  readonly filteredTotal = computed(() => this.filteredPayments().filter((p) => p.isCurrent).reduce((sum, p) => sum + Number(p.amountBs), 0));
+
+  setFilter(filter: 'search' | 'dateFrom' | 'dateTo' | 'amountMin' | 'amountMax', value: string): void {
+    this[filter].set(value);
+    this.page.set(1);
+  }
+
+  clearFilters(): void {
+    for (const filter of ['search', 'dateFrom', 'dateTo', 'amountMin', 'amountMax'] as const) this[filter].set('');
+    this.onlyCurrent.set(false);
+    this.page.set(1);
+  }
   readonly balancePanel = viewChild(PaymentBalanceComponent);
   readonly paymentBalances = computed(() => new Map((this.history.value()?.account?.payments ?? []).map(payment => [payment.paymentId, payment] as const)));
   readonly conceptOptions = computed(() => (this.space()?.type === 'academia'

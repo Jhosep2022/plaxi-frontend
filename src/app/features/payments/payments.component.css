@@ -12,3 +12,31 @@ td small { display: block; margin-top: 5px; max-width: 300px; overflow-wrap: any
 .gaps p { color: var(--muted); font-size: 14px; }
 .gaps .ui-badge { margin: 0 8px 6px 0; }
 @media (max-width: 480px) { .coverage { align-items: flex-start; } .coverage strong { font-size: 22px; } }
+
+/* Search and filters of the history */
+.history-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px 12px;
+  align-items: end;
+  margin: 12px 0 4px;
+}
+
+.history-current {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+}
+
+.history-count {
+  margin: 0 0 8px;
+}
+
+.history-pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}

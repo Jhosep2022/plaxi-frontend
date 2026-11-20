@@ -27,13 +27,25 @@
   }
   <section class="ui-card">
     <div class="history-heading"><h2>Historial de movimientos</h2><span class="ui-ayuda">Los originales se conservan cuando hay correcciones.</span></div>
+    @if (history.value()!.payments.length) {
+      <div class="history-filters" role="search" aria-label="Buscar en el historial">
+        <div class="ui-campo"><label for="hist-buscar">Buscar</label><input id="hist-buscar" class="ui-input" placeholder="N.° de pago, comprobante o concepto" [value]="search()" (input)="setFilter('search', $any($event.target).value)" /></div>
+        <div class="ui-campo"><label for="hist-desde">Pagado desde</label><input id="hist-desde" class="ui-input" type="date" [value]="dateFrom()" (input)="setFilter('dateFrom', $any($event.target).value)" /></div>
+        <div class="ui-campo"><label for="hist-hasta">Hasta</label><input id="hist-hasta" class="ui-input" type="date" [value]="dateTo()" (input)="setFilter('dateTo', $any($event.target).value)" /></div>
+        <div class="ui-campo"><label for="hist-min">Monto desde (Bs)</label><input id="hist-min" class="ui-input" inputmode="decimal" [value]="amountMin()" (input)="setFilter('amountMin', $any($event.target).value)" /></div>
+        <div class="ui-campo"><label for="hist-max">Monto hasta (Bs)</label><input id="hist-max" class="ui-input" inputmode="decimal" [value]="amountMax()" (input)="setFilter('amountMax', $any($event.target).value)" /></div>
+        <label class="history-current"><input type="checkbox" [checked]="onlyCurrent()" (change)="onlyCurrent.set($any($event.target).checked); page.set(1)" /> Solo vigentes</label>
+        @if (hasFilters()) { <button type="button" class="ui-btn ui-btn--secundario" (click)="clearFilters()">Limpiar</button> }
+      </div>
+      <p class="ui-ayuda history-count">{{ filteredPayments().length }} de {{ history.value()!.payments.length }} movimientos · vigentes en la búsqueda: {{ formatAmount(filteredTotal().toFixed(2)) }}</p>
+    }
     @if (!history.value()!.payments.length) {
       <app-empty-state titulo="Todavía no hay pagos registrados" texto="Aquí verás cada pago, su comprobante y las fechas que cubre." />
     } @else {
       <div class="ui-tabla-contenedor"><table class="ui-tabla">
         <thead><tr><th>Pago</th><th>{{ space()?.type === 'colegio' ? 'Gestión y aplicación' : 'Período del servicio' }}</th><th>Dinero recibido</th><th>Registro</th><th>Estado</th><th></th></tr></thead>
         <tbody>
-          @for (payment of history.value()!.payments; track payment.id) {
+          @for (payment of pagedPayments(); track payment.id) {
             <tr [class.superseded]="!payment.isCurrent">
               <td><strong>#{{ payment.id }} · {{ labels[payment.concept] || payment.concept }}</strong>@if (payment.reference) { <small>{{ payment.reference }}</small> }
                 <small>Pago del {{ formatDate(payment.paidAt) }}</small>
@@ -57,6 +69,14 @@
           }
         </tbody>
       </table></div>
+      @if (!filteredPayments().length) { <p class="ui-ayuda">Ningún movimiento coincide con la búsqueda.</p> }
+      @if (pages() > 1) {
+        <nav class="history-pages" aria-label="Páginas del historial">
+          <button type="button" class="ui-btn ui-btn--secundario" [disabled]="page() <= 1" (click)="page.set(page() - 1)">Anterior</button>
+          <span>Página {{ page() }} de {{ pages() }}</span>
+          <button type="button" class="ui-btn ui-btn--secundario" [disabled]="page() >= pages()" (click)="page.set(page() + 1)">Siguiente</button>
+        </nav>
+      }
     }
   </section>
 }
