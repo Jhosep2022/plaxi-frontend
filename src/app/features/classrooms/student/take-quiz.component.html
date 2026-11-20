@@ -13,7 +13,7 @@
         <dl class="datos">
           <div><dt>Preguntas</dt><dd>{{ q.preguntas }}</dd></div>
           <div><dt>Tiempo</dt><dd>{{ q.tiempoMin ? q.tiempoMin + ' min' : 'Sin límite' }}</dd></div>
-          <div><dt>Intentos</dt><dd>{{ q.intentosHechos }} de {{ q.intentos }}</dd></div>
+          <div><dt>Intentos</dt><dd>{{ q.intentos ? q.intentosHechos + ' de ' + q.intentos : q.intentosHechos + ' (sin límite)' }}</dd></div>
           <div><dt>{{ q.cerrado ? 'Cerró' : 'Cierra' }}</dt><dd>{{ formatShortDate(q.cierre) }}, {{ q.horaCierre }}</dd></div>
         </dl>
         @if (q.mejor; as m) {
@@ -21,7 +21,7 @@
         }
         @if (puedeResponder()) {
           @if (q.tiempoMin) { <p class="ui-aviso">Al comenzar empieza a correr el tiempo. Si se acaba, tus respuestas se envían solas.</p> }
-          <button type="button" class="ui-btn grande" (click)="comenzar()">{{ q.intentosHechos ? 'Intentar de nuevo' : 'Comenzar' }} <fa-icon [icon]="faArrowRight" /></button>
+          <button type="button" class="ui-btn grande" [disabled]="comenzando()" (click)="comenzar()">{{ q.enCurso ? 'Continuar' : q.intentosHechos ? 'Intentar de nuevo' : 'Comenzar' }} <fa-icon [icon]="faArrowRight" /></button>
         } @else {
           <p class="ui-aviso">{{ q.cerrado ? 'Este quiz ya cerró.' : 'Ya usaste todos tus intentos.' }}</p>
         }
@@ -91,10 +91,10 @@
             <span>{{ i.puntaje }} de {{ i.puntajeMax }} puntos</span>
           </div>
           <h1>{{ mensaje(i) }}</h1>
-          <p class="descripcion">{{ correctas(i) }} de {{ i.respuestas.length }} respuestas correctas.@if (q.actividadId) { Tu mejor puntaje ya está en tus calificaciones. }</p>
+          <p class="descripcion">{{ correctas(i) }} de {{ i.respuestas.length }} respuestas correctas.@if (i.nota?.guardada) { Tu mejor puntaje ya está en tus calificaciones. }</p>
           <div class="botones">
             <a class="ui-btn ui-btn--secundario" [routerLink]="rutaAula()">Volver al aula</a>
-            @if (puedeResponder()) { <button type="button" class="ui-btn" (click)="comenzar()"><fa-icon [icon]="faRotateRight" /> Intentar de nuevo ({{ q.intentosHechos }} de {{ q.intentos }})</button> }
+            @if (puedeResponder()) { <button type="button" class="ui-btn" (click)="comenzar()"><fa-icon [icon]="faRotateRight" /> Intentar de nuevo@if (q.intentos) { ({{ q.intentosHechos }} de {{ q.intentos }}) }</button> }
           </div>
         </section>
 
@@ -108,7 +108,7 @@
                     <span class="marca"><fa-icon [icon]="r.correcta ? faCheck : faXmark" /></span>
                     <div>
                       <strong>{{ p.enunciado }}</strong>
-                      <small>Tu respuesta: {{ textoRespuesta(p, r.valor) }}@if (!r.correcta) { · Correcta: {{ respuestaCorrecta(p) }} }</small>
+                      <small>Tu respuesta: {{ textoRespuesta(p, r.valor) }}@if (!r.correcta && correctaDe(i, p.id); as c) { · Correcta: {{ c }} }</small>
                     </div>
                   </li>
                 }

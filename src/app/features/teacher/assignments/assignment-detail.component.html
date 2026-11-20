@@ -39,8 +39,8 @@
           <tr><th>Estudiante</th><th>Estado</th><th>Entrega</th>@if (conNota()) { <th class="num">Nota /{{ t.notaMaxima }}</th> } @else { <th class="num">Revisada</th> }<th>Comentario</th></tr>
         </thead>
         <tbody>
-          @for (f of filas(); track f.estudiante.id) {
-            @let e = edicion(f.estudiante.id);
+          @for (f of filas(); track f.estudiante.usuarioId) {
+            @let e = edicion(f.estudiante.usuarioId);
             <tr>
               <td><span class="persona"><span class="avatar">{{ iniciales(f.estudiante.nombre) }}</span> <strong>{{ f.estudiante.nombre }}</strong></span></td>
               <td><span class="ui-badge" [class]="estados[f.estado].tono">{{ estados[f.estado].label }}</span></td>
@@ -48,7 +48,7 @@
                 @if (f.entrega?.entregadaEl) {
                   <small class="cuando"><fa-icon [icon]="faClock" /> {{ entregadaLabel(f) }}</small>
                   @if (f.entrega!.texto) { <span class="texto">{{ f.entrega!.texto }}</span> }
-                  @if (f.entrega!.archivo) { <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ f.entrega!.archivo }}</span> }
+                  @for (a of f.entrega!.archivos; track $index) { <button type="button" class="archivo enlace" [disabled]="!a.archivoId" (click)="abrirArchivo(a.archivoId)"><fa-icon [icon]="faPaperclip" /> {{ a.nombre }}</button> }
                 } @else {
                   <span class="sin">—</span>
                 }
@@ -56,14 +56,14 @@
               <td class="num">
                 @if (conNota()) {
                   <input class="nota" inputmode="numeric" [value]="e.nota" [disabled]="cerrado()" [class.invalida]="notaInvalida(e.nota)"
-                    (input)="cambiar(f.estudiante.id, { nota: $any($event.target).value.trim() })" [attr.aria-label]="'Nota de ' + f.estudiante.nombre" />
+                    (input)="cambiar(f.estudiante.usuarioId, { nota: $any($event.target).value.trim() })" [attr.aria-label]="'Nota de ' + f.estudiante.nombre" />
                 } @else {
-                  <input type="checkbox" [checked]="e.revisada" (change)="cambiar(f.estudiante.id, { revisada: $any($event.target).checked })" [attr.aria-label]="'Revisada: ' + f.estudiante.nombre" />
+                  <input type="checkbox" [checked]="e.revisada" (change)="cambiar(f.estudiante.usuarioId, { revisada: $any($event.target).checked })" [attr.aria-label]="'Revisada: ' + f.estudiante.nombre" />
                 }
               </td>
               <td>
                 <input class="ui-input comentario" placeholder="Comentario (opcional)" [value]="e.comentario"
-                  (input)="cambiar(f.estudiante.id, { comentario: $any($event.target).value })" [attr.aria-label]="'Comentario para ' + f.estudiante.nombre" />
+                  (input)="cambiar(f.estudiante.usuarioId, { comentario: $any($event.target).value })" [attr.aria-label]="'Comentario para ' + f.estudiante.nombre" />
               </td>
             </tr>
           } @empty {

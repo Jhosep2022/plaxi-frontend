@@ -2,6 +2,7 @@ import { Component, computed, inject, input, linkedSignal, signal, untracked } f
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faArrowLeft, faArrowRight, faBookOpen, faCheck, faCircleCheck, faCircleQuestion, faClock, faDownload, faLink, faListCheck, faLock, faPlay, faStar,
@@ -10,10 +11,11 @@ import { SessionService } from '../../../core/auth/session.service';
 import { ESTADO_ENTREGA } from '../../../core/models/assignments.model';
 import type { Tema } from '../../../core/models/classrooms.model';
 import { todayIso } from '../../../core/utils/attendance';
-import { calcularNota, indiceNotas, periodoDeFecha } from '../../../core/utils/grades';
+import { periodoDeFecha } from '../../../core/utils/grades';
 import { formatDueDate } from '../../../core/utils/assignments';
 import { ClassroomsService, UnidadConTemas } from '../../../services/classrooms.service';
-import { GradesService } from '../../../services/grades.service';
+import { GradesApiService } from '../../../services/grades-api.service';
+import { AcademicsService } from '../../../services/academics.service';
 import { AssignmentsService } from '../../../services/assignments.service';
 import { EstadoQuiz, QuizService } from '../../../services/quiz.service';
 import { formatShortDate } from '../../../core/utils/attendance';
@@ -42,7 +44,8 @@ export class StudentClassroomComponent {
   private session = inject(SessionService);
   private aulas = inject(ClassroomsService);
   private tareasService = inject(AssignmentsService);
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
+  private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
   private quizService = inject(QuizService);
 
@@ -66,7 +69,6 @@ export class StudentClassroomComponent {
   readonly faStar = faStar;
 
   private readonly espacio = this.session.activeSpace()!;
-  private readonly estudianteId = this.session.userId()!;
   private readonly id = computed(() => Number(this.aulaId()));
 
   // El aula (solo si el estudiante pertenece a ella), su contenido publicado y su avance
@@ -74,10 +76,10 @@ export class StudentClassroomComponent {
     params: () => this.id(),
     stream: ({ params }) =>
       forkJoin({
-        aulas: this.aulas.aulasEstudiante(this.espacio.id, this.estudianteId),
-        contenido: this.aulas.contenido(params, true),
-        vistos: this.aulas.progresoDe(params, this.estudianteId),
-        tareas: this.tareasService.tareasDeEstudiante(this.espacio.id, this.estudianteId),
+        aulas: this.aulas.aulasEstudiante(),
+        contenido: this.aulas.contenido(params),
+        vistos: this.aulas.progresoDe(params),
+        tareas: this.tareasService.tareasDeEstudiante(),
       }),
   });
   readonly aula = computed(() => this.datos.value()?.aulas.find((a) => a.id === this.id()) ?? null);
@@ -115,29 +117,47 @@ export class StudentClassroomComponent {
   readonly estadoQuiz: Record<EstadoQuiz, { label: string; tono: string }> = {
     pendiente: { label: 'Pendiente', tono: 'tono-crema' },
     realizado: { label: 'Realizado', tono: 'tono-lima' },
+    'en-curso': { label: 'En curso', tono: 'tono-azul' },
     agotado: { label: 'Realizado', tono: 'tono-lima' },
     cerrado: { label: 'Cerrado', tono: '' },
   };
-  readonly quizzes = rxResource({ params: () => this.id(), stream: ({ params }) => this.quizService.quizzesEstudiante(params, this.estudianteId), defaultValue: [] });
-  readonly quizPendientes = computed(() => this.quizzes.value().filter((q) => q.estado === 'pendiente').length);
+  readonly quizzes = rxResource({ params: () => this.id(), stream: ({ params }) => this.quizService.quizzesEstudiante(params), defaultValue: [] });
+  readonly quizPendientes = computed(() => this.quizzes.value().filter((q) => q.estado === 'pendiente' || q.estado === 'en-curso').length);
 
   readonly tareas = computed(() => {
     const a = this.aula();
     return (this.datos.value()?.tareas ?? []).filter((t) => t.tarea.aulaId === a?.id);
   });
 
-  // Nota de la materia en el periodo, por criterio (solo colegio)
+  // Nota de la materia en el periodo, por criterio (solo colegio): la calcula la API sobre la ficha del estudiante
   readonly notas = rxResource({
     params: () => this.aula(),
-    stream: ({ params }) => (params?.tipo === 'clase' ? this.calificaciones.getClassGroupData(this.espacio.id, params.paraleloId) : of(null)),
+    stream: ({ params }) =>
+      params?.tipo !== 'clase'
+        ? of(null)
+        : forkJoin({
+            notas: this.calificaciones.myRecords().pipe(
+              map((fichas) => fichas.find((f) => f.tipo === 'estudiante')?.id ?? null),
+              switchMap((id) => (id ? this.calificaciones.studentGrades(id) : of(null))),
+              catchError(() => of(null)),
+            ),
+            gestion: this.academico.getActiveAcademicYear(this.espacio.id),
+          }),
   });
   readonly resultado = computed(() => {
     const d = this.notas.value();
     const a = this.aula();
-    if (!d || !a) return null;
-    const indice = periodoDeFecha(d.gestion, todayIso());
-    const actividades = d.actividades.filter((x) => x.materiaId === a.materiaId && x.periodo === indice);
-    return { periodo: d.gestion.periodos[indice]?.nombre ?? '', config: d.config, ...calcularNota(d.config.criterios, actividades, indiceNotas(d.notas), this.estudianteId) };
+    if (!d?.notas || !a) return null;
+    const indice = d.gestion ? periodoDeFecha(d.gestion, todayIso()) : 0;
+    const materia = d.notas.materias.find((m) => m.materia.id === a.materiaId);
+    const p = materia?.periodos.find((x) => x.periodo === indice);
+    return {
+      periodo: d.notas.gestion.periodos[indice] ?? '',
+      config: d.notas.config,
+      final: p?.final ?? null,
+      completo: !!p?.cerrado, // hasta el cierre del periodo la nota es provisional
+      porCriterio: (p?.porCriterio ?? []).map((c) => ({ criterio: { id: c.criterioId, nombre: c.nombre, porcentaje: c.porcentaje }, promedio: c.promedio })),
+    };
   });
 
   espacioEsColegio(): boolean {
@@ -161,10 +181,13 @@ export class StudentClassroomComponent {
   async marcarVisto(t: Tema): Promise<void> {
     this.marcando.set(true);
     try {
-      await firstValueFrom(this.aulas.marcarVisto(t.id, this.estudianteId));
+      await firstValueFrom(this.aulas.marcarVisto(t.id));
       const antes = this.unidades().filter((u) => u.bloqueada).length;
       this.vistos.update((v) => new Set(v).add(t.id));
-      if (this.unidades().filter((u) => u.bloqueada).length < antes) this.avisos.success('¡Completaste la unidad! Se desbloqueó la siguiente.');
+      if (this.unidades().filter((u) => u.bloqueada).length < antes) {
+        this.avisos.success('¡Completaste la unidad! Se desbloqueó la siguiente.');
+        this.datos.reload(); // el servidor manda el contenido de la unidad que se abrió
+      }
     } finally {
       this.marcando.set(false);
     }

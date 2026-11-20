@@ -85,14 +85,14 @@ export class AcademyCourseApiService {
 
   list(role: 'docente' | 'estudiante'): Observable<AulaResumen[]> {
     const slug = this.session.activeSpace()?.slug;
-    if (!slug) throw new Error('Selecciona una academia para ver sus cursos.');
+    if (!slug) throw new Error('Elige un espacio para ver sus aulas.');
     return this.http.get<ApiCourseSummary[]>(`${environment.API_URL}/espacios/${encodeURIComponent(slug)}/aulas`, { params: { rol: role } })
       .pipe(map((courses) => courses.map((course) => asSummary(course, this.session.activeSpace()!.id, role === 'docente' ? this.session.userId()! : 0))));
   }
 
   detail(id: number): Observable<AulaResumen> {
     const slug = this.session.activeSpace()?.slug;
-    if (!slug) throw new Error('Selecciona una academia para ver el curso.');
+    if (!slug) throw new Error('Elige un espacio para ver el aula.');
     return this.http.get<ApiCourseSummary>(`${environment.API_URL}/espacios/${encodeURIComponent(slug)}/aulas/${id}`)
       .pipe(map((course) => asSummary(course, this.session.activeSpace()!.id, this.session.activeRole() === 'docente' ? this.session.userId()! : 0)));
   }

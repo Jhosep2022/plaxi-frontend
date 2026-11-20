@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { catchError } from 'rxjs/operators';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -9,7 +10,7 @@ import { TIPOS_PREGUNTA } from '../../../core/models/quiz.model';
 import type { TipoPregunta } from '../../../core/models/quiz.model';
 import { todayIso, addDays } from '../../../core/utils/attendance';
 import { ClassroomsService } from '../../../services/classrooms.service';
-import { GradesService } from '../../../services/grades.service';
+import { GradesApiService } from '../../../services/grades-api.service';
 import { BorradorPregunta, QuizService } from '../../../services/quiz.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -39,7 +40,7 @@ export class QuizEditorComponent {
   private router = inject(Router);
   private servicio = inject(QuizService);
   private aulas = inject(ClassroomsService);
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
   private avisos = inject(NotificationService);
 
   readonly asignacionId = input.required<string>();
@@ -65,7 +66,7 @@ export class QuizEditorComponent {
       forkJoin({
         aula: this.aulas.aula(params.aulaId),
         existente: params.quizId === 'nuevo' ? of(null) : this.servicio.quizConPreguntas(Number(params.quizId)),
-        config: this.calificaciones.getConfig(this.espacio.id),
+        config: this.espacio.tipo === 'colegio' ? this.calificaciones.getConfig().pipe(catchError(() => of(null))) : of(null),
       }),
   });
 
@@ -150,8 +151,6 @@ export class QuizEditorComponent {
     try {
       const existente = this.datos.value()?.existente?.quiz;
       await firstValueFrom(this.servicio.guardar(
-        this.espacio.id,
-        this.session.userId()!,
         { ...c, id: existente?.id, aulaId: Number(this.asignacionId()), tiempoMin: Number(c.tiempoMin) || 0, intentos: Math.max(1, Number(c.intentos) || 1), publicado: publicar || (existente?.publicado ?? false) },
         this.preguntas().map(({ clave: _clave, ...p }) => ({ ...p, puntos: Math.max(1, Number(p.puntos) || 1) })),
         Number(this.criterioId())

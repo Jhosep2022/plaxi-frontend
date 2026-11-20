@@ -173,3 +173,16 @@
   border-radius: 0 0 16px 16px;
   background: var(--text-light);
 }
+
+.archivo.enlace {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.archivo.enlace:hover:not(:disabled) {
+  text-decoration: underline;
+}

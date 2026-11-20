@@ -1,18 +1,10 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, firstValueFrom, from, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { esCorrecta } from '../core/models/quiz.model';
-import type { Intento, Pregunta, Quiz, Respuesta } from '../core/models/quiz.model';
-import { periodoDeFecha } from '../core/utils/grades';
-import { calculatePercentage } from '../core/utils/reports';
-import { currentDateTimeIso } from '../core/utils/assignments';
-import { MOCK_GESTIONES } from '../mocks/academics.mock';
-import { MOCK_AULAS_VIRTUALES, estudiantesDeAula } from '../mocks/classrooms.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
-import { MOCK_DELAY, MOCK_INSCRIPCIONES } from '../mocks/mock-data';
-import { MOCK_INTENTOS, MOCK_PREGUNTAS, MOCK_QUIZZES } from '../mocks/quiz.mock';
-import { GradesService } from './grades.service';
-import { MockRepository } from './mock-repository';
+import { Observable, throwError } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+import { SessionService } from '../core/auth/session.service';
+import type { Intento, Pregunta, PreguntaParaResponder, Quiz, Respuesta } from '../core/models/quiz.model';
 
 export interface QuizDocente extends Quiz {
   preguntas: number;
@@ -23,226 +15,148 @@ export interface QuizDocente extends Quiz {
   completado: number | null; // % de estudiantes que lo respondieron
   cerrado: boolean;
   cuentaParaNota: boolean;
+  criterio: string;
 }
 
-export type EstadoQuiz = 'pendiente' | 'realizado' | 'cerrado' | 'agotado';
+export type EstadoQuiz = 'pendiente' | 'en-curso' | 'realizado' | 'agotado' | 'cerrado';
 
-export interface QuizEstudiante extends Quiz {
+export interface QuizEstudiante extends Omit<Quiz, 'actividadId'> {
   preguntas: number;
   intentosHechos: number;
+  intentosRestantes: number | null; // null = ilimitados
   mejor: Intento | null;
+  enCurso: { id: number; inicio: string } | null;
   estado: EstadoQuiz;
   cerrado: boolean;
+  cuentaParaNota: boolean;
 }
 
 export interface ResultadosQuiz {
   quiz: QuizDocente;
   preguntas: (Pregunta & { acierto: number | null })[];
-  estudiantes: { estudianteId: number; nombre: string; mejor: Intento | null; intentos: number }[];
+  estudiantes: { estudianteId: number; nombre: string; mejor: Intento | null; intentos: number; nota: number | null }[];
 }
 
 export interface NotasCurso {
-  quizzes: (Quiz & { cerrado: boolean })[];
+  quizzes: { id: number; titulo: string; cierre: string; cerrado: boolean }[];
   estudiantes: { estudianteId: number; nombre: string; notas: Map<number, number>; promedio: number | null }[];
 }
 
-export type BorradorQuiz =Omit<Quiz, 'id' | 'actividadId' | 'creado'> & { id?: number };
+// Intento abierto por el servidor: trae las preguntas sin la respuesta correcta
+export interface IntentoIniciado {
+  intento: { id: number; inicio: string; expira: string | null }; // expira: null = sin límite de tiempo
+  quiz: { id: number; titulo: string; descripcion: string; tiempoMin: number; cierre: string };
+  preguntas: PreguntaParaResponder[];
+}
+
+export interface IntentoCorregido extends Intento {
+  fueraDeTiempo: boolean; // llegó pasado el margen: se cerró sin contar las respuestas
+  intentosRestantes: number | null;
+  correctas: { preguntaId: number; respuesta: string }[] | null; // solo cuando ya no quedan intentos (o el quiz cerró)
+  nota: { valor: number; guardada: boolean } | null; // null: el quiz no cuenta para la nota
+}
+
+export type BorradorQuiz = Omit<Quiz, 'id' | 'actividadId' | 'creado'> & { id?: number };
 export type BorradorPregunta = Omit<Pregunta, 'id' | 'quizId' | 'orden'>;
 
-const deadline = (q: Pick<Quiz, 'cierre' | 'horaCierre'>) => `${q.cierre}T${q.horaCierre}`;
+interface EstudianteApi {
+  usuarioId: number;
+  nombre: string;
+}
 
 // Quiz con corrección automática: los arma el docente, los responden los estudiantes y la nota puede ir a la planilla.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
+// El servidor corrige cada intento y lleva el mejor puntaje a la planilla; las respuestas correctas no llegan al estudiante.
 @Injectable({ providedIn: 'root' })
 export class QuizService {
-  private calificaciones = inject(GradesService);
-  private quizRepo = new MockRepository<Quiz>(MOCK_QUIZZES);
-  private preguntasRepo = new MockRepository<Pregunta>(MOCK_PREGUNTAS);
-  private intentosRepo = new MockRepository<Intento>(MOCK_INTENTOS);
+  private readonly http = inject(HttpClient);
+  private readonly session = inject(SessionService);
 
-  // Para las tarjetas del aula
-  publicados(aulaId: number): number {
-    return this.quizRepo.readNow((q) => q.aulaId === aulaId && q.publicado).length;
+  private get base(): string {
+    return `${environment.API_URL}/espacios/${encodeURIComponent(this.session.activeSpace()!.slug)}`;
   }
 
   // ---------- Docente ----------
   quizzesDocente(aulaId: number): Observable<QuizDocente[]> {
-    const lista = this.quizRepo.readNow((q) => q.aulaId === aulaId).map((q) => this.resumenDocente(q)).sort((a, b) => b.creado.localeCompare(a.creado));
-    return of(lista).pipe(delay(MOCK_DELAY));
+    return this.http.get<QuizDocente[]>(`${this.base}/aulas/${aulaId}/quiz`).pipe(map((l) => [...l].sort((a, b) => b.creado.localeCompare(a.creado))));
   }
 
-  quizConPreguntas(quizId: number): Observable<{ quiz: Quiz; preguntas: Pregunta[] } | null> {
-    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
-    return of(quiz ? { quiz: structuredClone(quiz), preguntas: this.preguntasDe(quizId).map((p) => structuredClone(p)) } : null).pipe(delay(MOCK_DELAY));
+  quizConPreguntas(quizId: number): Observable<{ quiz: Quiz & { criterio: string }; preguntas: Pregunta[] }> {
+    return this.http.get<Quiz & { criterio: string; preguntas: Pregunta[] }>(`${this.base}/quiz/${quizId}`).pipe(map(({ preguntas, ...quiz }) => ({ quiz, preguntas })));
   }
 
-  // Guarda el quiz y reemplaza sus preguntas; si se indica un criterio, crea su actividad en la planilla
-  guardar(espacioId: number, docenteId: number, borrador: BorradorQuiz, preguntas: BorradorPregunta[], criterioId: number): Observable<Quiz> {
-    return from(this.guardarAsync(espacioId, docenteId, borrador, preguntas, criterioId));
-  }
-
-  private async guardarAsync(espacioId: number, docenteId: number, b: BorradorQuiz, preguntas: BorradorPregunta[], criterioId: number): Promise<Quiz> {
-    if (!b.titulo.trim()) throw new Error('Ponle un título al quiz.');
-    if (b.publicado && !preguntas.length) throw new Error('Agrega al menos una pregunta antes de publicar.');
-    preguntas.forEach((p, i) => {
-      if (!p.enunciado.trim()) throw new Error(`La pregunta ${i + 1} no tiene enunciado.`);
-      if (p.tipo === 'opcion' && p.opciones.filter((o) => o.trim()).length < 2) throw new Error(`La pregunta ${i + 1} necesita al menos 2 opciones.`);
-      if (p.tipo === 'opcion' && !p.opciones[p.correcta]?.trim()) throw new Error(`Marca la opción correcta de la pregunta ${i + 1}.`);
-      if (p.tipo === 'corta' && !p.aceptadas.some((a) => a.trim())) throw new Error(`Indica la respuesta correcta de la pregunta ${i + 1}.`);
-    });
-    if (b.id && this.intentosRepo.readNow((x) => x.quizId === b.id).length && preguntas.length !== this.preguntasDe(b.id).length) {
-      throw new Error('Este quiz ya tiene respuestas: no se pueden agregar ni quitar preguntas.');
-    }
-
-    const previo = b.id ? this.quizRepo.readNow((q) => q.id === b.id)[0] : undefined;
-    let actividadId = previo?.actividadId ?? 0;
-    const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === b.aulaId);
-    if (criterioId && !actividadId && aula?.tipo === 'clase') {
-      const gestion = MOCK_GESTIONES.find((g) => g.espacioId === espacioId && g.estado === 'activa');
-      if (!gestion) throw new Error('No hay una gestión activa.');
-      const actividad = await firstValueFrom(this.calificaciones.saveActivity({
-        espacioId, gestionId: gestion.id, periodo: periodoDeFecha(gestion, b.cierre), paraleloId: aula.paraleloId, materiaId: aula.materiaId,
-        criterioId, nombre: b.titulo.trim(), fecha: b.cierre, docenteId,
-      }));
-      actividadId = actividad.id;
-    }
-    const quiz = await firstValueFrom(this.quizRepo.save({ ...b, titulo: b.titulo.trim(), actividadId, creado: previo?.creado ?? currentDateTimeIso() }));
-    for (const p of this.preguntasRepo.readNow((x) => x.quizId === quiz.id)) this.preguntasRepo.delete(p.id);
-    preguntas.forEach((p, i) => this.preguntasRepo.save({
-      ...p, quizId: quiz.id, orden: i + 1, enunciado: p.enunciado.trim(),
-      opciones: p.tipo === 'opcion' ? p.opciones.map((o) => o.trim()) : [], aceptadas: p.tipo === 'corta' ? p.aceptadas.map((a) => a.trim()).filter(Boolean) : [],
-    }));
-    return quiz;
+  // Guarda el quiz y reemplaza sus preguntas; con un criterio, el servidor crea su actividad en la planilla
+  guardar(borrador: BorradorQuiz, preguntas: BorradorPregunta[], criterioId: number): Observable<Quiz> {
+    if (!borrador.titulo.trim()) return throwError(() => new Error('Ponle un título al quiz.'));
+    if (borrador.publicado && !preguntas.length) return throwError(() => new Error('Agrega al menos una pregunta antes de publicar.'));
+    const { id, aulaId, ...datos } = borrador;
+    const cuerpo = {
+      ...datos,
+      titulo: datos.titulo.trim(),
+      ...(criterioId ? { criterioId } : {}),
+      preguntas: preguntas.map((p) => ({
+        enunciado: p.enunciado.trim(),
+        tipo: p.tipo,
+        puntos: p.puntos,
+        opciones: p.tipo === 'opcion' ? p.opciones.map((o) => o.trim()) : [],
+        correcta: p.correcta,
+        aceptadas: p.tipo === 'corta' ? p.aceptadas.map((a) => a.trim()).filter(Boolean) : [],
+      })),
+    };
+    return id ? this.http.put<Quiz>(`${this.base}/quiz/${id}`, cuerpo) : this.http.post<Quiz>(`${this.base}/aulas/${aulaId}/quiz`, cuerpo);
   }
 
   cambiarPublicado(quizId: number, publicado: boolean): Observable<Quiz> {
-    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
-    if (!quiz) return throwError(() => new Error('El quiz ya no existe.'));
-    if (publicado && !this.preguntasDe(quizId).length) return throwError(() => new Error('Agrega al menos una pregunta antes de publicar.'));
-    return this.quizRepo.save({ ...quiz, publicado });
+    return this.http.post<Quiz>(`${this.base}/quiz/${quizId}/publicar`, { publicado });
   }
 
   eliminar(quizId: number): Observable<void> {
-    for (const p of this.preguntasRepo.readNow((x) => x.quizId === quizId)) this.preguntasRepo.delete(p.id);
-    for (const i of this.intentosRepo.readNow((x) => x.quizId === quizId)) this.intentosRepo.delete(i.id);
-    return this.quizRepo.delete(quizId);
+    return this.http.delete(`${this.base}/quiz/${quizId}`).pipe(map(() => undefined));
   }
 
-  resultados(quizId: number): Observable<ResultadosQuiz | null> {
-    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
-    if (!quiz) return of(null).pipe(delay(MOCK_DELAY));
-    const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === quiz.aulaId);
-    const intentos = this.intentosRepo.readNow((x) => x.quizId === quizId);
-    const mejores = this.mejoresIntentos(intentos);
-    const nombre = (id: number) => MOCK_ESTUDIANTES.find((e) => e.id === id)?.nombre ?? MOCK_INSCRIPCIONES.find((i) => i.usuarioId === id)?.usuarioNombre ?? `Estudiante ${id}`;
-    return of({
-      quiz: this.resumenDocente(quiz),
-      preguntas: this.preguntasDe(quizId).map((p) => {
-        const respuestas = mejores.map((m) => m.respuestas.find((r) => r.preguntaId === p.id)).filter((r) => !!r);
-        return { ...structuredClone(p), acierto: respuestas.length ? calculatePercentage(respuestas.filter((r) => r.correcta).length, respuestas.length) : null };
-      }),
-      estudiantes: (aula ? estudiantesDeAula(aula) : [])
-        .map((id) => ({ estudianteId: id, nombre: nombre(id), mejor: structuredClone(mejores.find((m) => m.estudianteId === id) ?? null), intentos: intentos.filter((x) => x.estudianteId === id).length }))
-        .sort((a, b) => a.nombre.localeCompare(b.nombre)),
-    }).pipe(delay(MOCK_DELAY));
+  resultados(quizId: number): Observable<ResultadosQuiz> {
+    return this.http
+      .get<Omit<ResultadosQuiz, 'estudiantes'> & { estudiantes: (EstudianteApi & { intentos: number; mejor: Intento | null; nota: number | null })[] }>(`${this.base}/quiz/${quizId}/resultados`)
+      .pipe(
+        map((r) => ({
+          ...r,
+          estudiantes: r.estudiantes.map((e) => ({ estudianteId: e.usuarioId, nombre: e.nombre, mejor: e.mejor, intentos: e.intentos, nota: e.nota })),
+        })),
+      );
   }
 
-  // ---------- Estudiante ----------
-  quizzesEstudiante(aulaId: number, estudianteId: number): Observable<QuizEstudiante[]> {
-    const lista = this.quizRepo.readNow((q) => q.aulaId === aulaId && q.publicado).map((q) => {
-      const intentos = this.intentosRepo.readNow((x) => x.quizId === q.id && x.estudianteId === estudianteId);
-      const mejor = this.mejoresIntentos(intentos)[0] ?? null;
-      const cerrado = currentDateTimeIso() > deadline(q);
-      const estado: EstadoQuiz = cerrado ? 'cerrado' : intentos.length >= q.intentos ? 'agotado' : intentos.length ? 'realizado' : 'pendiente';
-      return { ...structuredClone(q), preguntas: this.preguntasDe(q.id).length, intentosHechos: intentos.length, mejor: structuredClone(mejor), estado, cerrado };
-    });
-    return of(lista.sort((a, b) => a.cierre.localeCompare(b.cierre))).pipe(delay(MOCK_DELAY));
+  // ---------- Estudiante y padre ----------
+  quizzesEstudiante(aulaId: number, hijoId?: number): Observable<QuizEstudiante[]> {
+    const params: Record<string, number> = this.session.activeRole() === 'padre' && hijoId ? { hijo: hijoId } : {};
+    return this.http
+      .get<QuizEstudiante[]>(`${this.base}/aulas/${aulaId}/quiz`, { params })
+      .pipe(map((l) => [...l].sort((a, b) => a.cierre.localeCompare(b.cierre))));
   }
 
-  // Corrige y guarda un intento; si el quiz cuenta para la nota, lleva el mejor puntaje a la planilla
-  enviar(espacioId: number, quizId: number, estudianteId: number, inicio: string, respuestas: { preguntaId: number; valor: Respuesta }[]): Observable<Intento> {
-    return from(this.enviarAsync(espacioId, quizId, estudianteId, inicio, respuestas));
+  // Abre un intento (o retoma el que está en curso): el servidor guarda la hora de inicio
+  iniciar(quizId: number): Observable<IntentoIniciado> {
+    return this.http.post<IntentoIniciado>(`${this.base}/quiz/${quizId}/intentos`, {});
   }
 
-  private async enviarAsync(espacioId: number, quizId: number, estudianteId: number, inicio: string, respuestas: { preguntaId: number; valor: Respuesta }[]): Promise<Intento> {
-    const quiz = this.quizRepo.readNow((q) => q.id === quizId)[0];
-    if (!quiz?.publicado) throw new Error('El quiz no está disponible.');
-    if (currentDateTimeIso() > deadline(quiz)) throw new Error('El quiz ya cerró.');
-    const hechos = this.intentosRepo.readNow((x) => x.quizId === quizId && x.estudianteId === estudianteId).length;
-    if (hechos >= quiz.intentos) throw new Error('Ya usaste todos tus intentos.');
-    const preguntas = this.preguntasDe(quizId);
-    const corregidas = preguntas.map((p) => {
-      const valor = respuestas.find((r) => r.preguntaId === p.id)?.valor ?? null;
-      return { preguntaId: p.id, valor, correcta: esCorrecta(p, valor) };
-    });
-    const intento = await firstValueFrom(this.intentosRepo.save({
-      quizId, estudianteId, inicio, fin: currentDateTimeIso(), respuestas: corregidas,
-      puntaje: preguntas.reduce((s, p, i) => s + (corregidas[i].correcta ? p.puntos : 0), 0),
-      puntajeMax: preguntas.reduce((s, p) => s + p.puntos, 0),
-    }));
-    if (quiz.actividadId) {
-      const mejor = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === quizId && x.estudianteId === estudianteId))[0];
-      const config = await firstValueFrom(this.calificaciones.getConfig(espacioId));
-      const nota = Math.round((mejor.puntaje / Math.max(1, mejor.puntajeMax)) * config.notaMaxima);
-      try {
-        await firstValueFrom(this.calificaciones.saveGrades(espacioId, [{ actividadId: quiz.actividadId, estudianteId, valor: nota }]));
-      } catch {
-        // Periodo cerrado: el intento queda registrado pero la nota ya no cambia
-      }
-    }
-    return intento;
+  // Envía las respuestas; el servidor corrige y, si cuenta para la nota, lleva el mejor puntaje a la planilla
+  enviar(intentoId: number, respuestas: { preguntaId: number; valor: Respuesta }[]): Observable<IntentoCorregido> {
+    return this.http.put<IntentoCorregido>(`${this.base}/intentos/${intentoId}`, { respuestas });
   }
 
   // ---------- Notas de la academia (a partir de los quiz) ----------
   // Planilla del curso: mejor porcentaje de cada estudiante en cada quiz publicado
   notasCurso(aulaId: number): Observable<NotasCurso> {
-    const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === aulaId);
-    const quizzes = this.quizRepo.readNow((q) => q.aulaId === aulaId && q.publicado).sort((a, b) => a.cierre.localeCompare(b.cierre));
-    const nombre = (id: number) => MOCK_INSCRIPCIONES.find((i) => i.usuarioId === id)?.usuarioNombre ?? MOCK_ESTUDIANTES.find((e) => e.id === id)?.nombre ?? `Estudiante ${id}`;
-    const estudiantes = (aula ? estudiantesDeAula(aula) : []).map((id) => {
-      const notas = new Map<number, number>();
-      for (const q of quizzes) {
-        const mejor = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === q.id && x.estudianteId === id))[0];
-        if (mejor) notas.set(q.id, calculatePercentage(mejor.puntaje, mejor.puntajeMax));
-      }
-      // Promedio sobre los quiz ya cerrados (los no respondidos cuentan 0) y los abiertos que ya respondió
-      const computables = quizzes.filter((q) => notas.has(q.id) || currentDateTimeIso() > deadline(q));
-      const promedio = computables.length ? Math.round(computables.reduce((s, q) => s + (notas.get(q.id) ?? 0), 0) / computables.length) : null;
-      return { estudianteId: id, nombre: nombre(id), notas, promedio };
-    }).sort((a, b) => a.nombre.localeCompare(b.nombre));
-    return of({ quizzes: quizzes.map((q) => ({ ...structuredClone(q), cerrado: currentDateTimeIso() > deadline(q) })), estudiantes }).pipe(delay(MOCK_DELAY));
-  }
-
-  // ---------- Interno ----------
-  private preguntasDe(quizId: number): Pregunta[] {
-    return this.preguntasRepo.readNow((p) => p.quizId === quizId).sort((a, b) => a.orden - b.orden);
-  }
-
-  // Mejor intento de cada estudiante (de mayor a menor puntaje)
-  private mejoresIntentos(intentos: Intento[]): Intento[] {
-    const mejores = new Map<number, Intento>();
-    for (const i of intentos) {
-      const previo = mejores.get(i.estudianteId);
-      if (!previo || i.puntaje / i.puntajeMax > previo.puntaje / previo.puntajeMax) mejores.set(i.estudianteId, i);
-    }
-    return [...mejores.values()].sort((a, b) => b.puntaje / b.puntajeMax - a.puntaje / a.puntajeMax);
-  }
-
-  private resumenDocente(q: Quiz): QuizDocente {
-    const aula = MOCK_AULAS_VIRTUALES.find((a) => a.id === q.aulaId);
-    const preguntas = this.preguntasDe(q.id);
-    const mejores = this.mejoresIntentos(this.intentosRepo.readNow((x) => x.quizId === q.id));
-    const estudiantes = aula ? estudiantesDeAula(aula).length : 0;
-    return {
-      ...structuredClone(q),
-      preguntas: preguntas.length,
-      puntajeMax: preguntas.reduce((s, p) => s + p.puntos, 0),
-      respondieron: mejores.length,
-      estudiantes,
-      precision: mejores.length ? Math.round(mejores.reduce((s, m) => s + m.puntaje / m.puntajeMax, 0) / mejores.length * 100) : null,
-      completado: q.publicado && estudiantes ? calculatePercentage(mejores.length, estudiantes) : null,
-      cerrado: currentDateTimeIso() > deadline(q),
-      cuentaParaNota: !!q.actividadId,
-    };
+    return this.http
+      .get<{ quizzes: NotasCurso['quizzes']; estudiantes: (EstudianteApi & { notas: Record<number, number>; promedio: number | null })[] }>(`${this.base}/aulas/${aulaId}/notas`)
+      .pipe(
+        map((n) => ({
+          quizzes: n.quizzes,
+          estudiantes: n.estudiantes.map((e) => ({
+            estudianteId: e.usuarioId,
+            nombre: e.nombre,
+            notas: new Map(Object.entries(e.notas).map(([id, nota]) => [Number(id), nota])),
+            promedio: e.promedio,
+          })),
+        })),
+      );
   }
 }

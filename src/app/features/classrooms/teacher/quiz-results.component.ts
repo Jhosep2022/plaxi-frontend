@@ -92,7 +92,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
                       @else { <span class="sin">No respondió</span> }
                     </td>
                     <td class="num">{{ e.intentos }}</td>
-                    <td>{{ e.mejor ? formatShortDate(e.mejor.fin.slice(0, 10)) : '' }}</td>
+                    <td>{{ e.mejor?.fin ? formatShortDate(e.mejor.fin.slice(0, 10)) : '' }}</td>
                   </tr>
                 }
               </tbody>

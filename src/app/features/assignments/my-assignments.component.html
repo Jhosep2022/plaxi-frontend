@@ -39,7 +39,9 @@
           <div class="mi-entrega">
             <small>{{ esPadre ? 'Entregó' : 'Entregaste' }} el {{ entregadaLabel(t) }}</small>
             @if (t.entrega!.texto) { <span>{{ t.entrega!.texto }}</span> }
-            @if (t.entrega!.archivo) { <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ t.entrega!.archivo }}</span> }
+            @for (a of t.entrega!.archivos; track $index) {
+              <button type="button" class="archivo enlace" [disabled]="!a.archivoId" (click)="abrirArchivo(a)"><fa-icon [icon]="faPaperclip" /> {{ a.nombre }}</button>
+            }
           </div>
         }
 
@@ -53,7 +55,7 @@
           </div>
         }
 
-        @if (!esPadre && t.estado !== 'revisada') {
+        @if (!esPadre && t.puedeEntregar) {
           <footer class="acciones">
             <button type="button" class="ui-btn" [class.ui-btn--secundario]="!!t.entrega?.entregadaEl" (click)="abrirEntrega(t)">
               <fa-icon [icon]="faPaperPlane" /> {{ t.entrega?.entregadaEl ? 'Editar entrega' : 'Entregar' }}
@@ -79,14 +81,19 @@
         <textarea id="ent-texto" class="ui-input area" rows="5" placeholder="Escribe tu respuesta o un comentario para tu docente" [value]="texto()" (input)="texto.set($any($event.target).value)"></textarea>
       </div>
       <div class="ui-campo">
-        <label for="ent-archivo">Archivo <span class="ui-ayuda">(foto, PDF o documento)</span></label>
-        <input id="ent-archivo" type="file" class="ui-input archivo-input" (change)="elegirArchivo($event)" />
-        @if (archivo()) { <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ archivo() }}</span> }
+        <label for="ent-archivo">Archivos <span class="ui-ayuda">(foto, PDF o documento · hasta {{ maxArchivos }}, de {{ maxMb }} MB cada uno)</span></label>
+        <input id="ent-archivo" type="file" multiple class="ui-input archivo-input" [disabled]="totalArchivos() >= maxArchivos" (change)="elegirArchivos($event)" />
+        @for (a of conservados(); track a.archivoId) {
+          <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ a.nombre }} <button type="button" class="quitar" (click)="quitarConservado(a.archivoId)">Quitar</button></span>
+        }
+        @for (f of nuevos(); track $index) {
+          <span class="archivo"><fa-icon [icon]="faPaperclip" /> {{ f.name }} <button type="button" class="quitar" (click)="quitarNuevo($index)">Quitar</button></span>
+        }
       </div>
     </form>
   }
   <ng-container pie>
     <button type="button" class="ui-btn ui-btn--secundario" (click)="entregando.set(null)">Cancelar</button>
-    <button type="button" class="ui-btn" [disabled]="enviando() || (!texto().trim() && !archivo())" (click)="entregar()"><fa-icon [icon]="faPaperPlane" /> {{ enviando() ? 'Enviando…' : 'Entregar' }}</button>
+    <button type="button" class="ui-btn" [disabled]="enviando() || (!texto().trim() && !totalArchivos())" (click)="entregar()"><fa-icon [icon]="faPaperPlane" /> {{ enviando() ? 'Enviando…' : 'Entregar' }}</button>
   </ng-container>
 </app-drawer>

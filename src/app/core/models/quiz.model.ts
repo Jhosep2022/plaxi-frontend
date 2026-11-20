@@ -31,23 +31,26 @@ export interface Quiz {
   mezclar: boolean; // preguntas en orden aleatorio
   mostrarRespuestas: boolean; // el estudiante ve las respuestas correctas al terminar
   publicado: boolean;
-  actividadId: number; // actividad de la planilla donde va la nota (0 = no cuenta)
+  actividadId: number | null; // actividad de la planilla donde va la nota (null = no cuenta)
   creado: string; // ISO
 }
 
 export type Respuesta = number | string | null; // índice elegido o texto escrito
 
-// Intento de un estudiante (ya corregido)
+// Intento ya corregido por el servidor
 export interface Intento {
   id: number;
   quizId: number;
-  estudianteId: number;
   inicio: string; // ISO
-  fin: string; // ISO
-  respuestas: { preguntaId: number; valor: Respuesta; correcta: boolean }[];
+  fin: string | null; // ISO; null = en curso
+  respuestas: { preguntaId: number; valor: Respuesta; correcta: boolean }[]; // vacío si el docente no deja ver las respuestas
   puntaje: number;
   puntajeMax: number;
+  porcentaje: number;
 }
+
+// Pregunta como la ve el estudiante mientras responde: sin la respuesta correcta
+export type PreguntaParaResponder = Pick<Pregunta, 'id' | 'enunciado' | 'tipo' | 'opciones' | 'puntos'>;
 
 const normalizar = (t: string) => t.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ');
 
@@ -59,7 +62,7 @@ export function esCorrecta(p: Pregunta, valor: Respuesta): boolean {
 }
 
 // Texto legible de una respuesta
-export function textoRespuesta(p: Pregunta, valor: Respuesta): string {
+export function textoRespuesta(p: Pick<Pregunta, 'tipo' | 'opciones'>, valor: Respuesta): string {
   if (valor === null || valor === '') return 'Sin responder';
   if (p.tipo === 'vf') return Number(valor) === 0 ? 'Verdadero' : 'Falso';
   if (p.tipo === 'opcion') return p.opciones[Number(valor)] ?? '—';

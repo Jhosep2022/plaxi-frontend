@@ -56,7 +56,7 @@ export class AssignmentDetailComponent {
 
   // Valores editables de cada fila (se reinician al recargar)
   readonly ediciones = linkedSignal<Map<number, Edicion>>(() =>
-    new Map((this.datos.value()?.filas ?? []).map((f) => [f.estudiante.id, this.original(f)]))
+    new Map((this.datos.value()?.filas ?? []).map((f) => [f.estudiante.usuarioId, this.original(f)]))
   );
 
   readonly filtro = signal<Filtro>('todos');
@@ -106,11 +106,11 @@ export class AssignmentDetailComponent {
   readonly cambios = computed<RevisionEntrega[]>(() => {
     const filas = this.datos.value()?.filas ?? [];
     return filas.flatMap((f) => {
-      const e = this.edicion(f.estudiante.id);
+      const e = this.edicion(f.estudiante.usuarioId);
       const o = this.original(f);
       if (e.nota === o.nota && e.comentario === o.comentario && e.revisada === o.revisada) return [];
       if (!e.revisada) return [];
-      return [{ estudianteId: f.estudiante.id, nota: e.nota === '' ? null : Number(e.nota), comentario: e.comentario }];
+      return [{ usuarioId: f.estudiante.usuarioId, nota: e.nota === '' ? null : Number(e.nota), comentario: e.comentario }];
     });
   });
   readonly hayErrores = computed(() => [...this.ediciones().values()].some((e) => this.notaInvalida(e.nota)));
@@ -120,7 +120,7 @@ export class AssignmentDetailComponent {
     if (this.hayErrores() || !this.cambios().length) return;
     this.guardando.set(true);
     try {
-      const n = await firstValueFrom(this.servicio.revisar(this.session.activeSpace()!.id, Number(this.tareaId()), this.cambios()));
+      const n = await firstValueFrom(this.servicio.revisar(Number(this.tareaId()), this.cambios()));
       this.avisos.success(`${n} ${n === 1 ? 'entrega revisada' : 'entregas revisadas'}${this.conNota() ? ' y notas guardadas en la planilla' : ''}.`);
       this.datos.reload();
     } catch (error) {
@@ -133,6 +133,16 @@ export class AssignmentDetailComponent {
   entregadaLabel(f: FilaEntrega): string {
     const iso = f.entrega?.entregadaEl;
     return iso ? `${formatShortDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '';
+  }
+
+  // Abre un archivo entregado con un enlace temporal
+  async abrirArchivo(archivoId: number | undefined): Promise<void> {
+    if (!archivoId) return;
+    try {
+      window.open(await firstValueFrom(this.servicio.enlaceArchivo(archivoId)), '_blank', 'noopener');
+    } catch (error) {
+      this.avisos.error(getErrorMessage(error));
+    }
   }
 
   private original(f: FilaEntrega): Edicion {

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import {
   Asignacion,
   DIAS_SEMANA,
@@ -9,28 +9,13 @@ import {
   TURNOS,
   paraleloLabel,
 } from '../core/models/academics.model';
-import {
-  Estudiante,
-  RegistroAsistencia,
-} from '../core/models/attendance.model';
-import { Actividad, ConfigCalificacion } from '../core/models/grades.model';
-import {
-  Conteo,
-  contar,
-  dayOfWeek,
-  todayIso,
-  addDays,
-} from '../core/utils/attendance';
-import {
-  ResultadoMateria,
-  aprobado,
-  calcularNota,
-  indiceNotas,
-  periodoDeFecha,
-} from '../core/utils/grades';
+import { RegistroAsistencia } from '../core/models/attendance.model';
+import { Conteo, contar, dayOfWeek, todayIso, addDays } from '../core/utils/attendance';
+import { ResultadoMateria, periodoDeFecha } from '../core/utils/grades';
 import { rangoDeBloque } from '../core/utils/schedule';
+import { AcademicsService } from './academics.service';
 import { AttendanceService } from './attendance.service';
-import { GradesService, DatosParalelo } from './grades.service';
+import { ActividadPlanilla, GradesApiService, Planilla } from './grades-api.service';
 import { SchedulesService } from './schedules.service';
 
 export interface SesionSemanal {
@@ -42,7 +27,7 @@ export interface SesionSemanal {
 }
 
 export interface EstudianteDeClase {
-  estudiante: Estudiante;
+  estudiante: { id: number; nombre: string }; // student record
   asistencia: Conteo;
   resultado: ResultadoMateria;
   enRiesgo: boolean; // nota bajo la de aprobación o asistencia bajo el mínimo
@@ -57,96 +42,68 @@ export interface ClaseDocente {
   aula: string;
   sesiones: SesionSemanal[];
   proxima: { fecha: string; inicio: string; hoy: boolean } | null;
-  config: ConfigCalificacion;
+  config: { notaMaxima: number; notaAprobacion: number };
   periodo: { indice: number; nombre: string; cerrado: boolean };
   estudiantes: EstudianteDeClase[];
   asistencia: Conteo;
   promedio: number | null;
-  pendientes: { actividad: Actividad; faltan: number }[]; // actividades del periodo con notas sin cargar
+  pendientes: { actividad: ActividadPlanilla; faltan: number }[]; // actividades del periodo con notas sin cargar
   notasPeriodo: { cargadas: number; esperadas: number }; // avance de la carga de notas del periodo
 }
 
 export const ASISTENCIA_MINIMA = 85; // % por debajo del cual el estudiante queda en riesgo
 
 // Resumen de las clases (materia + paralelo) de un docente: horario, estudiantes, asistencia y notas.
-// Junta datos de horarios, asistencia y calificaciones; con backend sería un solo endpoint.
+// Las notas salen de la planilla de la API (el servidor calcula la nota de cada estudiante).
 @Injectable({ providedIn: 'root' })
 export class TeacherClassesService {
   private horarios = inject(SchedulesService);
   private asistencia = inject(AttendanceService);
-  private calificaciones = inject(GradesService);
+  private notas = inject(GradesApiService);
+  private academico = inject(AcademicsService);
 
   clasesDe(espacioId: number, docenteId: number): Observable<ClaseDocente[]> {
     const hoy = todayIso();
-    return this.horarios.getScheduleData(espacioId).pipe(
-      switchMap((horario) => {
+    return forkJoin({ horario: this.horarios.getScheduleData(espacioId), gestion: this.academico.getActiveAcademicYear(espacioId) }).pipe(
+      switchMap(({ horario, gestion }) => {
         const asignaciones = horario.asignaciones.filter(
           (a) => a.docenteId === (horario.currentTeacherId ?? docenteId),
         );
-        const paralelos = [...new Set(asignaciones.map((a) => a.paraleloId))];
-        if (!paralelos.length) return of([]);
+        if (!asignaciones.length || !gestion) return of([]);
+        const indice = periodoDeFecha(gestion, hoy);
         return forkJoin({
-          registros: this.asistencia.getRecordsBetween(
-            espacioId,
-            '2000-01-01',
-            hoy,
-          ),
-          datos: forkJoin(
-            paralelos.map((id) =>
-              this.calificaciones.getClassGroupData(espacioId, id),
+          registros: this.asistencia.getRecordsBetween(espacioId, '2000-01-01', hoy),
+          planillas: forkJoin(
+            asignaciones.map((a) =>
+              this.notas.sheet(a.paraleloId, a.materiaId, indice).pipe(catchError(() => of(null))),
             ),
           ),
         }).pipe(
-          map(({ registros, datos }) =>
-            asignaciones.flatMap((asignacion): ClaseDocente[] => {
-              const d = datos.find(
-                (x) => x?.paralelo.id === asignacion.paraleloId,
-              );
-              const materia = horario.materias.find(
-                (m) => m.id === asignacion.materiaId,
-              );
-              if (!d || !materia) return [];
+          map(({ registros, planillas }) =>
+            asignaciones.flatMap((asignacion, i): ClaseDocente[] => {
+              const planilla = planillas[i];
+              const paralelo = horario.paralelos.find((p) => p.id === asignacion.paraleloId);
+              const materia = horario.materias.find((m) => m.id === asignacion.materiaId);
+              if (!planilla || !paralelo || !materia) return [];
               const nombreAula = (id: number) =>
                 horario.aulas.find((a) => a.id === id)?.nombre ?? 'Sin aula';
               const sesiones = horario.clases
-                .filter(
-                  (c) =>
-                    c.paraleloId === asignacion.paraleloId &&
-                    c.materiaId === asignacion.materiaId,
-                )
+                .filter((c) => c.paraleloId === asignacion.paraleloId && c.materiaId === asignacion.materiaId)
                 .flatMap((c) => {
                   const rango = rangoDeBloque(horario, c.paraleloId, c.bloque);
                   return rango
-                    ? [
-                        {
-                          dia: c.dia,
-                          diaLabel:
-                            DIAS_SEMANA.find((x) => x.id === c.dia)?.largo ??
-                            '',
-                          ...rango,
-                          aula: nombreAula(c.aulaId),
-                        },
-                      ]
+                    ? [{ dia: c.dia, diaLabel: DIAS_SEMANA.find((x) => x.id === c.dia)?.largo ?? '', ...rango, aula: nombreAula(c.aulaId) }]
                     : [];
                 })
-                .sort(
-                  (a, b) => a.dia - b.dia || a.inicio.localeCompare(b.inicio),
-                );
+                .sort((a, b) => a.dia - b.dia || a.inicio.localeCompare(b.inicio));
               const propios = registros.filter(
-                (r) =>
-                  r.paraleloId === asignacion.paraleloId &&
-                  r.materiaId === asignacion.materiaId,
+                (r) => r.paraleloId === asignacion.paraleloId && r.materiaId === asignacion.materiaId,
               );
               return [
-                this.armar(
-                  asignacion,
-                  materia,
-                  d,
-                  sesiones,
-                  propios,
-                  nombreAula(d.paralelo.aulaId),
-                  hoy,
-                ),
+                armar(asignacion, materia, paralelo, planilla, sesiones, propios, nombreAula(paralelo.aulaId), {
+                  indice,
+                  nombre: gestion.periodos[indice]?.nombre ?? '',
+                }),
               ];
             }),
           ),
@@ -161,85 +118,54 @@ export class TeacherClassesService {
       ),
     );
   }
+}
 
-  private armar(
-    asignacion: Asignacion,
-    materia: Materia,
-    d: DatosParalelo,
-    sesiones: SesionSemanal[],
-    registros: RegistroAsistencia[],
-    aula: string,
-    hoy: string,
-  ): ClaseDocente {
-    const indice = periodoDeFecha(d.gestion, hoy);
-    const actividades = d.actividades.filter(
-      (a) => a.materiaId === materia.id && a.periodo === indice,
-    );
-    const buscar = indiceNotas(d.notas);
-    const estudiantes = d.estudiantes.map((estudiante) => {
-      const asistencia = contar(
-        registros.filter((r) => r.estudianteId === estudiante.id),
-      );
-      const resultado = calcularNota(
-        d.config.criterios,
-        actividades,
-        buscar,
-        estudiante.id,
-      );
-      const reprobando =
-        resultado.final !== null && !aprobado(d.config, resultado.final);
-      return {
-        estudiante,
-        asistencia,
-        resultado,
-        enRiesgo:
-          reprobando ||
-          (asistencia.total > 0 && asistencia.porcentaje < ASISTENCIA_MINIMA),
-      };
-    });
-    const finales = estudiantes
-      .map((e) => e.resultado.final)
-      .filter((f): f is number => f !== null);
+function armar(
+  asignacion: Asignacion,
+  materia: Materia,
+  paralelo: Paralelo,
+  planilla: Planilla,
+  sesiones: SesionSemanal[],
+  registros: RegistroAsistencia[],
+  aula: string,
+  periodo: { indice: number; nombre: string },
+): ClaseDocente {
+  const config = { notaMaxima: planilla.config.notaMaxima, notaAprobacion: planilla.config.notaAprobacion };
+  const estudiantes = planilla.estudiantes.map((fila) => {
+    const asistencia = contar(registros.filter((r) => r.estudianteId === fila.id));
+    const reprobando = fila.resultado.final !== null && fila.resultado.final < config.notaAprobacion;
     return {
-      asignacion,
-      materia,
-      paralelo: d.paralelo,
-      titulo: `${materia.nombre} · ${paraleloLabel(d.paralelo)}`,
-      turno: TURNOS.find((t) => t.id === d.paralelo.turno)?.label ?? '',
-      aula,
-      sesiones,
-      proxima: proximaSesion(sesiones, hoy),
-      config: d.config,
-      periodo: {
-        indice,
-        nombre: d.gestion.periodos[indice]?.nombre ?? '',
-        cerrado: d.cierres.some((c) => c.periodo === indice),
-      },
-      estudiantes,
-      asistencia: contar(registros),
-      promedio: finales.length
-        ? Math.round(finales.reduce((s, f) => s + f, 0) / finales.length)
-        : null,
-      pendientes: actividades
-        .map((actividad) => ({
-          actividad,
-          faltan: d.estudiantes.filter(
-            (e) => buscar(actividad.id, e.id) === undefined,
-          ).length,
-        }))
-        .filter((p) => p.faltan > 0),
-      notasPeriodo: {
-        esperadas: actividades.length * d.estudiantes.length,
-        cargadas: actividades.reduce(
-          (s, a) =>
-            s +
-            d.estudiantes.filter((e) => buscar(a.id, e.id) !== undefined)
-              .length,
-          0,
-        ),
-      },
+      estudiante: { id: fila.id, nombre: fila.nombre },
+      asistencia,
+      resultado: fila.resultado,
+      enRiesgo: reprobando || (asistencia.total > 0 && asistencia.porcentaje < ASISTENCIA_MINIMA),
     };
-  }
+  });
+  const tieneNota = (actividadId: number, fila: Planilla['estudiantes'][number]) =>
+    fila.notas[actividadId] !== null && fila.notas[actividadId] !== undefined;
+  const finales = estudiantes.map((e) => e.resultado.final).filter((f): f is number => f !== null);
+  return {
+    asignacion,
+    materia,
+    paralelo,
+    titulo: `${materia.nombre} · ${paraleloLabel(paralelo)}`,
+    turno: TURNOS.find((t) => t.id === paralelo.turno)?.label ?? '',
+    aula,
+    sesiones,
+    proxima: proximaSesion(sesiones, todayIso()),
+    config,
+    periodo: { ...periodo, cerrado: planilla.cerrado },
+    estudiantes,
+    asistencia: contar(registros),
+    promedio: finales.length ? Math.round(finales.reduce((s, f) => s + f, 0) / finales.length) : null,
+    pendientes: planilla.actividades
+      .map((actividad) => ({ actividad, faltan: planilla.estudiantes.filter((e) => !tieneNota(actividad.id, e)).length }))
+      .filter((p) => p.faltan > 0),
+    notasPeriodo: {
+      esperadas: planilla.actividades.length * planilla.estudiantes.length,
+      cargadas: planilla.actividades.reduce((s, a) => s + planilla.estudiantes.filter((e) => tieneNota(a.id, e)).length, 0),
+    },
+  };
 }
 
 // Próxima sesión desde ahora (hoy si todavía no empezó, o en los próximos 7 días)

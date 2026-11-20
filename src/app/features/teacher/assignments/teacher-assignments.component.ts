@@ -1,7 +1,8 @@
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { FormField, form, maxLength, required, submit, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClipboardCheck, faClock, faPlus, faStar, faTasks, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -10,7 +11,7 @@ import { todayIso } from '../../../core/utils/attendance';
 import { calculatePercentage } from '../../../core/utils/reports';
 import { isDueSoon, isPastDue, formatDueDate } from '../../../core/utils/assignments';
 import { ClassroomsService } from '../../../services/classrooms.service';
-import { GradesService } from '../../../services/grades.service';
+import { GradesApiService } from '../../../services/grades-api.service';
 import { TareaDocente, AssignmentsService } from '../../../services/assignments.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
@@ -22,7 +23,7 @@ import { SELECT } from '../../../shared/ui/select.component';
 
 type Filtro = 'activas' | 'por-revisar' | 'todas';
 
-const NUEVA = { clase: '', titulo: '', instrucciones: '', entrega: '', hora: '23:59', criterioId: '0' };
+const NUEVA = { clase: '', titulo: '', instrucciones: '', entrega: '', hora: '23:59', aceptaTardias: true, criterioId: '0' };
 
 // Tareas del docente: lista por estado, creación (opcionalmente con nota en la planilla) y acceso a la revisión
 @Component({
@@ -36,7 +37,7 @@ export class TeacherAssignmentsComponent {
   private session = inject(SessionService);
   private servicio = inject(AssignmentsService);
   private aulas = inject(ClassroomsService);
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
   private avisos = inject(NotificationService);
 
   readonly subjectIcon = subjectIcon;
@@ -63,7 +64,7 @@ export class TeacherAssignmentsComponent {
     stream: () =>
       forkJoin({
         aulas: this.aulas.aulasDocente(this.espacioId, this.docenteId),
-        config: this.calificaciones.getConfig(this.espacioId, this.espacio.tipo),
+        config: this.espacio.tipo === 'colegio' ? this.calificaciones.getConfig().pipe(catchError(() => of(null))) : of(null),
       }),
   });
   readonly clases = computed(() =>
@@ -71,7 +72,7 @@ export class TeacherAssignmentsComponent {
       .map((a) => ({ valor: String(a.id), label: a.nombre, tipo: a.tipo }))
       .sort((a, b) => a.label.localeCompare(b.label))
   );
-  readonly criterios = computed(() => (this.espacio.tipo === 'colegio' ? this.datos.value()?.config.criterios ?? [] : []));
+  readonly criterios = computed(() => (this.espacio.tipo === 'colegio' ? this.datos.value()?.config?.criterios ?? [] : []));
 
   readonly filtro = signal<Filtro>('activas');
   readonly clase = input<string>(); // ?clase=aulaId (desde el aula)
@@ -120,7 +121,7 @@ export class TeacherAssignmentsComponent {
       try {
         const m = this.modelo();
         const criterioId = this.cuentaParaNota() ? Number(m.criterioId) : 0;
-        await firstValueFrom(this.servicio.crear(this.espacioId, this.docenteId, { aulaId: Number(m.clase), titulo: m.titulo, instrucciones: m.instrucciones, entrega: m.entrega, hora: m.hora }, criterioId));
+        await firstValueFrom(this.servicio.crear({ aulaId: Number(m.clase), titulo: m.titulo, instrucciones: m.instrucciones, entrega: m.entrega, hora: m.hora, aceptaTardias: m.aceptaTardias }, criterioId));
         this.avisos.success(criterioId ? 'Tarea asignada y agregada a la planilla de notas.' : 'Tarea asignada.');
         this.creando.set(false);
         this.filtro.set('activas');

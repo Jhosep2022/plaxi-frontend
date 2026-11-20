@@ -3,7 +3,7 @@
 // Colegio: un aula por asignación (materia + paralelo) con contenido por materia.
 // Academia: los cursos de María, con las lecciones y temas que ya existían.
 // ============================================================================
-import type { Aula, Progreso, Tema, TipoTema, Unidad } from '../core/models/classrooms.model';
+import type { Aula, Tema, TipoTema, Unidad } from '../core/models/classrooms.model';
 import { paraleloLabel } from '../core/models/academics.model';
 import { MOCK_ASIGNACIONES, MOCK_MATERIAS, MOCK_PARALELOS } from './academics.mock';
 import { MOCK_ESTUDIANTES } from './attendance.mock';
@@ -157,23 +157,3 @@ export const estudiantesDeAula = (aula: Aula): number[] =>
   aula.tipo === 'clase'
     ? MOCK_ESTUDIANTES.filter((e) => e.paraleloId === aula.paraleloId).map((e) => e.id)
     : MOCK_INSCRIPCIONES.filter((i) => i.cursoId === aula.id - 1000 && i.estadoInscripcion === 'ACTIVA').map((i) => i.usuarioId);
-
-// ---------- Progreso (temas vistos) ----------
-// Avance típico por unidad; Luis (id 2) terminó la unidad 1 de Física y Matemáticas y va por la 2.
-let idProgreso = 0;
-export const MOCK_PROGRESO: Progreso[] = [];
-for (const aula of MOCK_AULAS_VIRTUALES) {
-  const unidades = MOCK_UNIDADES.filter((u) => u.aulaId === aula.id && u.publicada).sort((a, b) => a.orden - b.orden);
-  for (const estudianteId of estudiantesDeAula(aula)) {
-    unidades.forEach((u, i) => {
-      const temas = MOCK_TEMAS_AULA.filter((t) => t.unidadId === u.id).sort((a, b) => a.orden - b.orden);
-      temas.forEach((t, j) => {
-        const esLuis = estudianteId === 2;
-        const visto = esLuis
-          ? i === 0 || (i === 1 && j < 1)
-          : azar(`${t.id}-${estudianteId}`) < ([0.92, 0.55, 0.15][i] ?? 0);
-        if (visto) MOCK_PROGRESO.push({ id: ++idProgreso, temaId: t.id, estudianteId, completadoEl: `2026-10-${String(5 + i * 4 + j).padStart(2, '0')}T19:00:00` });
-      });
-    });
-  }
-}

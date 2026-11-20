@@ -11,10 +11,10 @@ export function currentDateTimeIso(): string {
 
 export const isPastDue = (assignment: Pick<Tarea, 'entrega' | 'hora'>): boolean => currentDateTimeIso() > deadline(assignment);
 
-// Derive the student's submission status for an assignment.
-export function getSubmissionStatus(assignment: Tarea, submission: Entrega | undefined): EstadoEntrega {
+// Derive the student's submission status for an assignment (the server marks a late submission).
+export function getSubmissionStatus(assignment: Pick<Tarea, 'entrega' | 'hora'>, submission: Pick<Entrega, 'revisada' | 'entregadaEl' | 'tarde'> | undefined): EstadoEntrega {
   if (submission?.revisada) return 'revisada';
-  if (submission?.entregadaEl) return submission.entregadaEl > deadline(assignment) ? 'tarde' : 'entregada';
+  if (submission?.entregadaEl) return submission.tarde ? 'tarde' : 'entregada';
   return isPastDue(assignment) ? 'no-entregada' : 'pendiente';
 }
 

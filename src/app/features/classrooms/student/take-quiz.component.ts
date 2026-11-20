@@ -1,15 +1,14 @@
 import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faArrowRight, faCheck, faCircleQuestion, faClock, faPaperPlane, faRotateRight, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
-import { respuestaCorrecta, textoRespuesta } from '../../../core/models/quiz.model';
-import type { Intento, Pregunta, Respuesta } from '../../../core/models/quiz.model';
+import { textoRespuesta } from '../../../core/models/quiz.model';
+import type { PreguntaParaResponder, Respuesta } from '../../../core/models/quiz.model';
 import { formatShortDate } from '../../../core/utils/attendance';
-import { currentDateTimeIso } from '../../../core/utils/assignments';
-import { QuizService } from '../../../services/quiz.service';
+import { IntentoCorregido, QuizService } from '../../../services/quiz.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { getErrorMessage } from '../../management/academics/academics.ui';
@@ -36,7 +35,6 @@ export class TakeQuizComponent {
   readonly letras = LETRAS;
   readonly formatShortDate = formatShortDate;
   readonly textoRespuesta = textoRespuesta;
-  readonly respuestaCorrecta = respuestaCorrecta;
   readonly faArrowLeft = faArrowLeft;
   readonly faArrowRight = faArrowRight;
   readonly faCheck = faCheck;
@@ -46,28 +44,26 @@ export class TakeQuizComponent {
   readonly faRotateRight = faRotateRight;
   readonly faXmark = faXmark;
 
-  private readonly espacioId = this.session.activeSpace()!.id;
-  private readonly estudianteId = this.session.userId()!;
-
   readonly datos = rxResource({
-    params: () => ({ aulaId: Number(this.aulaId()), quizId: Number(this.quizId()) }),
-    stream: ({ params }) =>
-      forkJoin({ lista: this.servicio.quizzesEstudiante(params.aulaId, this.estudianteId), detalle: this.servicio.quizConPreguntas(params.quizId) }),
+    params: () => Number(this.aulaId()),
+    stream: ({ params }) => this.servicio.quizzesEstudiante(params),
   });
-  readonly quiz = computed(() => this.datos.value()?.lista.find((q) => q.id === Number(this.quizId())) ?? null);
+  readonly quiz = computed(() => this.datos.value()?.find((q) => q.id === Number(this.quizId())) ?? null);
+  // Con un intento en curso se retoma; si no, hace falta que quede alguno (null = ilimitados)
   readonly puedeResponder = computed(() => {
     const q = this.quiz();
-    return !!q && !q.cerrado && q.intentosHechos < q.intentos;
+    return !!q && !q.cerrado && (!!q.enCurso || q.intentosRestantes === null || q.intentosRestantes > 0);
   });
 
   readonly fase = signal<Fase>('inicio');
-  readonly preguntas = signal<Pregunta[]>([]);
+  readonly preguntas = signal<PreguntaParaResponder[]>([]);
   readonly indice = signal(0);
   readonly respuestas = signal<Map<number, Respuesta>>(new Map());
   readonly restante = signal(0); // segundos
   readonly enviando = signal(false);
-  readonly intento = signal<Intento | null>(null);
-  private inicio = '';
+  readonly intento = signal<IntentoCorregido | null>(null);
+  readonly comenzando = signal(false);
+  private intentoId = 0;
   private reloj: ReturnType<typeof setInterval> | undefined;
 
   readonly actual = computed(() => this.preguntas()[this.indice()] ?? null);
@@ -82,29 +78,35 @@ export class TakeQuizComponent {
     return this.session.roleRoute('aulas', this.aulaId());
   }
 
-  comenzar(): void {
-    const q = this.quiz();
-    const detalle = this.datos.value()?.detalle;
-    if (!q || !detalle) return;
-    const preguntas = [...detalle.preguntas];
-    if (q.mezclar) preguntas.sort(() => Math.random() - 0.5);
-    this.preguntas.set(preguntas);
-    this.indice.set(0);
-    this.respuestas.set(new Map());
-    this.intento.set(null);
-    this.inicio = currentDateTimeIso();
-    this.fase.set('respondiendo');
-    clearInterval(this.reloj);
-    if (q.tiempoMin) {
-      this.restante.set(q.tiempoMin * 60);
-      this.reloj = setInterval(() => {
-        this.restante.update((s) => s - 1);
-        if (this.restante() <= 0) {
-          clearInterval(this.reloj);
-          this.avisos.error('Se acabó el tiempo: enviamos tus respuestas.');
-          this.enviar(true);
-        }
-      }, 1000);
+  // El servidor abre el intento (guarda la hora de inicio) y manda las preguntas, ya mezcladas si corresponde
+  async comenzar(): Promise<void> {
+    if (!this.quiz() || this.comenzando()) return;
+    this.comenzando.set(true);
+    try {
+      const abierto = await firstValueFrom(this.servicio.iniciar(Number(this.quizId())));
+      this.intentoId = abierto.intento.id;
+      this.preguntas.set(abierto.preguntas);
+      this.indice.set(0);
+      this.respuestas.set(new Map());
+      this.intento.set(null);
+      this.fase.set('respondiendo');
+      clearInterval(this.reloj);
+      if (abierto.intento.expira) {
+        const expira = Date.parse(abierto.intento.expira);
+        this.restante.set(Math.max(0, Math.round((expira - Date.now()) / 1000)));
+        this.reloj = setInterval(() => {
+          this.restante.set(Math.max(0, Math.round((expira - Date.now()) / 1000)));
+          if (this.restante() <= 0) {
+            clearInterval(this.reloj);
+            this.avisos.error('Se acabó el tiempo: enviamos tus respuestas.');
+            this.enviar(true);
+          }
+        }, 1000);
+      }
+    } catch (e) {
+      this.avisos.error(getErrorMessage(e));
+    } finally {
+      this.comenzando.set(false);
     }
   }
 
@@ -128,8 +130,11 @@ export class TakeQuizComponent {
     clearInterval(this.reloj);
     this.enviando.set(true);
     try {
-      const intento = await firstValueFrom(this.servicio.enviar(this.espacioId, Number(this.quizId()), this.estudianteId, this.inicio,
-        this.preguntas().map((p) => ({ preguntaId: p.id, valor: this.respuestas().get(p.id) ?? null }))));
+      const intento = await firstValueFrom(
+        this.servicio.enviar(this.intentoId, this.preguntas().map((p) => ({ preguntaId: p.id, valor: this.respuestas().get(p.id) ?? null }))),
+      );
+      if (intento.fueraDeTiempo) this.avisos.error('Tus respuestas llegaron fuera de tiempo: el intento se cerró sin contarlas.');
+      if (intento.nota && !intento.nota.guardada) this.avisos.error('El periodo ya está cerrado: tu puntaje no cambió la nota de la planilla.');
       this.intento.set(intento);
       this.fase.set('resultado');
       this.datos.reload();
@@ -140,20 +145,25 @@ export class TakeQuizComponent {
     }
   }
 
-  porcentaje(i: Intento): number {
+  porcentaje(i: { puntaje: number; puntajeMax: number }): number {
     return Math.round((i.puntaje / Math.max(1, i.puntajeMax)) * 100);
   }
 
-  correctas(i: Intento): number {
+  correctas(i: IntentoCorregido): number {
     return i.respuestas.filter((r) => r.correcta).length;
   }
 
-  mensaje(i: Intento): string {
+  mensaje(i: IntentoCorregido): string {
     const p = this.porcentaje(i);
     return p >= 80 ? '¡Excelente trabajo!' : p >= 51 ? '¡Bien hecho! Sigue así.' : 'Sigue practicando: repasa los temas y vuelve a intentarlo.';
   }
 
-  preguntaDe(id: number): Pregunta | undefined {
-    return this.preguntas().find((p) => p.id === id) ?? this.datos.value()?.detalle?.preguntas.find((p) => p.id === id);
+  preguntaDe(id: number): PreguntaParaResponder | undefined {
+    return this.preguntas().find((p) => p.id === id);
+  }
+
+  // La respuesta correcta solo llega cuando ya no quedan intentos (o el quiz cerró)
+  correctaDe(i: IntentoCorregido, preguntaId: number): string | null {
+    return i.correctas?.find((c) => c.preguntaId === preguntaId)?.respuesta ?? null;
   }
 }

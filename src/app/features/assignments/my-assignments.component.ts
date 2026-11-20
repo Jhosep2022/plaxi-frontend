@@ -5,11 +5,11 @@ import { map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClock, faCommentDots, faPaperclip, faPaperPlane, faStar, faTasks } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
-import { ESTADO_ENTREGA } from '../../core/models/assignments.model';
+import { ESTADO_ENTREGA, type ArchivoEntrega } from '../../core/models/assignments.model';
 import { formatShortDate } from '../../core/utils/attendance';
 import { isDueSoon, formatDueDate } from '../../core/utils/assignments';
 import { SelectedChildService } from '../../services/selected-child.service';
-import { TareaDeEstudiante, AssignmentsService } from '../../services/assignments.service';
+import { AssignmentsService, ENTREGA_MAX_MB, TareaDeEstudiante } from '../../services/assignments.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
@@ -21,6 +21,8 @@ import { getErrorMessage } from '../management/academics/academics.ui';
 type Pestana = 'por-entregar' | 'entregadas' | 'revisadas';
 
 // "Tareas" del estudiante (entrega sus trabajos) y del padre (ve las de su hijo, solo lectura)
+const MAX_ARCHIVOS = 3; // por entrega (lo valida también el servidor)
+
 @Component({
   selector: 'app-my-assignments',
   host: { class: 'ui-pagina' },
@@ -54,7 +56,7 @@ export class MyAssignmentsComponent {
     stream: () => {
       const quien$ = this.esPadre
         ? this.hijoActivo.activo().pipe(map((h) => (h ? { id: h.id, nombre: h.nombre } : null)))
-        : of({ id: this.session.userId()!, nombre: '' });
+        : of({ id: 0, nombre: '' });
       return quien$.pipe(
         switchMap((quien) => (quien ? this.servicio.tareasDeEstudiante(this.espacio.id, quien.id).pipe(map((tareas) => ({ quien, tareas }))) : of(null)))
       );
@@ -81,17 +83,46 @@ export class MyAssignmentsComponent {
   // ---------- Entregar ----------
   readonly entregando = signal<TareaDeEstudiante | null>(null);
   readonly texto = signal('');
-  readonly archivo = signal('');
+  readonly conservados = signal<ArchivoEntrega[]>([]); // archivos ya entregados que se mantienen
+  readonly nuevos = signal<File[]>([]);
   readonly enviando = signal(false);
+  readonly maxArchivos = MAX_ARCHIVOS;
+  readonly maxMb = ENTREGA_MAX_MB;
+  readonly totalArchivos = computed(() => this.conservados().length + this.nuevos().length);
 
   abrirEntrega(t: TareaDeEstudiante): void {
     this.texto.set(t.entrega?.texto ?? '');
-    this.archivo.set(t.entrega?.archivo ?? '');
+    this.conservados.set((t.entrega?.archivos ?? []).filter((a) => a.archivoId));
+    this.nuevos.set([]);
     this.entregando.set(t);
   }
 
-  elegirArchivo(event: Event): void {
-    this.archivo.set((event.target as HTMLInputElement).files?.[0]?.name ?? this.archivo());
+  elegirArchivos(event: Event): void {
+    const entrada = event.target as HTMLInputElement;
+    const elegidos = [...(entrada.files ?? [])];
+    entrada.value = '';
+    const grande = elegidos.find((f) => f.size > ENTREGA_MAX_MB * 1024 * 1024);
+    if (grande) return this.avisos.error(`${grande.name} pesa más de ${ENTREGA_MAX_MB} MB.`);
+    if (this.totalArchivos() + elegidos.length > MAX_ARCHIVOS) return this.avisos.error(`Puedes adjuntar hasta ${MAX_ARCHIVOS} archivos.`);
+    this.nuevos.update((l) => [...l, ...elegidos]);
+  }
+
+  quitarConservado(archivoId: number | undefined): void {
+    this.conservados.update((l) => l.filter((a) => a.archivoId !== archivoId));
+  }
+
+  quitarNuevo(i: number): void {
+    this.nuevos.update((l) => l.filter((_, j) => j !== i));
+  }
+
+  // Abre el archivo entregado con un enlace temporal
+  async abrirArchivo(archivo: ArchivoEntrega): Promise<void> {
+    if (!archivo.archivoId) return;
+    try {
+      window.open(await firstValueFrom(this.servicio.enlaceArchivo(archivo.archivoId)), '_blank', 'noopener');
+    } catch (error) {
+      this.avisos.error(getErrorMessage(error));
+    }
   }
 
   async entregar(): Promise<void> {
@@ -99,7 +130,7 @@ export class MyAssignmentsComponent {
     if (!t) return;
     this.enviando.set(true);
     try {
-      await firstValueFrom(this.servicio.entregar(t.tarea.id, this.session.userId()!, this.texto(), this.archivo()));
+      await firstValueFrom(this.servicio.entregar(t.tarea.id, this.texto(), this.nuevos(), this.conservados().map((a) => a.archivoId!)));
       this.avisos.success(t.entrega ? 'Entrega actualizada.' : `¡Listo! Entregaste "${t.tarea.titulo}".`);
       this.entregando.set(null);
       this.pestana.set('entregadas');

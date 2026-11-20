@@ -92,6 +92,7 @@
         <input id="tar-hora" type="time" class="ui-input" [formField]="formulario.hora" />
       </div>
     </div>
+    <label class="check" for="tar-tardias"><input type="checkbox" id="tar-tardias" [formField]="formulario.aceptaTardias" /> Aceptar entregas después de la hora límite (quedan marcadas como tarde)</label>
     @if (cuentaParaNota()) {
     <div class="ui-campo">
       <label for="tar-criterio">¿Cuenta para la nota?</label>
