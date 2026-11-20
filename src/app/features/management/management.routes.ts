@@ -7,6 +7,7 @@ export default [
 
   // Académico
   { path: 'academico/gestion', title: 'Gestión y periodos', loadComponent: () => import('./academics/academic-years/academic-year.component').then((m) => m.AcademicYearComponent) },
+  { path: 'academico/continuidad', title: 'Paso a la siguiente gestión', loadComponent: () => import('./academics/continuity/continuity.component').then((m) => m.ContinuityComponent) },
   { path: 'academico/paralelos', title: 'Grados y paralelos', loadComponent: () => import('./academics/class-groups/class-groups.component').then((m) => m.ClassGroupsComponent) },
   { path: 'academico/materias', title: 'Materias', loadComponent: () => import('./academics/subjects/subjects.component').then((m) => m.SubjectsComponent) },
   { path: 'academico/aulas', title: 'Aulas', loadComponent: () => import('./academics/classrooms/classrooms.component').then((m) => m.ClassroomsComponent) },

@@ -21,6 +21,7 @@ import {
   faPeopleGroup,
   faPlus,
   faQrcode,
+  faForward,
   faSchool,
   faShieldHalved,
   faSitemap,
@@ -186,6 +187,7 @@ function direccion(): NavModule[] {
       id: 'academico', label: 'Académico', icon: faSchool, sections: [{
         items: [
           item('Gestión y periodos', faCalendarDays, 'direccion/academico/gestion'),
+          item('Paso a la siguiente gestión', faForward, 'direccion/academico/continuidad'),
           item('Grados y paralelos', faSitemap, 'direccion/academico/paralelos'),
           item('Materias', faBook, 'direccion/academico/materias'),
           item('Aulas', faDoorOpen, 'direccion/academico/aulas'),
