@@ -75,6 +75,13 @@ export const routes: Routes = [
       ),
   },
 
+  // QR of an access card (students and parents): opens with or without a session
+  {
+    path: 'tarjeta',
+    loadComponent: () => import('./features/auth/auth-layout.component').then((m) => m.AuthLayoutComponent),
+    children: [{ path: '', title: 'Entrar con tu tarjeta', loadComponent: () => import('./features/auth/access-card.component').then((m) => m.AccessCardComponent) }],
+  },
+
   // Link of the email change: open with or without a session (it may be opened on another device)
   {
     path: 'confirmar-correo',

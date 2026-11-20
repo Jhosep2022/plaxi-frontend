@@ -19,6 +19,14 @@ export interface ApiSessionResponse {
   membresias: ApiMembership[];
 }
 
+export interface AccessCardStatus {
+  valido: boolean;
+  nombre?: string;
+  usuario?: string;
+  pideCarnet?: boolean;
+  hijos?: { nombre: string; paralelo: string }[];
+}
+
 export interface ActivationStatus {
   valido: boolean;
   usuario?: string;
@@ -60,6 +68,15 @@ export class AuthApiService {
 
   activateWithInvitation(token: string, password: string): Observable<ApiSessionResponse> {
     return this.http.post<ApiSessionResponse>(`${this.url}/activar`, { token, clave: password }, { withCredentials: true });
+  }
+
+  // Access card with QR (T07): who it belongs to and, for a parent, the children the school linked
+  getAccessCardStatus(token: string): Observable<AccessCardStatus> {
+    return this.http.get<AccessCardStatus>(`${this.url}/tarjeta/${encodeURIComponent(token)}`);
+  }
+
+  activateWithAccessCard(token: string, password: string, ci?: string): Observable<ApiSessionResponse> {
+    return this.http.post<ApiSessionResponse>(`${this.url}/tarjeta`, { token, clave: password, ...(ci ? { ci: ci.trim() } : {}) }, { withCredentials: true });
   }
 
   isAvailable(field: 'usuario' | 'correo' | 'slug', value: string): Observable<boolean> {

@@ -202,6 +202,7 @@ function direccion(): NavModule[] {
           item('Padres y tutores', faChild, 'direccion/personas/padres'),
           item('Inscripciones', faUserPlus, 'direccion/personas/inscripciones'),
           item('Carga desde Excel', faFileSignature, 'direccion/personas/carga-excel'),
+          item('Tarjetas de acceso', faQrcode, 'direccion/personas/tarjetas'),
         ],
       }],
     },

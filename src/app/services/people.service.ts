@@ -7,6 +7,22 @@ import { Estudiante } from '../core/models/attendance.model';
 import { Parentesco, Tutor, Vinculo } from '../core/models/people.model';
 import { environment } from '../../environments/environment';
 
+export interface AccessCard {
+  personaId: number;
+  rol: 'estudiante' | 'padre';
+  nombre: string;
+  usuario: string;
+  estado: 'pendiente' | 'activa' | 'sin_cuenta' | 'sin_carnet';
+  enlace?: string;
+  hijos?: { nombre: string; paralelo: string }[];
+}
+
+export interface AccessCardSheet {
+  paralelo: string;
+  venceEl: string;
+  tarjetas: AccessCard[];
+}
+
 export interface CargaDocente {
   materias: string[];
   clasesSemana: number;
@@ -156,6 +172,10 @@ export class PeopleService {
     return this.http
       .get<Gestion[]>(`${this.base}/gestiones`)
       .pipe(map((rows) => rows.find((row) => row.estado === 'activa')));
+  }
+  // Access cards with QR of a class group (direction). The QR links come only in this answer.
+  accessCards(paraleloId: number): Observable<AccessCardSheet> {
+    return this.http.post<AccessCardSheet>(`${this.base}/tarjetas-acceso`, { paraleloId });
   }
   classGroups(): Observable<Paralelo[]> {
     return this.http

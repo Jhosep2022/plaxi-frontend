@@ -18,6 +18,7 @@ export default [
   { path: 'personas/docentes', title: 'Docentes', loadComponent: () => import('./people/teachers.component').then((m) => m.TeachersComponent) },
   { path: 'personas/estudiantes', title: 'Estudiantes', loadComponent: () => import('./people/students.component').then((m) => m.StudentsComponent) },
   { path: 'personas/padres', title: 'Padres y tutores legales', loadComponent: () => import('./people/parents.component').then((m) => m.ParentsComponent) },
+  { path: 'personas/tarjetas', title: 'Tarjetas de acceso', loadComponent: () => import('./people/access-cards.component').then((m) => m.AccessCardsComponent) },
   { path: 'personas/inscripciones', title: 'Inscripciones', loadComponent: () => import('./people/enrollments.component').then((m) => m.EnrollmentsComponent) },
 
   // Asistencia
