@@ -11,7 +11,6 @@ import { formatLongDate, todayIso } from '../../core/utils/attendance';
 import { calculatePercentage } from '../../core/utils/reports';
 import { AcademicsService } from '../../services/academics.service';
 import { Alcance, AnnouncementsService } from '../../services/announcements.service';
-import { AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
@@ -35,7 +34,6 @@ export class SentComponent {
   private servicio = inject(AnnouncementsService);
   private academico = inject(AcademicsService);
   private avisos = inject(NotificationService);
-  private perfiles = inject(AccountProfileService);
 
   readonly esDireccion = input(false);
 
@@ -56,10 +54,11 @@ export class SentComponent {
 
   private readonly espacio = this.session.activeSpace()!;
   private readonly usuarioId = this.session.userId()!;
+  readonly rol = computed(() => (this.esDireccion() ? ('direccion' as const) : ('docente' as const)));
 
   readonly enviados = rxResource({
-    params: () => this.esDireccion(),
-    stream: ({ params }) => this.servicio.enviados(this.espacio.id, params ? null : this.usuarioId),
+    params: () => this.rol(),
+    stream: ({ params }) => this.servicio.enviados(params),
     defaultValue: [],
   });
 
@@ -67,12 +66,18 @@ export class SentComponent {
   readonly cursos = rxResource({
     params: () => this.esDireccion(),
     stream: ({ params }) =>
-      forkJoin({ paralelos: this.academico.getActiveClassGroups(this.espacio.id), asignaciones: params ? of([]) : this.academico.getActiveAllocations(this.espacio.id) }),
+      forkJoin({
+        paralelos: this.academico.getActiveClassGroups(this.espacio.id),
+        asignaciones: params ? of([]) : this.academico.getActiveAllocations(this.espacio.id),
+        // A teacher's assignments point to their teacher record, not to their account
+        fichas: params ? of<number[]>([]) : this.servicio.misFichasDocente(),
+      }),
   });
   readonly cursosDisponibles = computed(() => {
     const c = this.cursos.value();
     if (!c) return [];
-    const propios = new Set(c.asignaciones.filter((a) => a.docenteId === this.usuarioId).map((a) => a.paraleloId));
+    const fichas = new Set(c.fichas);
+    const propios = new Set(c.asignaciones.filter((a) => fichas.has(a.docenteId)).map((a) => a.paraleloId));
     return [...c.paralelos].filter((p) => this.esDireccion() || propios.has(p.id)).sort(compararParalelos);
   });
   readonly publicos = computed(() => PUBLICOS.filter((p) => this.esDireccion() || p.id !== 'docentes'));
@@ -98,7 +103,16 @@ export class SentComponent {
   });
 
   private readonly cursosElegidos = computed(() => (this.esDireccion() && this.todoElColegio() ? [] : this.paraleloIds()));
-  readonly alcance = computed(() => (this.publico().length && (this.esDireccion() && this.todoElColegio() || this.paraleloIds().length) ? this.servicio.contar(this.publico(), this.cursosElegidos()) : 0));
+  // Asked to the API, which counts the real recipients (only people with an account)
+  private readonly conteo = rxResource({
+    params: () =>
+      this.redactando() && this.publico().length && ((this.esDireccion() && this.todoElColegio()) || this.paraleloIds().length)
+        ? { rol: this.rol(), publico: this.publico(), cursos: this.cursosElegidos() }
+        : null,
+    stream: ({ params }) => (params ? this.servicio.contar(params.rol, params.publico, params.cursos) : of(0)),
+    defaultValue: 0,
+  });
+  readonly alcance = computed(() => this.conteo.value() ?? 0);
 
   nuevo(): void {
     this.modelo.set({ ...BORRADOR });
@@ -121,10 +135,8 @@ export class SentComponent {
     submit(this.formulario, async () => {
       this.enviando.set(true);
       try {
-        const autor = { id: this.usuarioId, nombre: await this.nombreAutor(), rol: this.esDireccion() ? 'direccion' as const : 'docente' as const };
-        await firstValueFrom(this.servicio.publicar(this.espacio.id, autor, { ...this.modelo(), publico: this.publico(), paraleloIds: this.cursosElegidos() },
-          this.esDireccion() ? null : this.cursosDisponibles().map((p) => p.id)));
-        this.avisos.success(`Comunicado enviado a ${this.alcance()} personas.`);
+        const enviado = await firstValueFrom(this.servicio.publicar(this.rol(), { ...this.modelo(), publico: this.publico(), paraleloIds: this.cursosElegidos() }));
+        this.avisos.success(`Comunicado enviado a ${enviado.alcance.destinatarios} personas.`);
         this.redactando.set(false);
         this.enviados.reload();
       } catch (error) {
@@ -161,8 +173,4 @@ export class SentComponent {
 
   readonly hoy = todayIso();
 
-  private async nombreAutor(): Promise<string> {
-    const p = await firstValueFrom(this.perfiles.myProfile());
-    return `${p?.nombre ?? ''} ${p?.primerApellido ?? ''}`.trim();
-  }
 }

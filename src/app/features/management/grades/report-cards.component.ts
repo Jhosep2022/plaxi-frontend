@@ -1,13 +1,14 @@
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faFileLines, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
-import { aprobado, boletinDe, indiceNotas, promedio } from '../../../core/utils/grades';
+import { promedio } from '../../../core/utils/grades';
 import { AcademicsService } from '../../../services/academics.service';
-import { GradesService } from '../../../services/grades.service';
+import { GradesApiService } from '../../../services/grades-api.service';
 import { ReportCardComponent } from '../../../shared/grades/report-card.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -37,7 +38,7 @@ import { SELECT } from '../../../shared/ui/select.component';
   template: `
     @if (elegido(); as est) {
       <button type="button" class="ui-btn ui-btn--secundario volver no-imprimir" (click)="elegidoId.set(0)"><fa-icon [icon]="faArrowLeft" /> Volver a {{ curso() }}</button>
-      <app-report-card [datos]="datos.value()!" [estudiante]="est" [espacio]="espacio.nombre" />
+      <app-report-card [estudianteId]="est.id" [espacio]="espacio.nombre" />
     } @else {
       <app-page-header miga="Calificaciones" titulo="Boletines" descripcion="Notas finales de cada estudiante por periodo. Abre un boletín para verlo completo o imprimirlo.">
         <div class="filtros">
@@ -107,7 +108,7 @@ import { SELECT } from '../../../shared/ui/select.component';
 })
 export class ReportCardsComponent {
   private academico = inject(AcademicsService);
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
 
   readonly faArrowLeft = faArrowLeft;
   readonly faFileLines = faFileLines;
@@ -129,9 +130,21 @@ export class ReportCardsComponent {
     return p ? paraleloLabel(p) : '';
   });
 
+  // One summary sheet per period from the API (closed periods come from their frozen copy)
   readonly datos = rxResource({
     params: () => this.paraleloId(),
-    stream: ({ params }) => (params ? this.calificaciones.getClassGroupData(this.espacio.id, params) : of(null)),
+    stream: ({ params }) =>
+      !params
+        ? of(null)
+        : this.academico.getActiveAcademicYear(this.espacio.id).pipe(
+            switchMap((gestion) =>
+              !gestion?.periodos.length
+                ? of(null)
+                : forkJoin(gestion.periodos.map((_, i) => this.calificaciones.summarySheet(params, i))).pipe(
+                    switchMap((hojas) => of({ gestion, hojas, estudiantes: hojas[0].filas.map((f) => f.estudiante) })),
+                  ),
+            ),
+          ),
   });
 
   readonly busqueda = signal('');
@@ -141,18 +154,18 @@ export class ReportCardsComponent {
   });
   readonly elegido = computed(() => this.datos.value()?.estudiantes.find((e) => e.id === this.elegidoId()) ?? null);
 
+  // Same rule as the report card: each subject's annual grade is the average of its periods
   readonly filas = computed(() => {
     const d = this.datos.value();
     if (!d) return [];
-    const nota = indiceNotas(d.notas);
-    return d.estudiantes.map((estudiante) => {
-      const boletin = boletinDe(d, nota, estudiante.id);
-      const periodos = d.gestion.periodos.map((_, i) => promedio(boletin.map((f) => f.periodos[i])));
+    const materias = d.hojas[0].materias;
+    return d.estudiantes.map((estudiante, fila) => {
+      const anuales = materias.map((_, j) => promedio(d.hojas.map((h) => h.filas[fila]?.notas[j] ?? null)));
       return {
         estudiante,
-        periodos,
-        anual: promedio(boletin.map((f) => f.anual)),
-        reprobadas: boletin.filter((f) => f.anual !== null && !aprobado(d.config, f.anual)).map((f) => f.materia.nombre),
+        periodos: d.hojas.map((h) => h.filas[fila]?.promedio ?? null),
+        anual: promedio(anuales),
+        reprobadas: materias.filter((_, j) => anuales[j] !== null && !this.aprueba(anuales[j]!)).map((m) => m.nombre),
       };
     });
   });
@@ -166,11 +179,10 @@ export class ReportCardsComponent {
   readonly conReprobadas = computed(() => this.filas().filter((f) => f.reprobadas.length).length);
 
   cerrado(periodo: number): boolean {
-    return !!this.datos.value()?.cierres.some((c) => c.periodo === periodo);
+    return !!this.datos.value()?.hojas[periodo]?.cerrado;
   }
 
   aprueba(nota: number): boolean {
-    const config = this.datos.value()?.config;
-    return !!config && aprobado(config, nota);
+    return nota >= (this.datos.value()?.hojas[0]?.notaAprobacion ?? 0);
   }
 }

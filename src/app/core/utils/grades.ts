@@ -24,7 +24,7 @@ export interface ResultadoMateria {
 // Nota de una materia en un periodo:
 // promedio de las actividades calificadas de cada criterio y luego promedio ponderado por criterio.
 // Si un criterio aún no tiene notas, se reparte su peso entre los demás (nota parcial).
-export function calcularNota(criterios: Criterio[], actividades: Actividad[], nota: BuscarNota, estudianteId: number): ResultadoMateria {
+export function calcularNota(criterios: Criterio[], actividades: Pick<Actividad, 'id' | 'criterioId'>[], nota: BuscarNota, estudianteId: number): ResultadoMateria {
   const porCriterio = criterios.map((criterio) => {
     const propias = actividades.filter((a) => a.criterioId === criterio.id);
     const valores = propias.map((a) => nota(a.id, estudianteId)).filter((v): v is number => v !== undefined);

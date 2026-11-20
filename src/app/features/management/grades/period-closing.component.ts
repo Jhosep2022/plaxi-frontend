@@ -8,7 +8,7 @@ import { SessionService } from '../../../core/auth/session.service';
 import { Gestion } from '../../../core/models/academics.model';
 import { formatShortDate, todayIso } from '../../../core/utils/attendance';
 import { AcademicsService } from '../../../services/academics.service';
-import { GradesService } from '../../../services/grades.service';
+import { GradesApiService } from '../../../services/grades-api.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -99,7 +99,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
 })
 export class PeriodClosingComponent {
   private academico = inject(AcademicsService);
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
   private avisos = inject(NotificationService);
   private readonly espacioId = inject(SessionService).activeSpace()!.id;
 
@@ -114,7 +114,7 @@ export class PeriodClosingComponent {
       this.academico.getActiveAcademicYear(this.espacioId).pipe(
         switchMap((gestion) =>
           gestion
-            ? forkJoin({ gestion: of(gestion), cierres: this.calificaciones.getClosures(this.espacioId, gestion.id), progreso: this.calificaciones.getProgress(this.espacioId, gestion) })
+            ? forkJoin({ gestion: of(gestion), cierres: this.calificaciones.getClosures(), progreso: this.calificaciones.progressByPeriod(gestion.periodos.length) })
             : of(null)
         )
       ),
@@ -148,7 +148,7 @@ export class PeriodClosingComponent {
     ].filter(Boolean);
     if (!confirm(`¿Cerrar el ${p.nombre}? Los docentes ya no podrán modificar sus notas.${avisos.length ? '\n\n' + avisos.join('\n') : ''}`)) return;
     try {
-      await firstValueFrom(this.calificaciones.closePeriod(this.espacioId, gestion, periodo));
+      await firstValueFrom(this.calificaciones.closePeriod(periodo));
       this.avisos.success(`${p.nombre} cerrado. Sus notas ya son definitivas.`);
       this.datos.reload();
     } catch (error) {
@@ -161,7 +161,7 @@ export class PeriodClosingComponent {
     const nombre = this.datos.value()!.gestion.periodos[periodo].nombre;
     if (!cierre || !confirm(`¿Reabrir el ${nombre}? Los docentes podrán volver a modificar sus notas.`)) return;
     try {
-      await firstValueFrom(this.calificaciones.reopenPeriod(cierre));
+      await firstValueFrom(this.calificaciones.reopenPeriod(periodo));
       this.avisos.success(`${nombre} reabierto.`);
       this.datos.reload();
     } catch (error) {

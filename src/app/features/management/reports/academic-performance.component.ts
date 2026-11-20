@@ -1,16 +1,15 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartLine, faCircleCheck, faFileCsv, faPrint, faTriangleExclamation, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { environment } from '../../../../environments/environment';
 import { SessionService } from '../../../core/auth/session.service';
-import { compararParalelos, paraleloLabel } from '../../../core/models/academics.model';
 import { todayIso } from '../../../core/utils/attendance';
-import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../../core/utils/grades';
-import { downloadCsv, calculatePercentage } from '../../../core/utils/reports';
+import { periodoDeFecha } from '../../../core/utils/grades';
+import { downloadCsv } from '../../../core/utils/reports';
 import { AcademicsService } from '../../../services/academics.service';
-import { GradesService, DatosParalelo } from '../../../services/grades.service';
 import { BarChartComponent, ColumnChartComponent, ChartItem } from '../../../shared/reports/charts.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
@@ -18,14 +17,17 @@ import { SELECT } from '../../../shared/ui/select.component';
 
 const ANUAL = -1;
 
-interface NotaFinal {
-  datos: DatosParalelo;
-  curso: string;
-  materia: string;
-  docente: string;
-  estudianteId: number;
-  estudiante: string;
-  nota: number;
+// GET /api/espacios/:slug/reportes/rendimiento: the server computes the final grade of every student
+interface ReporteRendimiento {
+  periodo: number | 'anual';
+  provisional: boolean;
+  notaMaxima: number;
+  notaAprobacion: number;
+  resumen: { promedio: number | null; aprobacion: number; enRiesgo: number; evaluados: number };
+  porCurso: { paraleloId: number; curso: string; promedio: number | null; aprobacion: number }[];
+  distribucion: { desde: number; hasta: number; cantidad: number; bajoAprobacion: boolean }[];
+  materiasCriticas: { curso: string; materia: string; docente: string; promedio: number | null; reprobados: number; total: number }[];
+  enRiesgo: { estudianteId: number; nombre: string; curso: string; promedio: number | null; reprobadas: { materia: string; nota: number }[] }[];
 }
 
 // Reporte de rendimiento académico: promedios por curso, distribución de notas, materias críticas y estudiantes en riesgo
@@ -38,8 +40,9 @@ interface NotaFinal {
 })
 export class AcademicPerformanceComponent {
   private academico = inject(AcademicsService);
-  private calificaciones = inject(GradesService);
-  private readonly espacioId = inject(SessionService).activeSpace()!.id;
+  private http = inject(HttpClient);
+  private session = inject(SessionService);
+  private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly ANUAL = ANUAL;
   readonly faChartLine = faChartLine;
@@ -49,102 +52,51 @@ export class AcademicPerformanceComponent {
   readonly faTriangleExclamation = faTriangleExclamation;
   readonly faUsers = faUsers;
 
-  // Notas de todos los paralelos de la gestión activa
-  readonly datos = rxResource({
-    stream: () =>
-      this.academico.getActiveClassGroups(this.espacioId).pipe(
-        switchMap((ps) => (ps.length ? forkJoin([...ps].sort(compararParalelos).map((p) => this.calificaciones.getClassGroupData(this.espacioId, p.id))) : of([]))),
-        map((lista) => lista.filter((d): d is DatosParalelo => !!d))
-      ),
-  });
-
-  readonly gestion = computed(() => this.datos.value()?.[0]?.gestion);
-  readonly config = computed(() => this.datos.value()?.[0]?.config);
+  private readonly anio = rxResource({ stream: () => this.academico.getActiveAcademicYear(this.espacioId) });
+  readonly gestion = computed(() => this.anio.value() ?? undefined);
   readonly periodo = linkedSignal(() => {
     const g = this.gestion();
     return g ? periodoDeFecha(g, todayIso()) : 0;
   });
-  readonly provisional = computed(() => {
-    const d = this.datos.value()?.[0];
-    if (!d) return false;
-    const periodo = this.periodo();
-    return periodo === ANUAL ? d.cierres.length < d.gestion.periodos.length : !d.cierres.some((c) => c.periodo === periodo);
+
+  readonly datos = rxResource({
+    params: () => (this.gestion() ? this.periodo() : null),
+    stream: ({ params }) => {
+      if (params === null) return of(null);
+      const url = `${environment.API_URL}/espacios/${encodeURIComponent(this.session.activeSpace()!.slug)}/reportes/rendimiento`;
+      return this.http.get<ReporteRendimiento>(url, { params: { periodo: params === ANUAL ? 'anual' : params } });
+    },
   });
 
-  // Nota final de cada estudiante en cada materia para el periodo elegido (o el promedio anual)
-  readonly notas = computed<NotaFinal[]>(() => {
-    const periodo = this.periodo();
-    return (this.datos.value() ?? []).flatMap((d) => {
-      const buscar = indiceNotas(d.notas);
-      const curso = paraleloLabel(d.paralelo);
-      return d.estudiantes.flatMap((e) =>
-        boletinDe(d, buscar, e.id).flatMap((f) => {
-          const nota = periodo === ANUAL ? f.anual : f.periodos[periodo];
-          return nota === null ? [] : [{ datos: d, curso, materia: f.materia.nombre, docente: f.docente, estudianteId: e.id, estudiante: e.nombre, nota }];
-        })
-      );
-    });
+  readonly config = computed(() => {
+    const r = this.datos.value();
+    return r ? { notaMaxima: r.notaMaxima, notaAprobacion: r.notaAprobacion } : undefined;
   });
-
-  private aprueba(nota: number): boolean {
-    const c = this.config();
-    return !!c && aprobado(c, nota);
-  }
+  readonly provisional = computed(() => !!this.datos.value()?.provisional);
+  // Anything to show (the empty state checks it)
+  readonly notas = computed(() => (this.datos.value()?.resumen.evaluados ? [1] : []));
 
   readonly resumen = computed(() => {
-    const notas = this.notas();
-    const enRiesgo = new Set(notas.filter((n) => !this.aprueba(n.nota)).map((n) => n.estudianteId));
-    return {
-      promedio: promedio(notas.map((n) => n.nota)),
-      aprobacion: calculatePercentage(notas.filter((n) => this.aprueba(n.nota)).length, notas.length),
-      enRiesgo: enRiesgo.size,
-      evaluados: new Set(notas.map((n) => n.estudianteId)).size,
-    };
+    const r = this.datos.value()?.resumen;
+    return { promedio: r?.promedio ?? null, aprobacion: r?.aprobacion ?? 0, enRiesgo: r?.enRiesgo ?? 0, evaluados: r?.evaluados ?? 0 };
   });
 
-  readonly porCurso = computed<ChartItem[]>(() => {
-    const grupos = new Map<string, number[]>();
-    for (const n of this.notas()) grupos.set(n.curso, [...(grupos.get(n.curso) ?? []), n.nota]);
-    return [...grupos.entries()].map(([curso, notas]) => {
-      const aprobacion = calculatePercentage(notas.filter((n) => this.aprueba(n)).length, notas.length);
-      return { etiqueta: curso, valor: promedio(notas) ?? 0, detalle: `${aprobacion}% de notas aprobadas`, alerta: aprobacion < 90 };
-    });
-  });
+  readonly porCurso = computed<ChartItem[]>(() =>
+    (this.datos.value()?.porCurso ?? []).map((c) => ({ etiqueta: c.curso, valor: c.promedio ?? 0, detalle: `${c.aprobacion}% de notas aprobadas`, alerta: c.aprobacion < 90 })),
+  );
 
-  // Distribución de notas por rangos (los rangos bajo la nota de aprobación van en tono de advertencia)
-  readonly distribucion = computed<ChartItem[]>(() => {
-    const c = this.config();
-    if (!c) return [];
-    const max = c.notaMaxima;
-    const cortes = [0, 0.2, 0.4, c.notaAprobacion / max, 0.6, 0.7, 0.8, 0.9, 1.0001].map((x) => Math.round(x * max));
-    const rangos = cortes.slice(0, -1).map((desde, i) => ({ desde, hasta: cortes[i + 1] - 1 })).filter((r) => r.hasta >= r.desde);
-    rangos[rangos.length - 1].hasta = max;
-    return rangos.map((r) => ({
-      etiqueta: `${r.desde}–${r.hasta}`,
-      valor: this.notas().filter((n) => n.nota >= r.desde && n.nota <= r.hasta).length,
-      alerta: r.hasta < c.notaAprobacion,
-    }));
-  });
+  // Grades by range (ranges below the passing grade in a warning tone)
+  readonly distribucion = computed<ChartItem[]>(() =>
+    (this.datos.value()?.distribucion ?? []).map((r) => ({ etiqueta: `${r.desde}–${r.hasta}`, valor: r.cantidad, alerta: r.bajoAprobacion })),
+  );
 
-  // Materias (por curso) con estudiantes reprobados
-  readonly materiasCriticas = computed(() => {
-    const grupos = new Map<string, NotaFinal[]>();
-    for (const n of this.notas()) grupos.set(`${n.curso}|${n.materia}`, [...(grupos.get(`${n.curso}|${n.materia}`) ?? []), n]);
-    return [...grupos.values()]
-      .map((ns) => ({ curso: ns[0].curso, materia: ns[0].materia, docente: ns[0].docente, promedio: promedio(ns.map((n) => n.nota))!, reprobados: ns.filter((n) => !this.aprueba(n.nota)).length, total: ns.length }))
-      .filter((m) => m.reprobados > 0)
-      .sort((a, b) => b.reprobados / b.total - a.reprobados / a.total || a.promedio - b.promedio);
-  });
+  // Subjects (per class group) with failing students
+  readonly materiasCriticas = computed(() => (this.datos.value()?.materiasCriticas ?? []).map((m) => ({ ...m, promedio: m.promedio ?? 0 })));
 
-  // Estudiantes con al menos una materia reprobada
-  readonly enRiesgo = computed(() => {
-    const grupos = new Map<number, NotaFinal[]>();
-    for (const n of this.notas()) grupos.set(n.estudianteId, [...(grupos.get(n.estudianteId) ?? []), n]);
-    return [...grupos.values()]
-      .map((ns) => ({ estudiante: ns[0].estudiante, curso: ns[0].curso, reprobadas: ns.filter((n) => !this.aprueba(n.nota)), promedio: promedio(ns.map((n) => n.nota))! }))
-      .filter((e) => e.reprobadas.length)
-      .sort((a, b) => b.reprobadas.length - a.reprobadas.length || a.promedio - b.promedio);
-  });
+  // Students with at least one failed subject
+  readonly enRiesgo = computed(() =>
+    (this.datos.value()?.enRiesgo ?? []).map((e) => ({ estudiante: e.nombre, curso: e.curso, reprobadas: e.reprobadas, promedio: e.promedio ?? 0 })),
+  );
 
   nombrePeriodo(): string {
     return this.periodo() === ANUAL ? 'Promedio anual' : this.gestion()?.periodos[this.periodo()]?.nombre ?? '';

@@ -6,8 +6,6 @@ import { Estudiante } from '../core/models/attendance.model';
 import { Actividad, CierrePeriodo, ConfigCalificacion, Nota, configPorDefecto } from '../core/models/grades.model';
 import { SpaceType } from '../core/models/space.model';
 import { todayIso } from '../core/utils/attendance';
-import { MOCK_ASIGNACIONES } from '../mocks/academics.mock';
-import { MOCK_ESTUDIANTES } from '../mocks/attendance.mock';
 import { MOCK_ACTIVIDADES, MOCK_CIERRES, MOCK_CONFIG_CALIFICACIONES, MOCK_NOTAS } from '../mocks/grades.mock';
 import { AcademicsService } from './academics.service';
 import { AttendanceService } from './attendance.service';
@@ -33,15 +31,9 @@ export interface CambioNota {
   valor: number | null; // null = borrar la nota
 }
 
-export interface ProgresoPeriodo {
-  actividades: number;
-  notasCargadas: number;
-  notasEsperadas: number;
-  materiasSinActividades: number;
-}
-
-// Escala y ponderación, actividades, notas y cierre de periodos.
-// MOCK: todo vive en memoria; cuando exista el backend, cada método será una llamada HTTP.
+// MOCK: grades of the virtual classrooms, assignments and quizzes, which are still simulated.
+// The school's grades (sheet, scale, period closing, report cards and reports) use GradesApiService.
+// Delete this service when classrooms, assignments and quizzes are connected to the API.
 @Injectable({ providedIn: 'root' })
 export class GradesService {
   private academico = inject(AcademicsService);
@@ -95,22 +87,6 @@ export class GradesService {
     return this.cierresRepo.delete(cierre.id);
   }
 
-  // Avance de la carga de notas de cada periodo (para decidir si se puede cerrar)
-  getProgress(espacioId: number, gestion: Gestion): Observable<ProgresoPeriodo[]> {
-    const asignaciones = MOCK_ASIGNACIONES.filter((a) => a.espacioId === espacioId && a.gestionId === gestion.id);
-    const alumnos = (paraleloId: number) => MOCK_ESTUDIANTES.filter((e) => e.paraleloId === paraleloId).length;
-    const progreso = gestion.periodos.map((_, periodo) => {
-      const actividades = this.actividadesRepo.readNow((a) => a.gestionId === gestion.id && a.periodo === periodo);
-      const ids = new Set(actividades.map((a) => a.id));
-      return {
-        actividades: actividades.length,
-        notasCargadas: this.notasRepo.readNow((n) => ids.has(n.actividadId)).length,
-        notasEsperadas: actividades.reduce((s, a) => s + alumnos(a.paraleloId), 0),
-        materiasSinActividades: asignaciones.filter((asig) => !actividades.some((a) => a.paraleloId === asig.paraleloId && a.materiaId === asig.materiaId)).length,
-      };
-    });
-    return of(progreso);
-  }
 
   // ---------- Actividades ----------
   saveActivity(actividad: Omit<Actividad, 'id'> & { id?: number }): Observable<Actividad> {

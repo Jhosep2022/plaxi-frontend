@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus, faRotateLeft, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { ConfigCalificacion, configPorDefecto } from '../../../core/models/grades.model';
-import { GradesService } from '../../../services/grades.service';
+import { GradesApiService } from '../../../services/grades-api.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics/academics.ui';
@@ -117,7 +117,7 @@ const aModelo = (c: ConfigCalificacion) => ({
   `,
 })
 export class GradingScaleComponent {
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
   private avisos = inject(NotificationService);
   private readonly espacio = inject(SessionService).activeSpace()!;
 
@@ -125,7 +125,7 @@ export class GradingScaleComponent {
   readonly faRotateLeft = faRotateLeft;
   readonly faTrash = faTrash;
 
-  readonly config = rxResource({ stream: () => this.calificaciones.getConfig(this.espacio.id, this.espacio.tipo) });
+  readonly config = rxResource({ stream: () => this.calificaciones.getConfig() });
   readonly modelo = linkedSignal(() => aModelo(this.config.value() ?? configPorDefecto(this.espacio.id, this.espacio.tipo)));
   readonly formulario = form(this.modelo, (s) => {
     required(s.notaMaxima, { message: 'Indica la nota máxima.' });

@@ -35,7 +35,7 @@ export class InboxComponent {
   readonly faHandshake = faHandshake;
 
   private readonly usuarioId = this.session.userId()!;
-  private readonly recibidos = rxResource({ stream: () => this.servicio.recibidos(this.session.activeSpace()!.id, this.usuarioId), defaultValue: [] });
+  private readonly recibidos = rxResource({ stream: () => this.servicio.recibidos(), defaultValue: [] });
 
   // Copia local para marcar leídos y confirmados sin recargar la lista
   readonly lista = linkedSignal<ComunicadoRecibido[]>(() => this.recibidos.value());
@@ -59,14 +59,14 @@ export class InboxComponent {
   async abrir(item: ComunicadoRecibido): Promise<void> {
     this.abiertoId.set(item.comunicado.id);
     if (item.lectura) return;
-    const lectura = await firstValueFrom(this.servicio.marcarLeido(item.comunicado.id, this.usuarioId));
+    const lectura = await firstValueFrom(this.servicio.marcarLeido(item.comunicado.id));
     this.actualizar(item.comunicado.id, lectura);
   }
 
   async confirmar(item: ComunicadoRecibido): Promise<void> {
     this.confirmando.set(true);
     try {
-      const lectura = await firstValueFrom(this.servicio.confirmar(item.comunicado.id, this.usuarioId));
+      const lectura = await firstValueFrom(this.servicio.confirmar(item.comunicado.id));
       this.actualizar(item.comunicado.id, lectura);
       this.avisos.success('Confirmaste que recibiste el comunicado.');
     } catch (error) {

@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faBullhorn, faCalendarDays, faTasks, faChartLine, faChild, faCircleCheck, faFileMedical, faStar, faTriangleExclamation, faUserCheck, faUserXmark,
@@ -10,9 +10,10 @@ import {
 import { SessionService } from '../../core/auth/session.service';
 import { PARENTESCOS, edad, iniciales } from '../../core/models/people.model';
 import { contar, formatShortDate, todayIso, addDays } from '../../core/utils/attendance';
-import { aprobado, boletinDe, indiceNotas, periodoDeFecha, promedio } from '../../core/utils/grades';
+import { periodoDeFecha, promedio } from '../../core/utils/grades';
 import { AttendanceService } from '../../services/attendance.service';
-import { GradesService } from '../../services/grades.service';
+import { GradesApiService } from '../../services/grades-api.service';
+import { AcademicsService } from '../../services/academics.service';
 import { AnnouncementsService } from '../../services/announcements.service';
 import { Hijo, SelectedChildService } from '../../services/selected-child.service';
 import { AssignmentsService } from '../../services/assignments.service';
@@ -48,7 +49,8 @@ export class MyChildrenComponent {
   private router = inject(Router);
   private hijoActivo = inject(SelectedChildService);
   private asistencia = inject(AttendanceService);
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
+  private academico = inject(AcademicsService);
   private comunicados = inject(AnnouncementsService);
   private tareas = inject(AssignmentsService);
 
@@ -77,7 +79,7 @@ export class MyChildrenComponent {
   });
 
   readonly sinLeer = rxResource({
-    stream: () => this.comunicados.recibidos(this.espacioId, this.session.userId()!).pipe(map((cs) => cs.filter((c) => !c.lectura).length)),
+    stream: () => this.comunicados.recibidos().pipe(map((cs) => cs.filter((c) => !c.lectura).length)),
     defaultValue: 0,
   });
 
@@ -102,16 +104,19 @@ export class MyChildrenComponent {
       registros: this.asistencia.getStudentRecords(hijo.id),
       licencias: this.asistencia.getStudentLeaveRequests(hijo.id),
       tareas: this.tareas.tareasDeEstudiante(this.espacioId, hijo.id),
-      datos: hijo.paraleloId ? this.calificaciones.getClassGroupData(this.espacioId, hijo.paraleloId) : of(null),
+      // The report card computed by the API (grade of each subject in each period)
+      boletin: hijo.paraleloId ? this.calificaciones.reportCard(hijo.id).pipe(catchError(() => of(null))) : of(null),
+      gestion: this.academico.getActiveAcademicYear(this.espacioId),
     }).pipe(
-      map(({ registros, licencias, tareas, datos }): FichaHijo => {
+      map(({ registros, licencias, tareas, boletin, gestion }): FichaHijo => {
         const desde = addDays(this.hoy, -14);
         const recientes = registros.filter((r) => r.fecha >= desde && r.estado === 'ausente');
-        const indice = datos ? periodoDeFecha(datos.gestion, this.hoy) : 0;
-        const notas = datos ? boletinDe(datos, indiceNotas(datos.notas), hijo.id).map((f) => ({ materia: f.materia.nombre, nota: f.periodos[indice] })) : [];
-        const reprobadas = datos ? notas.filter((n) => n.nota !== null && !aprobado(datos.config, n.nota)) : [];
+        const indice = gestion ? periodoDeFecha(gestion, this.hoy) : 0;
+        const notas = (boletin?.filas ?? []).map((f) => ({ materia: f.materia.nombre, nota: f.periodos[indice] ?? null }));
+        const aprobacion = boletin?.notaAprobacion ?? 0;
+        const reprobadas = notas.filter((n) => n.nota !== null && n.nota < aprobacion);
         const alertas: Alerta[] = [
-          ...reprobadas.map((n) => ({ tipo: 'nota' as const, texto: `${n.materia}: ${n.nota} (bajo ${datos!.config.notaAprobacion})` })),
+          ...reprobadas.map((n) => ({ tipo: 'nota' as const, texto: `${n.materia}: ${n.nota} (bajo ${aprobacion})` })),
           ...(recientes.length ? [{ tipo: 'falta' as const, texto: `${recientes.length} ${recientes.length === 1 ? 'falta' : 'faltas'} a clases en las últimas dos semanas` }] : []),
           ...tareas.filter((t) => t.estado === 'no-entregada').map((t) => ({ tipo: 'tarea' as const, texto: `No entregó la tarea "${t.tarea.titulo}" (${t.tarea.materia.nombre})` })),
           ...licencias.filter((l) => l.estado === 'pendiente').map((l) => ({ tipo: 'licencia' as const, texto: `Licencia del ${formatShortDate(l.desde)} pendiente de aprobación` })),
@@ -121,7 +126,7 @@ export class MyChildrenComponent {
           edad: edad(hijo.fechaNacimiento, this.hoy),
           asistencia: contar(registros),
           faltasRecientes: recientes.length,
-          periodo: datos?.gestion.periodos[indice]?.nombre ?? '',
+          periodo: gestion?.periodos[indice]?.nombre ?? '',
           promedio: promedio(notas.map((n) => n.nota)),
           reprobadas: reprobadas.map((n) => n.materia),
           alertas,

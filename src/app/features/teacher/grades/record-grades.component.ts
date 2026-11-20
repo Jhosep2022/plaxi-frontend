@@ -6,11 +6,10 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faLock, faPen, faPlus, faStar, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../../core/auth/session.service';
 import { paraleloLabel } from '../../../core/models/academics.model';
-import { Actividad } from '../../../core/models/grades.model';
 import { formatShortDate, todayIso } from '../../../core/utils/attendance';
 import { ResultadoMateria, aprobado, calcularNota, periodoDeFecha } from '../../../core/utils/grades';
 import { AcademicsService } from '../../../services/academics.service';
-import { GradesService, CambioNota } from '../../../services/grades.service';
+import { type ActividadPlanilla, type CambioNota, GradesApiService } from '../../../services/grades-api.service';
 import { NotificationService } from '../../../shared/ui/notification.service';
 import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
@@ -33,7 +32,7 @@ const clave = (actividadId: number, estudianteId: number) => `${actividadId}-${e
 export class RecordGradesComponent {
   private session = inject(SessionService);
   private academico = inject(AcademicsService);
-  private calificaciones = inject(GradesService);
+  private calificaciones = inject(GradesApiService);
   private avisos = inject(NotificationService);
 
   readonly faLock = faLock;
@@ -46,7 +45,6 @@ export class RecordGradesComponent {
   readonly paraleloLabel = paraleloLabel;
 
   readonly espacio = this.session.activeSpace()!;
-  private readonly docenteId = this.session.userId()!;
 
   // Clases del docente (materia + paralelo) en la gestión activa
   readonly clases = rxResource({
@@ -58,14 +56,17 @@ export class RecordGradesComponent {
             asignaciones: this.academico.getActiveAllocations(this.espacio.id),
             paralelos: this.academico.getActiveClassGroups(this.espacio.id),
             materias: this.academico.getSubjects(this.espacio.id),
+            // Assignments point to the teacher record, not to the account
+            fichas: this.calificaciones.myRecords(),
           }),
   });
 
   readonly misClases = computed(() => {
     const d = this.clases.value();
     if (!d) return [];
+    const mias = new Set(d.fichas.filter((f) => f.tipo === 'docente').map((f) => f.id));
     return d.asignaciones
-      .filter((a) => a.docenteId === this.docenteId)
+      .filter((a) => mias.has(a.docenteId))
       .map((a) => ({ asignacion: a, paralelo: d.paralelos.find((p) => p.id === a.paraleloId)!, materia: d.materias.find((m) => m.id === a.materiaId)! }))
       .filter((c) => c.paralelo && c.materia)
       .sort((a, b) => a.materia.nombre.localeCompare(b.materia.nombre) || paraleloLabel(a.paralelo).localeCompare(paraleloLabel(b.paralelo)));
@@ -85,28 +86,34 @@ export class RecordGradesComponent {
     return g ? periodoDeFecha(g, todayIso()) : 0;
   });
 
-  // Notas, actividades y estudiantes del paralelo elegido
+  // The sheet of the chosen subject, class group and period (activities, students and their grades), from the API
   readonly datos = rxResource({
-    params: () => this.seleccionada()?.paralelo.id ?? 0,
-    stream: ({ params }) => (params ? this.calificaciones.getClassGroupData(this.espacio.id, params) : of(null)),
+    params: () => {
+      const s = this.seleccionada();
+      return s ? { paralelo: s.paralelo.id, materia: s.materia.id, periodo: this.periodo() } : null;
+    },
+    stream: ({ params }) => (params ? this.calificaciones.sheet(params.paralelo, params.materia, params.periodo) : of(null)),
   });
+  private readonly cierres = rxResource({ stream: () => (this.espacio.tipo === 'colegio' ? this.calificaciones.getClosures() : of([])), defaultValue: [] });
 
   readonly config = computed(() => this.datos.value()?.config);
-  readonly cerrado = computed(() => !!this.datos.value()?.cierres.some((c) => c.periodo === this.periodo()));
-  readonly periodoCerrado = (i: number) => !!this.datos.value()?.cierres.some((c) => c.periodo === i);
+  // Closed period (or a sheet the API does not let this person edit): read only
+  readonly cerrado = computed(() => !!this.datos.value() && (this.datos.value()!.cerrado || !this.datos.value()!.editable));
+  readonly periodoCerrado = (i: number) => this.cierres.value().some((c) => c.periodo === i);
 
-  readonly actividades = computed(() => {
-    const d = this.datos.value();
-    const s = this.seleccionada();
-    if (!d || !s) return [];
-    return d.actividades.filter((a) => a.materiaId === s.materia.id && a.periodo === this.periodo());
-  });
+  readonly actividades = computed(() => [...(this.datos.value()?.actividades ?? [])].sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id - b.id));
 
   // Columnas de la planilla agrupadas por criterio
   readonly grupos = computed(() => (this.config()?.criterios ?? []).map((criterio) => ({ criterio, actividades: this.actividades().filter((a) => a.criterioId === criterio.id) })));
 
   // ---------- Notas editables ----------
-  private readonly guardadas = computed(() => new Map((this.datos.value()?.notas ?? []).map((n) => [clave(n.actividadId, n.estudianteId), n.valor])));
+  private readonly guardadas = computed(() => {
+    const mapa = new Map<string, number>();
+    for (const e of this.datos.value()?.estudiantes ?? []) {
+      for (const [actividadId, valor] of Object.entries(e.notas)) if (valor !== null) mapa.set(clave(Number(actividadId), e.id), valor);
+    }
+    return mapa;
+  });
 
   // Lo que el docente escribió y aún no guardó (se vacía al recargar los datos)
   readonly cambios = linkedSignal<Map<string, string>>(() => {
@@ -177,7 +184,7 @@ export class RecordGradesComponent {
     if (this.hayErrores() || !this.pendientes().length) return;
     this.guardando.set(true);
     try {
-      const n = await firstValueFrom(this.calificaciones.saveGrades(this.espacio.id, this.pendientes()));
+      const n = await firstValueFrom(this.calificaciones.saveGrades(this.pendientes()));
       this.avisos.success(`${n} ${n === 1 ? 'nota guardada' : 'notas guardadas'}.`);
       this.datos.reload();
     } catch (error) {
@@ -189,7 +196,7 @@ export class RecordGradesComponent {
 
   // ---------- Actividades ----------
   readonly drawerAbierto = signal(false);
-  readonly editando = signal<Actividad | null>(null);
+  readonly editando = signal<ActividadPlanilla | null>(null);
   readonly modelo = signal({ nombre: '', criterioId: '', fecha: '' });
   readonly formulario = form(this.modelo, (s) => {
     required(s.nombre, { message: 'Ponle un nombre a la actividad.' });
@@ -212,7 +219,7 @@ export class RecordGradesComponent {
     this.drawerAbierto.set(true);
   }
 
-  editarActividad(a: Actividad): void {
+  editarActividad(a: ActividadPlanilla): void {
     this.editando.set(a);
     this.modelo.set({ nombre: a.nombre, criterioId: String(a.criterioId), fecha: a.fecha });
     this.formulario().reset();
@@ -226,18 +233,13 @@ export class RecordGradesComponent {
     submit(this.formulario, async () => {
       try {
         const m = this.modelo();
-        await firstValueFrom(this.calificaciones.saveActivity({
-          id: this.editando()?.id,
-          espacioId: this.espacio.id,
-          gestionId: g.id,
-          periodo: this.periodo(),
-          paraleloId: s.paralelo.id,
-          materiaId: s.materia.id,
-          criterioId: Number(m.criterioId),
-          nombre: m.nombre,
-          fecha: m.fecha,
-          docenteId: this.docenteId,
-        }));
+        const editada = this.editando();
+        const datos = { criterioId: Number(m.criterioId), nombre: m.nombre, fecha: m.fecha };
+        await firstValueFrom(
+          editada
+            ? this.calificaciones.updateActivity(editada.id, datos)
+            : this.calificaciones.createActivity({ ...datos, paraleloId: s.paralelo.id, materiaId: s.materia.id, periodo: this.periodo() }),
+        );
         this.avisos.success(this.editando() ? 'Actividad actualizada.' : `"${m.nombre.trim()}" agregada a la planilla.`);
         this.drawerAbierto.set(false);
         this.datos.reload();
@@ -247,10 +249,10 @@ export class RecordGradesComponent {
     });
   }
 
-  async eliminarActividad(a: Actividad): Promise<void> {
+  async eliminarActividad(a: ActividadPlanilla): Promise<void> {
     if (!confirm(`¿Eliminar "${a.nombre}"? También se borrarán sus notas.`)) return;
     try {
-      await firstValueFrom(this.calificaciones.deleteActivity(a));
+      await firstValueFrom(this.calificaciones.deleteActivity(a.id));
       this.avisos.success('Actividad eliminada.');
       this.datos.reload();
     } catch (error) {

@@ -1,11 +1,12 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPrint, faSchool } from '@fortawesome/free-solid-svg-icons';
-import { paraleloLabel } from '../../core/models/academics.model';
-import { aprobado, boletinDe, indiceNotas, promedio } from '../../core/utils/grades';
+import { SessionService } from '../../core/auth/session.service';
+import { promedio } from '../../core/utils/grades';
 import { formatLongDate, todayIso } from '../../core/utils/attendance';
-import { DatosParalelo } from '../../services/grades.service';
+import { GradesApiService } from '../../services/grades-api.service';
 import { InstitutionService } from '../../services/institution.service';
 import { subjectIcon } from '../ui/academic-icons';
 
@@ -16,6 +17,11 @@ import { subjectIcon } from '../ui/academic-icons';
   imports: [FaIconComponent],
   styleUrls: ['./report-card.component.css'],
   template: `
+    @if (boletin.isLoading() && !boletin.value()) {
+      <p class="ui-ayuda">Cargando boletín…</p>
+    } @else if (boletin.error()) {
+      <p class="ui-aviso" role="alert">No pudimos cargar el boletín. Intenta de nuevo.</p>
+    } @else if (boletin.value(); as b) {
     <article class="ui-card boletin">
       <header class="encabezado">
         <span class="escudo">
@@ -24,15 +30,15 @@ import { subjectIcon } from '../ui/academic-icons';
         <div class="titulos">
           <small>{{ institucion()?.nombre ?? espacio() }}@if (institucion()?.codigoSie; as sie) { · SIE {{ sie }} }</small>
           <h2>Boletín de calificaciones</h2>
-          <span>Gestión {{ datos().gestion.anio }}@if (institucion()?.lema; as lema) { · “{{ lema }}” }</span>
+          <span>Gestión {{ b.gestion.anio }}@if (institucion()?.lema; as lema) { · “{{ lema }}” }</span>
         </div>
         <button type="button" class="ui-btn ui-btn--secundario no-imprimir" (click)="imprimir()"><fa-icon [icon]="faPrint" /> Imprimir / PDF</button>
       </header>
 
       <dl class="datos">
-        <div><dt>Estudiante</dt><dd>{{ estudiante().nombre }}</dd></div>
-        <div><dt>Curso</dt><dd>{{ curso() }}</dd></div>
-        <div><dt>Escala</dt><dd>Sobre {{ datos().config.notaMaxima }} · aprueba con {{ datos().config.notaAprobacion }}</dd></div>
+        <div><dt>Estudiante</dt><dd>{{ b.estudiante.nombre }}</dd></div>
+        <div><dt>Curso</dt><dd>{{ b.paralelo ?? '—' }}</dd></div>
+        <div><dt>Escala</dt><dd>Sobre {{ b.notaMaxima }} · aprueba con {{ b.notaAprobacion }}</dd></div>
         <div><dt>Emitido</dt><dd>{{ emitido }}</dd></div>
       </dl>
 
@@ -41,15 +47,15 @@ import { subjectIcon } from '../ui/academic-icons';
           <thead>
             <tr>
               <th>Materia</th>
-              @for (p of datos().gestion.periodos; track $index) {
-                <th class="num">{{ p.nombre }}@if (!cerrado($index)) { <small>en curso</small> }</th>
+              @for (p of b.gestion.periodos; track $index) {
+                <th class="num">{{ p }}@if (!cerrado($index)) { <small>en curso</small> }</th>
               }
               <th class="num">Promedio</th>
               <th>Estado</th>
             </tr>
           </thead>
           <tbody>
-            @for (f of filas(); track f.materia.id) {
+            @for (f of b.filas; track f.materia.id) {
               <tr>
                 <td>
                   <div class="materia">
@@ -79,7 +85,7 @@ import { subjectIcon } from '../ui/academic-icons';
               @for (p of promediosPeriodo(); track $index) {
                 <th class="num">{{ p ?? '—' }}</th>
               }
-              <th class="num anual">{{ promedioGeneral() ?? '—' }}</th>
+              <th class="num anual">{{ b.promedioGeneral ?? '—' }}</th>
               <th></th>
             </tr>
           </tfoot>
@@ -97,11 +103,12 @@ import { subjectIcon } from '../ui/academic-icons';
         </footer>
       }
     </article>
+    }
   `,
 })
 export class ReportCardComponent {
-  readonly datos = input.required<DatosParalelo>();
-  readonly estudiante = input.required<{ id: number; nombre: string }>();
+  // The report card is computed by the API (closed periods from their frozen copy)
+  readonly estudianteId = input.required<number>();
   readonly espacio = input.required<string>();
 
   readonly faPrint = faPrint;
@@ -109,22 +116,29 @@ export class ReportCardComponent {
   readonly subjectIcon = subjectIcon;
   readonly emitido = formatLongDate(todayIso());
 
-  // Logo, nombre, lema y autoridades de la institución
+  private calificaciones = inject(GradesApiService);
+  readonly boletin = rxResource({ params: () => this.estudianteId(), stream: ({ params }) => this.calificaciones.reportCard(params) });
+
+  // Logo, name, motto and authorities of the school
+  private session = inject(SessionService);
   private institucionService = inject(InstitutionService);
-  private readonly institucionRes = rxResource({ params: () => this.datos().paralelo.espacioId, stream: ({ params }) => this.institucionService.getDetails(params) });
+  private readonly institucionRes = rxResource({
+    params: () => this.session.activeSpace()?.id ?? 0,
+    stream: ({ params }) => (params ? this.institucionService.getDetails(params) : of(null)),
+  });
   readonly institucion = computed(() => this.institucionRes.value());
 
-  readonly curso = computed(() => paraleloLabel(this.datos().paralelo));
-  readonly filas = computed(() => boletinDe(this.datos(), indiceNotas(this.datos().notas), this.estudiante().id));
-  readonly promediosPeriodo = computed(() => this.datos().gestion.periodos.map((_, i) => promedio(this.filas().map((f) => f.periodos[i]))));
-  readonly promedioGeneral = computed(() => promedio(this.filas().map((f) => f.anual)));
+  readonly promediosPeriodo = computed(() => {
+    const b = this.boletin.value();
+    return b ? b.gestion.periodos.map((_, i) => promedio(b.filas.map((f) => f.periodos[i] ?? null))) : [];
+  });
 
   cerrado(periodo: number): boolean {
-    return this.datos().cierres.some((c) => c.periodo === periodo);
+    return !!this.boletin.value()?.cerrados.includes(periodo);
   }
 
   aprueba(nota: number): boolean {
-    return aprobado(this.datos().config, nota);
+    return nota >= (this.boletin.value()?.notaAprobacion ?? 0);
   }
 
   imprimir(): void {

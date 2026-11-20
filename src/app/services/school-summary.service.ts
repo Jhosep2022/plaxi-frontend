@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import {
   faBullhorn,
   faCalendarDays,
@@ -28,6 +28,7 @@ import {
   Estudiante,
   RegistroAsistencia,
 } from '../core/models/attendance.model';
+import type { Gestion } from '../core/models/academics.model';
 import { Membership } from '../core/models/space.model';
 import { Marcacion } from '../core/models/time-tracking.model';
 import {
@@ -65,7 +66,7 @@ import {
 import { subjectIcon } from '../shared/ui/academic-icons';
 import { AcademicsService } from './academics.service';
 import { AttendanceService } from './attendance.service';
-import { GradesService, DatosParalelo } from './grades.service';
+import { type Boletin, GradesApiService } from './grades-api.service';
 import { TeacherClassesService } from './teacher-classes.service';
 import {
   ComunicadoRecibido,
@@ -87,7 +88,7 @@ export class SchoolSummaryService {
   private horarios = inject(SchedulesService);
   private academico = inject(AcademicsService);
   private asistencia = inject(AttendanceService);
-  private calificaciones = inject(GradesService);
+  private notasApi = inject(GradesApiService);
   private clasesDocente = inject(TeacherClassesService);
   private tareas = inject(AssignmentsService);
   private comunicados = inject(AnnouncementsService);
@@ -134,7 +135,7 @@ export class SchoolSummaryService {
       marcaciones: this.marcacion.getTeacherEntries(usuarioId),
       clases: this.clasesDocente.clasesDe(espacio.id, usuarioId),
       tareas: this.tareas.tareasDocente(espacio.id, usuarioId),
-      recibidos: this.comunicados.recibidos(espacio.id, usuarioId),
+      recibidos: this.comunicados.recibidos(),
       estudiantes: this.asistencia.getStudents(),
     }).pipe(
       map(
@@ -273,8 +274,8 @@ export class SchoolSummaryService {
       switchMap((paraleloId) =>
         forkJoin({
           perfil: this.perfil(),
-          seguimiento: this.seguimiento(espacio.id, usuarioId, paraleloId),
-          recibidos: this.comunicados.recibidos(espacio.id, usuarioId),
+          seguimiento: this.seguimiento(espacio.id, usuarioId, paraleloId, true),
+          recibidos: this.comunicados.recibidos(),
         }),
       ),
       map(({ perfil, seguimiento: s, recibidos }): ResumenData => {
@@ -365,7 +366,7 @@ export class SchoolSummaryService {
         return forkJoin({
           perfil: this.perfil(),
           seguimiento: this.seguimiento(espacio.id, hijo.id, hijo.paraleloId),
-          recibidos: this.comunicados.recibidos(espacio.id, usuarioId),
+          recibidos: this.comunicados.recibidos(),
         }).pipe(map((d) => ({ ...d, hijo })));
       }),
       map(({ perfil, seguimiento: s, recibidos, hijo }): ResumenData => {
@@ -452,11 +453,11 @@ export class SchoolSummaryService {
               ...novedadesDeTareas(s.tareas, true),
               ...s.notas
                 .filter(
-                  (n) => n.nota !== null && !aprobado(s.datos!.config, n.nota),
+                  (n) => n.nota !== null && n.nota < (s.escala?.notaAprobacion ?? 0),
                 )
                 .map((n) => ({
                   titulo: `${n.materia}: ${n.nota}`,
-                  detalle: `Bajo la nota de aprobación (${s.datos!.config.notaAprobacion})`,
+                  detalle: `Bajo la nota de aprobación (${s.escala?.notaAprobacion ?? ''})`,
                   icono: faStar,
                   tono: 'crema' as const,
                   meta: s.periodo,
@@ -506,11 +507,11 @@ export class SchoolSummaryService {
       estudiantes: this.asistencia.getStudents(),
       licencias: this.asistencia.getLeaveRequests(espacio.id),
       gestion: this.academico.getActiveAcademicYear(espacio.id),
-      enviados: this.comunicados.enviados(espacio.id, null),
+      enviados: this.comunicados.enviados('direccion'),
     }).pipe(
       switchMap((d) =>
         (d.gestion
-          ? this.calificaciones.getClosures(espacio.id, d.gestion.id)
+          ? this.notasApi.getClosures()
           : of([])
         ).pipe(map((cierres) => ({ ...d, cierres }))),
       ),
@@ -770,20 +771,27 @@ export class SchoolSummaryService {
   }
 
   // ---------- Datos de seguimiento de un estudiante (para él mismo o su padre) ----------
+  // `propio`: the student looks at themself, so their record id comes from /yo (the account id is not the record)
   private seguimiento(
     espacioId: number,
     estudianteId: number,
     paraleloId: number,
+    propio = false,
   ) {
+    const fichaId$ = propio
+      ? this.notasApi.myRecords().pipe(map((fichas) => fichas.find((f) => f.tipo === 'estudiante')?.id ?? null))
+      : of(estudianteId);
     return forkJoin({
       horario: this.horarios.getScheduleData(espacioId),
       registros: this.asistencia.getStudentRecords(estudianteId),
       tareas: this.tareas.tareasDeEstudiante(espacioId, estudianteId),
       estudiantes: this.asistencia.getStudents(),
-      datos: paraleloId
-        ? this.calificaciones.getClassGroupData(espacioId, paraleloId)
+      gestion: this.academico.getActiveAcademicYear(espacioId),
+      // The report card computed by the API: grade of each subject in each period
+      boletin: paraleloId
+        ? fichaId$.pipe(switchMap((id) => (id ? this.notasApi.reportCard(id).pipe(catchError(() => of(null))) : of(null))))
         : of(null),
-    }).pipe(map((d) => seguimientoDe(d, estudianteId, paraleloId)));
+    }).pipe(map((d) => seguimientoDe(d, paraleloId)));
   }
 }
 
@@ -798,7 +806,7 @@ interface Seguimiento {
   registros: RegistroAsistencia[];
   tareas: TareaDeEstudiante[];
   estudiantes: Estudiante[];
-  datos: DatosParalelo | null;
+  escala: { notaMaxima: number; notaAprobacion: number } | null;
   periodo: string;
   notas: {
     materia: string;
@@ -817,29 +825,31 @@ function seguimientoDe(
     registros: RegistroAsistencia[];
     tareas: TareaDeEstudiante[];
     estudiantes: Estudiante[];
-    datos: DatosParalelo | null;
+    gestion: Gestion | undefined;
+    boletin: Boletin | null;
   },
-  estudianteId: number,
   paraleloId: number,
 ): Seguimiento {
   const paralelo = d.horario.paralelos.find((p) => p.id === paraleloId);
-  const indice = d.datos ? periodoDeFecha(d.datos.gestion, todayIso()) : 0;
-  const notas = d.datos
-    ? boletinDe(d.datos, indiceNotas(d.datos.notas), estudianteId).map((f) => ({
-        materia: f.materia.nombre,
-        docente: f.docente,
-        icono: f.materia.icono,
-        tono: f.materia.tono,
-        nota: f.periodos[indice],
-      }))
-    : [];
+  const indice = d.gestion ? periodoDeFecha(d.gestion, todayIso()) : 0;
+  const notas = (d.boletin?.filas ?? []).map((f) => ({
+    materia: f.materia.nombre,
+    docente: f.docente ?? '',
+    icono: f.materia.icono,
+    tono: f.materia.tono,
+    nota: f.periodos[indice] ?? null,
+  }));
   return {
-    ...d,
+    horario: d.horario,
+    registros: d.registros,
+    tareas: d.tareas,
+    estudiantes: d.estudiantes,
+    escala: d.boletin ? { notaMaxima: d.boletin.notaMaxima, notaAprobacion: d.boletin.notaAprobacion } : null,
     paraleloId,
     curso: paralelo
       ? `${paraleloLabel(paralelo)} · ${NIVELES.find((n) => n.id === paralelo.nivel)?.label}`
       : 'Sin curso',
-    periodo: d.datos?.gestion.periodos[indice]?.nombre ?? '',
+    periodo: d.gestion?.periodos[indice]?.nombre ?? '',
     notas,
     promedio: promedio(notas.map((n) => n.nota)),
     nombreMateria: (id) =>
@@ -858,7 +868,7 @@ function tarjetasDeNotas(s: Seguimiento): ResumenData['progreso'] {
       icono: subjectIcon(n.icono),
       tono: n.tono,
       actual: n.nota!,
-      total: s.datos?.config.notaMaxima ?? 100,
+      total: s.escala?.notaMaxima ?? 100,
       unidad: `pts · ${s.periodo}`,
     }));
 }

@@ -23,7 +23,7 @@
   @if (esPadre) { <app-child-selector class="no-imprimir" /> }
 
   @if (pestana() === BOLETIN) {
-    <app-report-card [datos]="v.datos" [estudiante]="v.estudiante" [espacio]="espacio.nombre" />
+    <app-report-card [estudianteId]="v.estudiante.id" [espacio]="espacio.nombre" />
   } @else {
     @if (!cerrado(pestana())) {
       <p class="ui-aviso aviso">Periodo en curso: las notas son provisionales hasta que la dirección cierre el periodo.</p>
