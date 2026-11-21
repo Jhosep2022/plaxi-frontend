@@ -21,10 +21,10 @@ export function distanciaLabel(metros: number): string {
     : `${(metros / 1000).toFixed(1).replace('.', ',')} km`;
 }
 
-// Lee el contenido de un QR de marcación (null si no es de QuizWiz)
+// Lee el contenido de un QR de marcación (null si no es de Aulix). Acepta el prefijo viejo quizwiz- por si una pantalla quedó abierta.
 export function leerQr(
   texto: string,
 ): { puntoId: number; codigo: string } | null {
-  const m = /^quizwiz-marcacion:(\d+):(\d{6})$/.exec(texto.trim());
+  const m = /^(?:aulix|quizwiz)-marcacion:(\d+):(\d{6})$/.exec(texto.trim());
   return m ? { puntoId: Number(m[1]), codigo: m[2] } : null;
 }

@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { AvatarComponent } from '../../shared/ui/avatar.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
@@ -40,7 +41,7 @@ interface FichaHijo {
 @Component({
   selector: 'app-my-children',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, RouterLink, PageHeaderComponent, EmptyStateComponent],
+  imports: [FaIconComponent, RouterLink, PageHeaderComponent, EmptyStateComponent, AvatarComponent],
   templateUrl: './my-children.component.html',
   styleUrls: ['./my-children.component.css'],
 })

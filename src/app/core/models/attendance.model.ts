@@ -17,6 +17,7 @@ export interface Estudiante {
   secondSurname?: string;
   id: number;
   nombre: string;
+  avatar?: string | null; // de su cuenta (elegido o automático)
   paraleloId: number;
   ci: string;
   fechaNacimiento: string; // YYYY-MM-DD

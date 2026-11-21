@@ -42,7 +42,7 @@
           @for (f of filas(); track f.estudiante.usuarioId) {
             @let e = edicion(f.estudiante.usuarioId);
             <tr>
-              <td><span class="persona"><span class="avatar">{{ iniciales(f.estudiante.nombre) }}</span> <strong>{{ f.estudiante.nombre }}</strong></span></td>
+              <td><span class="persona"><app-avatar [avatar]="f.estudiante.avatar" [name]="f.estudiante.nombre" [size]="32" /> <strong>{{ f.estudiante.nombre }}</strong></span></td>
               <td><span class="ui-badge" [class]="estados[f.estado].tono">{{ estados[f.estado].label }}</span></td>
               <td class="entrega">
                 @if (f.entrega?.entregadaEl) {

@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, signal, viewChild } from '@angular/core';
+import { AvatarComponent } from '../../../shared/ui/avatar.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
@@ -31,7 +32,7 @@ export type PestanaAula = 'inicio' | 'contenido' | 'quiz' | 'tareas' | 'estudian
 @Component({
   selector: 'app-teacher-classroom',
   host: { class: 'ui-pagina', '(document:click)': 'menuNuevo.set(false)' },
-  imports: [FaIconComponent, RouterLink, EmptyStateComponent, ClassroomCoverComponent, TeacherContentComponent, TeacherQuizComponent, CourseFormComponent, CourseInvitationComponent, DrawerComponent],
+  imports: [FaIconComponent, RouterLink, EmptyStateComponent, ClassroomCoverComponent, TeacherContentComponent, TeacherQuizComponent, CourseFormComponent, CourseInvitationComponent, DrawerComponent, AvatarComponent],
   templateUrl: './teacher-classroom.component.html',
   styleUrls: ['./teacher-classroom.component.css'],
 })
@@ -169,7 +170,7 @@ export class TeacherClassroomComponent {
     const texto = this.busqueda().trim().toLowerCase();
     const detalles = new Map((this.seguimiento()?.estudiantes ?? []).map((e) => [e.estudiante.id, e]));
     // El progreso va con la cuenta; el seguimiento del colegio (notas y asistencia), con la ficha
-    const base = progreso.map((p) => ({ id: p.estudianteId, nombre: p.nombre, progreso: p.porcentaje, detalle: (p.personaId !== null ? detalles.get(p.personaId) : undefined) ?? null }));
+    const base = progreso.map((p) => ({ id: p.estudianteId, nombre: p.nombre, avatar: p.avatar, progreso: p.porcentaje, detalle: (p.personaId !== null ? detalles.get(p.personaId) : undefined) ?? null }));
     return base
       .filter((e) => !this.soloRiesgo() || e.detalle?.enRiesgo)
       .filter((e) => !texto || e.nombre.toLowerCase().includes(texto));

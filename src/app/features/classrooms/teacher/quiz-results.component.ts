@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { AvatarComponent } from '../../../shared/ui/avatar.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -16,7 +17,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 @Component({
   selector: 'app-quiz-results',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, RouterLink, ProgressRingComponent, EmptyStateComponent],
+  imports: [FaIconComponent, RouterLink, ProgressRingComponent, EmptyStateComponent, AvatarComponent],
   styles: `
     .cargando { color: var(--muted); }
     .volver { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 13px; color: var(--muted); text-decoration: none; }
@@ -86,7 +87,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
               <tbody>
                 @for (e of ordenados(); track e.estudianteId) {
                   <tr>
-                    <td><span class="persona"><span class="avatar">{{ iniciales(e.nombre) }}</span> {{ e.nombre }}</span></td>
+                    <td><span class="persona"><app-avatar [avatar]="e.avatar" [name]="e.nombre" [size]="32" /> {{ e.nombre }}</span></td>
                     <td class="num">
                       @if (e.mejor; as m) { <strong [class.baja]="calculatePercentage(m.puntaje, m.puntajeMax) < 51">{{ m.puntaje }}/{{ m.puntajeMax }}</strong> ({{ calculatePercentage(m.puntaje, m.puntajeMax) }}%) }
                       @else { <span class="sin">No respondió</span> }

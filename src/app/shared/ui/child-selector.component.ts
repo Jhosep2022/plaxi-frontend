@@ -1,10 +1,12 @@
 import { Component, computed, inject } from '@angular/core';
+import { AvatarComponent } from '../../shared/ui/avatar.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { SelectedChildService } from '../../services/selected-child.service';
 
 // Pestañas para que el padre elija de cuál de sus hijos ver la información (solo si tiene más de uno)
 @Component({
   selector: 'app-child-selector',
+  imports: [AvatarComponent],
   styles: `
     :host { display: block; }
     .ui-tabs { margin-bottom: 16px; }
@@ -15,7 +17,7 @@ import { SelectedChildService } from '../../services/selected-child.service';
       <div class="ui-tabs" role="tablist" aria-label="Hijo">
         @for (h of hijos.value(); track h.id) {
           <button type="button" role="tab" class="ui-tab" [class.activa]="h.id === activoId()" [attr.aria-selected]="h.id === activoId()" (click)="servicio.elegir(h.id)">
-            {{ h.nombre }} <small>· {{ h.curso }}</small>
+            <app-avatar [avatar]="h.avatar" [name]="h.nombre" [size]="22" /> {{ h.nombre }} <small>· {{ h.curso }}</small>
           </button>
         }
       </div>

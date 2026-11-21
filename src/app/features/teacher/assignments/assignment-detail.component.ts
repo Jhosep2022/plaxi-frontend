@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { AvatarComponent } from '../../../shared/ui/avatar.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -27,7 +28,7 @@ type Filtro = 'todos' | 'por-revisar' | 'sin-entregar';
 @Component({
   selector: 'app-assignment-detail',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, RouterLink, EmptyStateComponent],
+  imports: [FaIconComponent, RouterLink, EmptyStateComponent, AvatarComponent],
   templateUrl: './assignment-detail.component.html',
   styleUrls: ['./assignment-detail.component.css'],
 })

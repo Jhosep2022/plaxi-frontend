@@ -103,7 +103,7 @@
             <tr>
               <td>
                 <div class="persona">
-                  <span class="avatar">{{ iniciales(e.nombre) }}</span>
+                  <app-avatar [avatar]="e.avatar" [name]="e.nombre" [size]="36" />
                   <div>
                     <strong>{{ e.nombre }}</strong
                     ><small>{{ edadDe(e) }} años</small>

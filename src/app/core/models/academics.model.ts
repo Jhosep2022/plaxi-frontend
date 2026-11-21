@@ -117,6 +117,7 @@ export interface Docente {
   telefono: string;
   email: string;
   activo: boolean; // los inactivos no se pueden asignar a materias
+  avatar?: string | null; // de su cuenta (elegido o automático)
 }
 
 // Qué docente dicta cada materia en cada paralelo

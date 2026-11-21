@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { avatarLabel, avatarUrl, initials, initialsColor, isInitialsCode } from '../../core/avatars';
+import { iniciales } from '../../core/models/people.model';
 
 // The one way to show a person: their photo (staff only), their gallery avatar or their initials in color.
 @Component({
@@ -36,10 +37,11 @@ export class AvatarComponent {
   readonly size = input(40);
   readonly round = input(true);
   readonly label = input<string | null>(null);
+  readonly name = input(''); // nombre completo: da las iniciales cuando no hay nombre y apellido por separado
 
   readonly isInitials = computed(() => !this.avatar() || isInitialsCode(this.avatar()!));
   readonly color = computed(() => initialsColor(this.avatar() ?? ''));
-  readonly text = computed(() => initials(this.firstName(), this.lastName()));
+  readonly text = computed(() => (this.name() ? iniciales(this.name()) : initials(this.firstName(), this.lastName())));
   readonly url = computed(() => avatarUrl(this.avatar()!));
-  readonly alt = computed(() => this.label() ?? (this.firstName() ? `Avatar de ${this.firstName()}` : avatarLabel(this.avatar() ?? '')));
+  readonly alt = computed(() => this.label() ?? (this.name() || this.firstName() ? `Avatar de ${this.name() || this.firstName()}` : avatarLabel(this.avatar() ?? '')));
 }

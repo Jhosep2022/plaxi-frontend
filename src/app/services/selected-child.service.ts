@@ -13,6 +13,7 @@ export interface Hijo {
   curso: string; // "3ro A" o "Sin curso"
   fechaNacimiento: string;
   parentesco: Parentesco;
+  avatar: string | null;
 }
 
 const CLAVE = 'hijoActivo';
@@ -37,6 +38,7 @@ export class SelectedChildService {
           curso: child.paralelo?.etiqueta ?? 'Sin curso',
           fechaNacimiento: child.fechaNacimiento ?? '',
           parentesco: child.parentesco,
+          avatar: child.avatar ?? null,
         })),
       ),
     );

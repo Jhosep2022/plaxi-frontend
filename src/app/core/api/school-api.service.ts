@@ -14,6 +14,7 @@ export interface MemberPerson {
   segundoApellido: string;
   ci: string;
   fechaNacimiento: string | null;
+  avatar?: string | null;
 }
 export interface SchoolMember {
   gestion: Gestion | null;

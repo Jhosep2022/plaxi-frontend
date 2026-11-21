@@ -37,6 +37,7 @@ export interface PersonNameFields {
   secondSurname?: string;
 }
 interface ApiPerson {
+  avatar?: string | null;
   id: number;
   nombre: string;
   nombres: string;
@@ -72,6 +73,7 @@ const namesOf = (person: ApiPerson) => ({
   secondSurname: person.segundoApellido,
 });
 const toTeacher = (person: ApiPerson): Docente => ({
+  avatar: person.avatar ?? null,
   id: person.id,
   nombre: person.nombre,
   ...namesOf(person),
@@ -82,6 +84,7 @@ const toTeacher = (person: ApiPerson): Docente => ({
   activo: person.activa,
 });
 const toStudent = (person: ApiPerson): Estudiante => ({
+  avatar: person.avatar ?? null,
   id: person.id,
   nombre: person.nombre,
   ...namesOf(person),
@@ -90,6 +93,7 @@ const toStudent = (person: ApiPerson): Estudiante => ({
   paraleloId: person.paraleloId ?? 0,
 });
 const toParent = (person: ApiPerson): Tutor => ({
+  avatar: person.avatar ?? null,
   id: person.id,
   nombre: person.nombre,
   ...namesOf(person),

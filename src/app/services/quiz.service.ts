@@ -34,7 +34,7 @@ export interface QuizEstudiante extends Omit<Quiz, 'actividadId'> {
 export interface ResultadosQuiz {
   quiz: QuizDocente;
   preguntas: (Pregunta & { acierto: number | null })[];
-  estudiantes: { estudianteId: number; nombre: string; mejor: Intento | null; intentos: number; nota: number | null }[];
+  estudiantes: { estudianteId: number; nombre: string; avatar: string | null; mejor: Intento | null; intentos: number; nota: number | null }[];
 }
 
 export interface NotasCurso {
@@ -62,6 +62,7 @@ export type BorradorPregunta = Omit<Pregunta, 'id' | 'quizId' | 'orden'>;
 interface EstudianteApi {
   usuarioId: number;
   nombre: string;
+  avatar?: string;
 }
 
 // Quiz con corrección automática: los arma el docente, los responden los estudiantes y la nota puede ir a la planilla.
@@ -119,7 +120,7 @@ export class QuizService {
       .pipe(
         map((r) => ({
           ...r,
-          estudiantes: r.estudiantes.map((e) => ({ estudianteId: e.usuarioId, nombre: e.nombre, mejor: e.mejor, intentos: e.intentos, nota: e.nota })),
+          estudiantes: r.estudiantes.map((e) => ({ estudianteId: e.usuarioId, nombre: e.nombre, avatar: e.avatar ?? null, mejor: e.mejor, intentos: e.intentos, nota: e.nota })),
         })),
       );
   }

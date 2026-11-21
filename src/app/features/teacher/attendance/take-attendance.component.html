@@ -161,7 +161,7 @@
                   @let marca = marcas().get(e.id)!;
                   <li class="estudiante" [class]="'fila-' + marca.estado">
                     <span class="numero">{{ n + 1 }}</span>
-                    <span class="avatar">{{ iniciales(e.nombre) }}</span>
+                    <app-avatar [avatar]="e.avatar" [name]="e.nombre" [size]="36" />
                     <span class="nombre">{{ e.nombre }}</span>
                     @if (conLicencia().has(e.id)) {
                       <span class="ui-badge tono-azul">Licencia aprobada</span>

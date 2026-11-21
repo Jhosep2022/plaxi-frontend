@@ -11,7 +11,7 @@ import { NotificationService } from '../../../shared/ui/notification.service';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { getErrorMessage } from '../academics/academics.ui';
 
-// Colores de los segmentos de la barra de ponderación (paleta QuizWiz)
+// Colores de los segmentos de la barra de ponderación (paleta Aulix)
 const COLORES = ['var(--lime-green)', 'var(--dark-blue)', '#d9b48f', 'var(--lime-strong)', 'var(--cream-strong)', 'var(--muted)'];
 
 const aModelo = (c: ConfigCalificacion) => ({

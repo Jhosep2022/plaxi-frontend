@@ -107,7 +107,7 @@
             <tr [class.inactivo]="!d.activo">
               <td>
                 <div class="persona">
-                  <span class="avatar azul">{{ iniciales(d.nombre) }}</span>
+                  <app-avatar [avatar]="d.avatar" [name]="d.nombre" [size]="36" />
                   <div>
                     <strong>{{ d.nombre }}</strong
                     ><small>{{ d.especialidad }} · CI {{ d.ci }}</small>

@@ -17,6 +17,7 @@ export interface Tutor {
   telefono: string;
   email: string;
   ocupacion: string;
+  avatar?: string | null; // de su cuenta (elegido o automático)
 }
 
 // Relación de un padre / tutor legal con un estudiante a su cargo

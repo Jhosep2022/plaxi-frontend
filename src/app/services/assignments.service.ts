@@ -38,6 +38,7 @@ export interface EstudianteAula {
   usuarioId: number; // la entrega y la revisión van con la cuenta
   personaId: number | null; // ficha del colegio; null en la academia
   nombre: string;
+  avatar: string;
 }
 
 export interface FilaEntrega {

@@ -1,4 +1,5 @@
 import { ApiLoadStateComponent } from '../../../shared/ui/api-load-state.component';
+import { AvatarComponent } from '../../../shared/ui/avatar.component';
 import {
   Component,
   computed,
@@ -56,6 +57,7 @@ interface Marca {
     PageHeaderComponent,
     EmptyStateComponent,
     AcademyTeacherAttendanceComponent,
+    AvatarComponent,
   ],
   templateUrl: './take-attendance.component.html',
   styleUrls: ['./take-attendance.component.css'],

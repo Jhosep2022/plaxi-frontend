@@ -4,7 +4,7 @@ import { IconoMateria } from '../../core/models/academics.model';
 import { Tono } from '../dashboard/dashboard.models';
 import { subjectIcon } from '../ui/academic-icons';
 
-// Colores de la ilustración por tono (paleta QuizWiz)
+// Colores de la ilustración por tono (paleta Aulix)
 const FONDOS: Record<Tono, { fondo: string; forma: string; acento: string; icono: string }> = {
   lima: { fondo: 'var(--lime-soft)', forma: 'var(--lime-green)', acento: 'var(--dark-blue)', icono: 'var(--dark-blue)' },
   azul: { fondo: 'var(--blue-soft)', forma: 'var(--dark-blue)', acento: 'var(--lime-green)', icono: 'var(--lime-green)' },

@@ -4,7 +4,7 @@ export type SpaceType = 'colegio' | 'academia';
 
 // Dos niveles de rol (igual que el backend):
 // - Rol: lo que la persona es dentro de un espacio. Puede tener varios en el mismo espacio.
-// - RolPlataforma: el administrador de QuizWiz (nosotros), por encima de todos los espacios (profile.isAdmin).
+// - RolPlataforma: el administrador de Aulix (nosotros), por encima de todos los espacios (profile.isAdmin).
 //   Administra los espacios desde /admin, pero no entra a sus datos internos (notas, asistencia, estudiantes).
 export type SpaceRole = 'direccion' | 'docente' | 'estudiante' | 'padre';
 export type PlatformRole = 'admin';

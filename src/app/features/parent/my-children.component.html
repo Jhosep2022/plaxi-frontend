@@ -13,7 +13,7 @@
     @for (f of fichas.value(); track f.hijo.id) {
       <article class="ui-card hijo">
         <header>
-          <span class="avatar">{{ iniciales(f.hijo.nombre) }}</span>
+          <app-avatar class="avatar" [avatar]="f.hijo.avatar" [name]="f.hijo.nombre" [size]="48" />
           <div class="nombre">
             <h2>{{ f.hijo.nombre }}</h2>
             <small>{{ f.hijo.curso }} · {{ f.edad }} años · {{ parentesco(f.hijo) }}</small>

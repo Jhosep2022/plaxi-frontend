@@ -43,6 +43,7 @@ export interface ProgresoEstudiante {
   estudianteId: number; // cuenta del estudiante
   personaId: number | null; // ficha del colegio (null en la academia)
   nombre: string;
+  avatar: string | null;
   porcentaje: number;
 }
 
@@ -115,11 +116,11 @@ export class ClassroomsService {
   // Porcentaje de temas publicados que vio cada estudiante del aula (docente)
   progresoGrupo(aulaId: number): Observable<ProgresoEstudiante[]> {
     return this.http
-      .get<{ estudiantes: { usuarioId: number; personaId: number | null; nombre: string; porcentaje: number }[] }>(`${this.base}/aulas/${aulaId}/progreso`)
+      .get<{ estudiantes: { usuarioId: number; personaId: number | null; nombre: string; avatar?: string; porcentaje: number }[] }>(`${this.base}/aulas/${aulaId}/progreso`)
       .pipe(
         map((grupo) =>
           (grupo.estudiantes ?? [])
-            .map((e) => ({ estudianteId: e.usuarioId, personaId: e.personaId, nombre: e.nombre, porcentaje: e.porcentaje }))
+            .map((e) => ({ estudianteId: e.usuarioId, personaId: e.personaId, nombre: e.nombre, avatar: e.avatar ?? null, porcentaje: e.porcentaje }))
             .sort((a, b) => a.nombre.localeCompare(b.nombre)),
         ),
       );

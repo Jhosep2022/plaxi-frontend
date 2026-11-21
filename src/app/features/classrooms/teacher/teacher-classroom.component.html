@@ -191,7 +191,7 @@
               <tbody>
                 @for (e of estudiantes(); track e.id) {
                   <tr>
-                    <td><span class="persona"><span class="avatar">{{ iniciales(e.nombre) }}</span> <strong>{{ e.nombre }}</strong></span></td>
+                    <td><span class="persona"><app-avatar [avatar]="e.avatar" [name]="e.nombre" [size]="32" /> <strong>{{ e.nombre }}</strong></span></td>
                     <td><div class="avance"><div class="ui-barra tono-lima"><span [style.width.%]="e.progreso"></span></div><small>{{ e.progreso }}%</small></div></td>
                     @if (a.tipo === 'curso') {
                       <td class="num"><button type="button" class="ui-btn ui-btn--icono" (click)="quitarEstudiante(e.id, e.nombre)" [attr.aria-label]="'Quitar a ' + e.nombre" title="Quitar del curso"><fa-icon [icon]="faUserMinus" /></button></td>

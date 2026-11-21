@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { AvatarComponent } from '../../../shared/ui/avatar.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -58,6 +59,7 @@ type Filtro = 'activos' | 'baja' | 'todos';
     PageHeaderComponent,
     DrawerComponent,
     RouterLink,
+    AvatarComponent,
   ],
   templateUrl: './teachers.component.html',
   styleUrls: ['./people.css'],
