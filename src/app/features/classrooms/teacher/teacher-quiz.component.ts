@@ -19,7 +19,7 @@ import { getErrorMessage } from '../../management/academics/academics.ui';
   imports: [FaIconComponent, RouterLink, ProgressRingComponent, EmptyStateComponent],
   styles: `
     .barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-    .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px; }
+    .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(310px, 100%), 1fr)); gap: 16px; }
     .quiz { display: flex; flex-direction: column; gap: 14px; padding: 12px; }
     .banda { position: relative; height: 92px; border-radius: 12px; background: var(--lime-soft); overflow: hidden; }
     .banda.borrador { background: var(--page-bg); }

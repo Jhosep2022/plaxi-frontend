@@ -67,7 +67,7 @@ import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.mode
     .logo { height: 40px; }
     h1 { margin: 0 0 8px; font-size: 30px; text-align: center; }
     .sub { margin: 0 auto 28px; max-width: 520px; color: var(--muted); text-align: center; line-height: 1.5; }
-    .espacios { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+    .espacios { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
     .espacio { display: flex; align-items: center; gap: 16px; border: 2px solid transparent; color: var(--dark-blue); text-decoration: none; transition: border-color 0.15s, transform 0.15s; }
     .espacio:hover { border-color: var(--lime-green); transform: translateY(-2px); }
     .logo-espacio { width: 56px; height: 56px; display: grid; place-items: center; flex-shrink: 0; border-radius: 16px; background: var(--dark-blue); color: var(--lime-green); font-size: 22px; }
@@ -76,7 +76,7 @@ import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.mode
     .texto strong { font-size: 17px; }
     .texto small { color: var(--muted); }
     .flecha { color: var(--muted); }
-    .opciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .opciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px; }
     .opcion { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
     .opcion .ui-icono { width: 46px; height: 46px; font-size: 20px; }
     .opcion h2 { margin: 0; font-size: 18px; }

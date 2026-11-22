@@ -118,6 +118,11 @@ import { getErrorMessage } from '../management/academics/academics.ui';
           <div><dt>Estado</dt><dd>{{ user.pending ? 'Sin activar' : user.active ? 'Activa' : 'Inactiva' }}</dd></div>
           <div><dt>Tipo</dt><dd>{{ user.isAdmin ? 'Equipo de plataforma' : 'Cuenta de espacio' }}</dd></div>
           <div class="ancho"><dt>Correo</dt><dd>{{ user.email || 'Sin correo' }}</dd></div>
+          @if (user.anonymizedAt) {
+            <div class="ancho"><dt>Baja</dt><dd>Sus datos personales se borraron el {{ fecha(user.anonymizedAt) }}. La cuenta ya no se puede reactivar.</dd></div>
+          } @else if (user.closedAt) {
+            <div class="ancho"><dt>Baja</dt><dd>Dio de baja su cuenta el {{ fecha(user.closedAt) }}. Si no se reactiva, sus datos personales se borran el {{ fecha(user.closedAt, 30) }}.</dd></div>
+          }
         </dl>
 
         @if (!user.isAdmin) {
@@ -145,7 +150,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
             <p>{{ user.active ? 'Al desactivarla, la persona ya no puede iniciar sesión.' : 'Al reactivarla, la persona puede volver a iniciar sesión.' }} El motivo queda en el registro de acciones.</p>
             <input id="motivo-usuario" class="ui-input" [value]="reason()" (input)="reason.set($any($event.target).value)" placeholder="Motivo del cambio" aria-label="Motivo del cambio" />
             <div class="botones">
-              <button class="ui-btn" [class.ui-btn--peligro]="user.active" type="button" [disabled]="saving()" (click)="toggleActive(!user.active)">{{ user.active ? 'Desactivar cuenta' : 'Reactivar cuenta' }}</button>
+              <button class="ui-btn" [class.ui-btn--peligro]="user.active" type="button" [disabled]="saving() || (!user.active && !!user.anonymizedAt)" (click)="toggleActive(!user.active)">{{ user.active ? 'Desactivar cuenta' : 'Reactivar cuenta' }}</button>
             </div>
           </section>
         } @else {
@@ -208,6 +213,12 @@ export class AdminUsersComponent {
   countFor(filter: UserFilter): number {
     const c = this.counts.value();
     return c ? { all: c.all, active: c.active, pending: c.pending, inactive: c.inactive }[filter] : 0;
+  }
+
+  fecha(iso: string, masDias = 0): string {
+    const d = new Date(iso);
+    d.setDate(d.getDate() + masDias);
+    return d.toLocaleDateString('es-BO', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   avatarOf(user: AdminUser): string {

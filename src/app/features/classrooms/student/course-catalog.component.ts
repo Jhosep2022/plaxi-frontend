@@ -25,7 +25,7 @@ import { getErrorMessage } from '../../management/academics/academics.ui';
     .categorias { display: flex; gap: 6px; flex-wrap: wrap; }
     .categoria { padding: 7px 14px; border: 1px solid var(--line); border-radius: 20px; background: var(--text-light); color: var(--dark-blue); font: inherit; font-size: 13px; cursor: pointer; }
     .categoria.activa { border-color: var(--dark-blue); background: var(--dark-blue); color: var(--text-light); font-weight: bold; }
-    .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+    .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 18px; }
     .curso { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
     .cuerpo { display: flex; flex-direction: column; gap: 10px; padding: 0 6px; flex: 1; }
     h3 { margin: 0; font-size: 17px; }

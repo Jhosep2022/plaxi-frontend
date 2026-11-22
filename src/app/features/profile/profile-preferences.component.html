@@ -26,7 +26,11 @@
             <small>{{ t.descripcion }}</small>
           </span>
           <span role="cell" class="canal">
-            <label class="switch"><input type="checkbox" [checked]="notificaciones()[t.id].correo" (change)="alternar(t.id, 'correo')" [attr.aria-label]="t.label + ' por correo'" /><span></span></label>
+            @if (t.soloApp) {
+              <label class="switch bloqueado" [pTooltip]="textoSoloApp" tooltipPosition="top"><input type="checkbox" [checked]="false" disabled [attr.aria-label]="t.label + ' por correo: solo en la app'" /><span></span></label>
+            } @else {
+              <label class="switch"><input type="checkbox" [checked]="notificaciones()[t.id].correo" (change)="alternar(t.id, 'correo')" [attr.aria-label]="t.label + ' por correo'" /><span></span></label>
+            }
           </span>
           <span role="cell" class="canal">
             <label class="switch"><input type="checkbox" [checked]="notificaciones()[t.id].app" (change)="alternar(t.id, 'app')" [attr.aria-label]="t.label + ' en la app'" /><span></span></label>

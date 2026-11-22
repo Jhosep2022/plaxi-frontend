@@ -74,3 +74,8 @@
     grid-template-columns: minmax(0, 1fr) 64px 64px;
   }
 }
+
+.switch.bloqueado {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

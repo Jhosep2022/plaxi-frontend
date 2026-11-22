@@ -1,4 +1,5 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { environment } from '../environments/environment';
 import { firstValueFrom } from 'rxjs';
 import { RouteReuseStrategy, TitleStrategy, provideRouter, withComponentInputBinding, withNavigationErrorHandler, withRouterConfig } from '@angular/router';
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
@@ -26,7 +27,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => firstValueFrom(inject(SessionService).restoreSession())),
     provideAnimationsAsync(),
     // These are the only PrimeNG visuals in use; include both so tooltips retain their theme.
-    providePrimeNG({ theme: { preset: { ...AuraBase, components: { toast: AuraToast, tooltip: AuraTooltip } }, options: { darkModeSelector: false } } }),
+    providePrimeNG({ license: environment.PRIMEUI_LICENSE || undefined, theme: { preset: { ...AuraBase, components: { toast: AuraToast, tooltip: AuraTooltip } }, options: { darkModeSelector: false } } }),
     MessageService,
     // Every field the person already touched and is invalid gets a red border (.ui-invalido in ui.css)
     provideSignalFormsConfig({ classes: { 'ui-invalido': (field) => field.state().invalid() && field.state().touched() } }),

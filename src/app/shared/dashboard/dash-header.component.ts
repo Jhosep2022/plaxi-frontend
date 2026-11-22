@@ -13,6 +13,10 @@ import { Accion } from './dashboard.models';
     h1 { margin: 0; font-size: 28px; color: var(--dark-blue); }
     p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
     .herramientas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    @media (max-width: 600px) {
+      .herramientas { width: 100%; }
+      .buscador { flex: 1 1 100%; width: auto; }
+    }
     .buscador {
       display: flex; align-items: center; gap: 8px; width: 300px; max-width: 100%;
       padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--text-light); color: var(--muted);

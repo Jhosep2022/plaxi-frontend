@@ -67,14 +67,14 @@ const ESTADO_LABEL: Record<EstadoDia, string> = {
         <strong>{{ data().nombre }}</strong>
         <small>{{ data().organizacion }}</small>
       </span>
-      <span class="insignia"><fa-icon [icon]="faStar" /> {{ data().insignia }}</span>
+      <span class="insignia" [pTooltip]="ayudaInsignia()" tooltipPosition="left" tabindex="0"><fa-icon [icon]="faStar" /> {{ data().insignia }}</span>
     </div>
 
     <div class="semana">
-      <p class="resumen"><strong>{{ data().semana.valor }}</strong>{{ data().semana.texto }}</p>
+      <p class="resumen" [pTooltip]="'Cuenta de esta semana, de lunes a domingo: ' + data().semana.valor + ' ' + data().semana.texto.trim()" tooltipPosition="top"><strong>{{ data().semana.valor }}</strong>{{ data().semana.texto }}</p>
       <div class="dias" [style.--n]="data().semana.dias.length">
         @for (dia of data().semana.dias; track dia.etiqueta) {
-          <div [title]="estadoLabel[dia.estado]">
+          <div [pTooltip]="dia.etiqueta + ': ' + estadoLabel[dia.estado]" tooltipPosition="top" tabindex="0">
             <span class="dia" [class]="dia.estado">{{ dia.etiqueta }}</span>
             <span class="estado" [class]="dia.estado">
               @switch (dia.estado) {
@@ -102,6 +102,14 @@ export class ProfileCardComponent {
   readonly tooltip = computed(() => {
     const a = this.data().avance;
     return a ? `${a.texto}. Llevas ${this.porcentaje()} % de tus pendientes de esta semana.` : 'No tienes pendientes esta semana.';
+  });
+
+  // La insignia es el promedio (estudiante o hijo) o el rol en el espacio
+  readonly ayudaInsignia = computed(() => {
+    const insignia = this.data().insignia;
+    if (insignia.startsWith('Promedio')) return 'Promedio de todas las materias en el periodo actual.';
+    if (/curso/.test(insignia)) return 'Cursos de la academia en los que estás inscrito.';
+    return `Tu rol en ${this.data().organizacion}.`;
   });
 
   readonly estadoLabel = ESTADO_LABEL;

@@ -100,7 +100,7 @@ const ESTADOS: Record<Exclude<AccessCard['estado'], 'pendiente'>, string> = {
     .tarjetas-elegir .ui-ayuda { grid-column: 1 / -1; margin: 0; }
     .tarjetas-resumen { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
     .tarjetas-sin { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; }
-    .hoja-tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 16px; }
+    .hoja-tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; margin-top: 16px; }
     .tarjeta-acceso { display: grid; gap: 10px; padding: 14px; border: 1.5px dashed #c9c3b8; border-radius: 14px; background: #fff; color: #0a0a23; break-inside: avoid; page-break-inside: avoid; }
     .tarjeta-acceso header { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
     .tarjeta-colegio { font-weight: 700; }

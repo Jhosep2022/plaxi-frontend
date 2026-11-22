@@ -23,7 +23,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
   imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent],
   styles: `
     .cargando { color: var(--muted); }
-    .periodos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .periodos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 14px; }
     .periodo { display: flex; flex-direction: column; gap: 14px; }
     .periodo.actual { border-color: var(--lime-green); box-shadow: 0 0 0 2px var(--lime-soft); }
     .cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }

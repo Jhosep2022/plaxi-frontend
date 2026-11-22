@@ -37,7 +37,7 @@ type Pestana = 'estudiantes' | 'solicitudes' | 'invitaciones';
     .solicitud { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .solicitud .persona { flex: 1; min-width: 220px; }
     .chico { height: 34px; padding: 0 12px; font-size: 13px; }
-    .invitaciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+    .invitaciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 16px; }
     .invitaciones h3 { margin: 0 0 10px; font-size: 16px; }
     .invitaciones a { color: var(--dark-blue); text-decoration: none; }
     .vacio { padding: 18px; text-align: center; color: var(--muted); }

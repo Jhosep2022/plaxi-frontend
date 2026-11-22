@@ -22,6 +22,8 @@ export interface AdminUser {
   active: boolean;
   isAdmin: boolean;
   pending: boolean; // todavía no creó su contraseña
+  closedAt?: string | null; // la persona dio de baja su cuenta
+  anonymizedAt?: string | null; // sus datos personales ya se borraron (30 días después de la baja)
   lastLoginAt: string | null;
   createdAt: string;
   spaces: { id: number; name: string; slug: string; type: 'school' | 'academy'; role: string }[];

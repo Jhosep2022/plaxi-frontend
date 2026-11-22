@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { Tooltip } from 'primeng/tooltip';
 import { faBell, faEnvelope, faGlobe, faMobileScreen } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import type { Membership } from '../../core/models/space.model';
@@ -13,7 +14,7 @@ import { getErrorMessage } from '../management/academics/academics.ui';
 // Pestaña "Preferencias": qué avisos recibir y por qué canal, idioma y región
 @Component({
   selector: 'app-profile-preferences',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, Tooltip],
   templateUrl: './profile-preferences.component.html',
   styleUrls: ['./profile-sections.css', './profile-preferences.component.css'],
 })
@@ -30,6 +31,7 @@ export class ProfilePreferencesComponent {
   readonly faEnvelope = faEnvelope;
   readonly faGlobe = faGlobe;
   readonly faMobileScreen = faMobileScreen;
+  readonly textoSoloApp = 'Las notas, la asistencia y las tareas solo llegan en la app, nunca por correo. Lo de cada semana te llega en el resumen de los lunes.';
 
   // Solo los avisos que aplican al rol y al tipo de espacio actual
   readonly tipos = computed(() => {
@@ -49,13 +51,13 @@ export class ProfilePreferencesComponent {
   todos(canal: NotificationChannel, valor: boolean): void {
     this.notificaciones.update((n) => {
       const copia = structuredClone(n);
-      for (const t of this.tipos()) copia[t.id][canal] = valor;
+      for (const t of this.tipos()) if (canal === 'app' || !t.soloApp) copia[t.id][canal] = valor;
       return copia;
     });
   }
 
   todosActivos(canal: NotificationChannel): boolean {
-    return this.tipos().every((t) => this.notificaciones()[t.id][canal]);
+    return this.tipos().filter((t) => canal === 'app' || !t.soloApp).every((t) => this.notificaciones()[t.id][canal]);
   }
 
   descartar(): void {

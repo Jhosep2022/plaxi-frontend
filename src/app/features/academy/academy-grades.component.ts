@@ -28,7 +28,7 @@ const estilos = `
   .sin { color: var(--muted); }
   .exportar { height: 32px; padding: 0 12px; font-size: 12px; }
   .vacio { color: var(--muted); font-size: 14px; }
-  .tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); gap: 16px; }
   .tarjeta header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
   .tarjeta header div { flex: 1; display: flex; flex-direction: column; }
   .tarjeta header small { font-size: 12px; color: var(--muted); }

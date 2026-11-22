@@ -28,7 +28,7 @@ type Orden = 'recientes' | 'nombre' | 'avance';
     .buscar .ui-input { width: 100%; padding-left: 34px; }
     .orden { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; color: var(--muted); }
     .orden select { width: 170px; }
-    .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+    .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 18px; }
     .cargando { color: var(--muted); }
     a.ui-btn { text-decoration: none; }
   `,

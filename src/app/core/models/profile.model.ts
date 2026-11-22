@@ -66,11 +66,12 @@ export interface ProfileSpace {
 }
 
 // Tipos de aviso que el usuario puede configurar (algunos solo aplican a ciertos roles o espacios)
-export const NOTIFICATION_TYPES: { id: NotificationType; label: string; descripcion: string; roles?: SpaceRole[]; tipo?: SpaceType }[] = [
+// soloApp: el aviso llega solo en la app, nunca por correo (decidido por el fundador); lo de la semana va en el resumen
+export const NOTIFICATION_TYPES: { id: NotificationType; label: string; descripcion: string; roles?: SpaceRole[]; tipo?: SpaceType; soloApp?: boolean }[] = [
   { id: 'comunicados', label: 'Comunicados', descripcion: 'Avisos de la dirección o de tus docentes.' },
-  { id: 'tareas', label: 'Tareas', descripcion: 'Tareas nuevas, entregas y revisiones.' },
-  { id: 'calificaciones', label: 'Calificaciones', descripcion: 'Cuando se publica una nota nueva.', roles: ['estudiante', 'padre', 'docente'] },
-  { id: 'asistencia', label: 'Asistencia', descripcion: 'Faltas, atrasos y licencias.', roles: ['estudiante', 'padre', 'direccion'], tipo: 'colegio' },
+  { id: 'tareas', label: 'Tareas', descripcion: 'Tareas nuevas, entregas y revisiones.', soloApp: true },
+  { id: 'calificaciones', label: 'Calificaciones', descripcion: 'Cuando se publica una nota nueva.', roles: ['estudiante', 'padre', 'docente'], soloApp: true },
+  { id: 'asistencia', label: 'Asistencia', descripcion: 'Faltas, atrasos y licencias.', roles: ['estudiante', 'padre', 'direccion'], tipo: 'colegio', soloApp: true },
   { id: 'sesiones', label: 'Sesiones en vivo', descripcion: 'Recordatorio 10 minutos antes de cada sesión.', tipo: 'academia' },
   { id: 'resumen', label: 'Resumen semanal', descripcion: 'Un correo cada lunes con lo más importante de la semana.' },
 ];

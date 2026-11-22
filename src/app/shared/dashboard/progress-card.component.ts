@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { Tooltip } from 'primeng/tooltip';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { TarjetaProgreso } from './dashboard.models';
 
@@ -7,7 +8,7 @@ const SEGMENTOS = 16;
 // Tarjeta de avance: porcentaje grande, "18/28 temas" y barra segmentada
 @Component({
   selector: 'app-progress-card',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, Tooltip],
   host: { '[class]': "'tono-' + data().tono" },
   styles: `
     :host {
@@ -35,8 +36,8 @@ const SEGMENTOS = 16;
       <span class="titulo" [title]="data().titulo">{{ data().titulo }}</span>
     </div>
     <div class="cifras">
-      <span class="porcentaje">{{ porcentaje() }}<small>%</small></span>
-      <span class="conteo"><strong>{{ data().actual }}</strong>/{{ data().total }} {{ data().unidad }}</span>
+      <span class="porcentaje" [pTooltip]="ayuda()" tooltipPosition="top" tabindex="0">{{ porcentaje() }}<small>%</small></span>
+      <span class="conteo" [pTooltip]="ayuda()" tooltipPosition="top"><strong>{{ data().actual }}</strong>/{{ data().total }} {{ data().unidad }}</span>
     </div>
     <div class="barra" role="progressbar" [attr.aria-valuenow]="porcentaje()" aria-valuemin="0" aria-valuemax="100">
       @for (lleno of segmentos(); track $index) {
@@ -52,6 +53,9 @@ export class ProgressCardComponent {
     const { actual, total } = this.data();
     return total > 0 ? Math.round((actual / total) * 100) : 0;
   });
+
+  // "12 de 15 notas cargadas: 80 %"
+  readonly ayuda = computed(() => `${this.data().actual} de ${this.data().total} ${this.data().unidad}: ${this.porcentaje()} %`);
 
   readonly segmentos = computed(() => {
     const llenos = Math.round((this.porcentaje() / 100) * SEGMENTOS);
