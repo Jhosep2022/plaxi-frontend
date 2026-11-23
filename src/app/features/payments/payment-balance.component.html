@@ -13,7 +13,7 @@
     @if (balance.years.length) { <p class="balance-note">Calculado con los acuerdos registrados de {{ balance.years.join(', ') }}. Este saldo general se conserva al consultar otro año del calendario.</p> }
     @if (!balance.hasAgreements) { <p class="balance-note">Todavía no hay obligaciones configuradas. El dinero recibido se conserva disponible; falta definir el acuerdo para calcular la deuda.</p> }
     @if (balance.undeterminedCount) { <p class="balance-note">Hay {{ balance.undeterminedCount }} meses con importe por confirmar. El cálculo incluye únicamente las cuotas con monto conocido.</p> }
-    @if (balance.hasPendingAllocation) { <p class="balance-note">Hay {{ money(balance.availableBs) }} disponibles sin aplicar y {{ money(balance.pendingInstallmentsBs) }} de cuotas pendientes de reparto. Revisa su aplicación: el dinero recibido ya está incluido en este resumen.</p> }
+    @if (editable() && balance.hasPendingAllocation) { <p class="balance-note">Hay {{ money(balance.availableBs) }} disponibles sin aplicar y {{ money(balance.pendingInstallmentsBs) }} de cuotas pendientes de reparto. Revisa su aplicación: el dinero recibido ya está incluido en este resumen.</p> }
     @if (plan()?.applications?.length) {
       @if (editable()) { <button class="ui-btn" type="button" (click)="reviewCredit()">Revisar aplicación del saldo</button> }
       @else { <p class="balance-note">Alclick puede aplicar el dinero disponible a tus cuotas pendientes. El reparto quedará visible en el detalle de los pagos.</p> }
@@ -39,7 +39,7 @@
     @for (source of sources(); track source.paymentId) {
       <section class="source"><button type="button" class="source-link" (click)="openPayment(source.paymentId)">Ver pago #{{ source.paymentId }}</button>
         <dl><div><dt>Dinero recibido</dt><dd>{{ money(source.receivedBs) }}</dd></div><div><dt>Aplicado a cuotas</dt><dd>{{ money(source.appliedBs) }}</dd></div><div><dt>Importe disponible</dt><dd>{{ money(source.availableBs) }}</dd></div></dl>
-        @if (source.historical) { <p class="balance-note">Este pago se registró con un período escrito manualmente. Su aplicación y cobertura deben revisarse con el acuerdo.</p> }
+        @if (editable() && source.historical) { <p class="balance-note">Este pago se registró con un período escrito manualmente. Su aplicación y cobertura deben revisarse con el acuerdo.</p> }
       </section>
     }
   </app-drawer>
@@ -53,7 +53,7 @@
         <section class="source"><h3>Aplicación del dinero</h3><dl><div><dt>Aplicado a cuotas</dt><dd>{{ money(amounts.appliedBs) }}</dd></div><div><dt>Disponible de este pago</dt><dd>{{ money(amounts.availableBs) }}</dd></div></dl>
           @for (application of amounts.applications; track $index) { <div class="application"><span>{{ application.label }} · {{ application.year }}@if (application.creditApplicationId) { <br><small>Aplicación de saldo #{{ application.creditApplicationId }}</small> }</span><strong>{{ money(application.amountBs) }}</strong></div> }
         </section>
-        @if (amounts.historical) { <p class="balance-note">La aplicación de este registro anterior se calculó por su período. La gestión y cobertura necesitan conciliación; el dinero recibido está incluido una sola vez en la cuenta.</p> }
+        @if (editable() && amounts.historical) { <p class="balance-note">La aplicación de este registro anterior se calculó por su período. La gestión y cobertura necesitan conciliación; el dinero recibido está incluido una sola vez en la cuenta.</p> }
       } @else { <p class="balance-note">Este movimiento fue corregido. Su importe histórico no vuelve a sumarse al saldo ni a los pagos vigentes.</p> }
       <section class="source"><h3>Datos conservados al registrar</h3><dl><div><dt>{{ entry.calendarYear ? 'Base del calendario al pagar' : 'Cantidad informada en el registro anterior' }}</dt><dd>{{ entry.seats }} estudiantes</dd></div></dl><p class="balance-note">Esta cantidad es histórica. Los inscritos actuales y los cupos del contrato se revisan en el acuerdo; no se cambian al registrar otro pago.</p></section>
       @if (entry.replacesPaymentId) { <p class="balance-note">Corrige el pago #{{ entry.replacesPaymentId }}: {{ entry.correctionReason }}</p> }

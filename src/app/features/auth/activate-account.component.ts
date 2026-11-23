@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { FormField, form, required, submit, validate } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faEye, faEyeSlash, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import { firstValueFrom, of } from 'rxjs';
 import { AuthApiService, type ActivationStatus } from '../../core/api/auth-api.service';
 import { readApiError } from '../../core/api/api-error';
@@ -17,10 +17,14 @@ import { getPasswordError } from '../../core/utils/password';
   template: `
     @if (invitation.isLoading()) {
       <p>Comprobando tu invitación…</p>
+    } @else if (invitation.value()?.motivo === 'ya_activada') {
+      <h1>Tu cuenta ya está activa</h1>
+      <p>Esta invitación ya se usó. Entra con tu usuario y la contraseña que creaste.</p>
+      <a class="ui-btn boton-ancho" routerLink="/auth/login"><fa-icon [icon]="faRightToBracket" /> Iniciar sesión</a>
     } @else if (!invitation.value()?.valido) {
-      <h1>El enlace ya no sirve</h1>
-      <p>Pide a tu colegio que te envíe una nueva invitación.</p>
-      <a routerLink="/auth/login">Volver al inicio</a>
+      <h1>{{ invitation.value()?.motivo === 'vencido' ? 'La invitación venció' : 'El enlace ya no sirve' }}</h1>
+      <p>Pide una nueva invitación a quien te la envió.</p>
+      <a class="ui-btn ui-btn--secundario boton-ancho" routerLink="/auth/login"><fa-icon [icon]="faArrowLeft" /> Volver al inicio</a>
     } @else {
       <h1>Activa tu cuenta</h1>
       <p>Hola, {{ invitation.value()?.nombre }}. Tu usuario es <strong>{{ invitation.value()?.usuario }}</strong>.</p>
@@ -50,6 +54,8 @@ import { getPasswordError } from '../../core/utils/password';
 export class ActivateAccountComponent {
   readonly faEye = faEye;
   readonly faEyeSlash = faEyeSlash;
+  readonly faArrowLeft = faArrowLeft;
+  readonly faRightToBracket = faRightToBracket;
   private readonly auth = inject(AuthApiService);
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);

@@ -78,6 +78,7 @@ import { SchedulesService } from './schedules.service';
 import { TimeTrackingService } from './time-tracking.service';
 import { AccountProfileService } from './account-profile.service';
 import { TareaDeEstudiante, AssignmentsService } from './assignments.service';
+import { saludoSegunHora } from '../core/utils/bolivia-time';
 
 type Semana = ResumenData['perfil']['semana'];
 
@@ -709,7 +710,7 @@ export class SchoolSummaryService {
               .map((e) => e.docenteId),
           );
           return {
-            saludo: `¡Buen día, ${perfil.nombre}!`,
+            saludo: saludoSegunHora(perfil.nombre),
             subtitulo: `Así está ${espacio.nombre} hoy.`,
             accion: {
               label: 'Ver reportes',

@@ -13,6 +13,10 @@ import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { requestStatusLabel, type AdminRequestStatus } from './admin.service';
 import { AdminRequestsApiService } from './admin-requests-api.service';
 import { requestStatusTone } from './admin-ui';
+import { fechaBolivia } from '../../core/utils/bolivia-time';
+
+// Desde octubre el colegio se prepara para las clases del año siguiente (febrero a noviembre)
+const gestionPropuesta = (hoy = new Date()) => hoy.getFullYear() + (hoy.getMonth() >= 9 ? 1 : 0);
 
 @Component({
   selector: 'app-admin-requests',
@@ -55,7 +59,7 @@ import { requestStatusTone } from './admin-ui';
                     </div>
                   </td>
                   <td>{{ request.students }}</td>
-                  <td>{{ request.createdAt.slice(0, 10) }}</td>
+                  <td>{{ fecha(request.createdAt) }}</td>
                   <td><span [class]="statusTone(request.status)">{{ statusLabel(request.status) }}</span></td>
                   <td>
                     <div class="acciones">
@@ -83,7 +87,7 @@ import { requestStatusTone } from './admin-ui';
       @if (details(); as request) {
         <dl class="ficha">
           <div><dt>Estado</dt><dd><span [class]="statusTone(request.status)">{{ statusLabel(request.status) }}</span></dd></div>
-          <div><dt>Recibida</dt><dd>{{ request.createdAt.slice(0, 10) }}</dd></div>
+          <div><dt>Recibida</dt><dd>{{ fecha(request.createdAt) }}</dd></div>
           <div><dt>Persona de contacto</dt><dd>{{ request.contact }}<br /><small class="secundario">{{ request.role }}</small></dd></div>
           <div><dt>Teléfono</dt><dd>{{ request.phone || '—' }}</dd></div>
           <div class="ancho"><dt>Correo</dt><dd>{{ request.email }}</dd></div>
@@ -160,6 +164,7 @@ import { requestStatusTone } from './admin-ui';
   styleUrl: './admin-pages.css',
 })
 export class AdminRequestsComponent {
+  readonly fecha = (iso: string) => fechaBolivia(iso).split('-').reverse().join('/');
   private readonly api = inject(AdminRequestsApiService);
   protected readonly statusLabel = requestStatusLabel;
   protected readonly statusTone = requestStatusTone;
@@ -187,7 +192,7 @@ export class AdminRequestsComponent {
   protected readonly directorFirstName = signal('');
   protected readonly directorLastName = signal('');
   protected readonly directorEmail = signal('');
-  protected readonly academicYear = signal(new Date().getFullYear());
+  protected readonly academicYear = signal(gestionPropuesta());
   protected readonly seats = signal(0);
   protected readonly amountBs = signal(0);
   protected readonly paidAt = signal('');
@@ -212,7 +217,7 @@ export class AdminRequestsComponent {
     this.directorFirstName.set('');
     this.directorLastName.set('');
     this.directorEmail.set('');
-    this.academicYear.set(new Date().getFullYear());
+    this.academicYear.set(gestionPropuesta());
     this.seats.set(this.details()?.students ?? 0);
     this.amountBs.set(0);
     this.paidAt.set('');

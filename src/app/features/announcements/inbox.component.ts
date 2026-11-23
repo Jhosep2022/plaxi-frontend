@@ -10,6 +10,7 @@ import { NotificationService } from '../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
 import { categoria, cuando } from './announcements.ui';
+import { fechaBolivia, horaBolivia } from '../../core/utils/bolivia-time';
 
 type Filtro = 'todos' | 'no-leidos' | 'importantes';
 
@@ -28,6 +29,8 @@ export class InboxComponent {
   readonly categoria = categoria;
   readonly cuando = cuando;
   readonly formatLongDate = formatLongDate;
+  readonly fechaBolivia = fechaBolivia;
+  readonly horaBolivia = horaBolivia;
   readonly faBullhorn = faBullhorn;
   readonly faCalendarDays = faCalendarDays;
   readonly faCircleCheck = faCircleCheck;

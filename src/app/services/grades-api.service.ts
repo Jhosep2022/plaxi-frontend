@@ -7,6 +7,7 @@ import { SessionService } from '../core/auth/session.service';
 import type { IconoMateria } from '../core/models/academics.model';
 import type { CierrePeriodo, ConfigCalificacion, Criterio } from '../core/models/grades.model';
 import type { ResultadoMateria } from '../core/utils/grades';
+import { fechaBolivia } from '../core/utils/bolivia-time';
 
 // ---------- Shapes of /api/espacios/:slug/calificaciones ----------
 export interface Escala {
@@ -142,7 +143,7 @@ export class GradesApiService {
   // ---------- Period closing ----------
   getClosures(): Observable<CierrePeriodo[]> {
     return this.http.get<{ id: number; espacioId: number; gestionId: number; periodo: number; cerradoEl?: string; creado?: string }[]>(`${this.url}/cierres`).pipe(
-      map((lista) => lista.map((c) => ({ id: c.id, espacioId: c.espacioId, gestionId: c.gestionId, periodo: c.periodo, cerradoEl: (c.cerradoEl ?? c.creado ?? '').slice(0, 10) }))),
+      map((lista) => lista.map((c) => ({ id: c.id, espacioId: c.espacioId, gestionId: c.gestionId, periodo: c.periodo, cerradoEl: fechaBolivia(c.cerradoEl ?? c.creado ?? '') }))),
     );
   }
 

@@ -9,15 +9,18 @@
 @if (history.error()) {
   <div class="ui-card" role="alert"><app-empty-state kind="error" titulo="No pudimos cargar los pagos" texto="Reintenta para consultar el historial actualizado." /></div>
 } @else if (history.hasValue()) {
-  <app-payment-balance [history]="history.value()!" [editable]="canRecord()" (changed)="history.reload()" />
-  <app-payment-calendar [history]="history.value()!" [editable]="canRecord()" (yearChange)="selectedYear.set($event)" (changed)="history.reload()" />
+  @if (space()?.type === 'colegio' || history.value()!.account?.hasAgreements) {
+    <app-payment-balance [history]="history.value()!" [editable]="canRecord()" (changed)="history.reload()" />
+    <app-payment-calendar [history]="history.value()!" [editable]="canRecord()" (yearChange)="selectedYear.set($event)" (changed)="history.reload()" />
+  }
   <section class="ui-card coverage" aria-label="Cobertura del servicio">
-    <div><span class="ui-ayuda">{{ space()?.plan === 'gratis' ? 'Plan gratis' : coverageNeedsReview() ? 'Cobertura registrada · por revisar' : 'Pagado hasta' }}</span>
+    <div><span class="ui-ayuda">{{ space()?.plan === 'gratis' ? 'Plan gratis' : canRecord() && coverageNeedsReview() ? 'Cobertura registrada · por revisar' : 'Pagado hasta' }}</span>
       <strong>{{ space()?.plan === 'gratis' ? 'Sin vencimiento' : formatDate(space()?.paidUntil ?? null) }}</strong></div>
-    @if (coverageNeedsReview()) { <p>La fecha incluye registros anteriores por período y requiere conciliación con el acuerdo. El saldo disponible se consulta arriba; no significa un año adicional de servicio.</p> }
-    @else { <p>Los pagos son registrados por Alclick después de verificar el comprobante. En colegios, la cobertura de los pagos por gestión avanza con las cuotas completas y consecutivas; un pago parcial o saldo a favor no añade un año de servicio.</p> }
+    @if (canRecord() && coverageNeedsReview()) { <p>La fecha incluye registros anteriores por período y requiere conciliación con el acuerdo. El saldo disponible se consulta arriba; no significa un año adicional de servicio.</p> }
+    @else if (space()?.type === 'colegio') { <p>Alclick registra cada pago después de verificar el comprobante. La fecha avanza con las cuotas completas; un pago parcial o el saldo a favor no suman un año de servicio.</p> }
+    @else { <p>Alclick registra cada pago después de verificar el comprobante. Cada mes pagado extiende esta fecha.</p> }
   </section>
-  @if (history.value()!.uncoveredPeriods.length) {
+  @if (canRecord() && history.value()!.uncoveredPeriods.length) {
     <section class="ui-card gaps"><h2>Intervalos entre registros anteriores por período</h2>
       <p>Revisa estos registros con Alclick. Las obligaciones y los pagos por gestión se consultan en el calendario; este listado solo compara los períodos escritos en comprobantes anteriores.</p>
       @for (gap of history.value()!.uncoveredPeriods; track gap.periodFrom) {
@@ -55,7 +58,7 @@
                 <strong>Gestión {{ payment.calendarYear }}</strong>
                 <small>Reparto registrado:</small>
                 @for (allocation of payment.allocations ?? []; track $index) { <small>{{ allocationLabel(allocation.concept, allocation.periodFrom) }}: {{ formatAmount(allocation.amountBs) }}</small> }
-              } @else { {{ formatDate(payment.periodFrom) }}<small>hasta {{ formatDate(payment.periodTo) }}</small>@if (space()?.type === 'colegio') { <small>Registro anterior por período. Revisa la gestión y el reparto al corregirlo.</small> } }
+              } @else { {{ formatDate(payment.periodFrom) }}<small>hasta {{ formatDate(payment.periodTo) }}</small>@if (canRecord() && space()?.type === 'colegio') { <small>Registro anterior por período. Revisa la gestión y el reparto al corregirlo.</small> } }
                 @if (paymentBalances().get(payment.id); as amounts) { <small><strong>Aplicado: {{ formatAmount(amounts.appliedBs) }}</strong></small><small><strong>Disponible de este pago: {{ formatAmount(amounts.availableBs) }}</strong></small> }
               </td>
               <td class="amount">{{ formatAmount(payment.amountBs) }}</td>

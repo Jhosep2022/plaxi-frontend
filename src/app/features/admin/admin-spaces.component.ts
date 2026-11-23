@@ -71,7 +71,7 @@ type StatusFilter = AdminSpaceStatus | '';
                   <div class="chips">
                     <span [class]="statusTone(space.status)">{{ statusLabel(space.status) }}</span>
                     @if (!isSchool()) {
-                      <span class="ui-badge" [class.tono-azul]="space.plan === 'paid'" [pTooltip]="space.plan === 'free' ? 'Gratis para siempre hasta 10 estudiantes y 1 GB' : 'Plan pagado: 10 GB y sin tope de estudiantes'" tooltipPosition="top">{{ planLabel(space.plan) }}</span>
+                      <span class="ui-badge" [class.tono-azul]="space.plan === 'paid'" [pTooltip]="space.plan === 'free' ? 'Gratis para siempre: hasta 3 cursos, 10 estudiantes y 1 GB' : 'Plan pagado: 10 GB y sin tope de estudiantes'" tooltipPosition="top">{{ planLabel(space.plan) }}</span>
                     }
                   </div>
                 </td>

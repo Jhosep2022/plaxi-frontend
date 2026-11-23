@@ -11,7 +11,7 @@
   @if (!isAcademy()) { <p class="calendar-note"><strong>Este calendario pertenece al año escolar {{ year() }}</strong>, no al año en que se creó la cuenta. Servicio del 1 de diciembre de {{ year() - 1 }} al 30 de noviembre de {{ year() }}; cuotas de febrero a noviembre de {{ year() }}. Para una reserva de otro año, selecciona ese año arriba. El depósito puede recibirse antes sin cambiar la gestión contratada.</p> }
   @if (calendar(); as current) {
     @if (current.mode === 'renewal') { <p class="calendar-note"><strong>Renovación sin anticipo.</strong> El total se distribuye en diez cuotas de febrero a noviembre. El saldo disponible puede cubrirlas desde las más antiguas; consulta su reparto en el resumen de arriba.</p> }
-    @if (deadlineMismatch()) { <p class="ui-error" role="alert">La fecha límite del anticipo o anual no corresponde a la gestión {{ year() }}. Alclick debe revisar la gestión y corregir el plazo en «Recalcular cuotas».</p> }
+    @if (deadlineMismatch()) { <p class="ui-error" role="alert">{{ editable() ? 'La fecha límite del anticipo o anual no corresponde a la gestión ' + year() + '. Revisa la gestión y corrige el plazo en «Recalcular cuotas».' : 'Alclick está revisando las fechas de esta gestión.' }}</p> }
     @if (current.pricing; as pricing) {
       <p class="calendar-note"><strong>{{ pricing.studentCount }} estudiantes · Tarifa {{ pricing.priceTier === 'founder' ? 'fundador' : 'normal' }}</strong> · {{ money(pricing.annualRateBs) }} por estudiante y gestión (10 meses de clases). Desde el estudiante 1.001: {{ money(pricing.volumeRateBs) }}.
         @if (pricing.minimumApplied) { Mínimo por gestión: {{ money(pricing.minimumBs) }}. }
@@ -37,7 +37,7 @@
         </tr>
       }</tbody>
     </table></div>
-    <p class="calendar-note">Los pagos por gestión se aplican según el reparto confirmado. Los registros anteriores por período conservan su aplicación hasta que se revisen. Las correcciones actualizan este calendario sin borrar el historial.</p>
+    @if (editable()) { <p class="calendar-note">Los pagos por gestión se aplican según el reparto confirmado. Los registros anteriores por período conservan su aplicación hasta que se revisen. Las correcciones actualizan este calendario sin borrar el historial.</p> }
   } @else if (history().space.plan === 'gratis') {
     <p class="calendar-note">El plan gratis no genera cuotas ni tiene vencimiento.</p>
   } @else {

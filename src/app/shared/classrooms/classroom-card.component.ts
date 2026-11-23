@@ -6,10 +6,11 @@ import { todayIso, addDays } from '../../core/utils/attendance';
 import { AulaResumen } from '../../services/classrooms.service';
 import { ProgressRingComponent } from './progress-ring.component';
 import { ClassroomCoverComponent } from './classroom-cover.component';
+import { fechaBolivia } from '../../core/utils/bolivia-time';
 
 // "Hace 2 h", "Ayer", "Hace 5 días"
 function haceCuanto(iso: string): string {
-  const fecha = iso.slice(0, 10);
+  const fecha = fechaBolivia(iso);
   if (fecha === todayIso()) {
     const horas = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 3600000));
     return horas < 1 ? 'Hace un momento' : `Hace ${horas} h`;

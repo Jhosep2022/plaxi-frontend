@@ -6,6 +6,7 @@ import type { EmergencyContact, ProfileDevice, ProfileLinks, UserProfile, Notifi
 import { PHOTO_MAX_KB } from '../core/models/profile.model';
 import { SessionService } from '../core/auth/session.service';
 import { environment } from '../../environments/environment';
+import { fechaBolivia } from '../core/utils/bolivia-time';
 
 interface ApiProfile {
   id: number; usuario: string; correo: string; nombre: string; primerApellido: string;
@@ -166,7 +167,7 @@ export class AccountProfileService {
       bio: profile.bio ?? '', enlaces: { ...NO_LINKS, ...profile.enlaces },
       contactoEmergencia: { ...NO_EMERGENCY_CONTACT, ...profile.contactoEmergencia },
       miembroDesde: profile.miembroDesde, ultimoAcceso: profile.ultimoAcceso ?? '',
-      claveActualizada: profile.claveActualizada?.slice(0, 10) ?? '',
+      claveActualizada: fechaBolivia(profile.claveActualizada ?? ''),
       notificaciones: profile.notificaciones ?? DEFAULT_NOTIFICATIONS,
     } satisfies UserProfile;
   }

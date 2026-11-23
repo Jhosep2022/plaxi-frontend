@@ -13,6 +13,7 @@ import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { PasswordStrengthComponent } from '../../shared/ui/password-strength.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
+import { fechaBolivia, horaBolivia } from '../../core/utils/bolivia-time';
 
 const VACIA = { actual: '', nueva: '', repetir: '' };
 
@@ -74,7 +75,7 @@ export class ProfileSecurityComponent {
   }
 
   cuando(iso: string): string {
-    return `${formatLongDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}`;
+    return `${formatLongDate(fechaBolivia(iso))}, ${horaBolivia(iso)}`;
   }
 
   readonly otros = computed(() => (this.dispositivos.value() ?? []).filter((d) => !d.actual).length);

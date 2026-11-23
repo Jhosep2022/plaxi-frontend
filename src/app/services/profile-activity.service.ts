@@ -12,6 +12,7 @@ import type {
   ProfileSpace,
 } from '../core/models/profile.model';
 import { environment } from '../../environments/environment';
+import { fechaBolivia } from '../core/utils/bolivia-time';
 
 interface ApiMembership {
   espacio: { id: number; slug: string; nombre: string; tipo: SpaceType };
@@ -72,7 +73,7 @@ export class ProfileActivityService {
           nombre: m.espacio.nombre,
           tipo: m.espacio.tipo,
           rol: m.rol,
-          desde: m.desde.slice(0, 10),
+          desde: fechaBolivia(m.desde),
           puedeSalir: m.puedeSalir,
           motivo: m.motivo,
         })),

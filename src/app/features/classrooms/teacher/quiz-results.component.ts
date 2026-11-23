@@ -12,6 +12,7 @@ import { downloadCsv, calculatePercentage } from '../../../core/utils/reports';
 import { QuizService } from '../../../services/quiz.service';
 import { ProgressRingComponent } from '../../../shared/classrooms/progress-ring.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
+import { fechaBolivia } from '../../../core/utils/bolivia-time';
 
 // Resultados de un quiz: precisión, completado, acierto por pregunta y puntaje de cada estudiante
 @Component({
@@ -93,7 +94,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
                       @else { <span class="sin">No respondió</span> }
                     </td>
                     <td class="num">{{ e.intentos }}</td>
-                    <td>{{ e.mejor?.fin ? formatShortDate(e.mejor.fin.slice(0, 10)) : '' }}</td>
+                    <td>{{ e.mejor?.fin ? formatShortDate(fechaBolivia(e.mejor.fin)) : '' }}</td>
                   </tr>
                 }
               </tbody>
@@ -107,6 +108,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
   `,
 })
 export class QuizResultsComponent {
+  readonly fechaBolivia = fechaBolivia;
   private session = inject(SessionService);
   private servicio = inject(QuizService);
 

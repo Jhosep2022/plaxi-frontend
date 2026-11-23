@@ -31,6 +31,8 @@ export interface ActivationStatus {
   valido: boolean;
   usuario?: string;
   nombre?: string;
+  // Why the link no longer works: the account is already active, the invitation expired, or the link is unknown
+  motivo?: 'ya_activada' | 'vencido' | 'invalido';
 }
 
 @Injectable({ providedIn: 'root' })

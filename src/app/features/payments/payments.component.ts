@@ -14,6 +14,7 @@ import { PAYMENT_LABELS, PaymentsApiService, type PaymentConcept, type PaymentEn
 import { PaymentCalendarComponent } from './payment-calendar.component';
 import { CalendarReceiptComponent } from './calendar-receipt.component';
 import { PaymentBalanceComponent } from './payment-balance.component';
+import { fechaBolivia } from '../../core/utils/bolivia-time';
 
 const blankPayment = (): PaymentInput & { reason: string } => ({
   concept: 'cuota_mensual', periodFrom: '', periodTo: '', seats: 1, amountBs: '',
@@ -157,7 +158,7 @@ export class PaymentsComponent {
   }
 
   formatDate(date: string | null): string {
-    return date ? date.slice(0, 10).split('-').reverse().join('/') : 'Sin pago registrado';
+    return date ? fechaBolivia(date).split('-').reverse().join('/') : 'Sin pago registrado';
   }
   formatAmount(amount: string): string {
     return `Bs ${Number(amount).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

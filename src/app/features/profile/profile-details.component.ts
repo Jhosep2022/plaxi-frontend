@@ -13,6 +13,7 @@ import { formatDateWithYear, formatLongDate, todayIso } from '../../core/utils/a
 import { PATRON_CELULAR, PATRON_CORREO, PATRON_ENLACE, PATRON_USUARIO, AccountProfileService } from '../../services/account-profile.service';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { getErrorMessage } from '../management/academics/academics.ui';
+import { fechaBolivia, horaBolivia } from '../../core/utils/bolivia-time';
 
 type Seccion = 'personales' | 'contacto' | 'cuenta' | 'docente' | 'emergencia';
 
@@ -215,6 +216,6 @@ export class ProfileDetailsComponent {
   }
 
   ultimoAcceso(iso: string): string {
-    return iso ? `${formatLongDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '—';
+    return iso ? `${formatLongDate(fechaBolivia(iso))}, ${horaBolivia(iso)}` : '—';
   }
 }

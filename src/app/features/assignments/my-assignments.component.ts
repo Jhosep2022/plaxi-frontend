@@ -17,6 +17,7 @@ import { subjectIcon } from '../../shared/ui/academic-icons';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { ChildSelectorComponent } from '../../shared/ui/child-selector.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
+import { fechaBolivia, horaBolivia } from '../../core/utils/bolivia-time';
 
 type Pestana = 'por-entregar' | 'entregadas' | 'revisadas';
 
@@ -77,7 +78,7 @@ export class MyAssignmentsComponent {
 
   entregadaLabel(t: TareaDeEstudiante): string {
     const iso = t.entrega?.entregadaEl ?? '';
-    return iso ? `${formatShortDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '';
+    return iso ? `${formatShortDate(fechaBolivia(iso))}, ${horaBolivia(iso)}` : '';
   }
 
   // ---------- Entregar ----------

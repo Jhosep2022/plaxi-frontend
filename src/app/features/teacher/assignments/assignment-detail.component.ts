@@ -15,6 +15,7 @@ import { NotificationService } from '../../../shared/ui/notification.service';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
 import { subjectIcon } from '../../../shared/ui/academic-icons';
 import { getErrorMessage } from '../../management/academics/academics.ui';
+import { fechaBolivia, horaBolivia } from '../../../core/utils/bolivia-time';
 
 interface Edicion {
   nota: string;
@@ -133,7 +134,7 @@ export class AssignmentDetailComponent {
 
   entregadaLabel(f: FilaEntrega): string {
     const iso = f.entrega?.entregadaEl;
-    return iso ? `${formatShortDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}` : '';
+    return iso ? `${formatShortDate(fechaBolivia(iso))}, ${horaBolivia(iso)}` : '';
   }
 
   // Abre un archivo entregado con un enlace temporal
