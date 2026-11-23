@@ -76,7 +76,7 @@ export class SchedulesService {
     return this.api.http.delete<void>(this.api.url(`horario/clases/${id}`));
   }
   getScheduleData(spaceId: number): Observable<DatosHorario> {
-    if (this.api.session.activeRole() !== 'direccion')
+    if (!['direccion', 'secretaria'].includes(this.api.session.activeRole() ?? ''))
       return this.getPersonalSchedule(spaceId);
     return forkJoin({
       jornada: this.getWorkday(spaceId),

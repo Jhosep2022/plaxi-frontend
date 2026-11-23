@@ -209,6 +209,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/management/management.routes'),
       },
       {
+        path: 'secretaria',
+        canActivate: [roleGuard('secretaria')],
+        loadChildren: () => import('./features/management/management.routes'),
+      },
+      {
         path: 'padre',
         canActivate: [roleGuard('padre')],
         loadChildren: () => import('./features/parent/parent.routes'),

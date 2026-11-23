@@ -6,7 +6,7 @@ export type SpaceType = 'colegio' | 'academia';
 // - Rol: lo que la persona es dentro de un espacio. Puede tener varios en el mismo espacio.
 // - RolPlataforma: el administrador de Aulix (nosotros), por encima de todos los espacios (profile.isAdmin).
 //   Administra los espacios desde /admin, pero no entra a sus datos internos (notas, asistencia, estudiantes).
-export type SpaceRole = 'direccion' | 'docente' | 'estudiante' | 'padre';
+export type SpaceRole = 'direccion' | 'docente' | 'estudiante' | 'padre' | 'secretaria';
 export type PlatformRole = 'admin';
 
 export const SPACE_ROLE_LABEL: Record<SpaceRole, string> = {
@@ -14,6 +14,7 @@ export const SPACE_ROLE_LABEL: Record<SpaceRole, string> = {
   docente: 'Docente',
   estudiante: 'Estudiante',
   padre: 'Padre / Tutor legal',
+  secretaria: 'Secretaría',
 };
 
 export const PLATFORM_ROLE_LABEL: Record<PlatformRole, string> = {

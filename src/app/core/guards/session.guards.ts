@@ -45,6 +45,11 @@ export const roleGuard = (...roles: SpaceRole[]): CanActivateFn => () => {
   return (role !== null && roles.includes(role)) || inject(Router).createUrlTree(['/no-autorizado']);
 };
 
+// What only management decides (closing periods, scale, staff clock-in, institution, continuity, payments):
+// the secretaría uses the management screens but not these ones.
+export const notSecretaryGuard: CanActivateFn = () =>
+  inject(SessionService).activeRole() !== 'secretaria' || inject(Router).createUrlTree(['/no-autorizado']);
+
 // Require a space type for role-specific features.
 export const spaceTypeGuard = (type: SpaceType): CanActivateFn => () => {
   return inject(SessionService).activeSpace()?.tipo === type || inject(Router).createUrlTree(['/no-autorizado']);

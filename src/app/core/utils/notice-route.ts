@@ -8,9 +8,10 @@ const PANTALLAS: Record<SpaceRole, RegExp[]> = {
   padre: [/^inicio$/, /^hijos$/, /^calificaciones$/, /^asistencia$/, /^tareas$/, /^horario$/, /^comunicados$/],
   docente: [/^inicio$/, /^clases$/, /^clases\/\d+$/, /^horario$/, /^marcacion$/, /^pagos$/, /^estudiantes$/, /^estudiantes\/solicitudes$/, /^invitaciones$/, /^sesiones$/, /^tareas$/, /^tareas\/\d+$/, /^comunicados$/, /^asistencia$/, /^calificaciones$/],
   direccion: [/^inicio$/, /^comunicados$/, /^pagos$/, /^reportes$/, /^asistencia\/licencias$/, /^asistencia\/estudiantes$/, /^asistencia\/personal$/],
+  secretaria: [/^inicio$/, /^comunicados$/, /^reportes$/, /^asistencia\/licencias$/, /^asistencia\/estudiantes$/],
 };
 
-const ROLES = new Set<string>(['estudiante', 'padre', 'docente', 'direccion', 'perfil']);
+const ROLES = new Set<string>(['estudiante', 'padre', 'docente', 'direccion', 'secretaria', 'perfil']);
 
 // Enlaces antiguos que no dicen la pantalla exacta: "aulas/4/tareas/9" lleva a Tareas
 const EQUIVALENTES: [RegExp, string][] = [
@@ -28,7 +29,8 @@ export function rutaDeAviso(enlace: string, rol: SpaceRole | null): string {
   let pantalla = resto.join('/');
   if (resto[0] === 'perfil') return `/${slug}/${pantalla}`;
   if (ROLES.has(resto[0])) {
-    if (resto[0] !== rol) return `/${slug}`;
+    // A notice for management also reaches the secretaría
+    if (resto[0] !== rol && !(rol === 'secretaria' && resto[0] === 'direccion')) return `/${slug}`;
     pantalla = resto.slice(1).join('/');
   }
   if (rol !== 'docente') for (const [patron, destino] of EQUIVALENTES) if (patron.test(pantalla)) pantalla = destino;

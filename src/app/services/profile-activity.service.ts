@@ -92,7 +92,7 @@ export class ProfileActivityService {
   indicadores(membresia: Membership): Observable<ProfileIndicator[]> {
     const url = `${this.api}/espacios/${encodeURIComponent(membresia.espacio.slug)}/indicadores`;
     return this.http
-      .get<ApiIndicators>(url, { params: { rol: membresia.rol } })
+      .get<ApiIndicators>(url, { params: { rol: membresia.rol === 'secretaria' ? 'direccion' : membresia.rol } })
       .pipe(map((i) => toIndicators(i, membresia.espacio.tipo === 'colegio')));
   }
 }

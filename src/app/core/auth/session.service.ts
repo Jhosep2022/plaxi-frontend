@@ -15,7 +15,7 @@ const DEFAULT_SPACE_STORAGE_KEY = 'espacioPredeterminado'; // Existing persisted
 // Existing storage keys still read by older components.
 const LEGACY_USER_ID_STORAGE_KEY = 'userId';
 const LEGACY_ROLE_STORAGE_KEY = 'userRole';
-const LEGACY_ROLE: Record<SpaceRole, string> = { direccion: '1', estudiante: '2', docente: '3', padre: '4' };
+const LEGACY_ROLE: Record<SpaceRole, string> = { direccion: '1', estudiante: '2', docente: '3', padre: '4', secretaria: '5' };
 
 // Source of truth for the current user, memberships, active space, and role.
 @Injectable({ providedIn: 'root' })

@@ -22,4 +22,9 @@ describe('rutaDeAviso', () => {
     expect(rutaDeAviso('/colegio', 'direccion')).toBe('/colegio');
     expect(rutaDeAviso('/colegio/docente/clases', 'padre')).toBe('/colegio');
   });
+
+  it('un aviso para la dirección también lleva a la secretaría a su pantalla', () => {
+    expect(rutaDeAviso('/colegio/direccion/comunicados', 'secretaria')).toBe('/colegio/secretaria/comunicados');
+    expect(rutaDeAviso('/colegio/direccion/pagos', 'secretaria')).toBe('/colegio');
+  });
 });

@@ -27,11 +27,14 @@ import { SentComponent } from './sent.component';
   `,
 })
 export class AnnouncementsComponent {
-  readonly role = inject(SessionService).activeRole();
+  // La secretaría envía y ve comunicados como la dirección
+  private readonly activo = inject(SessionService).activeRole();
+  readonly role = this.activo === 'secretaria' ? 'direccion' : this.activo;
   readonly selectedTab = signal<'recibidos' | 'enviados'>('recibidos');
 
   readonly description = {
     direccion: 'Envía avisos a padres, estudiantes y docentes, y revisa quién los leyó.',
+    secretaria: 'Envía avisos a padres, estudiantes y docentes, y revisa quién los leyó.',
     docente: 'Avisos de la dirección y los que envías a las familias de tus cursos.',
     padre: 'Avisos de la dirección y de los docentes de tus hijos.',
     estudiante: 'Avisos de la dirección y de tus docentes.',

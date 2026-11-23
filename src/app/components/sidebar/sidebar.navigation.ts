@@ -81,6 +81,7 @@ export function navegacion(tipo: SpaceType, rol: SpaceRole): NavModule[] {
     ? tipo === 'colegio' ? docenteColegio() : docenteAcademia()
     : rol === 'estudiante' ? estudiante(tipo)
     : rol === 'direccion' ? direccion()
+    : rol === 'secretaria' ? secretaria()
     : padre();
   return [...modulos, CUENTA];
 }
@@ -180,6 +181,25 @@ function estudiante(tipo: SpaceType): NavModule[] {
   ];
 }
 
+// La secretaría usa las pantallas de la dirección, sin lo que decide la dirección
+const SOLO_DIRECCION = new Set([
+  'academico/continuidad', 'personas/secretaria', 'asistencia/personal', 'asistencia/puntos-marcacion', 'calificaciones/escala',
+  'calificaciones/periodos', 'reportes/puntualidad', 'institucion', 'institucion/horario-laboral', 'pagos',
+]);
+function secretaria(): NavModule[] {
+  return direccion()
+    .map((modulo) => ({
+      ...modulo,
+      sections: modulo.sections.map((seccion) => ({
+        ...seccion,
+        items: seccion.items
+          .filter((i) => !SOLO_DIRECCION.has(i.route.replace(/^direccion\//, '')))
+          .map((i) => ({ ...i, label: i.label === 'Panel de dirección' ? 'Panel de secretaría' : i.label, route: i.route.replace(/^direccion\//, 'secretaria/') })),
+      })).filter((seccion) => seccion.items.length),
+    }))
+    .filter((modulo) => modulo.sections.length);
+}
+
 function direccion(): NavModule[] {
   return [
     { id: 'inicio', label: 'Inicio', icon: faHome, sections: [{ items: [item('Panel de dirección', faHome, 'direccion/inicio')] }] },
@@ -202,6 +222,7 @@ function direccion(): NavModule[] {
           item('Docentes', faChalkboardTeacher, 'direccion/personas/docentes'),
           item('Estudiantes', faUserGraduate, 'direccion/personas/estudiantes'),
           item('Padres y tutores', faChild, 'direccion/personas/padres'),
+          item('Secretaría', faUserCheck, 'direccion/personas/secretaria'),
           item('Inscripciones', faUserPlus, 'direccion/personas/inscripciones'),
           item('Carga desde Excel', faFileSignature, 'direccion/personas/carga-excel'),
           item('Tarjetas de acceso', faQrcode, 'direccion/personas/tarjetas'),
