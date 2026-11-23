@@ -3,7 +3,8 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { FormField, form, maxLength, minLength, required, submit } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBullhorn, faCalendarDays, faEye, faPaperPlane, faPlus, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { Tooltip } from 'primeng/tooltip';
+import { faBullhorn, faCalendarDays, faEye, faPaperPlane, faPlus, faShareNodes, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { compararParalelos, paraleloLabel } from '../../core/models/academics.model';
 import { CATEGORIAS_COMUNICADO, CategoriaComunicado, Comunicado, PUBLICOS, Publico } from '../../core/models/announcements.model';
@@ -15,7 +16,7 @@ import { NotificationService } from '../../shared/ui/notification.service';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { getErrorMessage } from '../management/academics/academics.ui';
-import { categoria, cuando, publicoLabel } from './announcements.ui';
+import { categoria, cuando, publicoLabel, whatsappShareUrl } from './announcements.ui';
 import { SELECT } from '../../shared/ui/select.component';
 
 type Enviado = Comunicado & { alcance: Alcance };
@@ -25,7 +26,7 @@ const BORRADOR = { titulo: '', mensaje: '', categoria: 'general' as CategoriaCom
 // Comunicados enviados (dirección: todos los del colegio; docente: los suyos), con su alcance, redacción y detalle
 @Component({
   selector: 'app-sent-announcements',
-  imports: [...SELECT, FaIconComponent, FormField, DrawerComponent, EmptyStateComponent],
+  imports: [...SELECT, FaIconComponent, FormField, DrawerComponent, EmptyStateComponent, Tooltip],
   templateUrl: './sent.component.html',
   styleUrls: ['./announcements.css'],
 })
@@ -51,6 +52,12 @@ export class SentComponent {
   readonly faPlus = faPlus;
   readonly faTrash = faTrash;
   readonly faUsers = faUsers;
+  readonly faShareNodes = faShareNodes;
+
+  // Opens WhatsApp with the title, the start of the message and the link to read it in Aulix
+  compartir(c: Comunicado): void {
+    window.open(whatsappShareUrl(c, { nombre: this.espacio.nombre, slug: this.espacio.slug }), '_blank', 'noopener');
+  }
 
   private readonly espacio = this.session.activeSpace()!;
   private readonly usuarioId = this.session.userId()!;

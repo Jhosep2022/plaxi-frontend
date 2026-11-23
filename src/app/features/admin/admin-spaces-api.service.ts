@@ -24,6 +24,18 @@ export interface SeatSummary {
 export interface SpaceDetails extends SpaceResponse {
   storage: { usedBytes: number; limitBytes: number };
   seats: SeatSummary | null;
+  dataDeletedAt: string | null; // when Alclick deleted the school's data
+}
+
+// What Alclick gives the school after deleting its data at the end of the contract
+export interface DeletionCertificate {
+  espacio: { id: number; nombre: string; slug: string };
+  borradoEl: string;
+  motivo: string;
+  filas: Record<string, number>;
+  cuentasEliminadas: number;
+  archivos: { borrados: number; pendientes: string[] };
+  conservado: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -50,6 +62,11 @@ export class AdminSpacesApiService {
 
   changeLimits(id: number, limits: PlatformSpace['limits'], reason: string) {
     return this.http.put(`${this.url}/${id}/limits`, { ...limits, reason });
+  }
+
+  // Irreversible: deletes the school's data (it must be read-only or suspended) and returns the certificate
+  deleteData(id: number, confirmacion: string, motivo: string) {
+    return this.http.delete<DeletionCertificate>(`${this.url}/${id}/datos`, { body: { confirmacion, motivo } });
   }
 }
 

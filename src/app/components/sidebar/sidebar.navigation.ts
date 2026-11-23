@@ -13,12 +13,14 @@ import {
   faClipboardList,
   faClock,
   faDoorOpen,
+  faFileExport,
   faFileSignature,
   faFolderOpen,
   faHome,
   faLink,
   faListCheck,
   faPeopleGroup,
+  faPenToSquare,
   faPlus,
   faQrcode,
   faForward,
@@ -184,7 +186,7 @@ function estudiante(tipo: SpaceType): NavModule[] {
 // La secretaría usa las pantallas de la dirección, sin lo que decide la dirección
 const SOLO_DIRECCION = new Set([
   'academico/continuidad', 'personas/secretaria', 'asistencia/personal', 'asistencia/puntos-marcacion', 'calificaciones/escala',
-  'calificaciones/periodos', 'reportes/puntualidad', 'institucion', 'institucion/horario-laboral', 'pagos',
+  'calificaciones/periodos', 'reportes/puntualidad', 'institucion', 'institucion/horario-laboral', 'institucion/exportar', 'pagos',
 ]);
 function secretaria(): NavModule[] {
   return direccion()
@@ -244,6 +246,7 @@ function direccion(): NavModule[] {
         items: [
           item('Escala y ponderación', faFileSignature, 'direccion/calificaciones/escala'),
           item('Cierre de periodos', faClipboardList, 'direccion/calificaciones/periodos'),
+          item('Corregir notas', faPenToSquare, 'direccion/calificaciones/correcciones'),
           item('Boletines', faFileSignature, 'direccion/calificaciones/boletines'),
         ],
       }],
@@ -265,6 +268,7 @@ function direccion(): NavModule[] {
           item('Jornada escolar', faCalendarDays, 'direccion/institucion/jornada'),
           item('Horario laboral', faClock, 'direccion/institucion/horario-laboral'),
           item('Pagos e historial', faFileSignature, 'direccion/pagos'),
+          item('Exportar datos', faFileExport, 'direccion/institucion/exportar'),
         ],
       }],
     },

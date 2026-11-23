@@ -10,6 +10,7 @@ import {
   temporaryPasswordGuard,
   termsGuard,
 } from './core/guards/session.guards';
+import { announcementLinkGuard } from './core/guards/announcement-link.guard';
 import { AppLayoutComponent } from './layouts/app-layout/app-layout.component';
 
 // Estructura general:
@@ -73,6 +74,13 @@ export const routes: Routes = [
       import('./features/legal/privacy-page.component').then(
         (m) => m.PrivacyPageComponent,
       ),
+  },
+
+  // Link of a notice shared by WhatsApp: signs in if needed and opens it in the person's inbox
+  {
+    path: 'comunicado/:espacio/:id',
+    canActivate: [announcementLinkGuard],
+    children: [],
   },
 
   // QR of an access card (students and parents): opens with or without a session

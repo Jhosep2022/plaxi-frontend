@@ -49,6 +49,15 @@ export interface CambioNota {
   valor: number | null; // null deletes the grade
 }
 
+export interface CambioHistorial {
+  id: number;
+  anterior: number | null;
+  nuevo: number | null;
+  fecha: string;
+  motivo: string | null;
+  usuario: string; // who changed it ('' = the system, a quiz)
+}
+
 export interface AvanceCarga {
   paralelo: string;
   paraleloId: number;
@@ -179,6 +188,16 @@ export class GradesApiService {
   // ---------- Sheet of a subject in a class group and period ----------
   sheet(paraleloId: number, materiaId: number, periodo: number): Observable<Planilla> {
     return this.http.get<Planilla>(`${this.url}/planilla`, { params: { paralelo: paraleloId, materia: materiaId, periodo } });
+  }
+
+  // A mark of a closed period corrected by direction or the secretary; returns the new frozen final mark
+  correctClosedGrade(cambio: CambioNota & { motivo: string }): Observable<number | null> {
+    return this.http.put<{ final: number | null }>(`${this.url}/correcciones`, cambio).pipe(map((r) => r.final));
+  }
+
+  // Changes of a student's mark in an activity, newest first (with the reason of a correction)
+  gradeHistory(estudianteId: number, actividadId: number): Observable<CambioHistorial[]> {
+    return this.http.get<CambioHistorial[]>(`${this.url}/historial`, { params: { estudiante: estudianteId, actividad: actividadId } });
   }
 
   saveGrades(cambios: CambioNota[]): Observable<number> {

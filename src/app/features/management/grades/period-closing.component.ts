@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -20,7 +21,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
 @Component({
   selector: 'app-period-closing',
   host: { class: 'ui-pagina' },
-  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent],
+  imports: [FaIconComponent, PageHeaderComponent, EmptyStateComponent, RouterLink],
   styles: `
     .cargando { color: var(--muted); }
     .periodos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 14px; }
@@ -33,7 +34,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
     .linea { display: flex; justify-content: space-between; }
     .detalle { margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
     .alerta { color: var(--cream-strong); font-weight: bold; }
-    .acciones { display: flex; justify-content: flex-end; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+    .acciones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
     .estado-proximo { background: var(--page-bg); color: var(--muted); }
   `,
   template: `
@@ -82,6 +83,7 @@ type EstadoPeriodo = 'cerrado' | 'en-curso' | 'terminado' | 'proximo';
 
             <div class="acciones">
               @if (cierreDe(i)) {
+                <a class="ui-btn ui-btn--secundario" [routerLink]="session.roleRoute('calificaciones', 'correcciones')">Corregir una nota</a>
                 <button type="button" class="ui-btn ui-btn--secundario" (click)="reabrir(i)"><fa-icon [icon]="faLockOpen" /> Reabrir</button>
               } @else if (estado !== 'proximo') {
                 <button type="button" class="ui-btn" (click)="cerrar(d.gestion, i)"><fa-icon [icon]="faLock" /> Cerrar periodo</button>
@@ -101,7 +103,8 @@ export class PeriodClosingComponent {
   private academico = inject(AcademicsService);
   private calificaciones = inject(GradesApiService);
   private avisos = inject(NotificationService);
-  private readonly espacioId = inject(SessionService).activeSpace()!.id;
+  readonly session = inject(SessionService);
+  private readonly espacioId = this.session.activeSpace()!.id;
 
   readonly faCalendarDays = faCalendarDays;
   readonly faLock = faLock;

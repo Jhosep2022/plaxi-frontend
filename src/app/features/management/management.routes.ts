@@ -34,6 +34,8 @@ export default [
   // Calificaciones
   { ...soloDireccion, path: 'calificaciones/escala', title: 'Escala y ponderación', loadComponent: () => import('./grades/grading-scale.component').then((m) => m.GradingScaleComponent) },
   { ...soloDireccion, path: 'calificaciones/periodos', title: 'Cierre de periodos', loadComponent: () => import('./grades/period-closing.component').then((m) => m.PeriodClosingComponent) },
+  // A mark of a closed period, with its reason (direction and secretary)
+  { path: 'calificaciones/correcciones', title: 'Corregir notas', loadComponent: () => import('./grades/grade-corrections.component').then((m) => m.GradeCorrectionsComponent) },
   { path: 'calificaciones/boletines', title: 'Boletines', loadComponent: () => import('./grades/report-cards.component').then((m) => m.ReportCardsComponent) },
 
   { path: 'reportes', pathMatch: 'full', redirectTo: 'reportes/rendimiento' },
@@ -44,5 +46,7 @@ export default [
   { ...soloDireccion, path: 'institucion', title: 'Datos de la institución', loadComponent: () => import('./institution/data/institution-details.component').then((m) => m.InstitutionDetailsComponent) },
   { ...soloDireccion, path: 'pagos', title: 'Pagos e historial', loadComponent: () => import('../payments/payments.component').then((m) => m.PaymentsComponent) },
   { path: 'institucion/jornada', title: 'Jornada escolar', loadComponent: () => import('./institution/workday/workday.component').then((m) => m.WorkdayComponent) },
+  // A copy of all the school's data in one Excel (also during the 30 days of read-only after the contract)
+  { ...soloDireccion, path: 'institucion/exportar', title: 'Exportar datos', loadComponent: () => import('./institution/export/export-data.component').then((m) => m.ExportDataComponent) },
   { ...soloDireccion, path: 'institucion/horario-laboral', title: 'Horario laboral', loadComponent: () => import('./institution/work-schedule/work-schedule.component').then((m) => m.WorkScheduleComponent) },
 ] satisfies Routes;

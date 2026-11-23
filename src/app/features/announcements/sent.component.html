@@ -29,6 +29,15 @@
         </div>
         <footer class="acciones-enviado">
           <button type="button" class="ui-btn ui-btn--secundario" (click)="detalle.set(c)"><fa-icon [icon]="faEye" /> Ver detalle</button>
+          <button
+            type="button"
+            class="ui-btn ui-btn--secundario compartir-whatsapp"
+            (click)="compartir(c)"
+            pTooltip="Abre WhatsApp con el título, el inicio del mensaje y un enlace para leerlo en Aulix. Pégalo en el grupo de padres."
+            tooltipPosition="top"
+          >
+            <fa-icon [icon]="faShareNodes" /> Compartir por WhatsApp
+          </button>
           @if (puedeEliminar(c)) {
             <button type="button" class="ui-btn ui-btn--icono" (click)="eliminar(c)" [attr.aria-label]="'Eliminar ' + c.titulo"><fa-icon [icon]="faTrash" /></button>
           }
@@ -111,6 +120,7 @@
       <div class="evento"><fa-icon [icon]="faCalendarDays" /> <span>Fecha: <strong>{{ formatLongDate(c.fechaEvento) }}</strong></span></div>
     }
     <p class="mensaje">{{ c.mensaje }}</p>
+    <button type="button" class="ui-btn compartir-whatsapp" (click)="compartir(c)"><fa-icon [icon]="faShareNodes" /> Compartir por WhatsApp</button>
     <div class="ficha-alcance">
       <div><strong>{{ c.alcance.destinatarios }}</strong><small>destinatarios</small></div>
       <div><strong>{{ c.alcance.leidos }}</strong><small>lo leyeron</small></div>

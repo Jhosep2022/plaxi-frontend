@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { SessionService } from '../../core/auth/session.service';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { InboxComponent } from './inbox.component';
@@ -22,11 +22,13 @@ import { SentComponent } from './sent.component';
     @if (role === 'direccion' || (role === 'docente' && selectedTab() === 'enviados')) {
       <app-sent-announcements [esDireccion]="role === 'direccion'" />
     } @else {
-      <app-announcements-inbox />
+      <app-announcements-inbox [abrirId]="c()" />
     }
   `,
 })
 export class AnnouncementsComponent {
+  // ?c= of a shared link (/comunicado/:espacio/:id): the notice to open
+  readonly c = input<string>();
   // La secretaría envía y ve comunicados como la dirección
   private readonly activo = inject(SessionService).activeRole();
   readonly role = this.activo === 'secretaria' ? 'direccion' : this.activo;

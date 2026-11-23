@@ -59,3 +59,27 @@ a.persona:hover strong { text-decoration: underline; }
 
 @media (max-width: 900px) { .dos-columnas { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .ficha { grid-template-columns: 1fr; } }
+
+/* Deletion of a space's data at the end of its contract */
+.bloque.peligro {
+  border: 1px solid #f1c4bd;
+  border-radius: 12px;
+  padding: 14px;
+  background: #fdf0ee;
+}
+.bloque.peligro h3 {
+  color: #b3392b;
+}
+.constancia {
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.constancia h4 {
+  margin: 8px 0 0;
+}
+.constancia ul {
+  margin: 0;
+  padding-left: 20px;
+}

@@ -11,7 +11,7 @@ import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { readApiError } from '../../core/api/api-error';
 import { spacePlanLabel, spaceStatusLabel, type AdminSpacePlan, type AdminSpaceStatus } from './admin.service';
-import { AdminSpacesApiService, toPlatformSpace } from './admin-spaces-api.service';
+import { type DeletionCertificate, AdminSpacesApiService, toPlatformSpace } from './admin-spaces-api.service';
 import { spaceStatusTone } from './admin-ui';
 import { SELECT } from '../../shared/ui/select.component';
 
@@ -158,7 +158,41 @@ type StatusFilter = AdminSpaceStatus | '';
             <button class="ui-btn ui-btn--secundario" type="button" (click)="saveLimits(+courses.value, +students.value, +storage.value)">Guardar límites</button>
           </div>
         </section>
+
+        <section class="bloque peligro">
+          <h3>Borrar los datos del espacio</h3>
+          @if (extra.value()?.dataDeletedAt; as when) {
+            <p>Los datos se borraron el {{ when.slice(0, 10) }}. Se conservan sus pagos y el registro de acciones.</p>
+          } @else if (space.status === 'active') {
+            <p>Al terminar el contrato: primero pásalo a <strong>solo lectura</strong> para que descargue sus datos (30 días). Después de 90 días se borran desde aquí.</p>
+          } @else {
+            <p>Borra personas, notas, asistencia, aulas, archivos y comunicados, y las cuentas que no tienen otro espacio. <strong>No se puede deshacer.</strong> Se conservan los pagos y se entrega una constancia.</p>
+            <input class="ui-input" [value]="deleteConfirm()" (input)="deleteConfirm.set($any($event.target).value)" [placeholder]="'Escribe ' + space.slug + ' para confirmar'" aria-label="Confirmación de borrado" />
+            <div class="botones">
+              <button class="ui-btn ui-btn--peligro" type="button" [disabled]="deleting() || deleteConfirm().trim() !== space.slug" (click)="deleteData(space.slug)">
+                {{ deleting() ? 'Borrando…' : 'Borrar los datos' }}
+              </button>
+            </div>
+            <span class="ui-ayuda">Usa el motivo de arriba (ej. «Terminó el contrato el 30/11/2026»).</span>
+          }
+        </section>
       }
+    </app-drawer>
+
+    <app-drawer [abierto]="!!certificate()" titulo="Constancia de borrado" [subtitulo]="certificate()?.espacio?.nombre ?? ''" (cerrar)="certificate.set(null)">
+      @if (certificate(); as c) {
+        <div class="constancia">
+          <p>Alclick borró los datos de <strong>{{ c.espacio.nombre }}</strong> (aulix.alclick.dev/{{ c.espacio.slug }}) el {{ c.borradoEl.slice(0, 10) }}.</p>
+          <p><strong>Motivo:</strong> {{ c.motivo }}</p>
+          <h4>Registros borrados</h4>
+          <ul>@for (row of certificateRows(); track row.tabla) { <li>{{ row.tabla }}: {{ row.filas }}</li> }</ul>
+          <p>Cuentas eliminadas (sin otro colegio o academia): {{ c.cuentasEliminadas }}</p>
+          <p>Archivos borrados del almacenamiento: {{ c.archivos.borrados }}@if (c.archivos.pendientes.length) { · <strong>{{ c.archivos.pendientes.length }} pendientes de borrar a mano</strong> }</p>
+          <h4>Se conserva</h4>
+          <ul>@for (item of c.conservado; track item) { <li>{{ item }}</li> }</ul>
+        </div>
+      }
+      <ng-container pie><button type="button" class="ui-btn" (click)="printCertificate()">Imprimir o guardar PDF</button></ng-container>
     </app-drawer>
   `,
   styleUrl: './admin-pages.css',
@@ -277,5 +311,35 @@ export class AdminSpacesComponent {
     try { await firstValueFrom(this.api.changeLimits(this.selectedId()!, { courses, students, storageGb }, this.reason())); this.spaces.reload(); this.notifications.success('Límites actualizados.'); }
     catch (error) { this.notifications.error(readApiError(error).message); }
   }
+  protected readonly deleteConfirm = signal('');
+  protected readonly deleting = signal(false);
+  protected readonly certificate = signal<DeletionCertificate | null>(null);
+  protected readonly certificateRows = computed(() =>
+    Object.entries(this.certificate()?.filas ?? {})
+      .map(([tabla, filas]) => ({ tabla, filas }))
+      .sort((left, right) => right.filas - left.filas),
+  );
+
+  async deleteData(slug: string): Promise<void> {
+    if (!this.validate() || !this.selectedId() || this.deleteConfirm().trim() !== slug) return;
+    if (!confirm('¿Borrar los datos de este espacio? No se puede deshacer.')) return;
+    this.deleting.set(true);
+    try {
+      const certificate = await firstValueFrom(this.api.deleteData(this.selectedId()!, slug, this.reason()));
+      this.certificate.set(certificate);
+      this.deleteConfirm.set('');
+      this.selectedId.set(null);
+      this.spaces.reload();
+    } catch (error) {
+      this.notifications.error(readApiError(error).message);
+    } finally {
+      this.deleting.set(false);
+    }
+  }
+
+  printCertificate(): void {
+    window.print();
+  }
+
   changePage(delta: number): void { this.page.update((page) => page + delta); this.selectedId.set(null); }
 }

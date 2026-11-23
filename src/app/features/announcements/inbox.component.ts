@@ -1,4 +1,4 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -55,9 +55,23 @@ export class InboxComponent {
     this.lista().filter((x) => this.filtro() === 'todos' || (this.filtro() === 'no-leidos' ? !x.lectura : x.comunicado.importante))
   );
 
+  // A notice opened from a shared link: opened (and marked as read) once the list arrives
+  readonly abrirId = input<string | undefined>();
+  private abiertoDesdeEnlace = false;
+
   readonly abiertoId = signal(0);
   readonly abierto = computed(() => this.lista().find((x) => x.comunicado.id === this.abiertoId()) ?? null);
   readonly confirmando = signal(false);
+
+  constructor() {
+    effect(() => {
+      const id = Number(this.abrirId());
+      const item = this.lista().find((entry) => entry.comunicado.id === id);
+      if (!item || this.abiertoDesdeEnlace) return;
+      this.abiertoDesdeEnlace = true;
+      void this.abrir(item);
+    });
+  }
 
   async abrir(item: ComunicadoRecibido): Promise<void> {
     this.abiertoId.set(item.comunicado.id);

@@ -241,6 +241,8 @@
 
 .acciones-enviado {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: space-between;
   margin-top: auto;
   padding-top: 12px;
@@ -346,4 +348,19 @@
 
 .pendientes small {
   color: var(--muted);
+}
+
+/* Share to the families' WhatsApp groups */
+.compartir-whatsapp {
+  color: #0f7a3d;
+  border-color: #b7e4c7;
+}
+.compartir-whatsapp:hover {
+  background: #e9f7ef;
+}
+.ui-btn.compartir-whatsapp:not(.ui-btn--secundario) {
+  background: #1f9d55;
+  border-color: #1f9d55;
+  color: #fff;
+  margin: 8px 0 16px;
 }
