@@ -11,6 +11,21 @@ export interface SpaceResponse extends Omit<PlatformSpace, 'memberCount'> {
   memberCounts: { directors: number; teachers: number; students: number; parents: number };
 }
 
+// Cupos de un colegio en su gestión activa: solo conteos, nunca nombres
+export interface SeatSummary {
+  year: number;
+  contracted: number | null;
+  used: number;
+  active: number;
+  withdrawnFree: number;
+  withdrawnBilled: number;
+  last30Days: { enrolled: number; withdrawn: number };
+}
+export interface SpaceDetails extends SpaceResponse {
+  storage: { usedBytes: number; limitBytes: number };
+  seats: SeatSummary | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminSpacesApiService {
   private readonly http = inject(HttpClient);
@@ -18,6 +33,10 @@ export class AdminSpacesApiService {
 
   list(type: 'school' | 'academy', page: number) {
     return this.http.get<SpaceResponse[]>(this.url, { params: new HttpParams().set('type', type).set('page', page) });
+  }
+
+  get(id: number) {
+    return this.http.get<SpaceDetails>(`${this.url}/${id}`);
   }
 
   changeStatus(id: number, status: AdminSpaceStatus, reason: string) {

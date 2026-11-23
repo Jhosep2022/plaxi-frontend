@@ -106,8 +106,21 @@ type StatusFilter = AdminSpaceStatus | '';
           <div><dt>Estado actual</dt><dd><span [class]="statusTone(space.status)">{{ statusLabel(space.status) }}</span></dd></div>
           <div><dt>Pagado hasta</dt><dd>{{ space.paidUntil || 'Sin pago registrado' }}</dd></div>
           <div class="ancho"><dt>Dirección en Aulix</dt><dd>aulix.alclick.dev/{{ space.slug }}</dd></div>
-          <div class="ancho"><dt>Consumo de almacenamiento</dt><dd>No disponible todavía · cuota de {{ space.limits.storageGb }} GB</dd></div>
+          <div class="ancho"><dt>Almacenamiento</dt><dd>@if (extra.value(); as e) { {{ gb(e.storage.usedBytes) }} de {{ gb(e.storage.limitBytes) }} GB usados } @else { Cargando… }</dd></div>
         </dl>
+        @if (extra.value()?.seats; as seats) {
+          <section class="bloque">
+            <h3>Cupos de la gestión {{ seats.year }}</h3>
+            <p>Se cobran los activos y los que se retiraron después de 30 días. Un retiro dentro de los 30 días libera el cupo.</p>
+            <dl class="ficha">
+              <div><dt>Contratados</dt><dd>{{ seats.contracted ?? 'Sin tope' }}</dd></div>
+              <div><dt>Usados (se cobran)</dt><dd><strong>{{ seats.used }}</strong>@if (seats.contracted) { · {{ seats.contracted - seats.used }} libres }</dd></div>
+              <div><dt>Activos</dt><dd>{{ seats.active }}</dd></div>
+              <div><dt>Retirados</dt><dd><span pTooltip="Retirados después de 30 días: su cupo sigue pagado hasta fin de gestión" tooltipPosition="top">{{ seats.withdrawnBilled }} con cupo pagado</span> · <span pTooltip="Retirados dentro de los 30 días: el cupo se liberó y no se cobra" tooltipPosition="top">{{ seats.withdrawnFree }} liberados</span></dd></div>
+              <div class="ancho"><dt>Últimos 30 días</dt><dd>{{ seats.last30Days.enrolled }} altas · {{ seats.last30Days.withdrawn }} bajas</dd></div>
+            </dl>
+          </section>
+        }
         <div class="botones"><a class="ui-btn ui-btn--secundario" [routerLink]="['/admin/spaces', space.id, 'payments']">Pagos e historial</a></div>
 
         <section class="bloque">
@@ -205,6 +218,12 @@ export class AdminSpacesComponent {
       .filter((space) => space.name.toLowerCase().includes(this.search().trim().toLowerCase())),
   );
   protected readonly details = computed(() => this.ofType().find((space) => space.id === this.selectedId()) ?? null);
+  // Cupos y almacenamiento usado: se piden al abrir el detalle
+  protected readonly extra = rxResource({ params: () => this.selectedId() ?? undefined, stream: ({ params }) => this.api.get(params) });
+
+  protected gb(bytes: number): string {
+    return (bytes / 1024 ** 3).toLocaleString('es-BO', { maximumFractionDigits: 1 });
+  }
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
