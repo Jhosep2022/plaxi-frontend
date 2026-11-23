@@ -24,10 +24,10 @@ describe('ProfileActivityService', () => {
     let result: unknown;
     service.espacios().subscribe((spaces) => (result = spaces));
     requests.expectOne(`${environment.API_URL}/espacios`).flush([
-      { espacio: { id: 7, slug: 'san-jose', nombre: 'San José', tipo: 'colegio', estado: 'activo', plan: 'pagado' }, rol: 'docente', desde: '2026-02-03T10:00:00.000Z', puedeSalir: false, motivo: 'Para salir del colegio habla con la dirección.' },
+      { espacio: { id: 7, slug: 'san-jose', nombre: 'San José', tipo: 'colegio', estado: 'activo', plan: 'pagado' }, rol: 'docente', desde: '2026-02-03T10:00:00.000Z', puedeSalir: false, motivo: 'Para salir del colegio habla con la dirección.', puedeRechazar: false },
     ]);
     expect(result).toEqual([
-      { espacioId: 7, slug: 'san-jose', nombre: 'San José', tipo: 'colegio', rol: 'docente', desde: '2026-02-03', puedeSalir: false, motivo: 'Para salir del colegio habla con la dirección.' },
+      { espacioId: 7, slug: 'san-jose', nombre: 'San José', tipo: 'colegio', rol: 'docente', desde: '2026-02-03', puedeSalir: false, motivo: 'Para salir del colegio habla con la dirección.', puedeRechazar: false },
     ]);
   });
 

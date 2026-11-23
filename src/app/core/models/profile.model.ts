@@ -63,17 +63,18 @@ export interface ProfileSpace {
   desde: string; // YYYY-MM-DD
   puedeSalir: boolean;
   motivo: string; // por qué no puede salir ('' si puede)
+  puedeRechazar: boolean; // un colegio unió esta cuenta por su correo hace menos de 30 días
 }
 
 // Tipos de aviso que el usuario puede configurar (algunos solo aplican a ciertos roles o espacios)
-// soloApp: el aviso llega solo en la app, nunca por correo (decidido por el fundador); lo de la semana va en el resumen
+// soloApp: el aviso llega solo en la app, nunca por correo (decidido por el fundador); lo de la semana va en el resumen, que también es solo de la app
 export const NOTIFICATION_TYPES: { id: NotificationType; label: string; descripcion: string; roles?: SpaceRole[]; tipo?: SpaceType; soloApp?: boolean }[] = [
   { id: 'comunicados', label: 'Comunicados', descripcion: 'Avisos de la dirección o de tus docentes.' },
   { id: 'tareas', label: 'Tareas', descripcion: 'Tareas nuevas, entregas y revisiones.', soloApp: true },
   { id: 'calificaciones', label: 'Calificaciones', descripcion: 'Cuando se publica una nota nueva.', roles: ['estudiante', 'padre', 'docente'], soloApp: true },
   { id: 'asistencia', label: 'Asistencia', descripcion: 'Faltas, atrasos y licencias.', roles: ['estudiante', 'padre', 'direccion'], tipo: 'colegio', soloApp: true },
   { id: 'sesiones', label: 'Sesiones en vivo', descripcion: 'Recordatorio 10 minutos antes de cada sesión.', tipo: 'academia' },
-  { id: 'resumen', label: 'Resumen semanal', descripcion: 'Un correo cada lunes con lo más importante de la semana.' },
+  { id: 'resumen', label: 'Resumen semanal', descripcion: 'Cada lunes, en tus avisos, lo más importante de la semana.', soloApp: true },
 ];
 
 export const PHOTO_MAX_KB = 800;

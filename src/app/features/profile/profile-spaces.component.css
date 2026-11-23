@@ -91,6 +91,32 @@
   border-color: #f4c7c3;
 }
 
+.vinculo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 10px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--light-cream);
+  font-size: 13px;
+}
+
+.vinculo fa-icon {
+  color: var(--dark-blue);
+  margin-top: 2px;
+}
+
+.vinculo p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.vinculo .ui-btn {
+  grid-column: 2;
+  justify-self: start;
+}
+
 .motivo {
   margin: -4px 0 0;
   color: var(--muted);

@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowRight, faChalkboardTeacher, faDoorOpen, faKey, faSchool, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faChalkboardTeacher, faCircleQuestion, faDoorOpen, faKey, faSchool, faStar } from '@fortawesome/free-solid-svg-icons';
 import { SessionService } from '../../core/auth/session.service';
 import { SPACE_ROLE_LABEL, SPACE_TYPE_LABEL } from '../../core/models/space.model';
 import type { ProfileSpace } from '../../core/models/profile.model';
@@ -32,6 +32,7 @@ export class ProfileSpacesComponent {
   readonly formatMonthYear = formatMonthYear;
   readonly faArrowRight = faArrowRight;
   readonly faChalkboardTeacher = faChalkboardTeacher;
+  readonly faCircleQuestion = faCircleQuestion;
   readonly faDoorOpen = faDoorOpen;
   readonly faKey = faKey;
   readonly faSchool = faSchool;
@@ -40,6 +41,7 @@ export class ProfileSpacesComponent {
   readonly espacios = rxResource({ stream: () => this.actividad.espacios(), defaultValue: [] });
   readonly predeterminado = signal(this.session.defaultSpace());
   readonly codigo = signal('');
+  readonly rechazando = signal('');
 
   esActual(e: ProfileSpace): boolean {
     return this.session.activeSpace()?.id === e.espacioId;
@@ -67,6 +69,27 @@ export class ProfileSpacesComponent {
       else this.espacios.reload();
     } catch (error) {
       this.avisos.error(getErrorMessage(error));
+    }
+  }
+
+  // A school joined this account by its email and it is not the person's (audit finding 15)
+  async rechazar(e: ProfileSpace): Promise<void> {
+    const rol = this.rolLabel[e.rol].toLowerCase();
+    if (!confirm(`¿No te corresponde ser ${rol} en ${e.nombre}? Tu cuenta deja ese espacio y avisamos a la dirección para que corrija el correo. Tus otros espacios no cambian.`)) return;
+    this.rechazando.set(e.slug + e.rol);
+    try {
+      await firstValueFrom(this.actividad.rechazarEspacio(e.slug, e.rol));
+      // With another role in the same space (docente and padre) the person stays in it
+      const otroRol = this.espacios.value().some((o) => o.espacioId === e.espacioId && o.rol !== e.rol);
+      const eraActual = this.esActual(e) && !otroRol;
+      if (!otroRol) this.session.removeMembership(e.espacioId);
+      this.avisos.success(`Listo: ya no eres ${this.rolLabel[e.rol].toLowerCase()} en ${e.nombre}. Avisamos a su dirección.`);
+      if (eraActual) this.router.navigateByUrl(this.session.postLoginRoute());
+      else this.espacios.reload();
+    } catch (error) {
+      this.avisos.error(getErrorMessage(error));
+    } finally {
+      this.rechazando.set('');
     }
   }
 

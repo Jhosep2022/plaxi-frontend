@@ -20,6 +20,7 @@ interface ApiMembership {
   desde: string;
   puedeSalir: boolean;
   motivo: string;
+  puedeRechazar: boolean;
 }
 
 // Numbers of the profile header, by role (the texts are set here)
@@ -76,6 +77,7 @@ export class ProfileActivityService {
           desde: fechaBolivia(m.desde),
           puedeSalir: m.puedeSalir,
           motivo: m.motivo,
+          puedeRechazar: m.puedeRechazar,
         })),
       ),
     );
@@ -86,6 +88,11 @@ export class ProfileActivityService {
     return this.http.delete<void>(
       `${this.api}/espacios/${encodeURIComponent(slug)}/membresia`,
     );
+  }
+
+  // "No me corresponde": a school joined this account by its email and it is not the person's
+  rechazarEspacio(slug: string, rol: SpaceRole): Observable<void> {
+    return this.http.post<void>(`${this.api}/espacios/${encodeURIComponent(slug)}/rechazo`, { rol });
   }
 
   // ---------- Header indicators (by the role in the active space) ----------

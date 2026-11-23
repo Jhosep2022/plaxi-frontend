@@ -18,6 +18,13 @@
             <span class="ui-badge tono-azul">{{ rolLabel[e.rol] }}</span>
             @if (predeterminado() === e.slug) { <span class="ui-badge tono-crema"><fa-icon [icon]="faStar" /> Se abre al iniciar sesión</span> }
           </div>
+          @if (e.puedeRechazar) {
+            <div class="vinculo" role="note">
+              <fa-icon [icon]="faCircleQuestion" />
+              <p>{{ e.nombre }} te agregó como {{ rolLabel[e.rol].toLowerCase() }} con tu correo. Si no eres tú o no te corresponde, avísalo y separamos tu cuenta.</p>
+              <button type="button" class="ui-btn ui-btn--secundario" [disabled]="rechazando() === e.slug + e.rol" (click)="rechazar(e)">No me corresponde</button>
+            </div>
+          }
           <footer>
             <label class="predeterminado">
               <span class="switch"><input type="checkbox" [checked]="predeterminado() === e.slug" (change)="fijar(e)" [attr.aria-label]="'Abrir ' + e.nombre + ' al iniciar sesión'" /><span></span></span>

@@ -10,6 +10,7 @@ export interface ApiMembership {
   desde: string;
   puedeSalir: boolean;
   motivo: string;
+  puedeRechazar?: boolean;
 }
 
 export interface ApiSessionResponse {
