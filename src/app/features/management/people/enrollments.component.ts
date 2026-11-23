@@ -23,7 +23,9 @@ import {
   compararParalelos,
   paraleloLabel,
 } from '../../../core/models/academics.model';
-import { Estudiante } from '../../../core/models/attendance.model';
+import { Estudiante, MOTIVOS_RETIRO, MotivoRetiro } from '../../../core/models/attendance.model';
+import { formatDateWithYear } from '../../../core/utils/attendance';
+import { DrawerComponent } from '../../../shared/ui/drawer.component';
 import { edad, iniciales } from '../../../core/models/people.model';
 import { todayIso } from '../../../core/utils/attendance';
 
@@ -43,6 +45,7 @@ import { SELECT } from '../../../shared/ui/select.component';
     FaIconComponent,
     PageHeaderComponent,
     EmptyStateComponent,
+    DrawerComponent,
   ],
   templateUrl: './enrollments.component.html',
   styleUrls: ['./people.css', './enrollments.component.css'],
@@ -100,8 +103,24 @@ export class EnrollmentsComponent {
       .filter((e) => e.paraleloId === this.seleccionadoId()),
   );
   readonly sinCurso = computed(() =>
-    this.estudiantes.value().filter((e) => !e.paraleloId),
+    this.estudiantes.value().filter((e) => !e.paraleloId && !e.retiro),
   );
+  // Retirados en esta gestión: pueden volver a inscribirse
+  readonly retirados = computed(() =>
+    this.estudiantes.value().filter((e) => !e.paraleloId && e.retiro),
+  );
+
+  readonly motivos = MOTIVOS_RETIRO;
+  readonly porRetirar = signal<Estudiante | null>(null);
+  readonly motivo = signal<MotivoRetiro | null>(null);
+
+  motivoLabel(id: MotivoRetiro): string {
+    return MOTIVOS_RETIRO.find((m) => m.id === id)?.label ?? id;
+  }
+
+  fechaLarga(fecha: string): string {
+    return formatDateWithYear(fecha);
+  }
 
   readonly resumen = computed(() => {
     const ps = this.paralelos.value();
@@ -163,14 +182,27 @@ export class EnrollmentsComponent {
     );
   }
 
-  async retirar(e: Estudiante): Promise<void> {
-    if (
-      !confirm(
-        `¿Retirar a ${e.nombre} de ${paraleloLabel(this.seleccionado()!)}? Quedará como "sin inscribir".`,
-      )
-    )
-      return;
-    await this.mover(e, 0, `${e.nombre} fue retirado del curso.`);
+  retirar(e: Estudiante): void {
+    this.motivo.set(null);
+    this.porRetirar.set(e);
+  }
+
+  async confirmarRetiro(): Promise<void> {
+    const e = this.porRetirar();
+    const motivo = this.motivo();
+    if (!e || !motivo) return;
+    this.trabajando.set(e.id);
+    try {
+      await firstValueFrom(this.personas.retirar(e.id, motivo));
+      this.avisos.success(`${e.nombre} quedó como retirado. Sus notas y asistencia se conservan.`);
+      this.porRetirar.set(null);
+      this.estudiantes.reload();
+      this.paralelos.reload();
+    } catch (error) {
+      this.avisos.error(getErrorMessage(error));
+    } finally {
+      this.trabajando.set(0);
+    }
   }
 
   private async mover(

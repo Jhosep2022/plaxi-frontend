@@ -21,6 +21,20 @@ export interface Estudiante {
   paraleloId: number;
   ci: string;
   fechaNacimiento: string; // YYYY-MM-DD
+  // Retirado en la gestión activa: su inscripción, notas y asistencia se conservan
+  retiro?: RetiroEstudiante | null;
+}
+
+export type MotivoRetiro = 'traslado' | 'abandono' | 'otro';
+export const MOTIVOS_RETIRO: { id: MotivoRetiro; label: string; ayuda: string }[] = [
+  { id: 'traslado', label: 'Traslado', ayuda: 'Se cambió a otro colegio.' },
+  { id: 'abandono', label: 'Abandono', ayuda: 'Dejó de asistir y no continuará este año.' },
+  { id: 'otro', label: 'Otro motivo', ayuda: 'Salud, viaje u otra razón.' },
+];
+export interface RetiroEstudiante {
+  fecha: string;
+  motivo: MotivoRetiro;
+  paralelo: string;
 }
 
 // Asistencia de un estudiante en una clase (materia + paralelo) en una fecha

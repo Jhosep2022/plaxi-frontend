@@ -59,6 +59,25 @@
           </section>
         }
 
+        <!-- Retirados en esta gestión: pueden volver -->
+        @if (retirados().length) {
+          <section class="ui-card pendientes">
+            <h2><fa-icon [icon]="faUserMinus" /> Retirados <span class="ui-badge">{{ retirados().length }}</span></h2>
+            <p class="secundario">Sus notas y asistencia se conservan. Si vuelve en esta gestión, inscríbelo de nuevo.</p>
+            <ul class="lista">
+              @for (e of retirados(); track e.id) {
+                <li>
+                  <span class="avatar">{{ iniciales(e.nombre) }}</span>
+                  <span class="nombre"><strong>{{ e.nombre }}</strong><small>{{ e.retiro!.paralelo }} · {{ motivoLabel(e.retiro!.motivo) }} · {{ fechaLarga(e.retiro!.fecha) }}</small></span>
+                  <button type="button" class="ui-btn ui-btn--secundario" [disabled]="lleno(sel) || trabajando() === e.id" (click)="inscribir(e)">
+                    <fa-icon [icon]="faArrowRightToBracket" /> Volver a inscribir en {{ paraleloLabel(sel) }}
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
         <!-- Estudiantes del paralelo -->
         <section class="ui-card">
           <header class="cabecera">
@@ -95,3 +114,19 @@
     </div>
   </div>
 }
+
+<app-drawer [abierto]="!!porRetirar()" [titulo]="'Retirar a ' + (porRetirar()?.nombre ?? '')" subtitulo="Deja de aparecer en listas, asistencia y notas de este año. Nada se borra." (cerrar)="trabajando() || porRetirar.set(null)">
+  <fieldset class="motivos">
+    <legend>¿Por qué se retira?</legend>
+    @for (m of motivos; track m.id) {
+      <label class="motivo" [class.elegido]="motivo() === m.id">
+        <input type="radio" name="motivo-retiro" [value]="m.id" [checked]="motivo() === m.id" (change)="motivo.set(m.id)" />
+        <span><strong>{{ m.label }}</strong><small>{{ m.ayuda }}</small></span>
+      </label>
+    }
+  </fieldset>
+  <p class="secundario">Si el retiro ocurre en los primeros 30 días desde su inscripción, el cupo se libera y no se cobra. Después, el cupo queda pagado hasta fin de año.</p>
+  <div pie>
+    <button type="button" class="ui-btn" [disabled]="!motivo() || !!trabajando()" (click)="confirmarRetiro()">{{ trabajando() ? 'Retirando…' : 'Retirar' }}</button>
+  </div>
+</app-drawer>

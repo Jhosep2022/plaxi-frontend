@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { AvatarComponent } from '../../../shared/ui/avatar.component';
+import { Tooltip } from 'primeng/tooltip';
+import { formatDateWithYear } from '../../../core/utils/attendance';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -69,6 +71,7 @@ const SIN_CURSO = 'sin-curso';
     DrawerComponent,
     RouterLink,
     AvatarComponent,
+    Tooltip,
   ],
   templateUrl: './students.component.html',
   styleUrls: ['./people.css'],
@@ -82,6 +85,7 @@ export class StudentsComponent {
   readonly SIN_CURSO = SIN_CURSO;
   readonly iniciales = iniciales;
   readonly paraleloLabel = paraleloLabel;
+  readonly fechaLarga = formatDateWithYear;
   readonly faChild = faChild;
   readonly faMagnifyingGlass = faMagnifyingGlass;
   readonly faPen = faPen;

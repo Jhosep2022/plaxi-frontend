@@ -114,6 +114,8 @@
               <td>
                 @if (e.paraleloId) {
                   <span class="ui-badge tono-lima">{{ cursoDe(e) }}</span>
+                } @else if (e.retiro) {
+                  <span class="ui-badge" [pTooltip]="'Retirado de ' + e.retiro.paralelo + ' el ' + fechaLarga(e.retiro.fecha) + '. Sus notas y asistencia se conservan.'" tooltipPosition="top">Retirado</span>
                 } @else {
                   <span class="ui-badge tono-crema">Sin inscribir</span>
                 }
@@ -247,7 +249,7 @@
     <div class="ui-campo">
       <label for="est-curso">Curso</label>
       <app-select inputId="est-curso" [formField]="formulario.paraleloId">
-        <app-option [value]="'0'" [label]="'Sin inscribir por ahora'" />
+        @if (!editando()?.paraleloId) { <app-option [value]="'0'" [label]="'Sin inscribir por ahora'" /> }
         @for (p of cursos(); track p.id) {
           <app-option
             [value]="'' + p.id"

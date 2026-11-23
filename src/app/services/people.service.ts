@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { forkJoin, map, Observable, switchMap, throwError } from 'rxjs';
 import { SessionService } from '../core/auth/session.service';
 import { Docente, Gestion, Paralelo } from '../core/models/academics.model';
-import { Estudiante } from '../core/models/attendance.model';
+import { Estudiante, MotivoRetiro, RetiroEstudiante } from '../core/models/attendance.model';
 import { Parentesco, Tutor, Vinculo } from '../core/models/people.model';
 import { environment } from '../../environments/environment';
 
@@ -53,6 +53,7 @@ interface ApiPerson {
   ocupacion?: string;
   fechaNacimiento?: string | null;
   paraleloId?: number | null;
+  retiro?: RetiroEstudiante | null;
   hijos?: HijoDeTutor[];
   carga?: CargaDocente;
   temporaryPassword?: string;
@@ -91,6 +92,7 @@ const toStudent = (person: ApiPerson): Estudiante => ({
   ci: person.ci,
   fechaNacimiento: person.fechaNacimiento ?? '',
   paraleloId: person.paraleloId ?? 0,
+  retiro: person.retiro ?? null,
 });
 const toParent = (person: ApiPerson): Tutor => ({
   avatar: person.avatar ?? null,
@@ -217,6 +219,10 @@ export class PeopleService {
           : {}),
       })),
     );
+  }
+  // Lo retira de su paralelo: la inscripción queda como retirada, con fecha y motivo
+  retirar(studentId: number, motivo: MotivoRetiro): Observable<unknown> {
+    return this.http.put(`${this.base}/estudiantes/${studentId}/inscripcion`, { paraleloId: null, motivo });
   }
   inscribir(studentId: number, classGroupId: number): Observable<Estudiante> {
     return this.http
