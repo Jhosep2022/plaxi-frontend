@@ -9,7 +9,7 @@
 @if (history.error()) {
   <div class="ui-card" role="alert"><app-empty-state kind="error" titulo="No pudimos cargar los pagos" texto="Reintenta para consultar el historial actualizado." /></div>
 } @else if (history.hasValue()) {
-  @if (space()?.type === 'colegio' || history.value()!.account?.hasAgreements) {
+  @if (canRecord() || space()?.type === 'colegio' || history.value()!.account?.hasAgreements) {
     <app-payment-balance [history]="history.value()!" [editable]="canRecord()" (changed)="history.reload()" />
     <app-payment-calendar [history]="history.value()!" [editable]="canRecord()" (yearChange)="selectedYear.set($event)" (changed)="history.reload()" />
   }

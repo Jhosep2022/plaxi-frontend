@@ -12,3 +12,9 @@ td { vertical-align: top; }
 td small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; }
 .calendar-note { margin: 16px 0 0; max-width: 850px; }
 @media (max-width: 600px) { .calendar-summary { grid-template-columns: 1fr; gap: 16px; } }
+
+/* Monto sugerido de una academia */
+.quotes { display: grid; gap: 8px; margin-bottom: 16px; }
+.quote { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.quote div { display: grid; gap: 2px; }
+.quote small { color: var(--muted); font-size: 12px; }

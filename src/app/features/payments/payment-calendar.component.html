@@ -85,6 +85,18 @@
   <div pie><button class="ui-btn" type="submit" form="calendar-config" [disabled]="saving() || (!isAcademy() && !enrollmentReady())">{{ saving() ? 'Guardando…' : 'Guardar cuotas de ' + year() }}</button></div>
 </app-drawer>
 <app-drawer [abierto]="amountIndex() !== null" [titulo]="'Monto de ' + amountLabel()" subtitulo="Confirma el importe del mes después de revisar los estudiantes cobrados." (cerrar)="!saving() && amountIndex.set(null)">
+  @if (history().academyPricing; as pricing) {
+    <section class="quotes" aria-label="Monto sugerido">
+      <p class="calendar-note"><strong>Hoy: {{ pricing.studentCount }} estudiantes activos y {{ pricing.storageGb }} GB de espacio.</strong> Revisa el conteo del mes antes de confirmar.</p>
+      @for (quote of pricing.quotes; track quote.priceTier) {
+        <div class="quote">
+          <div><strong>{{ quote.priceTier === 'founder' ? 'Tarifa fundadora' : 'Tarifa normal' }}: {{ money(quote.totalBs) }}</strong>
+            <small>{{ quote.studentCount }} × {{ money(quote.perStudentBs) }}@if (quote.minimumApplied) { · se aplica el mínimo de {{ money(quote.minimumBs) }} }@if (quote.extraStorageBlocks) { · {{ quote.extraStorageBlocks }} × 10 GB extra: {{ money(quote.extraStorageBs) }} }</small></div>
+          <button type="button" class="ui-btn ui-btn--secundario" (click)="useQuote(quote)">Usar</button>
+        </div>
+      }
+    </section>
+  }
   <form id="calendar-amount" class="ui-form" (submit)="$event.preventDefault(); saveAmount()" novalidate>
     <div class="ui-campo"><label for="installment-amount">Monto confirmado (Bs)</label><input id="installment-amount" class="ui-input" inputmode="decimal" [formField]="amountForm.amountBs" />
       @if (amountForm.amountBs().touched() && amountForm.amountBs().invalid()) { <span class="ui-error">{{ amountForm.amountBs().errors()[0].message }}</span> }</div>

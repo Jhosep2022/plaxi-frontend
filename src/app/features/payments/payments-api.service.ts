@@ -37,6 +37,12 @@ export interface PaymentHistory {
   availableYears?: number[];
   calendar?: PaymentCalendar | null;
   schoolPricing?: { gestionId: number | null; studentCount: number; quotes: (SchoolPricing & { mode: CalendarMode })[] } | null;
+  // Paid academy: what a month would cost today (active students and storage), with both rates
+  academyPricing?: { studentCount: number; storageGb: number; quotes: AcademyPricing[] } | null;
+}
+export interface AcademyPricing {
+  priceTier: 'normal' | 'founder'; studentCount: number; perStudentBs: string; minimumBs: string; minimumApplied: boolean;
+  studentsBs: string; storageGb: number; extraStorageBlocks: number; extraStorageBs: string; totalBs: string;
 }
 export interface PaymentBalance {
   paymentId: number; receivedBs: string; appliedBs: string; availableBs: string; historical: boolean;

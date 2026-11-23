@@ -6,7 +6,7 @@ import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { SELECT } from '../../shared/ui/select.component';
 import { NotificationService } from '../../shared/ui/notification.service';
 import { readApiError } from '../../core/api/api-error';
-import { PaymentsApiService, type CalendarMode, type PaymentHistory, type ScheduledInstallment, type SchoolPriceTier } from './payments-api.service';
+import { PaymentsApiService, type CalendarMode, type PaymentHistory, type ScheduledInstallment, type SchoolPriceTier, type AcademyPricing } from './payments-api.service';
 
 const CONFIG_LABELS: Record<CalendarMode, string> = {
   first_year: 'Primera gestión: anticipo y 10 cuotas', renewal: 'Renovación: 10 cuotas sin anticipo', annual: 'Un pago anual', academy: 'Academia: meses por confirmar',
@@ -80,6 +80,15 @@ export class PaymentCalendarComponent {
     });
     this.error.set('');
     this.openConfig.set(true);
+  }
+  // Fills the month with the suggested amount and writes the count in the reason
+  useQuote(quote: AcademyPricing): void {
+    const tier = quote.priceTier === 'founder' ? 'tarifa fundadora' : 'tarifa normal';
+    const storage = quote.extraStorageBlocks ? `, más ${quote.extraStorageBlocks} × 10 GB extra` : '';
+    this.amountForm().reset({
+      amountBs: quote.totalBs,
+      reason: `${quote.studentCount} estudiantes activos, ${tier}${quote.minimumApplied ? ' (mínimo)' : ''}${storage}.`,
+    });
   }
   editAmount(installment: ScheduledInstallment): void {
     this.amountIndex.set(installment.index);
