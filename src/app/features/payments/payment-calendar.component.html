@@ -13,7 +13,8 @@
     @if (current.mode === 'renewal') { <p class="calendar-note"><strong>Renovación sin anticipo.</strong> El total se distribuye en diez cuotas de febrero a noviembre. El saldo disponible puede cubrirlas desde las más antiguas; consulta su reparto en el resumen de arriba.</p> }
     @if (deadlineMismatch()) { <p class="ui-error" role="alert">{{ editable() ? 'La fecha límite del anticipo o anual no corresponde a la gestión ' + year() + '. Revisa la gestión y corrige el plazo en «Recalcular cuotas».' : 'Alclick está revisando las fechas de esta gestión.' }}</p> }
     @if (current.pricing; as pricing) {
-      <p class="calendar-note"><strong>{{ pricing.studentCount }} estudiantes · Tarifa {{ pricing.priceTier === 'founder' ? 'fundador' : 'normal' }}</strong> · {{ money(pricing.annualRateBs) }} por estudiante y gestión (10 meses de clases). Desde el estudiante 1.001: {{ money(pricing.volumeRateBs) }}.
+      @if (pricing.countedBy === 'seats') { <p class="calendar-note"><strong>Calculado con los {{ pricing.studentCount }} cupos contratados:</strong> los estudiantes no se cargaron en la primera semana. Al cargarlos, Alclick recalcula las cuotas con los inscritos reales.</p> }
+      <p class="calendar-note"><strong>{{ pricing.studentCount }} {{ pricing.countedBy === 'seats' ? 'cupos' : 'estudiantes' }} · Tarifa {{ pricing.priceTier === 'founder' ? 'fundador' : 'normal' }}</strong> · {{ money(pricing.annualRateBs) }} por estudiante y gestión (10 meses de clases). Desde el estudiante 1.001: {{ money(pricing.volumeRateBs) }}.
         @if (pricing.minimumApplied) { Mínimo por gestión: {{ money(pricing.minimumBs) }}. }
         @if (pricing.discountPercent) { Descuento anual: {{ pricing.discountPercent }} % ({{ money(pricing.discountBs) }}). }
         Total calculado: <strong>{{ money(pricing.totalBs) }}</strong>.
@@ -40,6 +41,8 @@
     @if (editable()) { <p class="calendar-note">Los pagos por gestión se aplican según el reparto confirmado. Los registros anteriores por período conservan su aplicación hasta que se revisen. Las correcciones actualizan este calendario sin borrar el historial.</p> }
   } @else if (history().space.plan === 'gratis') {
     <p class="calendar-note">El plan gratis no genera cuotas ni tiene vencimiento.</p>
+  } @else if (loadingWeek()) {
+    <app-empty-state [compact]="true" titulo="Semana de carga de estudiantes" [texto]="(editable() ? 'El colegio tiene' : 'Tienes') + ' hasta el ' + loadingWeek() + ' para cargar a sus estudiantes. Las cuotas se calculan con ellos; si ese día no están cargados, se calculan con los ' + (history().schoolPricing?.seats ?? '') + ' cupos contratados.'" />
   } @else {
     <app-empty-state [compact]="true" titulo="Todavía no hay calendario de cuotas" [texto]="editable() ? 'Configura el acuerdo de esta gestión para mostrar las cuotas y los saldos.' : 'Alclick debe configurar el acuerdo de esta gestión. Tus pagos registrados se conservan en el historial.'" />
   }
@@ -57,9 +60,14 @@
         <app-option value="founder" label="Fundador · Bs 40 por estudiante y gestión" />
       </app-select></div>
       <div class="calendar-note" aria-live="polite">
-        <strong>{{ history().schoolPricing?.studentCount ?? 0 }} estudiantes inscritos en {{ year() }}</strong>
-        <p>Se cuentan los estudiantes de esta gestión; docentes, dirección y padres están incluidos.</p>
-        @if (!enrollmentReady()) { <p class="ui-error">{{ history().schoolPricing?.gestionId ? 'No hay estudiantes inscritos en esta gestión. Registra las inscripciones antes de generar las cuotas.' : 'El colegio todavía no tiene esta gestión registrada. Selecciona o crea la gestión correspondiente y registra sus inscripciones.' }}</p> }
+        @if (bySeats()) {
+          <strong>{{ history().schoolPricing?.studentCount ?? 0 }} cupos contratados</strong>
+          <p>La primera semana terminó sin estudiantes cargados en {{ year() }}: se calcula con los cupos del contrato. Cuando los cargue, recalcula con los inscritos.</p>
+        } @else {
+          <strong>{{ history().schoolPricing?.studentCount ?? 0 }} estudiantes inscritos en {{ year() }}</strong>
+          <p>Se cuentan los estudiantes de esta gestión; docentes, dirección y padres están incluidos.</p>
+        }
+        @if (!enrollmentReady()) { <p class="ui-error">{{ loadingWeek() ? 'El colegio está en su semana de carga hasta el ' + loadingWeek() + '. Después de esa fecha, si no cargó a sus estudiantes, se calcula con sus cupos contratados.' : history().schoolPricing?.gestionId ? 'No hay estudiantes inscritos en esta gestión. Registra las inscripciones antes de generar las cuotas.' : 'El colegio todavía no tiene esta gestión registrada. Selecciona o crea la gestión correspondiente y registra sus inscripciones.' }}</p> }
         @else if (quote(); as price) {
           <p>Primeros 1.000 estudiantes: {{ money(price.annualRateBs) }} por estudiante y gestión. Desde el 1.001: {{ money(price.volumeRateBs) }}.</p>
           <p>Base anual: {{ money(price.baseBs) }}. @if (price.minimumApplied) { Se aplica el mínimo de {{ money(price.minimumBs) }}. }</p>

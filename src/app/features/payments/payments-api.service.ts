@@ -36,7 +36,8 @@ export interface PaymentHistory {
   year?: number;
   availableYears?: number[];
   calendar?: PaymentCalendar | null;
-  schoolPricing?: { gestionId: number | null; studentCount: number; quotes: (SchoolPricing & { mode: CalendarMode })[] } | null;
+  // basis: 'seats' when a new school's first week ended with nobody loaded; loadDeadline: last day of that week
+  schoolPricing?: { gestionId: number | null; studentCount: number; basis?: 'enrolled' | 'seats'; seats?: number | null; loadDeadline?: string; loadingWeek?: boolean; quotes: (SchoolPricing & { mode: CalendarMode })[] } | null;
   // Paid academy: what a month would cost today (active students and storage), with both rates
   academyPricing?: { studentCount: number; storageGb: number; quotes: AcademyPricing[] } | null;
 }
@@ -60,6 +61,7 @@ export type SchoolPriceTier = 'normal' | 'founder';
 export interface SchoolPricing {
   studentCount: number; priceTier: SchoolPriceTier; annualRateBs: string; volumeRateBs: string;
   minimumBs: string; minimumApplied: boolean; baseBs: string; discountPercent: number; discountBs: string; totalBs: string;
+  countedBy?: 'enrolled' | 'seats';
 }
 export interface CalendarInput { mode: CalendarMode; priceTier?: SchoolPriceTier; dueDate?: string; reason: string }
 export interface ScheduledInstallment {

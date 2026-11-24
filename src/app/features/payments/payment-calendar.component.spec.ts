@@ -87,6 +87,27 @@ describe('PaymentCalendarComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('todavía no tiene esta gestión registrada');
   });
 
+  it('tells the direction it is in its loading week instead of showing an empty calendar', () => {
+    const fixture = TestBed.createComponent(PaymentCalendarComponent);
+    fixture.componentRef.setInput('history', {
+      ...history,
+      calendar: null,
+      schoolPricing: { gestionId: 12, studentCount: 0, basis: 'enrolled', seats: 300, loadDeadline: '2026-12-08', loadingWeek: true, quotes: [] },
+    });
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Semana de carga de estudiantes');
+    expect(text).toContain('Tienes hasta el 08/12/2026');
+    expect(text).toContain('300 cupos contratados');
+  });
+
+  it('says when a first year was calculated with the contracted seats', () => {
+    const fixture = TestBed.createComponent(PaymentCalendarComponent);
+    fixture.componentRef.setInput('history', { ...history, calendar: { ...history.calendar!, pricing: { ...normalPricing, countedBy: 'seats' } } });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Calculado con los 300 cupos contratados');
+  });
+
   it('explains the service year and rejects an advance deadline in the following school year', () => {
     const fixture = TestBed.createComponent(PaymentCalendarComponent);
     fixture.componentRef.setInput('history', history);

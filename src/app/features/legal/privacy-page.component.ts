@@ -62,7 +62,7 @@ import { TERMS_DATE_LABEL } from './legal-version';
       <ul>
         <li>Mientras tu cuenta o el contrato de tu colegio estén activos.</li>
         <li>Si un colegio deja Aulix: su espacio pasa a solo lectura, tiene 30 días para descargar todo y el día 90 se borran sus datos. Alclick entrega una constancia del borrado.</li>
-        <li>Si das de baja tu cuenta, se desactiva y se cierran tus sesiones. Los registros académicos que el colegio debe conservar quedan con el colegio.</li>
+        <li>Si das de baja tu cuenta, se desactiva y se cierran tus sesiones. Durante 30 días puedes pedir que la recuperemos; después borramos tus datos personales: nombre, usuario, correo, carnet, teléfono, fecha de nacimiento, dirección, foto y contactos. Los registros académicos que el colegio debe conservar quedan con el colegio.</li>
       </ul>
 
       <h2>9. Tus derechos</h2>

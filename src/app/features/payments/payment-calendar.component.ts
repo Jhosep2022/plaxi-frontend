@@ -41,7 +41,13 @@ export class PaymentCalendarComponent {
   readonly quote = computed(() => this.history().schoolPricing?.quotes.find((quote) => quote.mode === this.config().mode && quote.priceTier === this.config().priceTier));
   readonly advanceBs = computed(() => (Math.floor(Number(this.quote()?.totalBs ?? 0) * 100 * 0.2) / 100).toFixed(2));
   readonly monthlyBs = computed(() => ((Number(this.quote()?.totalBs ?? 0) - (this.config().mode === 'first_year' ? Number(this.advanceBs()) : 0)) / 10).toFixed(2));
-  readonly enrollmentReady = computed(() => !!this.history().schoolPricing?.gestionId && (this.history().schoolPricing?.studentCount ?? 0) > 0);
+  readonly enrollmentReady = computed(() => (this.history().schoolPricing?.studentCount ?? 0) > 0);
+  readonly bySeats = computed(() => this.history().schoolPricing?.basis === 'seats');
+  // A new school's first week to load its students: nothing is billed yet
+  readonly loadingWeek = computed(() => {
+    const pricing = this.history().schoolPricing;
+    return !this.isAcademy() && pricing?.loadingWeek && pricing.loadDeadline ? pricing.loadDeadline.split('-').reverse().join('/') : '';
+  });
   readonly pricingChanged = computed(() => !!this.calendar() && !this.isAcademy() &&
     (!this.calendar()?.pricing || this.calendar()?.pricing?.studentCount !== this.history().schoolPricing?.studentCount));
   readonly deadlineMismatch = computed(() => {

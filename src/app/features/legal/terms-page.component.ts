@@ -29,7 +29,7 @@ import { TERMS_DATE_LABEL } from './legal-version';
       <ul>
         <li>Tu usuario y contraseña son personales. No los compartas.</li>
         <li>Si crees que alguien entró a tu cuenta, cambia tu contraseña y cierra las sesiones de otros dispositivos desde <strong>Mi perfil → Seguridad</strong>.</li>
-        <li>Puedes dar de baja tu cuenta desde tu perfil. Las notas y registros que el colegio necesita conservar siguen siendo del colegio.</li>
+        <li>Puedes dar de baja tu cuenta desde tu perfil. A los 30 días se borran tus datos personales; las notas y registros que el colegio necesita conservar siguen siendo del colegio.</li>
       </ul>
 
       <h2>4. Uso permitido</h2>
