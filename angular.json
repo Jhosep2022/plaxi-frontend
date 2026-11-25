@@ -19,7 +19,8 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/_headers"
             ],
             "styles": [
               "src/styles.css",
@@ -50,7 +51,12 @@
                   "maximumError": "6kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": false },
+                "fonts": true
+              }
             },
             "development": {
               "buildOptimizer": false,
