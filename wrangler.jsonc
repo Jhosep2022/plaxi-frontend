@@ -1,0 +1,12 @@
+// Cloudflare Workers publica Aulix como archivos estáticos (sin código en el servidor): aulix.alclick.dev
+// Las cabeceras de seguridad y caché salen de src/_headers, que el build copia a la raíz.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aulix",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist/plaxi-frontend",
+    // Cualquier ruta de Angular (/colegio/padre/calificaciones…) devuelve index.html en vez de 404
+    "not_found_handling": "single-page-application"
+  }
+}
